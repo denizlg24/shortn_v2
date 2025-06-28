@@ -1,3 +1,4 @@
+import { LoginForm } from "@/components/login/login-form";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
@@ -11,7 +12,8 @@ export default function Home({
   setRequestLocale(locale);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      login
+      <LoginForm />
     </main>
   );
 }
+
