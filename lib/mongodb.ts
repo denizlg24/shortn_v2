@@ -1,6 +1,6 @@
 "use server"
 import env from "@/utils/env";
-import mongoose from "mongoose";
+import * as mongoose from "mongoose";
 
 const DATABASE_URL = env.MONGODB_KEY;
 

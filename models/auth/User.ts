@@ -25,42 +25,28 @@ const userSchema = new Schema<IUser>({
     sub: {
         type: String,
         required: true,
-        default: "",
         unique: [true, "A user with that sub already exists"],
     },
     displayName: {
         type: String,
-        required: true,
-        default: "",
     },
     stripeId: {
         type: String,
-        required: true,
-        default: "",
     },
     username: {
         type: String,
-        required: [true, "username not provided"],
     },
     email: {
         type: String,
-        lowercase: true,
-        trim: true,
-        required: [true, "email not provided"],
-        validate: {
-            validator: function (v: string) {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-            },
-            message: (props: any) => `${props.value} is not a valid email!`,
-        },
+
     },
     password: {
         type: String,
-        required: true,
+
     },
     profilePicture: {
         type: String,
-        default: "",
+
     },
     emailVerified: {
         type: Boolean,
@@ -84,4 +70,4 @@ const userSchema = new Schema<IUser>({
 });
 
 export const User: Model<IUser> =
-    mongoose.models.User || mongoose.model<IUser>("User", userSchema);
+    mongoose.models?.User || mongoose.model<IUser>("User", userSchema);

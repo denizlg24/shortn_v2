@@ -15,3 +15,27 @@ export async function authenticate(
         throw error;
     }
 }
+
+export async function githubAuthenticate() {
+    try {
+        await signIn("github");
+        return true;
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return error;
+        }
+        throw error;
+    }
+}
+
+export async function googleAuthenticate() {
+    try {
+        await signIn("google");
+        return true;
+    } catch (error) {
+        if (error instanceof AuthError) {
+            return error;
+        }
+        throw error;
+    }
+}

@@ -492,6 +492,16 @@ export const Header = () => {
                       </AccordionItem>
                     </Accordion>
                   </NavigationMenuItem>
+                  <NavigationMenuItem asChild>
+                    <Button asChild>
+                      <Link href="/login">Login</Link>
+                    </Button>
+                  </NavigationMenuItem>
+                  <NavigationMenuItem asChild>
+                    <Button variant={"outline"} asChild>
+                      <Link href="/register">Register</Link>
+                    </Button>
+                  </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>
               <SheetFooter>

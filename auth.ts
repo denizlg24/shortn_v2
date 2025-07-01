@@ -5,6 +5,9 @@ import { connectDB } from './lib/mongodb';
 import { IPlan, User } from './models/auth/User';
 import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt"
+import GitHub from "next-auth/providers/github"
+import Google, { GoogleProfile } from "next-auth/providers/google"
+import { createFreePlan } from "./app/actions/createFreePlan";
 
 declare module "next-auth" {
     interface Session {
@@ -50,12 +53,138 @@ declare module "next-auth/jwt" {
     }
 }
 
-export const { auth, signIn, signOut } = NextAuth({
+export const { auth, signIn, signOut, handlers } = NextAuth({
     ...authConfig,
     session: {
         strategy: "jwt",
     },
     providers: [
+        GitHub({
+            name: "Github",
+            id: "github",
+            async profile(profile) {
+                await connectDB();
+                const githubSub = "github|" + profile.id;
+                const user = await User.findOne({ sub: githubSub });
+                if (!user) {
+                    const rawUserData = profile;
+                    const sub = `github|${rawUserData.id}`;
+                    const { customerId } = await createFreePlan({ name: rawUserData.name || rawUserData.email || rawUserData.login, email: rawUserData.email ?? undefined });
+                    const newUser = new User({
+                        sub,
+                        displayName: rawUserData.name || rawUserData.email || rawUserData.login || `GitHub ${rawUserData.id}`,
+                        username: rawUserData.login,
+                        stripeId: customerId,
+                        email: rawUserData.email || "",
+                        password: "Does Not Apply",
+                        profilePicture: rawUserData.avatar_url,
+                        emailVerified: true,
+                        createdAt: new Date(),
+                        plan: {
+                            subscription: "free",
+                            lastPaid: new Date(),
+                        },
+                        links_this_month: 0,
+                    });
+                    await newUser.save();
+                    return {
+                        sub,
+                        displayName: rawUserData.name || rawUserData.email || rawUserData.login || `GitHub ${rawUserData.id}`,
+                        username: rawUserData.login,
+                        stripeId: customerId,
+                        email: rawUserData.email || "",
+                        password: "Does Not Apply",
+                        profilePicture: rawUserData.avatar_url,
+                        emailVerified: true,
+                        createdAt: new Date(),
+                        plan: {
+                            subscription: "free",
+                            lastPaid: new Date(),
+                        },
+                        links_this_month: 0,
+                    };
+                };
+                return {
+                    id: user.id as string,
+                    sub: user.sub,
+                    email: user.email,
+                    displayName: user.displayName,
+                    profilePicture: user.profilePicture,
+                    stripeId: user.stripeId,
+                    username: user.username,
+                    emailVerified: user.emailVerified,
+                    createdAt: user.createdAt,
+                    plan: {
+                        subscription: user.plan.subscription,
+                        lastPaid: user.plan.lastPaid
+                    },
+                    links_this_month: user.links_this_month,
+                };
+            }
+        }),
+        Google({
+            name: "Google",
+            id: "google",
+            async profile(profile: GoogleProfile) {
+                await connectDB();
+                const googleSub = "google|" + profile.sub;
+                const user = await User.findOne({ sub: googleSub });
+                if (!user) {
+                    const rawUserData = profile;
+                    const sub = `google|${rawUserData.sub}`;
+                    const { customerId } = await createFreePlan({ name: rawUserData.name, email: rawUserData.email ?? undefined });
+                    const newUser = new User({
+                        sub,
+                        displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
+                        username: rawUserData.email.split("@")[0],
+                        stripeId: customerId,
+                        email: rawUserData.email,
+                        password: "Does Not Apply",
+                        profilePicture: rawUserData.picture,
+                        emailVerified: true,
+                        createdAt: new Date(),
+                        plan: {
+                            subscription: "free",
+                            lastPaid: new Date(),
+                        },
+                        links_this_month: 0,
+                    });
+                    await newUser.save();
+                    return {
+                        sub,
+                        displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
+                        username: rawUserData.email.split("@")[0],
+                        stripeId: customerId,
+                        email: rawUserData.email,
+                        password: "Does Not Apply",
+                        profilePicture: rawUserData.picture,
+                        emailVerified: true,
+                        createdAt: new Date(),
+                        plan: {
+                            subscription: "free",
+                            lastPaid: new Date(),
+                        },
+                        links_this_month: 0,
+                    };
+                }
+                return {
+                    id: user.id as string,
+                    sub: user.sub,
+                    email: user.email,
+                    displayName: user.displayName,
+                    profilePicture: user.profilePicture,
+                    stripeId: user.stripeId,
+                    username: user.username,
+                    emailVerified: user.emailVerified,
+                    createdAt: user.createdAt,
+                    plan: {
+                        subscription: user.plan.subscription,
+                        lastPaid: user.plan.lastPaid
+                    },
+                    links_this_month: user.links_this_month,
+                };
+            }
+        }),
         credentials({
             name: "Credentials",
             id: "credentials",
@@ -81,8 +210,10 @@ export const { auth, signIn, signOut } = NextAuth({
 
                 const isValid = await bcrypt.compare(credentials.password as string, account.password);
                 if (!isValid) throw new CredentialsSignin("Invalid password");
-
                 const user = account.toObject();
+                if (!user.emailVerified) {
+                    throw new CredentialsSignin("Account not verified");
+                }
                 return {
                     id: user.id as string,
                     sub: user.sub,

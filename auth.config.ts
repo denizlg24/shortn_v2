@@ -40,7 +40,7 @@ export const authConfig = {
 
             return intlMiddleware(request);
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
             if (user) {
                 token.sub = user.sub;
                 token.email = user.email;

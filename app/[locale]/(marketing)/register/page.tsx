@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/login/login-form";
+import { RegisterForm } from "@/components/register/register-form";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
@@ -13,15 +13,7 @@ export default function Home({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full flex flex-col max-w-lg p-4 gap-6 sm:pt-8">
-        <div className="flex flex-col gap-0 w-full">
-          <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-            Welcome back!
-          </h1>
-          <h2 className="lg:text-lg md:text-base text-sm">
-            Login to your account and start sharing.
-          </h2>
-        </div>
-        <LoginForm />
+        <RegisterForm />
       </div>
     </main>
   );

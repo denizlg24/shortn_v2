@@ -4,9 +4,9 @@ import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
 import { cookies } from "next/headers";
 import { DashboardHeader } from "@/components/ui/dashboard-header";
+import { AppSideBarContainer } from "@/components/app-sidebar-container";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -53,11 +53,11 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body
-        className={`antialiased w-full min-h-screen flex flex-col items-center justify-start pt-14`}
+        className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14 pt-12`}
       >
         <NextIntlClientProvider>
           <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSidebar />
+            <AppSideBarContainer />
             <DashboardHeader />
             {children}
           </SidebarProvider>

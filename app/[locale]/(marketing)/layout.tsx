@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
+import { Toaster } from "@/components/ui/sonner";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -52,6 +53,7 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <Header />
           {children}
+          <Toaster position="top-center" />
           <Footer />
         </NextIntlClientProvider>
       </body>
