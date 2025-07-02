@@ -9,5 +9,6 @@ export const routing = defineRouting({
         maxAge: 60 * 60 * 24 * 4,
         sameSite: "lax",
         secure: false
-    }
+    },
+    localePrefix: 'always',
 });

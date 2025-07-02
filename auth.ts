@@ -195,7 +195,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
             async authorize(credentials) {
                 await connectDB();
                 if (!credentials?.email || !credentials?.password) {
-                    throw new CredentialsSignin("Missing email or password");
+                    throw new CredentialsSignin("email-password-missing");
                 }
                 const usernameFind = await User.findOne({
                     username: credentials.email,
@@ -206,13 +206,13 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                     sub: { $regex: /^authS\|/ },
                 });
                 const account = emailFind || usernameFind;
-                if (!account) throw new CredentialsSignin("No account found with those credentials");
+                if (!account) throw new CredentialsSignin("no-account");
 
                 const isValid = await bcrypt.compare(credentials.password as string, account.password);
-                if (!isValid) throw new CredentialsSignin("Invalid password");
+                if (!isValid) throw new CredentialsSignin("wrong-password");
                 const user = account.toObject();
                 if (!user.emailVerified) {
-                    throw new CredentialsSignin("Account not verified");
+                    throw new CredentialsSignin("not-verified");
                 }
                 return {
                     id: user.id as string,

@@ -9,7 +9,7 @@ import { VerificationToken } from "@/models/auth/Token";
 import { randomBytes, randomInt } from "crypto";
 import { sendVerificationEmail } from "./sendVerificationEmail";
 
-export const createAccount = async ({ email, password, username, displayName }: { email: string, password: string, username: string, displayName: string }) => {
+export const createAccount = async ({ email, password, username, displayName, locale }: { email: string, password: string, username: string, displayName: string, locale: string }) => {
     try {
         await connectDB();
         const emailFind = await User.findOne({ email, sub: /^authS/ });
@@ -43,7 +43,7 @@ export const createAccount = async ({ email, password, username, displayName }: 
         await newUser.save();
 
 
-        const verificationMail = await sendVerificationEmail(email);
+        const verificationMail = await sendVerificationEmail(email, locale);
         if (verificationMail) {
             return { success: true };
         } else {

@@ -1,28 +1,29 @@
 "use server";
 import { connectDB } from "@/lib/mongodb";
+import { ResetToken } from "@/models/auth/ResetToken";
 import { VerificationToken } from "@/models/auth/Token";
 import { User } from "@/models/auth/User";
 import env from "@/utils/env";
-import { randomBytes, randomInt } from "crypto";
+import { randomBytes } from "crypto";
 import { readFileSync } from "fs";
 import nodemailer from "nodemailer";
 import path from "path";
 
-export async function sendVerificationEmail(email: string, locale: string) {
+export async function sendRecoveryEmail(email: string, locale: string) {
     await connectDB();
     const user = await User.findOne({ email, sub: /^authS/ });
     if (!user) {
-        return false;
+        return { success: false, message: "no-user" };
     }
-    const token = new VerificationToken({
-        _userId: user._id,
-        token: randomBytes(16).toString("hex"),
+    const token = new ResetToken({
+        sub: user.sub,
+        token: randomBytes(32).toString("hex"),
     });
     await token.save();
-    const hrefLink = `http://localhost:3000/${locale}/register/confirmation/${email}/${token.token}`;
-    const htmlPath = path.join(process.cwd(), "lib/email/templates/verification.mail.html");
+    const hrefLink = `http://localhost:3000/${locale}/recover/${token.token}`;
+    const htmlPath = path.join(process.cwd(), "lib/email/templates/passwordRecovery.mail.html");
     let html = readFileSync(htmlPath, "utf8");
-    html = html.replace(/{{VERIFY_EMAIL}}/g, hrefLink);
+    html = html.replace(/{{RECOVERY_LINK}}/g, hrefLink);
     const transporter = nodemailer.createTransport({
         host: "smtp.hostinger.com",
         port: 465,
@@ -35,13 +36,13 @@ export async function sendVerificationEmail(email: string, locale: string) {
     const mailOptions = {
         from: "no-reply@shortn.at",
         to: email,
-        subject: "Shortn Account Verification",
+        subject: "Shortn Account Recovery",
         html,
     };
     transporter.sendMail(mailOptions, function (err) {
         if (err) {
-            return false;
+            return { success: false, message: "mail-error" };
         }
     });
-    return true;
+    return { success: true };
 }

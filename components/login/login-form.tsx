@@ -20,9 +20,11 @@ import {
   googleAuthenticate,
 } from "@/app/actions/authenticate";
 import { useState } from "react";
-import { Eye, EyeClosed, Loader2 } from "lucide-react";
+import { Eye, EyeClosed, Loader2, XCircle } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link } from "@/i18n/navigation";
+import { toast } from "sonner";
+import { Card, CardContent, CardTitle } from "../ui/card";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -48,31 +50,69 @@ export const LoginForm = () => {
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     setLoading(1);
     const response = await authenticate(values);
-    if (response == true) {
+    console.log(response);
+    if (response == true || !response) {
+      localStorage.removeItem("email");
+      localStorage.removeItem("verified");
     } else {
       const error = response;
       if (error?.name == "CredentialsSignin") {
-        if (error.message.split(".")[0] === "Missing email or password") {
-          form.setError("root", {
-            type: "manual",
-            message: "Email or password is missing.",
-          });
-        }
-        if (
-          error.message.split(".")[0] ===
-          "No account found with those credentials"
-        ) {
-          form.setError("email", {
-            type: "manual",
-            message: "No account found with that email or username.",
-          });
-        }
+        const message = error?.message?.split(".")[0];
+        if (!message) return;
+        switch (message) {
+          case "email-password-missing":
+            form.setError("root", {
+              type: "manual",
+              message: "Email or password is missing.",
+            });
+            break;
+          case "no-account":
+            form.setError("email", {
+              type: "manual",
+              message: "No account found with that email or username.",
+            });
+            break;
 
-        if (error.message.split(".")[0] === "Invalid password") {
-          form.setError("password", {
-            type: "manual",
-            message: "Incorrect password.",
-          });
+          case "wrong-password":
+            form.setError("password", {
+              type: "manual",
+              message: "Incorrect password.",
+            });
+            break;
+
+          case "not-verified":
+            const notVerifiedToast = toast(
+              <div className="w-full flex flex-col gap-2">
+                <div className="flex flex-row items-center justify-start gap-2">
+                  <XCircle className="text-destructive" />
+                  <p className="text-lg font-bold">Account not verified.</p>
+                </div>
+                <div className="w-full">
+                  <p className="text-sm">
+                    You still haven't verified your email. Please check your
+                    inbox and{" "}
+                    <Link
+                      onClick={() => {
+                        localStorage.setItem("email", form.getValues().email);
+                        localStorage.removeItem("verified");
+                        toast.dismiss(notVerifiedToast);
+                      }}
+                      href="/register"
+                      className="underline text-primary font-semibold"
+                    >
+                      verify your account.
+                    </Link>
+                  </p>
+                </div>
+              </div>
+            );
+            break;
+
+          default:
+            form.setError("root", {
+              type: "manual",
+              message: "Invalid credentials.",
+            });
         }
         setLoading(0);
       } else {
@@ -138,7 +178,7 @@ export const LoginForm = () => {
         </Button>
         <Link
           className="text-primary underline text-sm -mt-3 w-fit ml-auto"
-          href={"/register"}
+          href={"/recover"}
         >
           Forgot your password?
         </Link>
@@ -158,7 +198,7 @@ export const LoginForm = () => {
             onClick={async () => {
               setLoading(2);
               const response = await githubAuthenticate();
-              if (response == true) {
+              if (response == true || !response) {
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
@@ -184,7 +224,7 @@ export const LoginForm = () => {
             onClick={async () => {
               setLoading(3);
               const response = await googleAuthenticate();
-              if (response == true) {
+              if (response == true || !response) {
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
