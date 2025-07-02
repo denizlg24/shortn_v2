@@ -20,7 +20,7 @@ export async function sendRecoveryEmail(email: string, locale: string) {
         token: randomBytes(32).toString("hex"),
     });
     await token.save();
-    const hrefLink = `http://localhost:3000/${locale}/recover/${token.token}`;
+    const hrefLink = `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/recover/${token.token}`;
     const htmlPath = path.join(process.cwd(), "lib/email/templates/passwordRecovery.mail.html");
     let html = readFileSync(htmlPath, "utf8");
     html = html.replace(/{{RECOVERY_LINK}}/g, hrefLink);

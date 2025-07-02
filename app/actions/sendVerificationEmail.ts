@@ -19,7 +19,7 @@ export async function sendVerificationEmail(email: string, locale: string) {
         token: randomBytes(16).toString("hex"),
     });
     await token.save();
-    const hrefLink = `http://localhost:3000/${locale}/register/confirmation/${email}/${token.token}`;
+    const hrefLink = `${process.env.NEXT_PUBLIC_APP_URL}/${locale}/register/confirmation/${email}/${token.token}`;
     const htmlPath = path.join(process.cwd(), "lib/email/templates/verification.mail.html");
     let html = readFileSync(htmlPath, "utf8");
     html = html.replace(/{{VERIFY_EMAIL}}/g, hrefLink);
