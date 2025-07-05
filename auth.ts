@@ -8,6 +8,7 @@ import { JWT } from "next-auth/jwt"
 import GitHub from "next-auth/providers/github"
 import Google, { GoogleProfile } from "next-auth/providers/google"
 import { createFreePlan } from "./app/actions/createFreePlan";
+import { getStripeExtraInfo } from "./app/actions/getStripeExtraInfo";
 
 declare module "next-auth" {
     interface Session {
@@ -22,6 +23,8 @@ declare module "next-auth" {
             createdAt: Date;
             plan: IPlan;
             links_this_month: number;
+            phone_number: string;
+            tax_id: string;
         } & DefaultSession["user"]
     }
     interface User {
@@ -35,6 +38,8 @@ declare module "next-auth" {
         createdAt: Date;
         plan: IPlan;
         links_this_month: number;
+        phone_number: string;
+        tax_id: string;
     }
 }
 
@@ -50,10 +55,12 @@ declare module "next-auth/jwt" {
         createdAt: Date;
         plan: IPlan;
         links_this_month: number;
+        phone_number: string;
+        tax_id: string;
     }
 }
 
-export const { auth, signIn, signOut, handlers } = NextAuth({
+export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
     ...authConfig,
     session: {
         strategy: "jwt",
@@ -102,8 +109,11 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        phone_number: "",
+                        tax_id: "",
                     };
                 };
+                const { phone_number, tax_id } = await getStripeExtraInfo(user.stripeId);
                 return {
                     id: user.id as string,
                     sub: user.sub,
@@ -119,6 +129,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    phone_number,
+                    tax_id
                 };
             }
         }),
@@ -165,8 +177,12 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        phone_number: "",
+                        tax_id: "",
+
                     };
                 }
+                const { phone_number, tax_id } = await getStripeExtraInfo(user.stripeId);
                 return {
                     id: user.id as string,
                     sub: user.sub,
@@ -182,6 +198,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    phone_number,
+                    tax_id
                 };
             }
         }),
@@ -214,6 +232,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                 if (!user.emailVerified) {
                     throw new CredentialsSignin("not-verified");
                 }
+                const { phone_number, tax_id } = await getStripeExtraInfo(user.stripeId);
                 return {
                     id: user.id as string,
                     sub: user.sub,
@@ -229,6 +248,8 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    phone_number,
+                    tax_id
                 };
             },
         }),

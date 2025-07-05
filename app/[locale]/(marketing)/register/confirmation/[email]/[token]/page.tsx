@@ -18,7 +18,7 @@ export default function Home({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full flex flex-col max-w-lg p-4 gap-6 sm:pt-8">
-        <VerificationHolder email={email} token={token} />
+        <VerificationHolder email={decodeURIComponent(email)} token={token} />
       </div>
     </main>
   );

@@ -34,25 +34,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import { User } from "next-auth";
+import { useUser } from "@/utils/UserContext";
 
-export const AppSidebar = ({
-  user,
-}: {
-  user:
-    | {
-        sub: string;
-        displayName: string;
-        stripeId: string;
-        username: string;
-        email: string;
-        profilePicture?: string;
-        emailVerified: boolean;
-        createdAt: Date;
-        plan: IPlan;
-        links_this_month: number;
-      }
-    | undefined;
-}) => {
+export const AppSidebar = () => {
+  const { user } = useUser();
   const { toggleSidebar, state } = useSidebar();
   const pathname = usePathname();
   return (

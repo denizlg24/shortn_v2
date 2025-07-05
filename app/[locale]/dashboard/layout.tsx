@@ -5,8 +5,10 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
-import { DashboardHeader } from "@/components/ui/dashboard-header";
-import { AppSideBarContainer } from "@/components/app-sidebar-container";
+import { UserProvider } from "@/utils/UserContext";
+import { AppSidebar } from "@/components/app-sidebar";
+import { Toaster } from "@/components/ui/sonner";
+import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -53,15 +55,18 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body
-        className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14 pt-12`}
+        className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14! pt-12!`}
       >
-        <NextIntlClientProvider>
-          <SidebarProvider defaultOpen={defaultOpen}>
-            <AppSideBarContainer />
-            <DashboardHeader />
-            {children}
-          </SidebarProvider>
-        </NextIntlClientProvider>
+        <UserProvider>
+          <NextIntlClientProvider>
+            <SidebarProvider defaultOpen={defaultOpen}>
+              <AppSidebar />
+              <DashboardHeaderClient />
+              {children}
+              <Toaster position="top-center" />
+            </SidebarProvider>
+          </NextIntlClientProvider>
+        </UserProvider>
       </body>
     </html>
   );

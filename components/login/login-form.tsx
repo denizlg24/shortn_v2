@@ -25,6 +25,8 @@ import { Separator } from "../ui/separator";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { Card, CardContent, CardTitle } from "../ui/card";
+import { sendVerificationEmail } from "@/app/actions/sendVerificationEmail";
+import { useLocale } from "next-intl";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -36,6 +38,7 @@ const loginFormSchema = z.object({
 });
 
 export const LoginForm = () => {
+  const locale = useLocale();
   const [loading, setLoading] = useState(0);
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -50,10 +53,7 @@ export const LoginForm = () => {
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     setLoading(1);
     const response = await authenticate(values);
-    console.log(response);
     if (response == true || !response) {
-      localStorage.removeItem("email");
-      localStorage.removeItem("verified");
     } else {
       const error = response;
       if (error?.name == "CredentialsSignin") {
@@ -92,12 +92,11 @@ export const LoginForm = () => {
                     You still haven't verified your email. Please check your
                     inbox and{" "}
                     <Link
-                      onClick={() => {
-                        localStorage.setItem("email", form.getValues().email);
-                        localStorage.removeItem("verified");
+                      onClick={async () => {
+                        await sendVerificationEmail(values.email, locale);
                         toast.dismiss(notVerifiedToast);
                       }}
-                      href="/register"
+                      href={`/verification-sent/${values.email}`}
                       className="underline text-primary font-semibold"
                     >
                       verify your account.

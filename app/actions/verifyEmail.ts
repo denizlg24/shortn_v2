@@ -3,15 +3,19 @@
 import { connectDB } from "@/lib/mongodb";
 import { VerificationToken } from "@/models/auth/Token";
 import { User } from "@/models/auth/User";
+import { Types } from "mongoose";
 
 export async function verifyEmail(email: string, token: string) {
     try {
         await connectDB();
         const verificationToken = await VerificationToken.findOne({ token });
-        if (!token) {
+        if (!verificationToken) {
             return { success: false, message: "token-expired" };
         }
+        console.log("userId:", verificationToken?._userId);
+        console.log("email:", email);
         const user = await User.findOne({ _id: verificationToken?._userId, email: email });
+        console.log(user);
         if (!user) {
             return { success: false, message: "user-not-found" };
         }

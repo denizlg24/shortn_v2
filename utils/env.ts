@@ -10,7 +10,9 @@ const envSchema = z.object({
     PLUS_PLAN_ID: z.string().nonempty(),
     PRO_PLAN_ID: z.string().nonempty(),
     WEBMAIL_USER: z.string().nonempty(),
-    WEBMAIL_PASS: z.string().nonempty()
+    WEBMAIL_PASS: z.string().nonempty(),
+    PINATA_JWT: z.string().nonempty(),
+    PINATA_GATEWAY: z.string().nonempty()
 });
 
 export default envSchema.parse(process.env);
