@@ -1,13 +1,34 @@
 "use client";
+import { createShortn } from "@/app/actions/createShortn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/utils/UserContext";
-import { LinkIcon, QrCode } from "lucide-react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
+
+const urlFormSchema = z.object({
+  destination: z
+    .string()
+    .min(1, 'We\'ll need a valid URL, like "yourbrnd.co/niceurl"')
+    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
+});
 
 export const QuickCreate = ({ className }: { className?: string }) => {
   const { user } = useUser();
@@ -21,6 +42,17 @@ export const QuickCreate = ({ className }: { className?: string }) => {
       ? allowedLinks[user.plan.subscription as "free" | "basic" | "plus"] -
         (user.links_this_month ?? 0)
       : undefined;
+
+  const urlForm = useForm<z.infer<typeof urlFormSchema>>({
+    resolver: zodResolver(urlFormSchema),
+    defaultValues: {
+      destination: "",
+    },
+  });
+
+  const router = useRouter();
+
+  const [linkLoading, setLinkLoading] = useState(false);
   return (
     <Card
       className={cn("p-4 pb-6 w-full flex flex-col justify-between", className)}
@@ -49,31 +81,131 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </div>
         <TabsContent value="link" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {linksLeft && linksLeft > 0 && (
-              <p className="text-sm font-semibold  gap-1 flex flex-row items-center">
-                You can create <span className="font-bold">{linksLeft}</span>{" "}
-                more short links this month.
-              </p>
-            )}
-            {!linksLeft && (
+            {linksLeft == undefined ? (
               <div className="text-sm font-semibold w-full flex flex-row items-center gap-1">
                 <p>You can create </p>
                 <Skeleton className="w-3 h-3" />
                 <p> more short links this month.</p>
               </div>
+            ) : linksLeft > 0 ? (
+              <p className="text-sm font-semibold  gap-1 flex flex-row items-center">
+                You can create <span className="font-bold">{linksLeft}</span>{" "}
+                more short links this month.
+              </p>
+            ) : (
+              <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
+                <p>You can't create any more short links this month.</p>
+                <Button asChild className="h-fit px-4 py-1 rounded w-fit">
+                  <Link
+                    href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
+                  >
+                    Upgrade
+                  </Link>
+                </Button>
+              </div>
             )}
 
-            <div className="w-full flex flex-col gap-1 ">
-              <p>Enter your destination URL</p>
-              <div className="w-full sm:grid flex flex-col grid-cols-6 gap-4">
-                <Input
-                  className="col-span-4"
-                  type="text"
-                  placeholder="https://myexample.com/longurl"
+            <Form {...urlForm}>
+              <form
+                onSubmit={urlForm.handleSubmit(async (data) => {
+                  setLinkLoading(true);
+                  const response = await createShortn({
+                    longUrl: data.destination,
+                  });
+                  if (response.success && response.data) {
+                    router.push(
+                      `/dashboard/${user?.sub.split("|")[1]}/links/${
+                        response.data.shortUrl
+                      }/details`
+                    );
+                  } else if (response.existingUrl) {
+                    const existingToast = toast(
+                      <div className="w-full flex flex-col gap-2">
+                        <div className="flex flex-row items-center justify-start gap-2">
+                          <XCircle className="text-destructive" />
+                          <p className="text-lg font-bold">Duplicate Shortn.</p>
+                        </div>
+                        <div className="w-full">
+                          <p className="text-sm">
+                            You have already created a shortened url with that
+                            custom back-half.{" "}
+                            <Link
+                              onClick={async () => {
+                                toast.dismiss(existingToast);
+                              }}
+                              href={`/dashboard/${
+                                user?.sub.split("|")[1]
+                              }/links/${response.existingUrl}/details`}
+                              className="underline text-primary font-semibold"
+                            >
+                              View details.
+                            </Link>
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  } else if (response.message) {
+                    switch (response.message) {
+                      case "server-error":
+                        urlForm.setError("destination", {
+                          type: "manual",
+                          message:
+                            "There was an unexpected error while creating your short url",
+                        });
+                        break;
+                      case "no-user":
+                        urlForm.setError("destination", {
+                          type: "manual",
+                          message: "You are not authenticated",
+                        });
+                        break;
+                      case "plan-limit":
+                        urlForm.setError("destination", {
+                          type: "manual",
+                          message:
+                            "You have exceeded your plan's monthly link limit.",
+                        });
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+                  setLinkLoading(false);
+                })}
+                className="w-full sm:grid flex flex-col grid-cols-6 gap-4 items-end pb-2 sm:mt-0 mt-6!"
+              >
+                <FormField
+                  control={urlForm.control}
+                  name="destination"
+                  render={({ field }) => (
+                    <FormItem className="col-span-4 sm:relative w-full">
+                      <FormLabel>Enter your destination URL</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="bg-background w-full"
+                          placeholder=""
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage className="sm:absolute top-full mt-1" />
+                    </FormItem>
+                  )}
                 />
-                <Button className="col-span-2">Create your Shortn</Button>
-              </div>
-            </div>
+                <Button
+                  disabled={linkLoading}
+                  type="submit"
+                  className="col-span-2 w-full"
+                >
+                  {linkLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" /> Creating link...
+                    </>
+                  ) : (
+                    <>Create your Shortn</>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </div>
         </TabsContent>
         <TabsContent value="qrcode" asChild>

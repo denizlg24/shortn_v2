@@ -38,6 +38,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@types/bcryptjs": "^2.4.6",
+    "@vercel/functions": "^2.2.3",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -48,6 +49,7 @@
     "framer-motion": "^12.19.1",
     "hamburger-react": "^2.5.2",
     "input-otp": "^1.4.2",
+    "isbot": "^5.1.28",
     "lucide-react": "^0.523.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
@@ -69,6 +71,7 @@
     "sonner": "^2.0.5",
     "stripe": "^18.2.1",
     "tailwind-merge": "^3.3.1",
+    "ua-parser-js": "^2.0.4",
     "vaul": "^1.1.2",
     "zod": "^3.25.67"
   },

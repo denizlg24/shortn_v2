@@ -1,45 +1,8 @@
 import type { NextAuthConfig } from 'next-auth';
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
-
-const intlMiddleware = createMiddleware(routing);
 
 export const authConfig = {
     providers: [],
     callbacks: {
-        authorized({ auth, request }) {
-            const isLoggedIn = !!auth?.user;
-            const locale = request.cookies.get('NEXT_LOCALE')?.value || 'en';
-            const isDashboardRoot = request.nextUrl.pathname === `/${locale}/dashboard`;
-            const isDashboard = request.nextUrl.pathname.startsWith(`/${locale}/dashboard`);
-            const isLogin = request.nextUrl.pathname.startsWith(`/${locale}/login`);
-            const isRegister = request.nextUrl.pathname.startsWith(`/${locale}/register`);
-
-            const userOrgId = auth?.user?.sub.split("|")[1];
-
-            if (isDashboard && !isLoggedIn) {
-                return Response.redirect(new URL(`/${locale}/login`, request.nextUrl));
-            }
-            if (isDashboard && isLoggedIn) {
-                const segments = request.nextUrl.pathname.split("/");
-                const orgIdInUrl = segments[3];
-
-                if (orgIdInUrl && orgIdInUrl !== userOrgId) {
-                    return Response.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
-                }
-            }
-            if ((isLogin || isRegister || isDashboardRoot) && isLoggedIn) {
-                return Response.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
-            }
-
-            if (!isDashboard && isLoggedIn) {
-                return Response.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
-            }
-
-
-
-            return intlMiddleware(request);
-        },
         async jwt({ token, user, account }) {
             if (user) {
                 token.sub = user.sub;
