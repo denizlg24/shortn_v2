@@ -32,6 +32,7 @@ export async function getUser() {
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    qr_codes_this_month: user.qr_codes_this_month || 0,
                     phone_number,
                     tax_id
                 }

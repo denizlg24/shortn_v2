@@ -3,6 +3,7 @@ import { z } from "zod";
 const envSchema = z.object({
     MONGODB_KEY: z.string().nonempty(),
     STRIPE_SECRET_KEY: z.string().nonempty(),
+    AUTH_SECRET: z.string().nonempty(),
     AUTH_GOOGLE_ID: z.string().nonempty(),
     AUTH_GOOGLE_SECRET: z.string().nonempty(),
     FREE_PLAN_ID: z.string().nonempty(),

@@ -19,6 +19,7 @@ export interface IUser extends Document {
     createdAt: Date;
     plan: IPlan;
     links_this_month: number;
+    qr_codes_this_month: number;
 }
 
 const userSchema = new Schema<IUser>({
@@ -67,6 +68,10 @@ const userSchema = new Schema<IUser>({
         type: Number,
         default: 0,
     },
+    qr_codes_this_month: {
+        type: Number,
+        default: 0,
+    }
 });
 
 export const User: Model<IUser> =

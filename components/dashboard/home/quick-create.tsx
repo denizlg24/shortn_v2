@@ -1,4 +1,5 @@
 "use client";
+import { createQrCode } from "@/app/actions/createQRCode";
 import { createShortn } from "@/app/actions/createShortn";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,15 +33,23 @@ const urlFormSchema = z.object({
 
 export const QuickCreate = ({ className }: { className?: string }) => {
   const { user } = useUser();
+
   const allowedLinks = {
     free: 3,
     basic: 25,
     plus: 50,
   };
+
   const linksLeft =
     user?.plan.subscription && user.plan.subscription != "pro"
       ? allowedLinks[user.plan.subscription as "free" | "basic" | "plus"] -
         (user.links_this_month ?? 0)
+      : undefined;
+
+  const qrCodesLeft =
+    user?.plan.subscription && user.plan.subscription != "pro"
+      ? allowedLinks[user.plan.subscription as "free" | "basic" | "plus"] -
+        (user.qr_codes_this_month ?? 0)
       : undefined;
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
@@ -50,9 +59,18 @@ export const QuickCreate = ({ className }: { className?: string }) => {
     },
   });
 
+  const qrCodeForm = useForm<z.infer<typeof urlFormSchema>>({
+    resolver: zodResolver(urlFormSchema),
+    defaultValues: {
+      destination: "",
+    },
+  });
+
   const router = useRouter();
 
   const [linkLoading, setLinkLoading] = useState(false);
+  const [qrCodeLoading, setQrCodeLoading] = useState(false);
+
   return (
     <Card
       className={cn("p-4 pb-6 w-full flex flex-col justify-between", className)}
@@ -181,11 +199,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                     <FormItem className="col-span-4 sm:relative w-full">
                       <FormLabel>Enter your destination URL</FormLabel>
                       <FormControl>
-                        <Input
-                          className="bg-background w-full"
-                          placeholder=""
-                          {...field}
-                        />
+                        <Input className="w-full" placeholder="" {...field} />
                       </FormControl>
                       <FormMessage className="sm:absolute top-full mt-1" />
                     </FormItem>
@@ -209,17 +223,21 @@ export const QuickCreate = ({ className }: { className?: string }) => {
           </div>
         </TabsContent>
         <TabsContent value="qrcode" asChild>
-          <div
-            className={cn(
-              "w-full flex flex-col gap-1",
-              user?.plan.subscription != "pro"
-                ? "justify-between"
-                : "justify-end"
-            )}
-          >
-            {user?.plan.subscription != "pro" && (
-              <div className="flex flex-row flex-wrap gap-2 w-full">
-                <p>This is a PRO only feature.</p>
+          <div className="w-full flex flex-col gap-1 justify-between">
+            {qrCodesLeft == undefined ? (
+              <div className="text-sm font-semibold w-full flex flex-row items-center gap-1">
+                <p>You can create </p>
+                <Skeleton className="w-3 h-3" />
+                <p> more QR Codes this month.</p>
+              </div>
+            ) : qrCodesLeft > 0 ? (
+              <p className="text-sm font-semibold  gap-1 flex flex-row items-center">
+                You can create <span className="font-bold">{qrCodesLeft}</span>{" "}
+                more QR Codes this month.
+              </p>
+            ) : (
+              <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
+                <p>You can't create any more QR Codes this month.</p>
                 <Button asChild className="h-fit px-4 py-1 rounded w-fit">
                   <Link
                     href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
@@ -229,23 +247,77 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                 </Button>
               </div>
             )}
-            <div className="w-full flex flex-col gap-1 ">
-              <p>Enter your destination URL</p>
-              <div className="w-full sm:grid flex flex-col grid-cols-6 gap-4">
-                <Input
-                  disabled={user?.plan.subscription != "pro"}
-                  className="col-span-4"
-                  type="text"
-                  placeholder="https://myexample.com/longurl"
+            <Form {...qrCodeForm}>
+              <form
+                onSubmit={qrCodeForm.handleSubmit(async (data) => {
+                  setQrCodeLoading(true);
+                  const response = await createQrCode({
+                    longUrl: data.destination,
+                  });
+                  if (response.success && response.data) {
+                    router.push(
+                      `/dashboard/${user?.sub.split("|")[1]}/qr-codes/${
+                        response.data.qrCodeId
+                      }/details`
+                    );
+                  } else if (response.message) {
+                    switch (response.message) {
+                      case "server-error":
+                        qrCodeForm.setError("destination", {
+                          type: "manual",
+                          message:
+                            "There was an unexpected error while creating your QR Code",
+                        });
+                        break;
+                      case "no-user":
+                        qrCodeForm.setError("destination", {
+                          type: "manual",
+                          message: "You are not authenticated",
+                        });
+                        break;
+                      case "plan-limit":
+                        qrCodeForm.setError("destination", {
+                          type: "manual",
+                          message:
+                            "You have exceeded your plan's monthly QR Code limit.",
+                        });
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+                  setQrCodeLoading(false);
+                })}
+                className="w-full sm:grid flex flex-col grid-cols-6 gap-4 items-end pb-2 sm:mt-0 mt-6!"
+              >
+                <FormField
+                  control={qrCodeForm.control}
+                  name="destination"
+                  render={({ field }) => (
+                    <FormItem className="col-span-4 sm:relative w-full">
+                      <FormLabel>Enter your destination URL</FormLabel>
+                      <FormControl>
+                        <Input className="w-full" placeholder="" {...field} />
+                      </FormControl>
+                      <FormMessage className="sm:absolute top-full mt-1" />
+                    </FormItem>
+                  )}
                 />
                 <Button
-                  disabled={user?.plan.subscription != "pro"}
-                  className="col-span-2"
+                  disabled={qrCodeLoading}
+                  type="submit"
+                  className="col-span-2 w-full"
                 >
-                  Create your QR Code
+                  {qrCodeLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" /> Creating QR Code...
+                    </>
+                  ) : (
+                    <>Create your QR Code</>
+                  )}
                 </Button>
-              </div>
-            </div>
+              </form>
+            </Form>
           </div>
         </TabsContent>
       </Tabs>

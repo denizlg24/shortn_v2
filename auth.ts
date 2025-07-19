@@ -23,6 +23,7 @@ declare module "next-auth" {
             createdAt: Date;
             plan: IPlan;
             links_this_month: number;
+            qr_codes_this_month: number;
             phone_number: string;
             tax_id: string;
         } & DefaultSession["user"]
@@ -38,6 +39,7 @@ declare module "next-auth" {
         createdAt: Date;
         plan: IPlan;
         links_this_month: number;
+        qr_codes_this_month: number;
         phone_number: string;
         tax_id: string;
     }
@@ -55,6 +57,7 @@ declare module "next-auth/jwt" {
         createdAt: Date;
         plan: IPlan;
         links_this_month: number;
+        qr_codes_this_month: number;
         phone_number: string;
         tax_id: string;
     }
@@ -92,6 +95,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        qr_codes_this_month: 0
                     });
                     await newUser.save();
                     return {
@@ -109,6 +113,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        qr_codes_this_month: 0,
                         phone_number: "",
                         tax_id: "",
                     };
@@ -129,6 +134,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    qr_codes_this_month: user.qr_codes_this_month,
                     phone_number,
                     tax_id
                 };
@@ -160,6 +166,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        qr_codes_this_month: 0
                     });
                     await newUser.save();
                     return {
@@ -177,6 +184,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                             lastPaid: new Date(),
                         },
                         links_this_month: 0,
+                        qr_codes_this_month: 0,
                         phone_number: "",
                         tax_id: "",
 
@@ -198,6 +206,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    qr_codes_this_month: user.qr_codes_this_month,
                     phone_number,
                     tax_id
                 };
@@ -248,6 +257,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                         lastPaid: user.plan.lastPaid
                     },
                     links_this_month: user.links_this_month,
+                    qr_codes_this_month: user.qr_codes_this_month,
                     phone_number,
                     tax_id
                 };

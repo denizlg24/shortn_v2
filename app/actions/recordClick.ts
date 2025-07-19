@@ -5,6 +5,7 @@ import { isbot } from 'isbot';
 import { connectDB } from '@/lib/mongodb';
 import UrlV3 from '@/models/url/UrlV3';
 import { Geo } from '@vercel/functions';
+import QRCodeV2 from '@/models/url/QRCodeV2';
 
 export async function recordClickFromMiddleware(clickData: {
     slug: string;
@@ -26,6 +27,29 @@ export async function recordClickFromMiddleware(clickData: {
     if (!urlDoc) return { notFound: true };
 
     const ua = new UAParser(userAgent).getResult();
+
+    if (urlDoc.qrCodeId) {
+        const qrCodeDoc = await QRCodeV2.findOne({ urlId: slug });
+        if (!qrCodeDoc) {
+            return { notFound: true };
+        }
+        await qrCodeDoc.recordClick({
+            ip,
+            country: geo?.country,
+            region: geo?.countryRegion,
+            city: geo?.city,
+            timezone,
+            language,
+            referrer,
+            pathname: `/${slug}`,
+            queryParams: query,
+            userAgent,
+            browser: ua.browser.name,
+            os: ua.os.name,
+            deviceType: ua.device.type || 'desktop',
+        });
+        return { success: true };
+    }
 
     await urlDoc.recordClick({
         ip,

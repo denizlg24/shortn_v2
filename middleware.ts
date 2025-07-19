@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { routing } from './i18n/routing';
 import { geolocation, ipAddress } from '@vercel/functions';
 import createMiddleware from 'next-intl/middleware';
-import { auth } from './auth';
-import { notFound } from 'next/navigation';
+import { getToken } from 'next-auth/jwt';
+import env from './utils/env';
 
 const locales = routing.locales as readonly string[];
 
@@ -16,7 +16,7 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const slugCandidate = pathname.split('/')[1];
-    const session = await auth();
+    const user = await getToken({ req: request, secret: env.AUTH_SECRET });
     if (!isLocale(slugCandidate) && slugCandidate !== '' && slugCandidate !== "url-not-found") {
         const clickData = {
             slug: slugCandidate,
@@ -36,7 +36,6 @@ export async function middleware(request: NextRequest) {
             }).catch(() => null);
 
             const res = await fetch(`${request.nextUrl.origin}/api/get-long-url/${slugCandidate}`);
-            //console.log(res);
             const { longUrl } = await res.json();
 
             if (longUrl) {
@@ -48,7 +47,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    const isLoggedIn = !!session?.user;
+    const isLoggedIn = !!user;
     const locale = request.cookies.get('NEXT_LOCALE')?.value || 'en';
     const isDashboardRoot = request.nextUrl.pathname === `/${locale}/dashboard`;
     const isDashboard = request.nextUrl.pathname.startsWith(`/${locale}/dashboard`);
@@ -56,7 +55,7 @@ export async function middleware(request: NextRequest) {
     const isRegister = request.nextUrl.pathname.startsWith(`/${locale}/register`);
     const isUrlNotFound = request.nextUrl.pathname === `/${locale}/url-not-found`;
 
-    const userOrgId = session?.user?.sub.split("|")[1];
+    const userOrgId = user?.sub.split("|")[1];
 
     if (isDashboard && !isLoggedIn) {
         return NextResponse.redirect(new URL(`/${locale}/login`, request.nextUrl));
