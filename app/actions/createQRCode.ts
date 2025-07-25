@@ -125,6 +125,7 @@ export async function createQrCode({
             longUrl,
             shortUrl,
             qrCodeId: qrShortCode,
+            isQrCode: true,
             title: resolvedTitle,
             tags,
         });

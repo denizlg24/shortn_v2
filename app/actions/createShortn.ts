@@ -131,6 +131,7 @@ export async function createShortn({
         const newUrl = await UrlV3.create({
             sub,
             urlCode,
+            customCode: customCode ? true : false,
             longUrl,
             shortUrl,
             title: resolvedTitle,

@@ -20,9 +20,11 @@ interface ClickEntry {
 export interface IUrl extends Document {
     sub?: string;
     urlCode: string;
+    customCode: boolean;
     longUrl: string;
     shortUrl: string;
     qrCodeId?: string;
+    isQrCode: boolean;
     title?: string;
     date: Date;
     tags?: string[];
@@ -57,9 +59,11 @@ const ClickEntrySchema = new Schema<ClickEntry>(
 const UrlSchema = new Schema<IUrl>({
     sub: { type: String, index: true },
     urlCode: { type: String, required: true },
+    customCode: { type: Boolean, default: false },
     longUrl: { type: String, required: true },
     shortUrl: { type: String, required: true },
     qrCodeId: String,
+    isQrCode: { type: Boolean, default: false },
     title: String,
     date: { type: Date, default: Date.now },
     tags: [{ type: String }],
