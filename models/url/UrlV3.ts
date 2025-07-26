@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { ITag, tagSchema } from "./Tag";
 
 interface ClickEntry {
     timestamp: Date;
@@ -27,7 +28,7 @@ export interface IUrl extends Document {
     isQrCode: boolean;
     title?: string;
     date: Date;
-    tags?: string[];
+    tags?: { id: string, tagName: string, sub: string, _id: unknown }[];
     clicks: {
         total: number;
         lastClick: Date | null;
@@ -66,7 +67,7 @@ const UrlSchema = new Schema<IUrl>({
     isQrCode: { type: Boolean, default: false },
     title: String,
     date: { type: Date, default: Date.now },
-    tags: [{ type: String }],
+    tags: { type: [tagSchema], default: [], index: true },
     clicks: {
         total: { type: Number, default: 0 },
         lastClick: { type: Date, default: null },

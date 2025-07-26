@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
+import { ITag, tagSchema } from "./Tag";
 
 interface ClickEntry {
     timestamp: Date;
@@ -25,7 +26,7 @@ export interface IQRCode extends Document {
     qrCodeBase64: string;
     title?: string;
     date: Date;
-    tags?: string[];
+    tags?: ITag[];
     clicks: {
         total: number;
         lastClick: Date | null;
@@ -62,7 +63,7 @@ const QRCodeSchema = new Schema<IQRCode>({
     title: String,
     qrCodeBase64: String,
     date: { type: Date, default: Date.now },
-    tags: [{ type: String }],
+    tags: { type: [tagSchema], default: [] },
     clicks: {
         total: { type: Number, default: 0 },
         lastClick: { type: Date, default: null },

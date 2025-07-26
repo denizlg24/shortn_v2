@@ -26,7 +26,6 @@ export const getFilteredLinks = async (
     sub: userSub,
     isQrCode: false,
   };
-  console.log(filters);
   if (filters.startDate || filters.endDate) {
     query.date = {};
     if (filters.startDate) {
@@ -74,7 +73,6 @@ export const getFilteredLinks = async (
   }
 
   const skip = (filters.page - 1) * filters.limit;
-  console.log(query);
   const [links, total] = await Promise.all([
     UrlV3.find(query).sort(sort).skip(skip).limit(filters.limit).lean(),
     UrlV3.countDocuments(query),
@@ -83,6 +81,7 @@ export const getFilteredLinks = async (
   const linksSanitized = links.map((link) => ({
     ...link,
     _id: link._id.toString(),
+    tags: link.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
   }));
 
   return { links: linksSanitized, total };

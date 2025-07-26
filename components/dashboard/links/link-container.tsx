@@ -1,12 +1,15 @@
 "use client";
 
 import { getFilteredLinks } from "@/app/actions/getLinks";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePathname } from "@/i18n/navigation";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
+import { Loader2 } from "lucide-react";
 import { User } from "next-auth";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { LinkCard } from "./link-card";
 
 interface IFilters {
   tags: string[];
@@ -88,24 +91,48 @@ export const LinkContainer = () => {
   }, [filtersReady, session, filters]);
 
   return (
-    <div className="w-full col-span-full">
+    <div className="w-full col-span-full flex flex-col gap-4">
       {linksLoading ? (
-        <p>Loading...</p>
+        <div className="w-full flex flex-row items-center justify-start font-semibold md:text-base text-sm gap-1">
+          <Loader2 className="animate-spin h-4 w-4 aspect-square" />
+          <p>Loading links...</p>
+        </div>
       ) : links.length > 0 ? (
         <>
           {/* Render links */}
           {links.map((link) => (
-            <div key={link.urlCode}>{link.shortUrl}</div>
+            <LinkCard key={link._id as string} link={link} />
           ))}
 
-          {/* Pagination UI (example only) */}
-          <p>
-            Showing page {searchParams.get("page") || 1} of{" "}
-            {Math.ceil(total / parseInt(searchParams.get("limit") || "10", 10))}
-          </p>
+          {Math.ceil(total / parseInt(searchParams.get("limit") || "10", 10)) >
+            1 && (
+            <PaginationControls
+              totalPages={Math.ceil(
+                total / parseInt(searchParams.get("limit") || "10", 10)
+              )}
+            />
+          )}
+          {parseInt(searchParams.get("page") || "1", 10) >=
+            Math.ceil(
+              total / parseInt(searchParams.get("limit") || "10", 10)
+            ) && (
+            <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
+              <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+              <p className="text-muted-foreground grow font-semibold w-full text-center">
+                You've reached the end of your links
+              </p>
+              <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+            </div>
+          )}
         </>
       ) : (
-        <p>No links to display</p>
+        <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
+          <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+          <p className="text-muted-foreground font-semibold w-full text-center">
+            You've reached the end of your links
+          </p>
+          <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+        </div>
       )}
     </div>
   );
