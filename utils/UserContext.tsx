@@ -1,6 +1,6 @@
 "use client";
 
-import { getUser } from "@/app/actions/getUser";
+import { getUser } from "@/app/actions/userActions";
 import { User } from "next-auth";
 import {
   createContext,

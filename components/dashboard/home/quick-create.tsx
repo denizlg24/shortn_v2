@@ -1,6 +1,6 @@
 "use client";
-import { createQrCode } from "@/app/actions/createQRCode";
-import { createShortn } from "@/app/actions/createShortn";
+import { createQrCode } from "@/app/actions/qrCodeActions";
+import { createShortn } from "@/app/actions/linkActions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {

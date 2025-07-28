@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { ITag, tagSchema } from "./Tag";
-
+import { Options, } from "qr-code-styling";
 interface ClickEntry {
     timestamp: Date;
     ip: string;
@@ -23,10 +23,12 @@ export interface IQRCode extends Document {
     longUrl: string;
     qrCodeId: string;
     urlId: string;
+    attachedUrl?: string;
     qrCodeBase64: string;
     title?: string;
     date: Date;
-    tags?: ITag[];
+    tags?: { id: string, tagName: string, sub: string, _id: unknown }[];
+    options: Partial<Options>;
     clicks: {
         total: number;
         lastClick: Date | null;
@@ -57,13 +59,15 @@ const ClickEntrySchema = new Schema<ClickEntry>(
 
 const QRCodeSchema = new Schema<IQRCode>({
     sub: { type: String, index: true },
-    longUrl: { type: String, required: true },
+    longUrl: String,
     urlId: String,
+    attachedUrl: String,
     qrCodeId: String,
     title: String,
     qrCodeBase64: String,
     date: { type: Date, default: Date.now },
-    tags: { type: [tagSchema], default: [] },
+    tags: { type: [tagSchema], default: [], index: true },
+    options: { type: Object, default: {} },
     clicks: {
         total: { type: Number, default: 0 },
         lastClick: { type: Date, default: null },

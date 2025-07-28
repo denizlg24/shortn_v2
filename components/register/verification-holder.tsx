@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Skeleton } from "../ui/skeleton";
-import { verifyEmail } from "@/app/actions/verifyEmail";
+
 import { VerificationAlready } from "./verification-already";
 import { VerificationError } from "./verication-error";
 import { VerificationSuccess } from "./verification-success";
+import { verifyEmail } from "@/app/actions/userActions";
 
 export const VerificationHolder = ({
   email,

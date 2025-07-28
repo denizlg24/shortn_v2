@@ -24,6 +24,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
@@ -35,8 +36,10 @@ import {
   ChartNoAxesColumn,
   Check,
   Copy,
+  CopyCheck,
   Edit2,
   Ellipsis,
+  LinkIcon,
   Loader2,
   LockIcon,
   NotepadText,
@@ -44,10 +47,21 @@ import {
   QrCode,
   Share2,
   Tags,
+  Trash2,
 } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
 
-export const LinkCard = ({ link }: { link: IUrl }) => {
+export const LinkCard = ({
+  link,
+  addTag,
+  removeTag,
+  tags,
+}: {
+  link: IUrl;
+  addTag: (tagId: string) => void;
+  removeTag: (tagId: string) => void;
+  tags: string[];
+}) => {
   const session = useUser();
 
   const [currentLink, setCurrentLink] = useState(link);
@@ -57,6 +71,9 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
   const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
+
+  //action
+  const [justCopied, setJustCopied] = useState(false);
 
   useEffect(() => {
     if (!session.user) {
@@ -96,37 +113,91 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
   }
 
   return (
-    <div className="lg:p-6 sm:p-4 p-2 rounded bg-background shadow w-full flex flex-col gap-0">
+    <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
       <div className="w-full flex flex-row items-start justify-between">
         <Link
           href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
             currentLink.urlCode
           }/details`}
-          className="font-bold lg:text-lg md:text-base text-sm hover:underline underline-offset-4"
+          className="font-bold lg:text-lg md:text-base text-sm hover:underline underline-offset-4 truncate"
         >
           {currentLink.title}
         </Link>
-        <div className="flex flex-row items-center gap-2">
-          <Button variant={"secondary"}>
-            <Copy />
-            Copy
+        <div className="md:flex hidden flex-row items-center gap-2">
+          <Button
+            onClick={async () => {
+              await navigator.clipboard.writeText(currentLink.shortUrl);
+              setJustCopied(true);
+              setTimeout(() => {
+                setJustCopied(false);
+              }, 1000);
+            }}
+            variant={"secondary"}
+          >
+            {justCopied ? (
+              <>
+                <CopyCheck />
+                Copied
+              </>
+            ) : (
+              <>
+                <Copy />
+                Copy
+              </>
+            )}
           </Button>
           <Button variant={"outline"}>
             <Share2 />
             Share
           </Button>
-          <Button variant={"outline"} className="p-2! aspect-square!">
-            <Edit2 />
+          <Button asChild variant={"outline"} className="p-2! aspect-square!">
+            <Link
+              href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
+                link.urlCode
+              }/edit`}
+            >
+              <Edit2 />
+            </Link>
           </Button>
-          <Button variant={"outline"} className="p-2! aspect-square!">
-            <Ellipsis />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant={"outline"} className="p-2! aspect-square!">
+                <Ellipsis />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              >
+                <Trash2 /> Delete
+              </Button>
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              >
+                <LinkIcon /> View link details
+              </Button>
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              >
+                <QrCode /> View QR Code
+              </Button>
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              >
+                <NotepadText /> Add to a page
+              </Button>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className="w-full flex flex-row justify-start">
         <Link
           href={currentLink.shortUrl}
-          className="font-semibold lg:text-base md:text-sm text-xs hover:underline text-blue-500"
+          className="font-semibold lg:text-base md:text-sm text-xs hover:underline text-blue-500 truncate"
         >
           {currentLink.shortUrl.split("://")[1]}
         </Link>
@@ -134,13 +205,13 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
       <div className="w-full flex flex-row justify-start">
         <Link
           href={currentLink.longUrl}
-          className="lg:text-base md:text-sm text-xs hover:underline"
+          className="lg:text-base md:text-sm text-xs hover:underline truncate"
         >
           {currentLink.longUrl}
         </Link>
       </div>
-      <div className="w-full mt-4 flex flex-row items-center justify-between">
-        <div className="w-full flex flex-row items-center gap-4">
+      <div className="w-full mt-4 flex flex-row sm:items-center items-end justify-between">
+        <div className="w-full flex sm:flex-row flex-col sm:items-center items-start sm:gap-4 gap-2">
           <div className="flex flex-row items-center gap-1">
             <ChartNoAxesColumn className="w-4 h-4" />
             {session.user.plan.subscription == "free" ? (
@@ -172,21 +243,19 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
                 </HoverCardContent>
               </HoverCard>
             ) : (
-              <Button
-                className="p-0! px-1! rounded-none! h-fit text-xs font-normal gap-1!"
-                variant={"outline"}
-              >
-                Click Data
-              </Button>
+              <p className="p-0! px-1! rounded-none! h-fit text-xs font-normal gap-1!">
+                {link.clicks.total}
+                {link.clicks.total == 1 ? " click" : " clicks"}
+              </p>
             )}
           </div>
           <div className="flex flex-row items-center gap-1">
             <Calendar className="w-4 h-4" />
-            <p className="text-sm">
+            <p className="sm:text-sm text-xs">
               {format(currentLink.date, "MMM dd, yyyy")}
             </p>
           </div>
-          <div className="flex flex-row items-center gap-1">
+          <div className="md:flex hidden flex-row items-center gap-1">
             <Tags className="w-4 h-4" />
             <div className="flex flex-row items-center gap-1">
               {currentLink.tags?.map((tag, indx) => {
@@ -197,7 +266,18 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
                   <Button
                     key={tag.id}
                     variant={"secondary"}
-                    className="h-4 p-1! text-sm rounded-none! hover:cursor-pointer border border-transparent hover:border-primary"
+                    onClick={() => {
+                      const added = tags.some((t) => t == tag.id);
+                      if (added) {
+                        removeTag(tag.id);
+                      } else {
+                        addTag(tag.id);
+                      }
+                    }}
+                    className={cn(
+                      "h-4 p-1! text-sm rounded-none! hover:cursor-pointer border border-transparent hover:border-primary",
+                      tags.some((t) => t == tag.id) && "border-primary"
+                    )}
                   >
                     {tag.tagName}
                   </Button>
@@ -211,7 +291,7 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
                   <Button
                     variant="link"
                     role="combobox"
-                    className="w-fit! justify-between text-primary text-sm gap-1! px-0!"
+                    className="w-fit! justify-between text-primary text-sm gap-1! px-0! py-0! h-fit!"
                   >
                     <PlusCircle className="text-primary w-3! h-3!" /> Add tag
                   </Button>
@@ -310,8 +390,19 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
               </Popover>
             </div>
           </div>
+          <div className="md:hidden flex flex-row items-center gap-1">
+            <Tags className="w-4 h-4" />
+            {currentLink.tags && currentLink.tags.length > 0 ? (
+              <p className="text-xs">
+                {currentLink.tags.length}{" "}
+                {currentLink.tags.length == 1 ? "tag" : "tags"}
+              </p>
+            ) : (
+              <p className="text-xs">No tags</p>
+            )}
+          </div>
         </div>
-        <div className="flex flex-row items-center h-6 gap-2">
+        <div className="flex flex-row items-center h-6 gap-2 sm:pb-0 pb-2">
           <HoverCard>
             <HoverCardTrigger asChild>
               <Button variant={"outline"} className="p-2! aspect-square!">
@@ -338,6 +429,85 @@ export const LinkCard = ({ link }: { link: IUrl }) => {
             </HoverCardContent>
           </HoverCard>
         </div>
+      </div>
+      <Separator className="md:hidden block w-full my-4" />
+      <div className="md:hidden flex flex-row items-center justify-start gap-2">
+        <Button
+          onClick={async () => {
+            await navigator.clipboard.writeText(currentLink.shortUrl);
+            setJustCopied(true);
+            setTimeout(() => {
+              setJustCopied(false);
+            }, 1000);
+          }}
+          variant={"secondary"}
+          className="p-1.5! h-fit!"
+        >
+          {justCopied ? (
+            <>
+              <CopyCheck />
+              Copied
+            </>
+          ) : (
+            <>
+              <Copy />
+              Copy
+            </>
+          )}
+        </Button>
+        <Button className="p-1.5! h-fit!" variant={"outline"}>
+          <Share2 />
+          Share
+        </Button>
+        <Button
+          asChild
+          variant={"outline"}
+          className="p-1.5! h-fit! aspect-square!"
+        >
+          <Link
+            href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
+              link.urlCode
+            }/edit`}
+          >
+            <Edit2 />
+          </Link>
+        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className="p-1.5! h-fit! aspect-square!"
+            >
+              <Ellipsis />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+            <Button
+              variant={"outline"}
+              className="w-full border-none! rounded-none! justify-start! shadow-none! "
+            >
+              <Trash2 /> Delete
+            </Button>
+            <Button
+              variant={"outline"}
+              className="w-full border-none! rounded-none! justify-start! shadow-none! "
+            >
+              <LinkIcon /> View link details
+            </Button>
+            <Button
+              variant={"outline"}
+              className="w-full border-none! rounded-none! justify-start! shadow-none! "
+            >
+              <QrCode /> View QR Code
+            </Button>
+            <Button
+              variant={"outline"}
+              className="w-full border-none! rounded-none! justify-start! shadow-none! "
+            >
+              <NotepadText /> Add to a page
+            </Button>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );

@@ -24,8 +24,7 @@ import { Eye, EyeClosed, Loader2, XCircle } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { Card, CardContent, CardTitle } from "../ui/card";
-import { sendVerificationEmail } from "@/app/actions/sendVerificationEmail";
+import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 
 const loginFormSchema = z.object({

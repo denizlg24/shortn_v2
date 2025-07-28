@@ -22,7 +22,7 @@ import { useState } from "react";
 import { Eye, EyeClosed, Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { createAccount } from "@/app/actions/createAccount";
+import { createAccount } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 
 const registerFormSchema = z

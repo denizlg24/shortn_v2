@@ -52,7 +52,7 @@ import { useSearchParams } from "next/navigation";
 import { startTransition, useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 
-export const LinkFilterBar = () => {
+export const QRCodesFilterBar = () => {
   const [open, setOpen] = useState(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -66,10 +66,6 @@ export const LinkFilterBar = () => {
 
   // === Local state for filters ===
   const [query, setQuery] = useState(searchParams.get("query") || "");
-
-  const [customLink, setCustomLink] = useState(
-    searchParams.get("customLink") || "all"
-  );
 
   const [attachedQR, setAttachedQR] = useState(
     searchParams.get("attachedQR") || "all"
@@ -175,7 +171,6 @@ export const LinkFilterBar = () => {
     const params = new URLSearchParams();
 
     if (query) params.set("query", query);
-    if (customLink !== "all") params.set("customLink", customLink);
     if (attachedQR !== "all") params.set("attachedQR", attachedQR);
     if (tags.length > 0)
       params.set("tags", JSON.stringify(tags.map((t) => t.id)));
@@ -195,7 +190,6 @@ export const LinkFilterBar = () => {
     setQuery("");
     const params = new URLSearchParams();
 
-    if (customLink !== "all") params.set("customLink", customLink);
     if (attachedQR !== "all") params.set("attachedQR", attachedQR);
     if (tags.length > 0)
       params.set("tags", JSON.stringify(tags.map((t) => t.id)));
@@ -216,7 +210,6 @@ export const LinkFilterBar = () => {
     const params = new URLSearchParams();
 
     if (query) params.set("query", query);
-    if (customLink !== "all") params.set("customLink", customLink);
     if (attachedQR !== "all") params.set("attachedQR", attachedQR);
     if (tags.length > 0)
       params.set("tags", JSON.stringify(tags.map((t) => t.id)));
@@ -229,7 +222,6 @@ export const LinkFilterBar = () => {
   };
 
   const clearMoreFilters = () => {
-    setCustomLink("all");
     setAttachedQR("all");
     setTags([]);
     const params = new URLSearchParams();
@@ -259,7 +251,7 @@ export const LinkFilterBar = () => {
           type="text"
           name="query"
           id="query"
-          placeholder="Search links"
+          placeholder="Search codes"
           value={query}
           onChange={(e) => {
             if (e.target.value == "") {
@@ -303,7 +295,7 @@ export const LinkFilterBar = () => {
               <DialogHeader className="text-left">
                 <DialogTitle>Filter by created date</DialogTitle>
                 <DialogDescription>
-                  Display only links created on the selected range.
+                  Display only QR Codes created on the selected range.
                 </DialogDescription>
               </DialogHeader>
               <Separator className="my-2" />
@@ -338,15 +330,12 @@ export const LinkFilterBar = () => {
             >
               <Settings2 className="size-3.5" />
               <p className="font-semibold">
-                {tags.length === 0 &&
-                customLink === "all" &&
-                attachedQR === "all" ? (
+                {tags.length === 0 && attachedQR === "all" ? (
                   <>Add Filters</>
                 ) : (
                   <>
                     {(() => {
                       let count = tags.length;
-                      if (customLink !== "all") count++;
                       if (attachedQR !== "all") count++;
                       return `${count} filter${count > 1 ? "s" : ""}`;
                     })()}
@@ -459,33 +448,7 @@ export const LinkFilterBar = () => {
                 </Popover>
               </div>
               <div className="w-full flex flex-col gap-2">
-                <Label className="font-semibold">Link Type</Label>
-                <Select
-                  value={customLink}
-                  onValueChange={setCustomLink}
-                  defaultValue="all"
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue defaultValue={"all"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="on">
-                        Links<span className="font-semibold -mx-1">with</span>
-                        custom back-halves
-                      </SelectItem>
-                      <SelectItem value="off" className="gap-0!">
-                        Links
-                        <span className="font-semibold -mx-1">without</span>
-                        custom back-halves
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-full flex flex-col gap-2">
-                <Label className="font-semibold">Attached QR Code</Label>
+                <Label className="font-semibold">Attached Link</Label>
                 <Select
                   value={attachedQR}
                   onValueChange={setAttachedQR}
@@ -501,17 +464,17 @@ export const LinkFilterBar = () => {
                         <span className="font-semibold -mx-1">
                           with or without
                         </span>
-                        attached QR Codes
+                        attached Links
                       </SelectItem>
                       <SelectItem value="on">
                         Links
                         <span className="font-semibold -mx-1">with</span>
-                        attached QR Codes only
+                        attached Links
                       </SelectItem>
                       <SelectItem value="off">
                         Links
                         <span className="font-semibold -mx-1">without</span>
-                        attached QR Codes only
+                        attached Links
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>

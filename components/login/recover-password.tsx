@@ -15,7 +15,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { sendRecoveryEmail } from "@/app/actions/sendRecoveryEmail";
+import { sendRecoveryEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";

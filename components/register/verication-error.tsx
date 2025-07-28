@@ -2,7 +2,7 @@
 import { useRouter } from "@/i18n/navigation";
 import { Button } from "../ui/button";
 import { Loader2Icon, MailWarning } from "lucide-react";
-import { sendVerificationEmail } from "@/app/actions/sendVerificationEmail";
+import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useState } from "react";
 import { useLocale } from "next-intl";
 

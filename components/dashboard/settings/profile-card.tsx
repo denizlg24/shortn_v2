@@ -27,10 +27,10 @@ import pt from "react-phone-number-input/locale/pt";
 import es from "react-phone-number-input/locale/es";
 import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { updateTaxId } from "@/app/actions/updateTaxId";
+import { updateTaxId } from "@/app/actions/stripeActions";
 import { TaxIdInput } from "@/components/ui/tax-id-input";
 import { toast } from "sonner";
-import { updatePhone } from "@/app/actions/updatePhone";
+import { updatePhone } from "@/app/actions/stripeActions";
 import {
   Dialog,
   DialogContent,
@@ -40,11 +40,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { uploadImage } from "@/app/actions/uploadImage";
-import { updateUserField } from "@/app/actions/updateUserField";
-import { deleteProfilePicture } from "@/app/actions/deleteProfilePicture";
+import { updateUserField } from "@/app/actions/userActions";
+import { deleteProfilePicture } from "@/app/actions/userActions";
 import { signOutUser } from "@/app/actions/signOut";
-import { updateEmail } from "@/app/actions/updateEmail";
-import { sendVerificationEmail } from "@/app/actions/sendVerificationEmail";
+import { updateEmail } from "@/app/actions/userActions";
+import { sendVerificationEmail } from "@/app/actions/userActions";
 
 const updateEmailFormSchema = z.object({
   email: z

@@ -9,7 +9,7 @@ import { Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { recoverPassword } from "@/app/actions/recoverPassword";
+import { recoverPassword } from "@/app/actions/userActions";
 import {
   Form,
   FormControl,

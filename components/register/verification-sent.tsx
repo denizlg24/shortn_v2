@@ -4,7 +4,7 @@ import { LogIn, MailCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
-import { sendVerificationEmail } from "@/app/actions/sendVerificationEmail";
+import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 
 export const VerificationSentComponent = ({ email }: { email: string }) => {

@@ -7,8 +7,8 @@ import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt"
 import GitHub from "next-auth/providers/github"
 import Google, { GoogleProfile } from "next-auth/providers/google"
-import { createFreePlan } from "./app/actions/createFreePlan";
-import { getStripeExtraInfo } from "./app/actions/getStripeExtraInfo";
+import { createFreePlan } from "./app/actions/stripeActions";
+import { getStripeExtraInfo } from "./app/actions/stripeActions";
 
 declare module "next-auth" {
     interface Session {

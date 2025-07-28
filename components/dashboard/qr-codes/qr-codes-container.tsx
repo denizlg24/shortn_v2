@@ -1,20 +1,19 @@
 "use client";
 
+import { getFilteredQRCodes } from "@/app/actions/qrCodeActions";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { IUrl } from "@/models/url/UrlV3";
+import { IQRCode } from "@/models/url/QRCodeV2";
 import { useUser } from "@/utils/UserContext";
+import { parse } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { User } from "next-auth";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { LinkCard } from "./link-card";
-import { add, parse, startOfDay } from "date-fns";
-import { getFilteredLinks } from "@/app/actions/linkActions";
+import { useState, useEffect } from "react";
+import { QRCodeCard } from "./qr-code-card";
 
 interface IFilters {
   tags: string[];
-  customLink: "all" | "on" | "off";
   attachedQR: "all" | "on" | "off";
   sortBy: "date_asc" | "date_desc" | "clicks_asc" | "clicks_desc";
   query: string;
@@ -24,14 +23,13 @@ interface IFilters {
   endDate?: Date;
 }
 
-export const LinkContainer = () => {
+export const QRCodesContainer = () => {
   const router = useRouter();
-  const [links, setLinks] = useState<IUrl[]>([]);
-  const [linksLoading, setLinksLoading] = useState(true);
+  const [qrCodes, setQrCodes] = useState<IQRCode[]>([]);
+  const [qrCodesLoading, setQrCodesLoading] = useState(true);
   const [filtersReady, setFiltersReady] = useState(false);
   const [filters, setFilters] = useState<IFilters>({
     tags: [],
-    customLink: "all",
     attachedQR: "all",
     sortBy: "date_asc",
     query: "",
@@ -43,15 +41,15 @@ export const LinkContainer = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const getLinksWrapper = async (filters: IFilters, user: User) => {
+  const getQRCodesWrapper = async (filters: IFilters, user: User) => {
     try {
-      const { links, total } = await getFilteredLinks(filters, user.sub);
-      setLinks(links);
+      const { qrcodes, total } = await getFilteredQRCodes(filters, user.sub);
+      setQrCodes(qrcodes);
       setTotal(total);
     } catch (err) {
-      console.error("Failed to load links:", err);
+      console.error("Failed to load QR Codes:", err);
     }
-    setLinksLoading(false);
+    setQrCodesLoading(false);
   };
 
   function parseToUTC(dateStr: string): Date {
@@ -64,8 +62,8 @@ export const LinkContainer = () => {
   useEffect(() => {
     setFiltersReady(false);
     const params = new URLSearchParams(searchParams.toString());
-    setLinksLoading(true);
-    setLinks([]);
+    setQrCodesLoading(true);
+    setQrCodes([]);
     let tagIds: string[] = [];
     const tagsParam = params.get("tags");
     if (tagsParam) {
@@ -86,7 +84,6 @@ export const LinkContainer = () => {
     };
     const newFilters: IFilters = {
       tags: tagIds,
-      customLink: (params.get("customLink") as IFilters["customLink"]) || "all",
       attachedQR: (params.get("attachedQR") as IFilters["attachedQR"]) || "all",
       sortBy: (params.get("sortBy") as IFilters["sortBy"]) || "date_desc",
       query: params.get("query") || "",
@@ -103,7 +100,7 @@ export const LinkContainer = () => {
     if (!filtersReady || !session.user) {
       return;
     }
-    getLinksWrapper(filters, session.user);
+    getQRCodesWrapper(filters, session.user);
   }, [filtersReady, session, filters]);
 
   const addTag = (tagId: string) => {
@@ -150,21 +147,20 @@ export const LinkContainer = () => {
 
   return (
     <div className="w-full col-span-full flex flex-col gap-4">
-      {linksLoading ? (
+      {qrCodesLoading ? (
         <div className="w-full flex flex-row items-center justify-start font-semibold md:text-base text-sm gap-1">
           <Loader2 className="animate-spin h-4 w-4 aspect-square" />
-          <p>Loading links...</p>
+          <p>Loading QR Codes...</p>
         </div>
-      ) : links.length > 0 ? (
+      ) : qrCodes.length > 0 ? (
         <>
-          {/* Render links */}
-          {links.map((link) => (
-            <LinkCard
-              tags={filters.tags}
+          {qrCodes.map((code) => (
+            <QRCodeCard
+              key={code.qrCodeId}
+              qrCode={code}
               addTag={addTag}
               removeTag={removeTag}
-              key={link._id as string}
-              link={link}
+              tags={filters.tags}
             />
           ))}
 
@@ -183,7 +179,7 @@ export const LinkContainer = () => {
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You've reached the end of your links
+                You've reached the end of your QR Codes
               </p>
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
             </div>
@@ -193,7 +189,7 @@ export const LinkContainer = () => {
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You've reached the end of your links
+            You've reached the end of your QR Codes
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

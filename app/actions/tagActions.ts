@@ -1,6 +1,7 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
+import QRCodeV2 from "@/models/url/QRCodeV2";
 import Tag from "@/models/url/Tag";
 import UrlV3 from "@/models/url/UrlV3";
 import { nanoid } from 'nanoid';
@@ -16,6 +17,24 @@ export async function getTagsByQuery(query: string, sub: string) {
     }).limit(10).lean();
 
     const lean = tags.map((tag) => ({ ...tag, _id: tag._id.toString() }));
+
+    return lean;
+}
+
+export async function getTagById(id: string, sub: string) {
+    if (!sub) return undefined;
+
+    await connectDB();
+
+    const tag = await Tag.findOne({
+        sub,
+        id
+    }).lean();
+
+    if (!tag) {
+        return undefined;
+    }
+    const lean = { ...tag, _id: tag._id.toString() };
 
     return lean;
 }
@@ -61,6 +80,33 @@ export async function createAndAddTagToUrl(tagName: string, sub: string, urlCode
     return { success: false, message: "duplicate" }
 }
 
+export async function createAndAddTagToQRCode(tagName: string, sub: string, qrCodeId: string) {
+    if (!sub) return { success: false, message: "no-user" }
+
+    await connectDB();
+
+    let tag = await Tag.findOne({ tagName, sub });
+
+    if (!tag) {
+        tag = await Tag.create({
+            tagName,
+            sub,
+            id: nanoid(6),
+        });
+    }
+
+    const qrCode = await QRCodeV2.findOne({ qrCodeId, sub });
+    if (!qrCode) return { success: false, message: "no-link" };
+
+    const exists = qrCode.tags?.some(t => t.tagName === tag.tagName);
+    if (!exists) {
+        await QRCodeV2.findOneAndUpdate({ qrCodeId, sub }, { $push: { tags: tag } });
+        const tagDocument = { tagName: tag.tagName, id: tag.id, sub: tag.sub, _id: (tag._id as any).toString() };
+        return { success: true, tag: tagDocument };
+    }
+    return { success: false, message: "duplicate" }
+}
+
 export async function addTagToLink(
     urlCode: string,
     userSub: string,
@@ -71,6 +117,15 @@ export async function addTagToLink(
     return { success: true };
 }
 
+export async function addTagToQRCode(
+    qrCodeId: string,
+    userSub: string,
+    tagId: string
+) {
+    const tag = await Tag.findOne({ sub: userSub, id: tagId })
+    await QRCodeV2.findOneAndUpdate({ qrCodeId, sub: userSub }, { $push: { tags: tag } });
+    return { success: true };
+}
 
 export async function removeTagFromLink(
     urlCode: string,
@@ -95,3 +150,28 @@ export async function removeTagFromLink(
         return { success: false, message: 'server-error' };
     }
 }
+
+export async function removeTagFromQRCode(
+    qrCodeId: string,
+    userSub: string,
+    tagId: string
+): Promise<{ success: boolean; message?: string }> {
+    try {
+
+        await connectDB();
+        const updated = await QRCodeV2.findOneAndUpdate(
+            { qrCodeId, sub: userSub },
+            { $pull: { tags: { id: tagId } } },
+            { new: true }
+        );
+
+        if (!updated) {
+            return { success: false, message: 'link-not-found' };
+        }
+
+        return { success: true };
+    } catch (err) {
+        return { success: false, message: 'server-error' };
+    }
+}
+
