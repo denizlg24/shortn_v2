@@ -58,6 +58,7 @@ export async function middleware(request: NextRequest) {
     const userOrgId = user?.sub.split("|")[1];
 
     if (isDashboard && !isLoggedIn) {
+        return NextResponse.redirect("https://youtube.com");
         return NextResponse.redirect(new URL(`/${locale}/login`, request.nextUrl));
     }
     if (isDashboard && isLoggedIn) {
