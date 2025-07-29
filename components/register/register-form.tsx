@@ -255,7 +255,8 @@ export const RegisterForm = () => {
               onClick={async () => {
                 setLoading(2);
                 const response = await githubAuthenticate();
-                if (response == true || !response) {
+                if (response.success && response.url) {
+                  router.push(response.url);
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {
@@ -281,7 +282,8 @@ export const RegisterForm = () => {
               onClick={async () => {
                 setLoading(3);
                 const response = await googleAuthenticate();
-                if (response == true || !response) {
+                if (response.success && response.url) {
+                  router.push(response.url);
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {

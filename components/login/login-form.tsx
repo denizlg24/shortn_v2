@@ -200,7 +200,6 @@ export const LoginForm = () => {
             onClick={async () => {
               setLoading(2);
               const response = await githubAuthenticate();
-              console.log("github: ", response);
               if (response.success && response.url) {
                 router.push(response.url);
               } else {
