@@ -77,7 +77,7 @@ export async function createQrCode({
         const sub = user.sub;
         const urlCode = nanoid(6);
         const qrShortCode = nanoid(6);
-        const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/${urlCode}`;
+        const shortUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${urlCode}`;
 
         let resolvedTitle = title?.trim();
 

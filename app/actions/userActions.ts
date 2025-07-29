@@ -47,7 +47,6 @@ export const createAccount = async ({ email, password, username, displayName, lo
             return { success: false, error: "verification-token" };
         }
     } catch (error) {
-        console.log(error);
         return { success: false, error: "server-error" };
     }
 }
@@ -68,7 +67,6 @@ export async function deleteProfilePicture(sub: string, oldPic: string) {
         }
         return { success: false, message: 'error-deleting' }
     } catch (e) {
-        console.log(e);
         return { success: false, message: 'server-error' };
     }
 }
@@ -261,10 +259,7 @@ export async function verifyEmail(email: string, token: string) {
         if (!verificationToken) {
             return { success: false, message: "token-expired" };
         }
-        console.log("userId:", verificationToken?._userId);
-        console.log("email:", email);
         const user = await User.findOne({ _id: verificationToken?._userId, email: email });
-        console.log(user);
         if (!user) {
             return { success: false, message: "user-not-found" };
         }

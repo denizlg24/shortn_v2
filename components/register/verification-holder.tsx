@@ -24,7 +24,6 @@ export const VerificationHolder = ({
 
     const verify = async () => {
       const { success, message } = await verifyEmail(email, token);
-      console.log(success, message);
       if (success) {
         setVerificationResult("true");
       } else if (message) {

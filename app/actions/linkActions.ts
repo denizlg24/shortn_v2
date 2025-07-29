@@ -59,7 +59,7 @@ export async function createShortn({
 
         const sub = user.sub;
         const urlCode = customCode || nanoid(6);
-        const shortUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/${urlCode}`;
+        const shortUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${urlCode}`;
 
         if (customCode) {
             const existing = await UrlV3.findOne({ urlCode: customCode });
@@ -204,7 +204,6 @@ export const getFilteredLinks = async (
         if (filters.endDate) {
             query.date.$lte = addDays(filters.endDate, 1);
         }
-        console.log(query.date);
     }
 
     if (filters.query.trim()) {
@@ -257,6 +256,19 @@ export const getFilteredLinks = async (
 
     return { links: linksSanitized, total };
 };
+
+export const getShortn = async (sub: string, urlCode: string) => {
+    try {
+        const url = await UrlV3.findOne({ sub, urlCode }).lean();
+        if (!url) {
+            return { success: false, url: undefined };
+        }
+        const filtered = { ...url, _id: url._id.toString(), tags: url.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })) };
+        return { success: true, url: filtered };
+    } catch (error) {
+        return { success: false, url: undefined };
+    }
+}
 
 export async function recordClickFromMiddleware(clickData: {
     slug: string;
