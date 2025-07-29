@@ -1,6 +1,8 @@
 import type { NextAuthConfig } from 'next-auth';
+import env from './utils/env';
 
 export const authConfig = {
+    secret: env.AUTH_SECRET,
     providers: [],
     callbacks: {
         async jwt({ token, user, account }) {

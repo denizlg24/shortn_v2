@@ -17,7 +17,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const slugCandidate = pathname.split('/')[1];
     const user = await getToken({ req: request, secret: env.AUTH_SECRET });
-    console.log(user);
+    console.log("USER: ", user);
     if (!isLocale(slugCandidate) && slugCandidate !== '' && slugCandidate !== "url-not-found") {
         const clickData = {
             slug: slugCandidate,
@@ -83,7 +83,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-    matcher: ['/((?!api|_next|_next/image|.*\\..*|favicon.ico).*)']
+    matcher: ['/((?!api|_next|_next/image|.*\\..*|favicon.ico).*)'],
+    runtime: "nodejs"
 };
 
 
