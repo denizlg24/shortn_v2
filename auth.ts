@@ -264,4 +264,5 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
             },
         }),
     ],
+    debug: true
 })

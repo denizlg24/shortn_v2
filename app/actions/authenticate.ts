@@ -6,36 +6,36 @@ export async function authenticate(
     formData: { email: string; password: string }
 ) {
     try {
-        await signIn("credentials", formData);
+        await signIn("credentials", { ...formData, redirect: false });
         return true;
     } catch (error) {
         if (error instanceof AuthError) {
-            return error;
+            return { name: "CredentialsSignin", message: error.message };
         }
-        throw error;
+        return { name: "ServerError", message: "server-error" };
     }
 }
 
 export async function githubAuthenticate() {
     try {
-        await signIn("github");
-        return true;
+        const url = await signIn("github", { redirect: false });
+        return { success: true, url };
     } catch (error) {
         if (error instanceof AuthError) {
-            return error;
+            return { name: "CredentialsSignin", message: error.message };
         }
-        throw error;
+        return { name: "ServerError", message: "server-error" };
     }
 }
 
 export async function googleAuthenticate() {
     try {
-        await signIn("google");
-        return true;
+        const url = await signIn("google", { redirect: false });
+        return { success: true, url };
     } catch (error) {
         if (error instanceof AuthError) {
-            return error;
+            return { name: "CredentialsSignin", message: error.message };
         }
-        throw error;
+        return { name: "ServerError", message: "server-error" };
     }
 }

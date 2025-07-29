@@ -24,22 +24,27 @@ export async function createFreePlan({ name, email }: { name: string, email?: st
 }
 
 export async function getStripeExtraInfo(stripeId: string) {
-    const customer = await stripe.customers.retrieve(stripeId);
-    let phone_number = ""
-    if (!customer.deleted) {
-        phone_number = customer.phone ?? "";
-    }
-    const taxIds = await stripe.customers.listTaxIds(
-        stripeId,
-        {
-            limit: 1,
+    try {
+        const customer = await stripe.customers.retrieve(stripeId);
+        let phone_number = ""
+        if (!customer.deleted) {
+            phone_number = customer.phone ?? "";
         }
-    );
-    let tax_id = "";
-    if (taxIds.data.length > 0) {
-        tax_id = taxIds.data[0].value;
+        const taxIds = await stripe.customers.listTaxIds(
+            stripeId,
+            {
+                limit: 1,
+            }
+        );
+        let tax_id = "";
+        if (taxIds.data.length > 0) {
+            tax_id = taxIds.data[0].value;
+        }
+        return { phone_number, tax_id };
+    } catch (error) {
+        return { phone_number: "", tax_id: "" }
     }
-    return { phone_number, tax_id };
+
 }
 
 export async function updatePhone(stripeId: string, phone: string) {

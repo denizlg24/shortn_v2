@@ -22,10 +22,11 @@ import {
 import { useState } from "react";
 import { Eye, EyeClosed, Loader2, XCircle } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
+import { AuthError } from "next-auth";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -48,16 +49,23 @@ export const LoginForm = () => {
   });
 
   const [showPassword, toggleShowPassword] = useState(false);
-
+  const router = useRouter();
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     setLoading(1);
     const response = await authenticate(values);
-    if (response == true || !response) {
+    if (response == true) {
+      router.push("/dashboard");
     } else {
       const error = response;
       if (error?.name == "CredentialsSignin") {
         const message = error?.message?.split(".")[0];
-        if (!message) return;
+        if (!message) {
+          form.setError("root", {
+            type: "manual",
+            message: "Unknown authentication error.",
+          });
+          setLoading(0);
+        }
         switch (message) {
           case "email-password-missing":
             form.setError("root", {
@@ -71,14 +79,12 @@ export const LoginForm = () => {
               message: "No account found with that email or username.",
             });
             break;
-
           case "wrong-password":
             form.setError("password", {
               type: "manual",
               message: "Incorrect password.",
             });
             break;
-
           case "not-verified":
             const notVerifiedToast = toast(
               <div className="w-full flex flex-col gap-2">
@@ -105,7 +111,6 @@ export const LoginForm = () => {
               </div>
             );
             break;
-
           default:
             form.setError("root", {
               type: "manual",
@@ -114,10 +119,9 @@ export const LoginForm = () => {
         }
         setLoading(0);
       } else {
-        console.error("Unexpected error:", error);
         form.setError("root", {
           type: "manual",
-          message: "Something went wrong. Please try again later.",
+          message: "Unknown authentication error.",
         });
         setLoading(0);
       }
@@ -196,7 +200,9 @@ export const LoginForm = () => {
             onClick={async () => {
               setLoading(2);
               const response = await githubAuthenticate();
-              if (response == true || !response) {
+              console.log("github: ", response);
+              if (response.success && response.url) {
+                router.push(response.url);
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
@@ -204,6 +210,12 @@ export const LoginForm = () => {
                     type: "manual",
                     message:
                       "Github account doesn't have a shortn account linked.",
+                  });
+                  setLoading(0);
+                } else {
+                  form.setError("root", {
+                    type: "manual",
+                    message: "Unknown authentication error.",
                   });
                   setLoading(0);
                 }
@@ -222,7 +234,8 @@ export const LoginForm = () => {
             onClick={async () => {
               setLoading(3);
               const response = await googleAuthenticate();
-              if (response == true || !response) {
+              if (response.success && response.url) {
+                router.push(response.url);
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
@@ -230,6 +243,12 @@ export const LoginForm = () => {
                     type: "manual",
                     message:
                       "Google account doesn't have a shortn account linked.",
+                  });
+                  setLoading(0);
+                } else {
+                  form.setError("root", {
+                    type: "manual",
+                    message: "Unknown authentication error.",
                   });
                   setLoading(0);
                 }
