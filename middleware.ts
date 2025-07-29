@@ -17,6 +17,7 @@ export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const slugCandidate = pathname.split('/')[1];
     const user = await getToken({ req: request, secret: env.AUTH_SECRET });
+    console.log(user);
     if (!isLocale(slugCandidate) && slugCandidate !== '' && slugCandidate !== "url-not-found") {
         const clickData = {
             slug: slugCandidate,
@@ -58,7 +59,6 @@ export async function middleware(request: NextRequest) {
     const userOrgId = user?.sub.split("|")[1];
 
     if (isDashboard && !isLoggedIn) {
-        return NextResponse.redirect("https://youtube.com");
         return NextResponse.redirect(new URL(`/${locale}/login`, request.nextUrl));
     }
     if (isDashboard && isLoggedIn) {

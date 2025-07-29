@@ -73,6 +73,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
             name: "Github",
             id: "github",
             async profile(profile) {
+                console.log("GITHUB PROFILE: ", profile);
                 await connectDB();
                 const githubSub = "github|" + profile.id;
                 const user = await User.findOne({ sub: githubSub });
@@ -144,6 +145,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
             name: "Google",
             id: "google",
             async profile(profile: GoogleProfile) {
+                console.log("GOOGLE PROFILE: ", profile);
                 await connectDB();
                 const googleSub = "google|" + profile.sub;
                 const user = await User.findOne({ sub: googleSub });
@@ -220,6 +222,7 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
                 password: { label: "Password", type: "password" },
             },
             async authorize(credentials) {
+                console.log("CREDENTIALS PROFILE: ", credentials);
                 await connectDB();
                 if (!credentials?.email || !credentials?.password) {
                     throw new CredentialsSignin("email-password-missing");
