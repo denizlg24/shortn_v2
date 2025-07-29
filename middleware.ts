@@ -16,6 +16,7 @@ const intlMiddleware = createMiddleware(routing);
 export async function middleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
     const slugCandidate = pathname.split('/')[1];
+    console.log("Middleware cookies:", request.headers.get("cookie"));
     const user = await getToken({ req: request, secret: env.AUTH_SECRET });
     console.log("USER: ", user);
     if (!isLocale(slugCandidate) && slugCandidate !== '' && slugCandidate !== "url-not-found") {
