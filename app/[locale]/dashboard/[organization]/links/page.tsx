@@ -1,5 +1,6 @@
 import { LinkContainer } from "@/components/dashboard/links/link-container";
 import { LinkFilterBar } from "@/components/dashboard/links/link-filter-bar";
+import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
@@ -18,6 +19,10 @@ export default function Home({
           Your Shortn Links
         </h1>
         <LinkFilterBar />
+        <SortingControls
+          label="Sort links by"
+          className="-mt-3 col-span-full"
+        />
         <LinkContainer />
       </div>
     </main>

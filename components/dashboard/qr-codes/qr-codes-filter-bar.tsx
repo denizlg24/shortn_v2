@@ -272,8 +272,8 @@ export const QRCodesFilterBar = () => {
       </div>
 
       <div className="flex md:flex-row flex-col sm:items-center items-start gap-2 w-full">
-        <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <DialogTrigger asChild>
+        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <PopoverTrigger asChild>
             <Button
               id="date-picker"
               variant={"outline"}
@@ -289,26 +289,28 @@ export const QRCodesFilterBar = () => {
                   : "Filter by created date"}
               </p>
             </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-[300px] overflow-hidden p-0">
-            <div className="p-4 w-full">
-              <DialogHeader className="text-left">
-                <DialogTitle>Filter by created date</DialogTitle>
-                <DialogDescription>
+          </PopoverTrigger>
+          <PopoverContent className="w-[320px]">
+            <div className="p-0 w-full">
+              <div className="text-left flex flex-col gap-0">
+                <h1 className="font-bold xs:text-base text-sm text-left">
+                  Filter by created date
+                </h1>
+                <p className="text-muted-foreground xs:text-sm text-xs text-left">
                   Display only QR Codes created on the selected range.
-                </DialogDescription>
-              </DialogHeader>
+                </p>
+              </div>
               <Separator className="my-2" />
               <Calendar
-                className="w-full max-w-[300px] mx-auto mt-4 p-0"
+                className="w-[225px] mx-auto p-0"
                 mode="range"
-                endMonth={new Date()}
                 selected={dateRange}
                 onSelect={setDateRange}
                 disabled={(date) => {
                   return date > new Date();
                 }}
               />
+              <Separator className="my-2" />
               <div className="flex flex-row w-full items-center gap-2 justify-end">
                 <Button onClick={clearDate} variant={"ghost"}>
                   <X />
@@ -319,10 +321,10 @@ export const QRCodesFilterBar = () => {
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
-          <DialogTrigger asChild>
+          </PopoverContent>
+        </Popover>
+        <Popover open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
+          <PopoverTrigger asChild>
             <Button
               id="filters"
               variant={"outline"}
@@ -343,12 +345,14 @@ export const QRCodesFilterBar = () => {
                 )}
               </p>
             </Button>
-          </DialogTrigger>
-          <DialogContent className="w-full max-w-[300px] overflow-hidden p-0">
+          </PopoverTrigger>
+          <PopoverContent className="w-[320px] overflow-hidden p-0">
             <div className="p-4 w-full flex flex-col gap-4">
-              <DialogHeader className="text-left">
-                <DialogTitle>Filters</DialogTitle>
-              </DialogHeader>
+              <div className="text-left flex flex-col gap-0">
+                <h1 className="font-bold xs:text-base text-sm text-left">
+                  Filters
+                </h1>
+              </div>
               <div className="w-full flex flex-col gap-2">
                 <Label className="font-semibold">Tags</Label>
                 <Popover open={open} onOpenChange={setOpen}>
@@ -460,19 +464,19 @@ export const QRCodesFilterBar = () => {
                   <SelectContent>
                     <SelectGroup>
                       <SelectItem value="all">
-                        Links
+                        QR Codes
                         <span className="font-semibold -mx-1">
                           with or without
                         </span>
                         attached Links
                       </SelectItem>
                       <SelectItem value="on">
-                        Links
+                        QR Codes
                         <span className="font-semibold -mx-1">with</span>
                         attached Links
                       </SelectItem>
                       <SelectItem value="off">
-                        Links
+                        QR Codes
                         <span className="font-semibold -mx-1">without</span>
                         attached Links
                       </SelectItem>
@@ -490,8 +494,8 @@ export const QRCodesFilterBar = () => {
                 </Button>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </PopoverContent>
+        </Popover>
         {query && (
           <Button className="md:w-auto w-full" onClick={applyFilters}>
             Search

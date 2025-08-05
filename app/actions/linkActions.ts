@@ -10,6 +10,8 @@ import { UAParser } from 'ua-parser-js';
 import { isbot } from 'isbot';
 import { Geo } from '@vercel/functions';
 import QRCodeV2 from '@/models/url/QRCodeV2';
+import { ITag } from '@/models/url/Tag';
+import { getTagById } from './tagActions';
 
 interface CreateUrlInput {
     longUrl: string;
@@ -66,7 +68,7 @@ export async function createShortn({
             if (existing) {
                 return {
                     success: false,
-                    message: 'This URL already exists in your account.',
+                    message: 'duplicate',
                     existingUrl: customCode,
                 };
             }
@@ -138,6 +140,17 @@ export async function createShortn({
             }
         }
 
+        const finalTags: ITag[] = [];
+
+        if (tags) {
+            for (const t of tags) {
+                const tag = await getTagById(t, sub);
+                if (tag) {
+                    finalTags.push(tag);
+                }
+            }
+        }
+
         const newUrl = await UrlV3.create({
             sub,
             urlCode,
@@ -145,7 +158,7 @@ export async function createShortn({
             longUrl,
             shortUrl,
             title: resolvedTitle,
-            tags,
+            tags: finalTags,
         });
 
         const updatedUser = await User.findOneAndUpdate({ sub: user.sub }, { links_this_month: links + 1 });
@@ -163,7 +176,6 @@ export async function createShortn({
                 shortUrl: newUrl.urlCode,
                 longUrl: newUrl.longUrl,
                 title: newUrl.title,
-                tags: newUrl.tags,
             },
         };
     } catch (error) {
@@ -192,66 +204,91 @@ export const getFilteredLinks = async (
 ): Promise<{ links: IUrl[]; total: number }> => {
     await connectDB();
 
-    const query: any = {
+    const pipeline: any[] = [];
+
+    const matchStage: any = {
         sub: userSub,
         isQrCode: false,
     };
+
     if (filters.startDate || filters.endDate) {
-        query.date = {};
+        matchStage.date = {};
         if (filters.startDate) {
-            query.date.$gte = filters.startDate;
+            matchStage.date.$gte = filters.startDate;
         }
         if (filters.endDate) {
-            query.date.$lte = addDays(filters.endDate, 1);
+            matchStage.date.$lte = addDays(filters.endDate, 1);
         }
-    }
-
-    if (filters.query.trim()) {
-        query.$text = { $search: filters.query.trim() };
     }
 
     if (filters.tags.length > 0) {
-        query.tags = { $elemMatch: { id: { $in: filters.tags } } };
+        matchStage.tags = { $elemMatch: { id: { $in: filters.tags } } };
     }
 
     if (filters.customLink === "on") {
-        query.customCode = true;
+        matchStage.customCode = true;
     } else if (filters.customLink === "off") {
-        query.customCode = false;
+        matchStage.customCode = false;
     }
 
     if (filters.attachedQR === "on") {
-        query.qrCodeId = { $exists: true, $ne: null };
+        matchStage.qrCodeId = { $exists: true, $ne: null };
     } else if (filters.attachedQR === "off") {
-        query.qrCodeId = { $in: [null, undefined, ""] };
+        matchStage.qrCodeId = { $in: [null, undefined, ""] };
     }
 
-    let sort: Record<string, 1 | -1> = {};
+    if (filters.query.trim()) {
+        pipeline.push({
+            $search: {
+                index: "text-search",
+                text: {
+                    query: filters.query.trim(),
+                    path: ["title", "longUrl", "tags.tagName"]
+                }
+            }
+        });
+    }
+
+    // Always apply the match stage after $search
+    pipeline.push({ $match: matchStage });
+
+    // Sort
+    let sortStage: Record<string, 1 | -1> = {};
     switch (filters.sortBy) {
         case "date_asc":
-            sort = { date: 1 };
+            sortStage = { date: 1 };
             break;
         case "date_desc":
-            sort = { date: -1 };
+            sortStage = { date: -1 };
             break;
         case "clicks_asc":
-            sort = { "clicks.total": 1 };
+            sortStage = { "clicks.total": 1 };
             break;
         case "clicks_desc":
-            sort = { "clicks.total": -1 };
+            sortStage = { "clicks.total": -1 };
             break;
     }
+    pipeline.push({ $sort: sortStage });
 
     const skip = (filters.page - 1) * filters.limit;
-    const [links, total] = await Promise.all([
-        UrlV3.find(query).sort(sort).skip(skip).limit(filters.limit).lean(),
-        UrlV3.countDocuments(query),
+    pipeline.push({ $skip: skip });
+    pipeline.push({ $limit: filters.limit });
+
+    const countPipeline = [...pipeline.filter(stage => !("$skip" in stage || "$limit" in stage)), {
+        $count: "total"
+    }];
+
+    const [links, totalResult] = await Promise.all([
+        UrlV3.aggregate(pipeline).exec(),
+        UrlV3.aggregate(countPipeline).exec()
     ]);
+
+    const total = totalResult[0]?.total || 0;
 
     const linksSanitized = links.map((link) => ({
         ...link,
         _id: link._id.toString(),
-        tags: link.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
+        tags: link.tags?.map((tag: ITag) => ({ ...tag, _id: (tag._id as any).toString() })),
     }));
 
     return { links: linksSanitized, total };
@@ -267,6 +304,19 @@ export const getShortn = async (sub: string, urlCode: string) => {
         return { success: true, url: filtered };
     } catch (error) {
         return { success: false, url: undefined };
+    }
+}
+
+export const attachQRToShortn = async (sub: string, urlCode: string, qrCodeId: string) => {
+    try {
+        await connectDB();
+        const updated = await UrlV3.findOneAndUpdate({ sub, urlCode }, { qrCodeId });
+        if (!updated) {
+            return { success: false, message: 'error-updating' };
+        }
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: 'server-error' }
     }
 }
 

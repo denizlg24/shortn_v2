@@ -36,11 +36,14 @@ import {
 } from "./ui/dialog";
 import { User } from "next-auth";
 import { useUser } from "@/utils/UserContext";
+import { useEffect, useState } from "react";
 
 export const AppSidebar = () => {
   const { user } = useUser();
   const { toggleSidebar, state } = useSidebar();
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const pathname = usePathname();
+
   return (
     <Sidebar collapsible="icon" className="z-99">
       <SidebarHeader className="py-2">
@@ -89,7 +92,10 @@ export const AppSidebar = () => {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuButton asChild>
-                <Dialog>
+                <Dialog
+                  open={createDialogOpen}
+                  onOpenChange={setCreateDialogOpen}
+                >
                   <DialogTrigger asChild>
                     <Button className="group-data-[collapsible=icon]:p-2.5! hover:bg-primary bg-primary text-primary-foreground hover:text-primary-foreground font-semibold group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!">
                       {state == "collapsed" && <Plus className="w-5! h-5!" />}
@@ -105,6 +111,9 @@ export const AppSidebar = () => {
                       </DialogTitle>
                       <div className="lg:grid grid-cols-3 flex flex-col w-full gap-4">
                         <Button
+                          onClick={() => {
+                            setCreateDialogOpen(false);
+                          }}
                           variant="outline"
                           className="h-fit text-base"
                           asChild
@@ -119,6 +128,9 @@ export const AppSidebar = () => {
                           </Link>
                         </Button>
                         <Button
+                          onClick={() => {
+                            setCreateDialogOpen(false);
+                          }}
                           variant="outline"
                           className="h-fit text-base"
                           asChild
@@ -133,6 +145,9 @@ export const AppSidebar = () => {
                           </Link>
                         </Button>
                         <Button
+                          onClick={() => {
+                            setCreateDialogOpen(false);
+                          }}
                           variant="outline"
                           className="h-fit text-base"
                           asChild

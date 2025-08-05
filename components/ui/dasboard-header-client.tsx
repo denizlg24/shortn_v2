@@ -7,13 +7,14 @@ import { Button } from "./button";
 import { ChevronDown, HelpCircle, LogOut, Settings } from "lucide-react";
 import { Separator } from "./separator";
 import { Link } from "@/i18n/navigation";
-import { signOut } from "@/auth";
 import { LocaleSwitcher } from "./locale-switcher";
 import { useUser } from "@/utils/UserContext";
 import { signOutUser } from "@/app/actions/signOut";
+import { useState } from "react";
 
 export const DashboardHeaderClient = () => {
   const { user } = useUser();
+  const [open, setOpen] = useState(false);
   return (
     <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-90 transition-shadow flex flex-row justify-end gap-4">
       {!user && (
@@ -24,7 +25,7 @@ export const DashboardHeaderClient = () => {
       )}
       {user && (
         <>
-          <Popover>
+          <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild className="group">
               <Button
                 variant={"outline"}
@@ -99,7 +100,13 @@ export const DashboardHeaderClient = () => {
                   )}
                 </div>
                 {user.plan.subscription != "pro" && (
-                  <Button asChild className="h-fit text-xs px-2 py-1 rounded!">
+                  <Button
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    asChild
+                    className="h-fit text-xs px-2 py-1 rounded!"
+                  >
                     <Link
                       href={`/dashboard/${user.sub.split("|")[1]}/subscription`}
                     >
@@ -111,6 +118,9 @@ export const DashboardHeaderClient = () => {
               <Separator />
               <div className="w-full py-2 flex flex-col gap-0">
                 <Button
+                  onClick={() => {
+                    setOpen(false);
+                  }}
                   asChild
                   className="rounded-none justify-start"
                   variant="ghost"
@@ -122,6 +132,9 @@ export const DashboardHeaderClient = () => {
                 </Button>
 
                 <Button
+                  onClick={() => {
+                    setOpen(false);
+                  }}
                   asChild
                   className="rounded-none justify-start"
                   variant="ghost"
@@ -136,6 +149,7 @@ export const DashboardHeaderClient = () => {
               <div className="w-full py-2 flex flex-col gap-0">
                 <Button
                   onClick={() => {
+                    setOpen(false);
                     signOutUser();
                   }}
                   className="rounded-none justify-start"

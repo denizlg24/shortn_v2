@@ -119,7 +119,7 @@ export const LinkCard = ({
           href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
             currentLink.urlCode
           }/details`}
-          className="font-bold lg:text-lg md:text-base text-sm hover:underline underline-offset-4 truncate"
+          className="font-bold lg:text-2xl md:text-xl text-lg hover:underline underline-offset-4 truncate"
         >
           {currentLink.title}
         </Link>
@@ -179,10 +179,24 @@ export const LinkCard = ({
                 <LinkIcon /> View link details
               </Button>
               <Button
+                asChild
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
-                <QrCode /> View QR Code
+                <Link
+                  href={
+                    link.qrCodeId
+                      ? `/dashboard/${
+                          session.user.sub.split("|")[1]
+                        }/qr-codes/${link.qrCodeId}/details`
+                      : `/dashboard/${
+                          session.user.sub.split("|")[1]
+                        }/qr-codes/create?dynamic_id=${link.urlCode}`
+                  }
+                >
+                  <QrCode />
+                  {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
+                </Link>
               </Button>
               <Button
                 variant={"outline"}
@@ -403,22 +417,46 @@ export const LinkCard = ({
           </div>
         </div>
         <div className="flex flex-row items-center h-6 gap-2 sm:pb-0 pb-2">
+          {}
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button variant={"outline"} className="p-2! aspect-square!">
-                <QrCode />
+              <Button
+                variant={"outline"}
+                asChild
+                className="p-2! aspect-square! border-transparent shadow-none"
+              >
+                <Link
+                  href={
+                    link.qrCodeId
+                      ? `/dashboard/${
+                          session.user.sub.split("|")[1]
+                        }/qr-codes/${link.qrCodeId}/details`
+                      : `/dashboard/${
+                          session.user.sub.split("|")[1]
+                        }/qr-codes/create?dynamic_id=${link.urlCode}`
+                  }
+                >
+                  <QrCode
+                    className={cn(!link.qrCodeId && "text-muted-foreground")}
+                  />
+                </Link>
               </Button>
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                <p className="text-sm font-bold">Create QR Code</p>
+                <p className="text-sm font-bold">
+                  {link.qrCodeId ? "View QR Code" : "Create QR Code"}
+                </p>
               </div>
             </HoverCardContent>
           </HoverCard>
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button variant={"outline"} className="p-2! aspect-square!">
+              <Button
+                variant={"outline"}
+                className="p-2! aspect-square! border-transparent shadow-none"
+              >
                 <NotepadText />
               </Button>
             </HoverCardTrigger>
@@ -495,10 +533,24 @@ export const LinkCard = ({
               <LinkIcon /> View link details
             </Button>
             <Button
+              asChild
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
-              <QrCode /> View QR Code
+              <Link
+                href={
+                  link.qrCodeId
+                    ? `/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
+                        link.qrCodeId
+                      }/details`
+                    : `/dashboard/${
+                        session.user.sub.split("|")[1]
+                      }/qr-codes/create?dynamic_id=${link.urlCode}`
+                }
+              >
+                <QrCode />
+                {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
+              </Link>
             </Button>
             <Button
               variant={"outline"}

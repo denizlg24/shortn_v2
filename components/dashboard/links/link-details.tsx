@@ -10,11 +10,14 @@ import { LinkDetailsCard } from "./link-details-card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft } from "lucide-react";
 import { LinkAdditionsCard } from "./link-additions-card";
+import { IQRCode } from "@/models/url/QRCodeV2";
+import { getQRCode } from "@/app/actions/qrCodeActions";
 
 export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
   const [loading, setLoading] = useState(true);
   const session = useUser();
   const [url, setUrl] = useState<IUrl | undefined>(undefined);
+  const [qrCode, setQRCode] = useState<IQRCode | undefined>(undefined);
   const [notFound, setNotFound] = useState(false);
   const router = useRouter();
 
@@ -23,6 +26,12 @@ export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
       const { success, url } = await getShortn(sub, code);
       if (success && url) {
         setUrl(url);
+        if (url.qrCodeId) {
+          const { success, qr } = await getQRCode(sub, url.qrCodeId);
+          if (success && qr) {
+            setQRCode(qr);
+          }
+        }
         setLoading(false);
       } else {
         setNotFound(true);
@@ -69,7 +78,7 @@ export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
       {url && (
         <>
           <LinkDetailsCard currentLink={url} />
-          <LinkAdditionsCard currentLink={url} />
+          <LinkAdditionsCard qrCode={qrCode} url={url} />
         </>
       )}
     </>

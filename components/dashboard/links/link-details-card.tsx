@@ -112,7 +112,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
       <div className="w-full flex flex-row items-start justify-between">
-        <h1 className="font-bold lg:text-lg text-base hover:underline underline-offset-4 truncate">
+        <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
           {currentLink.title}
         </h1>
         <div className="md:flex hidden flex-row items-center gap-2">

@@ -56,6 +56,17 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const QRCodeCard = ({
   qrCode,
@@ -69,6 +80,19 @@ export const QRCodeCard = ({
   tags: string[];
 }) => {
   const session = useUser();
+
+  const allowedLinks = {
+    free: 3,
+    basic: 25,
+    plus: 50,
+  };
+
+  const linksLeft =
+    session.user?.plan.subscription && session.user.plan.subscription != "pro"
+      ? allowedLinks[
+          session.user.plan.subscription as "free" | "basic" | "plus"
+        ] - (session.user.links_this_month ?? 0)
+      : undefined;
 
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
   const [input, setInput] = useState("");
@@ -168,12 +192,64 @@ export const QRCodeCard = ({
                     </Link>
                   </Button>
                 ) : (
-                  <Button
-                    variant={"outline"}
-                    className="w-full border-none! rounded-none! justify-start! shadow-none! "
-                  >
-                    <LinkIcon /> Create short link
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                      >
+                        <LinkIcon /> Create short link
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle className="text-left!">
+                          Create a link for your Code
+                        </DialogTitle>
+                        <DialogDescription asChild>
+                          <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
+                            <p>
+                              Creating a link for this QR Code will use up one
+                              of your monthly links.
+                            </p>
+                            {linksLeft == undefined ? (
+                              <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
+                                <Skeleton className="w-3 h-3" />
+                                <p>left</p>
+                              </div>
+                            ) : linksLeft > 0 ? (
+                              <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
+                                <span className="font-semibold">
+                                  {linksLeft}
+                                </span>{" "}
+                                left
+                              </p>
+                            ) : (
+                              <></>
+                            )}
+                          </div>
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="w-full flex flex-col text-left gap-1 items-start">
+                        <p className="font-semibold xs:text-base text-sm">
+                          Destination
+                        </p>
+                        <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
+                      </div>
+                      <div className="w-full flex flex-col text-left gap-1 items-start">
+                        <p className="font-semibold xs:text-base text-sm">
+                          Title
+                        </p>
+                        <p className="xs:text-sm text-xs">{qrCode.title}</p>
+                      </div>
+                      <DialogFooter className="flex flex-row items-center justify-end gap-2">
+                        <DialogClose asChild>
+                          <Button variant={"secondary"}>Cancel</Button>
+                        </DialogClose>
+                        <Button>Create link</Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 )}
                 <Button
                   variant={"outline"}
@@ -455,12 +531,62 @@ export const QRCodeCard = ({
                   </Link>
                 </Button>
               ) : (
-                <Button
-                  variant={"outline"}
-                  className="w-full border-none! rounded-none! justify-start! shadow-none! "
-                >
-                  <LinkIcon /> Create short link
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                    >
+                      <LinkIcon /> Create short link
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle className="text-left!">
+                        Create a link for your Code
+                      </DialogTitle>
+                      <DialogDescription asChild>
+                        <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
+                          <p>
+                            Creating a link for this QR Code will use up one of
+                            your monthly links.
+                          </p>
+                          {linksLeft == undefined ? (
+                            <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
+                              <Skeleton className="w-3 h-3" />
+                              <p>left</p>
+                            </div>
+                          ) : linksLeft > 0 ? (
+                            <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
+                              <span className="font-semibold">{linksLeft}</span>{" "}
+                              left
+                            </p>
+                          ) : (
+                            <></>
+                          )}
+                        </div>
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="w-full flex flex-col text-left gap-1 items-start">
+                      <p className="font-semibold xs:text-base text-sm">
+                        Destination
+                      </p>
+                      <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
+                    </div>
+                    <div className="w-full flex flex-col text-left gap-1 items-start">
+                      <p className="font-semibold xs:text-base text-sm">
+                        Title
+                      </p>
+                      <p className="xs:text-sm text-xs">{qrCode.title}</p>
+                    </div>
+                    <DialogFooter className="flex flex-row items-center justify-end gap-2">
+                      <DialogClose asChild>
+                        <Button variant={"secondary"}>Cancel</Button>
+                      </DialogClose>
+                      <Button>Create link</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               )}
               <Button
                 variant={"outline"}

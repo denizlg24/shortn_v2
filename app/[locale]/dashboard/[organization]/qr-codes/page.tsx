@@ -1,3 +1,4 @@
+import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { QRCodesContainer } from "@/components/dashboard/qr-codes/qr-codes-container";
 import { QRCodesFilterBar } from "@/components/dashboard/qr-codes/qr-codes-filter-bar";
 import { setRequestLocale } from "next-intl/server";
@@ -18,6 +19,10 @@ export default function Home({
           Your QR Codes
         </h1>
         <QRCodesFilterBar />
+        <SortingControls
+          label="Sort codes by"
+          className="-mt-3 col-span-full"
+        />
         <QRCodesContainer />
       </div>
     </main>

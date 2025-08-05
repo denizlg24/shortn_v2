@@ -9,7 +9,7 @@ import { User } from "next-auth";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LinkCard } from "./link-card";
-import { add, parse, startOfDay } from "date-fns";
+import { parse } from "date-fns";
 import { getFilteredLinks } from "@/app/actions/linkActions";
 
 interface IFilters {
