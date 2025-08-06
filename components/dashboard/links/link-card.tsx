@@ -1,3 +1,4 @@
+import { deleteShortn } from "@/app/actions/linkActions";
 import {
   addTagToLink,
   createAndAddTagToUrl,
@@ -25,7 +26,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { IUrl } from "@/models/url/UrlV3";
@@ -50,6 +51,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
+import { toast } from "sonner";
 
 export const LinkCard = ({
   link,
@@ -63,6 +65,7 @@ export const LinkCard = ({
   tags: string[];
 }) => {
   const session = useUser();
+  const router = useRouter();
 
   const [currentLink, setCurrentLink] = useState(link);
   const [input, setInput] = useState("");
@@ -167,6 +170,17 @@ export const LinkCard = ({
             </PopoverTrigger>
             <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
               <Button
+                onClick={async () => {
+                  const response = await deleteShortn(currentLink.urlCode);
+                  if (response.success) {
+                    toast.success(
+                      `Link ${currentLink.urlCode} was successfully deleted.`
+                    );
+                  } else {
+                    toast.error("There was a problem deleting your link.");
+                  }
+                  router.refresh();
+                }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
@@ -523,6 +537,17 @@ export const LinkCard = ({
             <Button
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              onClick={async () => {
+                const response = await deleteShortn(currentLink.urlCode);
+                if (response.success) {
+                  toast.success(
+                    `Link ${currentLink.urlCode} was successfully deleted.`
+                  );
+                } else {
+                  toast.error("There was a problem deleting your link.");
+                }
+                router.refresh();
+              }}
             >
               <Trash2 /> Delete
             </Button>

@@ -28,7 +28,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
@@ -67,6 +67,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { createShortn } from "@/app/actions/linkActions";
+import { attachShortnToQR, deleteQRCode } from "@/app/actions/qrCodeActions";
+import { toast } from "sonner";
 
 export const QRCodeCard = ({
   qrCode,
@@ -101,6 +104,8 @@ export const QRCodeCard = ({
   const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!session.user) {
@@ -143,6 +148,8 @@ export const QRCodeCard = ({
     link.click();
     document.body.removeChild(link);
   };
+
+  const router = useRouter();
 
   if (!session.user) {
     return null;
@@ -195,6 +202,9 @@ export const QRCodeCard = ({
                   <Dialog>
                     <DialogTrigger asChild>
                       <Button
+                        onClick={() => {
+                          setError("");
+                        }}
                         variant={"outline"}
                         className="w-full border-none! rounded-none! justify-start! shadow-none! "
                       >
@@ -246,12 +256,79 @@ export const QRCodeCard = ({
                         <DialogClose asChild>
                           <Button variant={"secondary"}>Cancel</Button>
                         </DialogClose>
-                        <Button>Create link</Button>
+                        <Button
+                          onClick={async () => {
+                            setCreating(true);
+                            const response = await createShortn({
+                              longUrl: qrCode.longUrl,
+                              title: qrCode.title,
+                              tags: qrCode.tags?.map((t) => t.id),
+                              qrCodeId: qrCode.qrCodeId,
+                            });
+                            if (!response.success) {
+                              switch (response.message) {
+                                case "no-user":
+                                  setError("User session error.");
+                                  setCreating(false);
+                                  return;
+                                case "custom-restricted":
+                                  setError(
+                                    "Custom back-halves are restricted to pro accounts."
+                                  );
+                                  setCreating(false);
+                                  return;
+                                case "plan-limit":
+                                  setError(
+                                    "You have reached your plan's link limit."
+                                  );
+                                  setCreating(false);
+                                  return;
+                                default:
+                                  setError(
+                                    "There was a problem creating your link."
+                                  );
+                                  setCreating(false);
+                                  return;
+                              }
+                            }
+                            if (response.success && response.data) {
+                              const update = await attachShortnToQR(
+                                response.data.shortUrl,
+                                qrCode.qrCodeId
+                              );
+                              router.push(
+                                `/dashboard/${
+                                  session.user?.sub.split("|")[1]
+                                }/links/${response.data.shortUrl}/details`
+                              );
+                            }
+                          }}
+                        >
+                          {creating ? (
+                            <>
+                              <Loader2 className="animate-spin" />
+                              Creating...
+                            </>
+                          ) : (
+                            <>Create link</>
+                          )}
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
                 )}
                 <Button
+                  onClick={async () => {
+                    const response = await deleteQRCode(qrCode.qrCodeId);
+                    if (response.success) {
+                      toast.success(
+                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                      );
+                    } else {
+                      toast.error("There was a problem deleting your QR Code.");
+                    }
+                    router.refresh();
+                  }}
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! "
                 >
@@ -534,6 +611,9 @@ export const QRCodeCard = ({
                 <Dialog>
                   <DialogTrigger asChild>
                     <Button
+                      onClick={() => {
+                        setError("");
+                      }}
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
@@ -579,16 +659,88 @@ export const QRCodeCard = ({
                       </p>
                       <p className="xs:text-sm text-xs">{qrCode.title}</p>
                     </div>
+                    {error && (
+                      <p className="xs:text-sm text-xs text-destructive">
+                        {error}
+                      </p>
+                    )}
                     <DialogFooter className="flex flex-row items-center justify-end gap-2">
                       <DialogClose asChild>
                         <Button variant={"secondary"}>Cancel</Button>
                       </DialogClose>
-                      <Button>Create link</Button>
+                      <Button
+                        onClick={async () => {
+                          setCreating(true);
+                          const response = await createShortn({
+                            longUrl: qrCode.longUrl,
+                            title: qrCode.title,
+                            tags: qrCode.tags?.map((t) => t.id),
+                            qrCodeId: qrCode.qrCodeId,
+                          });
+                          if (!response.success) {
+                            switch (response.message) {
+                              case "no-user":
+                                setError("User session error.");
+                                setCreating(false);
+                                return;
+                              case "custom-restricted":
+                                setError(
+                                  "Custom back-halves are restricted to pro accounts."
+                                );
+                                setCreating(false);
+                                return;
+                              case "plan-limit":
+                                setError(
+                                  "You have reached your plan's link limit."
+                                );
+                                setCreating(false);
+                                return;
+                              default:
+                                setError(
+                                  "There was a problem creating your link."
+                                );
+                                setCreating(false);
+                                return;
+                            }
+                          }
+                          if (response.success && response.data) {
+                            const update = await attachShortnToQR(
+                              response.data.shortUrl,
+                              qrCode.qrCodeId
+                            );
+                            router.push(
+                              `/dashboard/${
+                                session.user?.sub.split("|")[1]
+                              }/links/${response.data.shortUrl}/details`
+                            );
+                          }
+                        }}
+                      >
+                        {creating ? (
+                          <>
+                            <Loader2 className="animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          <>Create link</>
+                        )}
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
               )}
               <Button
+                onClick={async () => {
+                  const response = await deleteQRCode(qrCode.qrCodeId);
+                  if (response.success) {
+                    toast.success(
+                      `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                    );
+                  } else {
+                    toast.error("There was a problem deleting your QR Code.");
+                  }
+                  router.refresh();
+                }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >

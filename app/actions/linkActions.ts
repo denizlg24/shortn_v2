@@ -18,6 +18,7 @@ interface CreateUrlInput {
     title?: string;
     tags?: string[];
     customCode?: string;
+    qrCodeId?: string;
 }
 
 async function fetchPageTitle(url: string): Promise<string | null> {
@@ -45,6 +46,7 @@ export async function createShortn({
     title,
     tags = [],
     customCode,
+    qrCodeId
 }: CreateUrlInput) {
     try {
         await connectDB();
@@ -159,6 +161,7 @@ export async function createShortn({
             shortUrl,
             title: resolvedTitle,
             tags: finalTags,
+            qrCodeId,
         });
 
         const updatedUser = await User.findOneAndUpdate({ sub: user.sub }, { links_this_month: links + 1 });
@@ -232,7 +235,11 @@ export const getFilteredLinks = async (
     }
 
     if (filters.attachedQR === "on") {
-        matchStage.qrCodeId = { $exists: true, $ne: null };
+        matchStage.qrCodeId = {
+            $exists: true,
+            $ne: null,
+            $not: { $eq: "" }
+        };
     } else if (filters.attachedQR === "off") {
         matchStage.qrCodeId = { $in: [null, undefined, ""] };
     }
@@ -296,6 +303,7 @@ export const getFilteredLinks = async (
 
 export const getShortn = async (sub: string, urlCode: string) => {
     try {
+        await connectDB();
         const url = await UrlV3.findOne({ sub, urlCode }).lean();
         if (!url) {
             return { success: false, url: undefined };
@@ -317,6 +325,32 @@ export const attachQRToShortn = async (sub: string, urlCode: string, qrCodeId: s
         return { success: true };
     } catch (error) {
         return { success: false, message: 'server-error' }
+    }
+}
+
+export const deleteShortn = async (urlCode: string) => {
+    try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+        const foundURL = await UrlV3.findOneAndDelete({ urlCode, sub });
+        if (!foundURL) {
+            return { success: true, deleted: urlCode };
+        }
+        if (foundURL.qrCodeId) {
+            const detachQR = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: foundURL.qrCodeId }, { attachedUrl: "" });
+        }
+        return { success: true, deleted: urlCode };
+    } catch (error) {
+        return { success: false, message: 'server-error' };
     }
 }
 

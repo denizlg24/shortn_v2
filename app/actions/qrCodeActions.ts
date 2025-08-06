@@ -257,7 +257,11 @@ export const getFilteredQRCodes = async (
     }
 
     if (filters.attachedQR === "on") {
-        matchStage.attachedUrl = { $exists: true, $ne: null };
+        matchStage.attachedUrl = {
+            $exists: true,
+            $ne: null,
+            $not: { $eq: "" }
+        };
     } else if (filters.attachedQR === "off") {
         matchStage.attachedUrl = { $in: [null, undefined, ""] };
     }
@@ -317,6 +321,7 @@ export const getFilteredQRCodes = async (
 
 export const getQRCode = async (sub: string, codeID: string) => {
     try {
+        await connectDB();
         const qr = await QRCodeV2.findOne({ sub, qrCodeId: codeID }).lean();
         if (!qr) {
             return { success: false, url: undefined };
@@ -325,5 +330,58 @@ export const getQRCode = async (sub: string, codeID: string) => {
         return { success: true, qr: filtered };
     } catch (error) {
         return { success: false, qr: undefined };
+    }
+}
+
+export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
+    try {
+        await connectDB();
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+
+        const updated = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId }, { attachedUrl: urlCode });
+        if (!updated) {
+            return { success: false, message: 'error-updating' };
+        }
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: 'server-error' }
+    }
+}
+
+export const deleteQRCode = async (qrCodeId: string) => {
+    try {
+        await connectDB();
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+        const foundQR = await QRCodeV2.findOneAndDelete({ qrCodeId, sub });
+        if (!foundQR) {
+            return { success: true, deleted: qrCodeId };
+        }
+        const foundRootURL = await UrlV3.findOneAndDelete({ sub, urlCode: foundQR.urlId, isQrCode: true });
+        if (foundQR.attachedUrl) {
+            const detachURL = await UrlV3.findOneAndUpdate({ sub, qrCodeId: foundQR.qrCodeId }, { qrCodeId: "" });
+        }
+        return { success: true, deleted: qrCodeId };
+    } catch (error) {
+        return { success: false, message: 'server-error' };
     }
 }

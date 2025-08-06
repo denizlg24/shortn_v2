@@ -22,12 +22,12 @@ import {
 export const LinkAdditionsCard = ({
   qrCode,
   url,
+  organization,
 }: {
   qrCode: IQRCode | undefined;
   url: IUrl;
+  organization: string;
 }) => {
-  const session = useUser();
-
   const handleDownload = (base64: string, filename: string) => {
     const link = document.createElement("a");
     link.href = base64;
@@ -72,9 +72,7 @@ export const LinkAdditionsCard = ({
               <>
                 <Button variant={"outline"} asChild>
                   <Link
-                    href={`/dashboard/${
-                      session.user?.sub.split("|")[0]
-                    }/qr-codes/${qrCode.qrCodeId}/details`}
+                    href={`/dashboard/${organization}/qr-codes/${qrCode.qrCodeId}/details`}
                   >
                     <ChartNoAxesColumn />
                     View details
@@ -93,9 +91,7 @@ export const LinkAdditionsCard = ({
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
                       <Link
-                        href={`/dashboard/${
-                          session.user?.sub.split("|")[0]
-                        }/qr-codes/${qrCode.qrCodeId}/edit/customize`}
+                        href={`/dashboard/${organization}/qr-codes/${qrCode.qrCodeId}/edit/customize`}
                       >
                         <Palette /> Customize
                       </Link>
@@ -119,9 +115,7 @@ export const LinkAdditionsCard = ({
             ) : (
               <Button asChild variant={"outline"}>
                 <Link
-                  href={`/dashboard/${
-                    session.user?.sub.split("|")[1]
-                  }/qr-codes/create?dynamic_id=${url.urlCode}`}
+                  href={`/dashboard/${organization}/qr-codes/create?dynamic_id=${url.urlCode}`}
                 >
                   <ChartNoAxesColumn />
                   Create QR Code

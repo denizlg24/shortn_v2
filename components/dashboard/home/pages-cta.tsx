@@ -9,7 +9,13 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useUser } from "@/utils/UserContext";
 
-export const PagesCTA = ({ className }: { className?: string }) => {
+export const PagesCTA = ({
+  className,
+  organization,
+}: {
+  className?: string;
+  organization: string;
+}) => {
   const { user } = useUser();
   return (
     <Card
@@ -29,7 +35,7 @@ export const PagesCTA = ({ className }: { className?: string }) => {
           into conversions.
         </p>
         <Button variant="outline" asChild>
-          <Link href={`/dashboard/${user?.sub.split("|")[1]}/pages`}>
+          <Link href={`/dashboard/${organization}/pages`}>
             Get Started <ArrowRight className="text-primary" />
           </Link>
         </Button>

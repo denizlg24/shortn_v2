@@ -7,7 +7,10 @@ export default function Home({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale, organization } = use<{
+    locale: string;
+    organization: string;
+  }>(params);
   setRequestLocale(locale);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent">

@@ -13,7 +13,13 @@ import { LinkAdditionsCard } from "./link-additions-card";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { getQRCode } from "@/app/actions/qrCodeActions";
 
-export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
+export const LinkDetails = ({
+  urlCode,
+  organization,
+}: {
+  urlCode: string;
+  organization: string;
+}) => {
   const [loading, setLoading] = useState(true);
   const session = useUser();
   const [url, setUrl] = useState<IUrl | undefined>(undefined);
@@ -59,7 +65,7 @@ export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
       <Button variant={"link"} asChild>
         <Link
           className="font-semibold mr-auto"
-          href={`/dashboard/${session?.user?.sub.split("|")[1]}/links`}
+          href={`/dashboard/${organization}/links`}
         >
           <ChevronLeft />
           Back to list
@@ -78,7 +84,11 @@ export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
       {url && (
         <>
           <LinkDetailsCard currentLink={url} />
-          <LinkAdditionsCard qrCode={qrCode} url={url} />
+          <LinkAdditionsCard
+            organization={organization}
+            qrCode={qrCode}
+            url={url}
+          />
         </>
       )}
     </>

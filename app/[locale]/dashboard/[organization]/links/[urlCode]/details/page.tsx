@@ -10,13 +10,17 @@ export default function Home({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale, urlCode } = use<{ locale: string; urlCode: string }>(params);
+  const { locale, urlCode, organization } = use<{
+    locale: string;
+    urlCode: string;
+    organization: string;
+  }>(params);
   setRequestLocale(locale);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-12!">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
         <div className="w-full col-span-full flex flex-col gap-4">
-          <LinkDetails urlCode={urlCode} />
+          <LinkDetails organization={organization} urlCode={urlCode} />
         </div>
       </div>
     </main>

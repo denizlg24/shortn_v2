@@ -240,10 +240,6 @@ export const QRCodesFilterBar = () => {
     setCalendarOpen(false);
   };
 
-  if (!session.user) {
-    return null;
-  }
-
   return (
     <div className="w-full flex md:flex-row flex-col justify-start gap-2 lg:items-center items-start pb-4 border-b-2 relative col-span-full">
       <div className="relative w-full lg:max-w-[375px] md:max-w-[300px]">

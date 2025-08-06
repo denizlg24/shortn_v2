@@ -149,7 +149,7 @@ export const LinkContainer = () => {
   };
 
   return (
-    <div className="w-full col-span-full flex flex-col gap-4">
+    <div className="w-full col-span-full flex flex-col gap-4 pb-6">
       {linksLoading ? (
         <div className="w-full flex flex-row items-center justify-start font-semibold md:text-base text-sm gap-1">
           <Loader2 className="animate-spin h-4 w-4 aspect-square" />
@@ -167,15 +167,6 @@ export const LinkContainer = () => {
               link={link}
             />
           ))}
-
-          {Math.ceil(total / parseInt(searchParams.get("limit") || "10", 10)) >
-            1 && (
-            <PaginationControls
-              totalPages={Math.ceil(
-                total / parseInt(searchParams.get("limit") || "10", 10)
-              )}
-            />
-          )}
           {parseInt(searchParams.get("page") || "1", 10) >=
             Math.ceil(
               total / parseInt(searchParams.get("limit") || "10", 10)
@@ -197,6 +188,14 @@ export const LinkContainer = () => {
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>
+      )}
+      {Math.ceil(total / parseInt(searchParams.get("limit") || "10", 10)) >
+        1 && (
+        <PaginationControls
+          totalPages={Math.ceil(
+            total / parseInt(searchParams.get("limit") || "10", 10)
+          )}
+        />
       )}
     </div>
   );
