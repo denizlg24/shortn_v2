@@ -171,6 +171,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
       <div className="w-full flex flex-row justify-start">
         <Link
           href={currentLink.shortUrl}
+          prefetch={false}
           className="font-semibold lg:text-base text-sm hover:underline text-blue-500 truncate"
         >
           {currentLink.shortUrl.split("://")[1]}
