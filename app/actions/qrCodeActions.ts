@@ -324,12 +324,38 @@ export const getQRCode = async (sub: string, codeID: string) => {
         await connectDB();
         const qr = await QRCodeV2.findOne({ sub, qrCodeId: codeID }).lean();
         if (!qr) {
-            return { success: false, url: undefined };
+            return { success: false, qr: undefined };
         }
         const filtered = { ...qr, _id: qr._id.toString(), tags: qr.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })) };
         return { success: true, qr: filtered };
     } catch (error) {
         return { success: false, qr: undefined };
+    }
+}
+
+export const updateQRCodeOptions = async (codeId: string, options: Partial<Options>) => {
+    try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+        await connectDB();
+        const finalOptions = {
+            ...options, jsdom: JSDOM,
+            nodeCanvas,
+        }
+        const base64 = await generateQRCodeBase64(finalOptions);
+        const qr = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: codeId }, { options, qrCodeBase64: base64 });
+        return { success: true };
+    } catch (error) {
+        return { success: false };
     }
 }
 

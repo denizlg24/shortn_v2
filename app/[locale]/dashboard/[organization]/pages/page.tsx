@@ -13,7 +13,7 @@ export default function Home({
   }>(params);
   setRequestLocale(locale);
   return (
-    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent">
+    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent sm:pt-14! pt-12! pb-16">
       PAGES
     </main>
   );

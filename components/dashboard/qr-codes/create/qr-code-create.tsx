@@ -44,6 +44,19 @@ const qrCodeFormSchema = z.object({
     .min(1, 'We\'ll need a valid URL, like "yourbrnd.co/niceurl"')
     .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
   title: z.string().optional(),
+  customCode: z
+    .union([
+      z
+        .string()
+        .min(3, "Back-half must be at least 3 characters long")
+        .max(52, "Back-half can't be longer than 52 characters")
+        .regex(
+          /^[a-zA-Z0-9_-]+$/,
+          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)"
+        ),
+      z.literal(""),
+    ])
+    .optional(),
 });
 
 export const QRCodeCreate = ({
@@ -106,6 +119,7 @@ export const QRCodeCreate = ({
     defaultValues: {
       destination: "",
       title: "",
+      customCode: "",
     },
   });
 
@@ -205,93 +219,118 @@ export const QRCodeCreate = ({
                       </FormItem>
                     )}
                   />
+                  <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
+                    Ways to share
+                  </h2>
+                  <div className="flex flex-row w-full justify-between items-start">
+                    <div className="flex flex-col gap-1 items-start w-full max-w-3xs">
+                      <p className="font-semibold sm:text-sm text-xs">
+                        Short Link
+                      </p>
+                      <p className="text-muted-foreground sm:text-sm text-xs">
+                        Create a link that directs users to the same destination
+                        as your QR Code
+                      </p>
+                    </div>
+                    <div className="flex flex-row gap-2 items-center">
+                      {linksLeft == undefined ? (
+                        <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
+                          <Skeleton className="w-3 h-3" />
+                          <p>left</p>
+                        </div>
+                      ) : linksLeft > 0 ? (
+                        <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
+                          <span className="font-semibold">{linksLeft}</span>{" "}
+                          left
+                        </p>
+                      ) : (
+                        <></>
+                      )}
+                      <Switch
+                        checked={createLink}
+                        onCheckedChange={setCreateLink}
+                        id="create-link"
+                      />
+                    </div>
+                  </div>
+                  {createLink && (
+                    <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
+                      <div className="w-full grow flex flex-col items-start gap-2">
+                        <p className="sm:text-sm text-xs font-semibold">
+                          Domain
+                        </p>
+                        <Input
+                          disabled
+                          className="w-full"
+                          value={
+                            process.env.NEXT_PUBLIC_APP_URL?.split("//")[1]
+                          }
+                        />
+                      </div>
+                      <div className="h-9 text-sm flex items-center justify-center">
+                        <p>/</p>
+                      </div>
+                      <div className="w-full grow flex flex-col items-start gap-2">
+                        <div className="flex flex-row items-center gap-1">
+                          <p className="sm:text-sm text-xs font-semibold">
+                            Custom back-half (optional)
+                          </p>
+                          {session.user?.plan.subscription != "pro" && (
+                            <HoverCard>
+                              <HoverCardTrigger asChild>
+                                <Button
+                                  className="p-0! h-fit!"
+                                  variant={"link"}
+                                >
+                                  <LockIcon className="w-3! h-3!" />
+                                </Button>
+                              </HoverCardTrigger>
+                              <HoverCardContent asChild>
+                                <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                                  <p className="text-sm font-bold">
+                                    Unlock custom codes
+                                  </p>
+                                  <div className="w-full flex flex-row gap-1 items-center">
+                                    <Link
+                                      href={`/dashboard/${
+                                        session.user?.sub.split("|")[1]
+                                      }/subscription`}
+                                      className="underline hover:cursor-pointer"
+                                    >
+                                      Upgrade
+                                    </Link>
+                                    <p>to access link stats.</p>
+                                  </div>
+                                </div>
+                              </HoverCardContent>
+                            </HoverCard>
+                          )}
+                        </div>
+                        <FormField
+                          control={qrCodeForm.control}
+                          name="customCode"
+                          render={({ field }) => (
+                            <FormItem className="w-full">
+                              <FormControl>
+                                <Input
+                                  disabled={
+                                    session.user?.plan.subscription != "pro"
+                                  }
+                                  className="w-full"
+                                  placeholder=""
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </form>
               </Form>
-              <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-                Ways to share
-              </h2>
-              <div className="flex flex-row w-full justify-between items-start">
-                <div className="flex flex-col gap-1 items-start w-full max-w-3xs">
-                  <p className="font-semibold sm:text-sm text-xs">Short Link</p>
-                  <p className="text-muted-foreground sm:text-sm text-xs">
-                    Create a link that directs users to the same destination as
-                    your QR Code
-                  </p>
-                </div>
-                <div className="flex flex-row gap-2 items-center">
-                  {linksLeft == undefined ? (
-                    <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
-                      <Skeleton className="w-3 h-3" />
-                      <p>left</p>
-                    </div>
-                  ) : linksLeft > 0 ? (
-                    <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
-                      <span className="font-semibold">{linksLeft}</span> left
-                    </p>
-                  ) : (
-                    <></>
-                  )}
-                  <Switch
-                    checked={createLink}
-                    onCheckedChange={setCreateLink}
-                    id="create-link"
-                  />
-                </div>
-              </div>
-              {createLink && (
-                <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
-                  <div className="w-full grow flex flex-col items-start gap-2">
-                    <p className="sm:text-sm text-xs font-semibold">Domain</p>
-                    <Input
-                      disabled
-                      className="w-full"
-                      value={process.env.NEXT_PUBLIC_APP_URL?.split("//")[1]}
-                    />
-                  </div>
-                  <div className="h-9 text-sm flex items-center justify-center">
-                    <p>/</p>
-                  </div>
-                  <div className="w-full grow flex flex-col items-start gap-2">
-                    <div className="flex flex-row items-center gap-1">
-                      <p className="sm:text-sm text-xs font-semibold">
-                        Custom back-half (optional)
-                      </p>
-                      {session.user?.plan.subscription != "pro" && (
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <Button className="p-0! h-fit!" variant={"link"}>
-                              <LockIcon className="w-3! h-3!" />
-                            </Button>
-                          </HoverCardTrigger>
-                          <HoverCardContent asChild>
-                            <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                              <p className="text-sm font-bold">
-                                Unlock custom codes
-                              </p>
-                              <div className="w-full flex flex-row gap-1 items-center">
-                                <Link
-                                  href={`/dashboard/${
-                                    session.user?.sub.split("|")[1]
-                                  }/subscription`}
-                                  className="underline hover:cursor-pointer"
-                                >
-                                  Upgrade
-                                </Link>
-                                <p>to access link stats.</p>
-                              </div>
-                            </div>
-                          </HoverCardContent>
-                        </HoverCard>
-                      )}
-                    </div>
 
-                    <Input
-                      disabled={session.user?.plan.subscription != "pro"}
-                      className="w-full"
-                    />
-                  </div>
-                </div>
-              )}
               <div className="flex flex-row items-center justify-between mt-4">
                 <Button
                   onClick={() => {
