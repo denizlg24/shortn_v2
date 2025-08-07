@@ -67,11 +67,13 @@ export async function createAndAddTagToUrl(tagName: string, sub: string, urlCode
             id: nanoid(6),
         });
     }
-
+    if (!tag) {
+        return { success: false, message: 'server-error' };
+    }
     const url = await UrlV3.findOne({ urlCode, sub });
     if (!url) return { success: false, message: "no-link" };
 
-    const exists = url.tags?.some(t => t.tagName === tag.tagName);
+    const exists = url.tags?.some(t => t.tagName === tag?.tagName);
     if (!exists) {
         await UrlV3.findOneAndUpdate({ urlCode, sub }, { $push: { tags: tag } });
         const tagDocument = { tagName: tag.tagName, id: tag.id, sub: tag.sub, _id: (tag._id as any).toString() };
@@ -95,10 +97,14 @@ export async function createAndAddTagToQRCode(tagName: string, sub: string, qrCo
         });
     }
 
+    if (!tag) {
+        return { success: false, message: 'server-error' };
+    }
+
     const qrCode = await QRCodeV2.findOne({ qrCodeId, sub });
     if (!qrCode) return { success: false, message: "no-link" };
 
-    const exists = qrCode.tags?.some(t => t.tagName === tag.tagName);
+    const exists = qrCode.tags?.some(t => t.tagName === tag?.tagName);
     if (!exists) {
         await QRCodeV2.findOneAndUpdate({ qrCodeId, sub }, { $push: { tags: tag } });
         const tagDocument = { tagName: tag.tagName, id: tag.id, sub: tag.sub, _id: (tag._id as any).toString() };
@@ -173,5 +179,28 @@ export async function removeTagFromQRCode(
     } catch (err) {
         return { success: false, message: 'server-error' };
     }
+}
+
+export async function createTag(sub: string, tagName: string) {
+    if (!sub) return { success: false, message: "no-user" }
+
+    await connectDB();
+
+    let tag = await Tag.findOne({ tagName, sub });
+
+    if (!tag) {
+        const newId = nanoid(6);
+        const newTag = await Tag.create({
+            tagName,
+            sub,
+            id: newId,
+        });
+        if (newTag) {
+            return { success: true, tag: { sub, tagName, id: newId, _id: (newTag._id as any).toString() } }
+        }
+        return { success: false, message: 'server-error' };
+    }
+
+    return { success: false, message: "duplicate" };
 }
 

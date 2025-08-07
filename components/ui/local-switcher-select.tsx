@@ -44,7 +44,7 @@ export const LocaleSwitcherSelect = ({
         <Button
           disabled={isPending}
           variant="outline"
-          className="p-2! rounded-full aspect-square h-auto"
+          className="p-2! rounded-full aspect-square h-full! w-fit!"
         >
           <CiGlobe className="w-full h-full" />
         </Button>

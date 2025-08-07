@@ -359,6 +359,37 @@ export const updateQRCodeOptions = async (codeId: string, options: Partial<Optio
     }
 }
 
+export const updateQRCodeData = async ({ qrCodeId, title, tags, applyToLink }: { qrCodeId: string, title: string, tags: ITag[], applyToLink: boolean }) => {
+    try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+        await connectDB();
+        const qr = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId }, { title, tags });
+        if (applyToLink && qr?.attachedUrl) {
+            const urlCode = qr.attachedUrl;
+            const updatedURL = await UrlV3.findOneAndUpdate({ sub, urlCode }, { title, tags });
+            if (updatedURL) {
+                return { success: true };
+            }
+            return { success: false };
+        }
+        if (qr)
+            return { success: true };
+        return { success: false };
+    } catch (error) {
+        return { success: false };
+    }
+}
+
 export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
     try {
         await connectDB();

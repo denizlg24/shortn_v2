@@ -16,26 +16,6 @@ import { useEffect, useState } from "react";
 export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
   const session = useUser();
 
-  const allowedLinks = {
-    free: 3,
-    basic: 25,
-    plus: 50,
-  };
-
-  const qrCodesLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.qr_codes_this_month ?? 0)
-      : undefined;
-
-  const linksLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.links_this_month ?? 0)
-      : undefined;
-
   const [options, setOptions] = useState<Partial<Options> | undefined>(
     undefined
   );
@@ -52,7 +32,6 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
     if (!session.user?.sub) {
       return;
     }
-    console.log("called, ", id);
     const response = await getQRCode(session.user?.sub, id);
     if (response.success && response.qr) {
       setQrCode(response.qr);
