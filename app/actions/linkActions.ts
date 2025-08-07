@@ -354,6 +354,37 @@ export const deleteShortn = async (urlCode: string) => {
     }
 }
 
+export const updateShortnData = async ({ urlCode, title, tags, applyToQRCode }: { urlCode: string, title: string, tags: ITag[], applyToQRCode: boolean }) => {
+    try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+
+        const sub = user.sub;
+        await connectDB();
+        const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, { title, tags });
+        if (applyToQRCode && url?.qrCodeId) {
+            const qrCodeId = url.qrCodeId;
+            const updatedQR = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId }, { title, tags });
+            if (updatedQR) {
+                return { success: true };
+            }
+            return { success: false };
+        }
+        if (url)
+            return { success: true };
+        return { success: false };
+    } catch (error) {
+        return { success: false };
+    }
+}
+
 export async function recordClickFromMiddleware(clickData: {
     slug: string;
     ip?: string;

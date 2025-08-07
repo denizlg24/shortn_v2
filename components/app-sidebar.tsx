@@ -45,7 +45,7 @@ export const AppSidebar = () => {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="icon" className="z-99">
+    <Sidebar collapsible="icon" className="z-90">
       <SidebarHeader className="py-2">
         <SidebarMenu className="">
           <SidebarMenuItem>

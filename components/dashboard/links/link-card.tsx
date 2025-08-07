@@ -1,3 +1,15 @@
+import {
+  FacebookShareButton,
+  FacebookIcon,
+  RedditIcon,
+  RedditShareButton,
+  TwitterShareButton,
+  TwitterIcon,
+  WhatsappShareButton,
+  WhatsappIcon,
+  EmailShareButton,
+  EmailIcon,
+} from "next-share";
 import { deleteShortn } from "@/app/actions/linkActions";
 import {
   addTagToLink,
@@ -15,6 +27,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   HoverCard,
   HoverCardContent,
@@ -52,6 +72,7 @@ import {
 } from "lucide-react";
 import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 export const LinkCard = ({
   link,
@@ -149,10 +170,88 @@ export const LinkCard = ({
               </>
             )}
           </Button>
-          <Button variant={"outline"}>
-            <Share2 />
-            Share
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant={"outline"}>
+                <Share2 />
+                Share
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share your Shortn Link</DialogTitle>
+                <DialogDescription>
+                  Share your link across social media.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="w-full grid grid-cols-5 gap-4">
+                <FacebookShareButton
+                  url={link.shortUrl}
+                  quote={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <FacebookIcon size={32} round />
+                  </div>
+                </FacebookShareButton>
+                <RedditShareButton
+                  url={link.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <RedditIcon size={32} round />
+                  </div>
+                </RedditShareButton>
+                <TwitterShareButton
+                  url={link.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <TwitterIcon size={32} round />
+                  </div>
+                </TwitterShareButton>
+                <WhatsappShareButton
+                  url={link.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                  separator=":: "
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <WhatsappIcon size={32} round />
+                  </div>
+                </WhatsappShareButton>
+                <EmailShareButton
+                  url={link.shortUrl}
+                  subject="Checkout my Shortn.at Link!"
+                  body="Checkout this link shortened with Shortn.at"
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <EmailIcon size={32} round />
+                  </div>
+                </EmailShareButton>
+              </div>
+              <Separator />
+              <div className="relative w-full flex items-center">
+                <Input
+                  value={link.shortUrl}
+                  readOnly
+                  className="w-full bg-background"
+                />
+                <Button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(currentLink.shortUrl);
+                    setJustCopied(true);
+                    setTimeout(() => {
+                      setJustCopied(false);
+                    }, 1000);
+                  }}
+                  variant={"secondary"}
+                  className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
+                >
+                  {justCopied ? <>Copied</> : <>Copy</>}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
             <Link
               href={`/dashboard/${session.user.sub.split("|")[1]}/links/${

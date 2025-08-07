@@ -16,7 +16,7 @@ export const DashboardHeaderClient = () => {
   const { user } = useUser();
   const [open, setOpen] = useState(false);
   return (
-    <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-90 transition-shadow flex flex-row justify-end gap-4">
+    <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-85 transition-shadow flex flex-row justify-end gap-4">
       {!user && (
         <>
           <Skeleton className="h-full w-36 aspect-square rounded" />
