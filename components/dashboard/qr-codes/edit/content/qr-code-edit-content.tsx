@@ -171,9 +171,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
               });
               if (response.success) {
                 router.push(
-                  `/dashboard/${session.user?.sub.split("|")[1]}/qr-codes/${
-                    qrCode.qrCodeId
-                  }/details`
+                  `/dashboard/${session.getOrganization}/qr-codes/${qrCode.qrCodeId}/details`
                 );
               } else {
                 qrCodeForm.setError("root", {
@@ -348,9 +346,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
             <div className="flex flex-row items-center justify-end gap-4 w-full">
               <Button
                 onClick={() => {
-                  router.push(
-                    `/dashboard/${session.user?.sub.split("|")[1]}/qr-codes`
-                  );
+                  router.push(`/dashboard/${session.getOrganization}/qr-codes`);
                 }}
                 type="button"
                 variant={"secondary"}

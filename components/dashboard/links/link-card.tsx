@@ -286,10 +286,15 @@ export const LinkCard = ({
                 <Trash2 /> Delete
               </Button>
               <Button
+                asChild
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
-                <LinkIcon /> View link details
+                <Link
+                  href={`/dashboard/${session.getOrganization}/links/${link.urlCode}/details`}
+                >
+                  <LinkIcon /> View link details
+                </Link>
               </Button>
               <Button
                 asChild
@@ -655,7 +660,11 @@ export const LinkCard = ({
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
-              <LinkIcon /> View link details
+              <Link
+                href={`/dashboard/${session.getOrganization}/links/${link.urlCode}/details`}
+              >
+                <LinkIcon /> View link details
+              </Link>
             </Button>
             <Button
               asChild

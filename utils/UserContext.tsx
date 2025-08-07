@@ -13,6 +13,7 @@ import {
 type UserContextType = {
   user: User | null;
   loading: boolean;
+  getOrganization: string;
   refresh: () => Promise<boolean>;
 };
 
@@ -20,12 +21,14 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [organization, setOrganization] = useState("");
   const [loading, setLoading] = useState(true);
 
   const fetchUser = async () => {
     setLoading(true);
     const { success, user: _user } = await getUser();
     setUser(_user);
+    setOrganization(_user?.sub.split("|")[1] || "");
     setLoading(false);
     return success;
   };
@@ -39,6 +42,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         loading,
+        getOrganization: organization,
         refresh: fetchUser,
       }}
     >

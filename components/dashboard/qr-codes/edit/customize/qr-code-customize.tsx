@@ -581,7 +581,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
           <div className="flex flex-row items-center justify-between mt-4">
             <Button
               onClick={() => {
-                router.push(`/dashboard/${session.user?.sub.split("|")[1]}`);
+                router.push(`/dashboard/${session.getOrganization}/qr-codes`);
               }}
               variant={"secondary"}
             >
@@ -596,9 +596,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                 );
                 if (response.success) {
                   router.push(
-                    `/dashboard/${session.user?.sub.split("|")[1]}/qr-codes/${
-                      qrCode.qrCodeId
-                    }/details`
+                    `/dashboard/${session.getOrganization}/qr-codes/${qrCode.qrCodeId}/details`
                   );
                 }
                 setCreating(false);

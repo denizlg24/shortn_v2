@@ -172,9 +172,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
               });
               if (response.success) {
                 router.push(
-                  `/dashboard/${session.user?.sub.split("|")[1]}/links/${
-                    url.urlCode
-                  }/details`
+                  `/dashboard/${session.getOrganization}/links/${url.urlCode}/details`
                 );
               } else {
                 urlForm.setError("root", {
@@ -349,9 +347,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
             <div className="flex flex-row items-center justify-end gap-4 w-full">
               <Button
                 onClick={() => {
-                  router.push(
-                    `/dashboard/${session.user?.sub.split("|")[1]}/links`
-                  );
+                  router.push(`/dashboard/${session.getOrganization}/links`);
                 }}
                 type="button"
                 variant={"secondary"}

@@ -298,9 +298,7 @@ export const QRCodeCard = ({
                                   qrCode.qrCodeId
                                 );
                                 router.push(
-                                  `/dashboard/${
-                                    session.user?.sub.split("|")[1]
-                                  }/links/${response.data.shortUrl}/details`
+                                  `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
                                 );
                               }
                             }}
@@ -724,9 +722,7 @@ export const QRCodeCard = ({
                                 qrCode.qrCodeId
                               );
                               router.push(
-                                `/dashboard/${
-                                  session.user?.sub.split("|")[1]
-                                }/links/${response.data.shortUrl}/details`
+                                `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
                               );
                             }
                           }}
@@ -940,9 +936,7 @@ export const QRCodeCard = ({
                             qrCode.qrCodeId
                           );
                           router.push(
-                            `/dashboard/${
-                              session.user?.sub.split("|")[1]
-                            }/links/${response.data.shortUrl}/details`
+                            `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
                           );
                         }
                       }}
