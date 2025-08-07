@@ -440,7 +440,7 @@ export const QRCodeCard = ({
                   {format(currentQrCode.date, "MMM dd, yyyy")}
                 </p>
               </div>
-              <div className="md:flex hidden flex-row items-center gap-1">
+              <div className="lg:flex hidden flex-row items-center gap-1">
                 <Tags className="w-4 h-4" />
                 <div className="flex flex-row items-center gap-1">
                   {currentQrCode.tags?.map((tag, indx) => {
@@ -579,7 +579,7 @@ export const QRCodeCard = ({
                   </Popover>
                 </div>
               </div>
-              <div className="md:hidden flex flex-row items-center gap-1">
+              <div className="lg:hidden flex flex-row items-center gap-1">
                 <Tags className="w-4 h-4" />
                 {currentQrCode.tags && currentQrCode.tags.length > 0 ? (
                   <p className="text-xs">
