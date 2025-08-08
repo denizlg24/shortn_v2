@@ -20,14 +20,15 @@ export const StyledQRCode = ({
 
     const width = containerRef.current.offsetWidth;
     const height = containerRef.current.offsetHeight;
+    try {
+      const qr = new QRCodeStyling({
+        ...options,
+        width,
+        height,
+      });
 
-    const qr = new QRCodeStyling({
-      ...options,
-      width,
-      height,
-    });
-
-    qr.append(containerRef.current);
+      qr.append(containerRef.current);
+    } catch (error) {}
 
     return () => {
       if (containerRef.current) containerRef.current!.innerHTML = "";
