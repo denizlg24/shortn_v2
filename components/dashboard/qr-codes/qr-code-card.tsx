@@ -486,6 +486,7 @@ export const QRCodeCard = ({
                     </PopoverTrigger>
                     <PopoverContent
                       align="start"
+                      side="bottom"
                       className="w-full min-w-[250px] p-0"
                     >
                       <Command className="w-full">

@@ -39,7 +39,7 @@ import { useUser } from "@/utils/UserContext";
 import { useEffect, useState } from "react";
 
 export const AppSidebar = () => {
-  const { user } = useUser();
+  const session = useUser();
   const { toggleSidebar, state } = useSidebar();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const pathname = usePathname();
@@ -89,163 +89,182 @@ export const AppSidebar = () => {
           </Button>
         </div>
         <SidebarGroup className="mt-4 pt-0!">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuButton asChild>
-                <Dialog
-                  open={createDialogOpen}
-                  onOpenChange={setCreateDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button className="group-data-[collapsible=icon]:p-2.5! hover:bg-primary bg-primary text-primary-foreground hover:text-primary-foreground font-semibold group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!">
-                      {state == "collapsed" && <Plus className="w-5! h-5!" />}
-                      {state != "collapsed" && (
-                        <span className="mx-auto">Create new</span>
+          {session && session.user && (
+            <>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuButton asChild>
+                    <Dialog
+                      open={createDialogOpen}
+                      onOpenChange={setCreateDialogOpen}
+                    >
+                      <DialogTrigger asChild>
+                        <Button className="group-data-[collapsible=icon]:p-2.5! hover:bg-primary bg-primary text-primary-foreground hover:text-primary-foreground font-semibold group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!">
+                          {state == "collapsed" && (
+                            <Plus className="w-5! h-5!" />
+                          )}
+                          {state != "collapsed" && (
+                            <span className="mx-auto">Create new</span>
+                          )}
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-full lg:max-w-[800px]! md:max-w-[500px]! z-99">
+                        <DialogHeader>
+                          <DialogTitle className="mb-2 font-semibold! text-lg!">
+                            What do you want to create?
+                          </DialogTitle>
+                          <div className="lg:grid grid-cols-3 flex flex-col w-full gap-4">
+                            <Button
+                              onClick={() => {
+                                setCreateDialogOpen(false);
+                              }}
+                              variant="outline"
+                              className="h-fit text-base"
+                              asChild
+                            >
+                              <Link
+                                href={`/dashboard/${session.getOrganization}/links/create`}
+                              >
+                                <LinkIcon className="text-primary" />
+                                Shorten a link
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setCreateDialogOpen(false);
+                              }}
+                              variant="outline"
+                              className="h-fit text-base"
+                              asChild
+                            >
+                              <Link
+                                href={`/dashboard/${session.getOrganization}/qr-codes/create`}
+                              >
+                                <QrCode className="text-primary" />
+                                Create a QR Code
+                              </Link>
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                setCreateDialogOpen(false);
+                              }}
+                              variant="outline"
+                              className="h-fit text-base"
+                              asChild
+                            >
+                              <Link
+                                href={`/dashboard/${session.getOrganization}/pages/create`}
+                              >
+                                <NotepadText className="text-primary" />
+                                Build a landing page
+                              </Link>
+                            </Button>
+                          </div>
+                        </DialogHeader>
+                      </DialogContent>
+                    </Dialog>
+                  </SidebarMenuButton>
+                </SidebarMenu>
+              </SidebarGroupContent>
+              <Separator className="my-2" />
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className={cn(
+                        "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
+                        /^\/dashboard\/[^\/]+$/.test(pathname) && "bg-muted"
                       )}
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="w-full lg:max-w-[800px]! md:max-w-[500px]! z-99">
-                    <DialogHeader>
-                      <DialogTitle className="mb-2 font-semibold! text-lg!">
-                        What do you want to create?
-                      </DialogTitle>
-                      <div className="lg:grid grid-cols-3 flex flex-col w-full gap-4">
-                        <Button
-                          onClick={() => {
-                            setCreateDialogOpen(false);
-                          }}
-                          variant="outline"
-                          className="h-fit text-base"
-                          asChild
-                        >
-                          <Link
-                            href={`/dashboard/${
-                              user?.sub.split("|")[1]
-                            }/links/create`}
-                          >
-                            <LinkIcon className="text-primary" />
-                            Shorten a link
-                          </Link>
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setCreateDialogOpen(false);
-                          }}
-                          variant="outline"
-                          className="h-fit text-base"
-                          asChild
-                        >
-                          <Link
-                            href={`/dashboard/${
-                              user?.sub.split("|")[1]
-                            }/qr-codes/create`}
-                          >
-                            <QrCode className="text-primary" />
-                            Create a QR Code
-                          </Link>
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setCreateDialogOpen(false);
-                          }}
-                          variant="outline"
-                          className="h-fit text-base"
-                          asChild
-                        >
-                          <Link
-                            href={`/dashboard/${
-                              user?.sub.split("|")[1]
-                            }/pages/create`}
-                          >
-                            <NotepadText className="text-primary" />
-                            Build a landing page
-                          </Link>
-                        </Button>
-                      </div>
-                    </DialogHeader>
-                  </DialogContent>
-                </Dialog>
-              </SidebarMenuButton>
-            </SidebarMenu>
-          </SidebarGroupContent>
-          <Separator className="my-2" />
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className={cn(
-                    "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                    /^\/dashboard\/[^\/]+$/.test(pathname) && "bg-muted"
-                  )}
-                  asChild
-                >
-                  <Link href={`/dashboard`}>
-                    {/^\/dashboard\/[^\/]+$/.test(pathname) && (
-                      <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
-                    )}
-                    <Home className="w-5! h-5!" />
-                    {state != "collapsed" && <span className="">Home</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className={cn(
-                    "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                    /^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(pathname) &&
-                      "bg-muted"
-                  )}
-                  asChild
-                >
-                  <Link href={`/dashboard/${user?.sub.split("|")[1]}/links`}>
-                    {/^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(pathname) && (
-                      <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
-                    )}
-                    <LinkIcon className="w-5! h-5!" />
-                    {state != "collapsed" && <span className="">Links</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className={cn(
-                    "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                    /^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(pathname) &&
-                      "bg-muted"
-                  )}
-                  asChild
-                >
-                  <Link href={`/dashboard/${user?.sub.split("|")[1]}/qr-codes`}>
-                    {/^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
-                      pathname
-                    ) && (
-                      <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
-                    )}
-                    <QrCode className="w-5! h-5!" />
-                    {state != "collapsed" && <span className="">QR Codes</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  className={cn(
-                    "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                    /^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(pathname) &&
-                      "bg-muted"
-                  )}
-                  asChild
-                >
-                  <Link href={`/dashboard/${user?.sub.split("|")[1]}/pages`}>
-                    {/^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(pathname) && (
-                      <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
-                    )}
-                    <NotepadText className="w-5! h-5!" />
-                    {state != "collapsed" && <span className="">Pages</span>}
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
+                      asChild
+                    >
+                      <Link href={`/dashboard`}>
+                        {/^\/dashboard\/[^\/]+$/.test(pathname) && (
+                          <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
+                        )}
+                        <Home className="w-5! h-5!" />
+                        {state != "collapsed" && <span className="">Home</span>}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className={cn(
+                        "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
+                        /^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
+                          pathname
+                        ) && "bg-muted"
+                      )}
+                      asChild
+                    >
+                      <Link
+                        href={`/dashboard/${session.getOrganization}/links`}
+                      >
+                        {/^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
+                          pathname
+                        ) && (
+                          <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
+                        )}
+                        <LinkIcon className="w-5! h-5!" />
+                        {state != "collapsed" && (
+                          <span className="">Links</span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className={cn(
+                        "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
+                        /^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
+                          pathname
+                        ) && "bg-muted"
+                      )}
+                      asChild
+                    >
+                      <Link
+                        href={`/dashboard/${session.getOrganization}/qr-codes`}
+                      >
+                        {/^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
+                          pathname
+                        ) && (
+                          <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
+                        )}
+                        <QrCode className="w-5! h-5!" />
+                        {state != "collapsed" && (
+                          <span className="">QR Codes</span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className={cn(
+                        "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
+                        /^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
+                          pathname
+                        ) && "bg-muted"
+                      )}
+                      asChild
+                    >
+                      <Link
+                        href={`/dashboard/${session.getOrganization}/pages`}
+                      >
+                        {/^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
+                          pathname
+                        ) && (
+                          <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
+                        )}
+                        <NotepadText className="w-5! h-5!" />
+                        {state != "collapsed" && (
+                          <span className="">Pages</span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </>
+          )}
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>

@@ -212,7 +212,7 @@ export const LinkCard = ({
                 <WhatsappShareButton
                   url={link.shortUrl}
                   title={"Check out this link shortened with Shortn.at"}
-                  separator=":: "
+                  separator=" "
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <WhatsappIcon size={32} round />
@@ -432,6 +432,7 @@ export const LinkCard = ({
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
+                  side="bottom"
                   className="w-full min-w-[250px] p-0"
                 >
                   <Command className="w-full">
@@ -655,7 +656,7 @@ export const LinkCard = ({
               <WhatsappShareButton
                 url={link.shortUrl}
                 title={"Check out this link shortened with Shortn.at"}
-                separator=":: "
+                separator=" "
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <WhatsappIcon size={32} round />

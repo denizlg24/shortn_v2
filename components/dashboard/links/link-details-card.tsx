@@ -1,4 +1,5 @@
 "use client";
+import { deleteShortn } from "@/app/actions/linkActions";
 import {
   addTagToLink,
   createAndAddTagToUrl,
@@ -16,10 +17,19 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { Input } from "@/components/ui/input";
 import {
   Popover,
   PopoverContent,
@@ -27,12 +37,13 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
+import { link } from "fs";
 import {
   Calendar,
   ChartNoAxesColumn,
@@ -51,7 +62,20 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
+import {
+  FacebookShareButton,
+  RedditShareButton,
+  RedditIcon,
+  TwitterShareButton,
+  WhatsappShareButton,
+  WhatsappIcon,
+  EmailShareButton,
+  EmailIcon,
+  FacebookIcon,
+  TwitterIcon,
+} from "next-share";
 import { useState, useTransition, useEffect } from "react";
+import { toast } from "sonner";
 
 export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const session = useUser();
@@ -98,6 +122,8 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
     setExactTagMatch(_shouldShowAddTag);
   }, [tagOptions, notFound, input]);
 
+  const router = useRouter();
+
   if (!session) {
     return <Skeleton className="w-full h-42 bg-background" />;
   }
@@ -138,10 +164,87 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
               </>
             )}
           </Button>
-          <Button variant={"outline"}>
-            <Share2 />
-            Share
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant={"outline"}>
+                <Share2 />
+                Share
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Share your Shortn Link</DialogTitle>
+                <DialogDescription>
+                  Share your link across social media.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="w-full grid grid-cols-5 gap-4">
+                <FacebookShareButton
+                  url={currentLink.shortUrl}
+                  quote={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <FacebookIcon size={32} round />
+                  </div>
+                </FacebookShareButton>
+                <RedditShareButton
+                  url={currentLink.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <RedditIcon size={32} round />
+                  </div>
+                </RedditShareButton>
+                <TwitterShareButton
+                  url={currentLink.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <TwitterIcon size={32} round />
+                  </div>
+                </TwitterShareButton>
+                <WhatsappShareButton
+                  url={currentLink.shortUrl}
+                  title={"Check out this link shortened with Shortn.at"}
+                  separator=" "
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <WhatsappIcon size={32} round />
+                  </div>
+                </WhatsappShareButton>
+                <EmailShareButton
+                  url={currentLink.shortUrl}
+                  subject="Checkout my Shortn.at Link!"
+                  body="Checkout this link shortened with Shortn.at"
+                >
+                  <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                    <EmailIcon size={32} round />
+                  </div>
+                </EmailShareButton>
+              </div>
+              <Separator />
+              <div className="relative w-full flex items-center">
+                <Input
+                  value={currentLink.shortUrl}
+                  readOnly
+                  className="w-full bg-background"
+                />
+                <Button
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(currentLink.shortUrl);
+                    setJustCopied(true);
+                    setTimeout(() => {
+                      setJustCopied(false);
+                    }, 1000);
+                  }}
+                  variant={"secondary"}
+                  className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
+                >
+                  {justCopied ? <>Copied</> : <>Copy</>}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
             <Link
               href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
@@ -159,6 +262,17 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             </PopoverTrigger>
             <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
               <Button
+                onClick={async () => {
+                  const response = await deleteShortn(currentLink.urlCode);
+                  if (response.success) {
+                    toast.success(
+                      `Link ${currentLink.urlCode} was successfully deleted.`
+                    );
+                  } else {
+                    toast.error("There was a problem deleting your link.");
+                  }
+                  router.push(`/dashboard/${session.getOrganization}/links`);
+                }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
@@ -227,6 +341,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
+                  side="bottom"
                   className="w-full min-w-[250px] p-0"
                 >
                   <Command className="w-full">
@@ -355,10 +470,87 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             </>
           )}
         </Button>
-        <Button className="p-1.5! h-fit!" variant={"outline"}>
-          <Share2 />
-          Share
-        </Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant={"outline"} className="p-1.5! h-fit!">
+              <Share2 />
+              Share
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Share your Shortn Link</DialogTitle>
+              <DialogDescription>
+                Share your link across social media.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="w-full grid grid-cols-5 gap-4">
+              <FacebookShareButton
+                url={currentLink.shortUrl}
+                quote={"Check out this link shortened with Shortn.at"}
+              >
+                <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                  <FacebookIcon size={32} round />
+                </div>
+              </FacebookShareButton>
+              <RedditShareButton
+                url={currentLink.shortUrl}
+                title={"Check out this link shortened with Shortn.at"}
+              >
+                <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                  <RedditIcon size={32} round />
+                </div>
+              </RedditShareButton>
+              <TwitterShareButton
+                url={currentLink.shortUrl}
+                title={"Check out this link shortened with Shortn.at"}
+              >
+                <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                  <TwitterIcon size={32} round />
+                </div>
+              </TwitterShareButton>
+              <WhatsappShareButton
+                url={currentLink.shortUrl}
+                title={"Check out this link shortened with Shortn.at"}
+                separator=" "
+              >
+                <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                  <WhatsappIcon size={32} round />
+                </div>
+              </WhatsappShareButton>
+              <EmailShareButton
+                url={currentLink.shortUrl}
+                subject="Checkout my Shortn.at Link!"
+                body="Checkout this link shortened with Shortn.at"
+              >
+                <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                  <EmailIcon size={32} round />
+                </div>
+              </EmailShareButton>
+            </div>
+            <Separator />
+            <div className="relative w-full flex items-center">
+              <Input
+                value={currentLink.shortUrl}
+                readOnly
+                className="w-full bg-background"
+              />
+              <Button
+                onClick={async () => {
+                  await navigator.clipboard.writeText(currentLink.shortUrl);
+                  setJustCopied(true);
+                  setTimeout(() => {
+                    setJustCopied(false);
+                  }, 1000);
+                }}
+                variant={"secondary"}
+                className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
+              >
+                {justCopied ? <>Copied</> : <>Copy</>}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <Button
           asChild
           variant={"outline"}
@@ -384,6 +576,17 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
           <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
             <Button
               variant={"outline"}
+              onClick={async () => {
+                const response = await deleteShortn(currentLink.urlCode);
+                if (response.success) {
+                  toast.success(
+                    `Link ${currentLink.urlCode} was successfully deleted.`
+                  );
+                } else {
+                  toast.error("There was a problem deleting your link.");
+                }
+                router.push(`/dashboard/${session.getOrganization}/links`);
+              }}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
               <Trash2 /> Delete

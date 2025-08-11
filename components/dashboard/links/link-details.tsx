@@ -12,6 +12,7 @@ import { ChevronLeft } from "lucide-react";
 import { LinkAdditionsCard } from "./link-additions-card";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { getQRCode } from "@/app/actions/qrCodeActions";
+import { LinkTimeAnalytics } from "./link-time-analytics";
 
 export const LinkDetails = ({
   urlCode,
@@ -73,21 +74,27 @@ export const LinkDetails = ({
       </Button>
       {loading || !session || !session.user ? (
         <>
-          <Skeleton className="w-full h-42 bg-background" />
-          <Skeleton className="w-full h-42 bg-background" />
+          <Skeleton className="w-full md:h-42 sm:h-[203px] h-[215px] bg-background" />
+          <Skeleton className="w-full md:h-[236px] sm:h-[268px] h-[528px] bg-background" />
+          <Skeleton className="w-full sm:h-[397px] h-[412px] bg-background" />
         </>
       ) : notFound || !url ? (
         <div>Not Found</div>
       ) : (
         <></>
       )}
-      {url && (
+      {url && session.user && (
         <>
           <LinkDetailsCard currentLink={url} />
           <LinkAdditionsCard
             organization={organization}
             qrCode={qrCode}
             url={url}
+          />
+          <LinkTimeAnalytics
+            organization={session.getOrganization}
+            unlocked={session.user.plan.subscription != "free"}
+            linkData={url}
           />
         </>
       )}

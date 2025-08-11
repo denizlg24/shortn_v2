@@ -403,6 +403,7 @@ export const LinkFilterBar = () => {
                   </PopoverTrigger>
                   <PopoverContent
                     align="start"
+                    side="bottom"
                     className="w-full min-w-[250px] p-0"
                   >
                     <Command>
