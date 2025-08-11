@@ -329,6 +329,7 @@ export const LinkCard = ({
       <div className="w-full flex flex-row justify-start">
         <Link
           prefetch={false}
+          target="_blank"
           href={currentLink.shortUrl}
           className="font-semibold lg:text-base md:text-sm text-xs hover:underline text-blue-500 truncate"
         >

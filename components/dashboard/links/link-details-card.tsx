@@ -286,6 +286,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
         <Link
           href={currentLink.shortUrl}
           prefetch={false}
+          target="_blank"
           className="font-semibold lg:text-base text-sm hover:underline text-blue-500 truncate"
         >
           {currentLink.shortUrl.split("://")[1]}
