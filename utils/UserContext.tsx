@@ -19,23 +19,27 @@ type UserContextType = {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [organization, setOrganization] = useState("");
-  const [loading, setLoading] = useState(true);
+export const UserProvider = ({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser: User | null;
+}) => {
+  const [user, setUser] = useState<User | null>(initialUser);
+  const [organization, setOrganization] = useState(
+    initialUser?.sub?.split("|")[1] || ""
+  );
+  const [loading, setLoading] = useState(!initialUser);
 
   const fetchUser = async () => {
     setLoading(true);
     const { success, user: _user } = await getUser();
     setUser(_user);
-    setOrganization(_user?.sub.split("|")[1] || "");
+    setOrganization(_user?.sub?.split("|")[1] || "");
     setLoading(false);
     return success;
   };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   return (
     <UserContext.Provider

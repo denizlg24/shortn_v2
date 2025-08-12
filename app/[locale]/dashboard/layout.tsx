@@ -9,6 +9,7 @@ import { UserProvider } from "@/utils/UserContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
+import { getUser } from "@/app/actions/userActions";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -52,12 +53,14 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
 
+  const { user } = await getUser();
+
   return (
     <html lang={locale}>
       <body
         className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14! pt-12!`}
       >
-        <UserProvider>
+        <UserProvider initialUser={user}>
           <NextIntlClientProvider>
             <SidebarProvider defaultOpen={defaultOpen}>
               <AppSidebar />

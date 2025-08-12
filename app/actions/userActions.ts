@@ -81,11 +81,19 @@ export async function getUser() {
         if (session?.user) {
             await connectDB();
             const sub = session.user.sub;
-            const user = await User.findOne({ sub });
+            const [user, stripeExtra] = await Promise.all([
+                User.findOne({ sub }),
+                (async () => {
+                    const u = await User.findOne({ sub }, { stripeId: 1 });
+                    if (u?.stripeId) {
+                        return getStripeExtraInfo(u.stripeId);
+                    }
+                    return { phone_number: "", tax_id: "" };
+                })()
+            ]);
             if (!user) {
                 return { success: false, user: null };
             }
-            const { phone_number, tax_id } = await getStripeExtraInfo(user.stripeId);
             return {
                 success: true, user: {
                     id: user.id as string,
@@ -103,8 +111,8 @@ export async function getUser() {
                     },
                     links_this_month: user.links_this_month,
                     qr_codes_this_month: user.qr_codes_this_month || 0,
-                    phone_number,
-                    tax_id
+                    phone_number: stripeExtra.phone_number,
+                    tax_id: stripeExtra.tax_id
                 }
             }
         }
