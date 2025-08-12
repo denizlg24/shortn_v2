@@ -2,18 +2,11 @@
 
 import { getUser } from "@/app/actions/userActions";
 import { User } from "next-auth";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 type UserContextType = {
   user: User | null;
   loading: boolean;
-  getOrganization: string;
   refresh: () => Promise<boolean>;
 };
 
@@ -27,16 +20,12 @@ export const UserProvider = ({
   initialUser: User | null;
 }) => {
   const [user, setUser] = useState<User | null>(initialUser);
-  const [organization, setOrganization] = useState(
-    initialUser?.sub?.split("|")[1] || ""
-  );
   const [loading, setLoading] = useState(!initialUser);
 
   const fetchUser = async () => {
     setLoading(true);
     const { success, user: _user } = await getUser();
     setUser(_user);
-    setOrganization(_user?.sub?.split("|")[1] || "");
     setLoading(false);
     return success;
   };
@@ -46,7 +35,6 @@ export const UserProvider = ({
       value={{
         user,
         loading,
-        getOrganization: organization,
         refresh: fetchUser,
       }}
     >

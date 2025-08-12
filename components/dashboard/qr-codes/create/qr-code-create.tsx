@@ -292,7 +292,7 @@ export const QRCodeCreate = ({
                                   </p>
                                   <div className="w-full flex flex-row gap-1 items-center">
                                     <Link
-                                      href={`/dashboard/${session.getOrganization}/subscription`}
+                                      href={`/dashboard/subscription`}
                                       className="underline hover:cursor-pointer"
                                     >
                                       Upgrade
@@ -332,7 +332,7 @@ export const QRCodeCreate = ({
               <div className="flex flex-row items-center justify-between mt-4">
                 <Button
                   onClick={() => {
-                    router.push(`/dashboard/${session.getOrganization}`);
+                    router.push(`/dashboard/`);
                   }}
                   variant={"secondary"}
                 >
@@ -880,7 +880,7 @@ export const QRCodeCreate = ({
             <div className="flex flex-row items-center justify-between mt-4">
               <Button
                 onClick={() => {
-                  router.push(`/dashboard/${session.getOrganization}`);
+                  router.push(`/dashboard/`);
                 }}
                 variant={"secondary"}
               >
@@ -987,7 +987,7 @@ export const QRCodeCreate = ({
                         }
                         if (updateResponse.success) {
                           router.push(
-                            `/dashboard/${session.getOrganization}/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                            `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                           );
                         }
                       }
@@ -1030,7 +1030,7 @@ export const QRCodeCreate = ({
                     }
                     if (qrCodeResponse.success && qrCodeResponse.data) {
                       router.push(
-                        `/dashboard/${session.getOrganization}/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                        `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                       );
                     }
                   }

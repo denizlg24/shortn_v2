@@ -64,10 +64,7 @@ export const LinkDetails = ({
   return (
     <>
       <Button variant={"link"} asChild>
-        <Link
-          className="font-semibold mr-auto"
-          href={`/dashboard/${organization}/links`}
-        >
+        <Link className="font-semibold mr-auto" href={`/dashboard/links`}>
           <ChevronLeft />
           Back to list
         </Link>
@@ -86,13 +83,8 @@ export const LinkDetails = ({
       {url && session.user && (
         <>
           <LinkDetailsCard currentLink={url} />
-          <LinkAdditionsCard
-            organization={organization}
-            qrCode={qrCode}
-            url={url}
-          />
+          <LinkAdditionsCard qrCode={qrCode} url={url} />
           <LinkTimeAnalytics
-            organization={session.getOrganization}
             unlocked={session.user.plan.subscription != "free"}
             linkData={url}
           />

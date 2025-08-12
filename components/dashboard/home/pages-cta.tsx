@@ -7,16 +7,8 @@ import ctaImg from "@/public/dashboard-pages-inspire-action.webp";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { useUser } from "@/utils/UserContext";
 
-export const PagesCTA = ({
-  className,
-  organization,
-}: {
-  className?: string;
-  organization: string;
-}) => {
-  const { user } = useUser();
+export const PagesCTA = ({ className }: { className?: string }) => {
   return (
     <Card
       className={cn("p-4 w-full flex flex-row gap-4 items-center", className)}
@@ -35,7 +27,7 @@ export const PagesCTA = ({
           into conversions.
         </p>
         <Button variant="outline" asChild>
-          <Link href={`/dashboard/${organization}/pages`}>
+          <Link href={`/dashboard/pages`}>
             Get Started <ArrowRight className="text-primary" />
           </Link>
         </Button>

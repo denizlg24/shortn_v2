@@ -195,7 +195,7 @@ export const LinksCreate = () => {
                           </p>
                           <div className="w-full flex flex-row gap-1 items-center">
                             <Link
-                              href={`/dashboard/${session.getOrganization}/subscription`}
+                              href={`/dashboard/subscription`}
                               className="underline hover:cursor-pointer"
                             >
                               Upgrade
@@ -515,7 +515,7 @@ export const LinksCreate = () => {
                     }
                     if (updateResponse.success) {
                       router.push(
-                        `/dashboard/${session.getOrganization}/links/${firstLinkResponse.data.shortUrl}/details`
+                        `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
                       );
                     }
                   }
@@ -561,7 +561,7 @@ export const LinksCreate = () => {
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
                   router.push(
-                    `/dashboard/${session.getOrganization}/links/${firstLinkResponse.data.shortUrl}/details`
+                    `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
                   );
                 }
               }

@@ -106,9 +106,7 @@ export const DashboardHeaderClient = () => {
                         className="h-fit text-base"
                         asChild
                       >
-                        <Link
-                          href={`/dashboard/${session.getOrganization}/links/create`}
-                        >
+                        <Link href={`/dashboard/links/create`}>
                           <LinkIcon className="text-primary" />
                           Shorten a link
                         </Link>
@@ -123,9 +121,7 @@ export const DashboardHeaderClient = () => {
                         className="h-fit text-base"
                         asChild
                       >
-                        <Link
-                          href={`/dashboard/${session.getOrganization}/qr-codes/create`}
-                        >
+                        <Link href={`/dashboard/qr-codes/create`}>
                           <QrCode className="text-primary" />
                           Create a QR Code
                         </Link>
@@ -140,9 +136,7 @@ export const DashboardHeaderClient = () => {
                         className="h-fit text-base"
                         asChild
                       >
-                        <Link
-                          href={`/dashboard/${session.getOrganization}/pages/create`}
-                        >
+                        <Link href={`/dashboard/pages/create`}>
                           <NotepadText className="text-primary" />
                           Build a landing page
                         </Link>
@@ -160,7 +154,7 @@ export const DashboardHeaderClient = () => {
                 variant={"link"}
                 className="justify-start rounded"
               >
-                <Link href={`/dashboard/${session.getOrganization}`}>
+                <Link href={`/dashboard/`}>
                   <HomeIcon />
                   Home
                 </Link>
@@ -174,7 +168,7 @@ export const DashboardHeaderClient = () => {
                 variant={"link"}
                 className="justify-start rounded"
               >
-                <Link href={`/dashboard/${session.getOrganization}/links`}>
+                <Link href={`/dashboard/links`}>
                   <LinkIcon />
                   Links
                 </Link>
@@ -188,7 +182,7 @@ export const DashboardHeaderClient = () => {
                 variant={"link"}
                 className="justify-start rounded"
               >
-                <Link href={`/dashboard/${session.getOrganization}/qr-codes`}>
+                <Link href={`/dashboard/qr-codes`}>
                   <QrCode />
                   QR Codes
                 </Link>
@@ -202,7 +196,7 @@ export const DashboardHeaderClient = () => {
                 variant={"link"}
                 className="justify-start rounded"
               >
-                <Link href={`/dashboard/${session.getOrganization}/pages`}>
+                <Link href={`/dashboard/pages`}>
                   <NotepadText />
                   Pages
                 </Link>
@@ -305,13 +299,7 @@ export const DashboardHeaderClient = () => {
                       asChild
                       className="h-fit text-xs px-2 py-1 rounded!"
                     >
-                      <Link
-                        href={`/dashboard/${
-                          user.sub.split("|")[1]
-                        }/subscription`}
-                      >
-                        Upgrade
-                      </Link>
+                      <Link href={`/dashboard/subscription`}>Upgrade</Link>
                     </Button>
                   )}
                 </div>
@@ -325,9 +313,7 @@ export const DashboardHeaderClient = () => {
                     className="rounded-none justify-start"
                     variant="ghost"
                   >
-                    <Link
-                      href={`/dashboard/${user.sub.split("|")[1]}/settings`}
-                    >
+                    <Link href={`/dashboard/settings`}>
                       <Settings />
                       Settings
                     </Link>
@@ -341,7 +327,7 @@ export const DashboardHeaderClient = () => {
                     className="rounded-none justify-start"
                     variant="ghost"
                   >
-                    <Link href={`/dashboard/${user.sub.split("|")[1]}/help`}>
+                    <Link href={`/dashboard/help`}>
                       <HelpCircle />
                       Help
                     </Link>

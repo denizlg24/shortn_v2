@@ -9,9 +9,8 @@ export default function Home({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale, organization } = use<{
+  const { locale } = use<{
     locale: string;
-    organization: string;
   }>(params);
   setRequestLocale(locale);
   return (
@@ -21,10 +20,7 @@ export default function Home({
           Your Connections Platform
         </h1>
         <QuickCreate className="xl:col-span-4 col-span-full" />
-        <PagesCTA
-          organization={organization}
-          className="xl:col-span-2 col-span-full"
-        />
+        <PagesCTA className="xl:col-span-2 col-span-full" />
       </div>
     </main>
   );

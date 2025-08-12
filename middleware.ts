@@ -55,26 +55,16 @@ export async function middleware(request: NextRequest) {
     const isRegister = request.nextUrl.pathname.startsWith(`/${locale}/register`);
     const isUrlNotFound = request.nextUrl.pathname === `/${locale}/url-not-found`;
 
-    const userOrgId = user?.sub.split("|")[1];
-
     if (isDashboard && !isLoggedIn) {
         return NextResponse.redirect(new URL(`/${locale}/login`, request.nextUrl));
     }
-    if (isDashboard && isLoggedIn) {
-        const segments = request.nextUrl.pathname.split("/");
-        const orgIdInUrl = segments[3];
 
-        if (orgIdInUrl && orgIdInUrl !== userOrgId) {
-            return NextResponse.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
-        }
-    }
-
-    if ((isLogin || isRegister || isDashboardRoot) && isLoggedIn) {
-        return NextResponse.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
+    if ((isLogin || isRegister) && isLoggedIn) {
+        return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.nextUrl));
     }
 
     if (!isDashboard && !isUrlNotFound && isLoggedIn) {
-        return NextResponse.redirect(new URL(`/${locale}/dashboard/${userOrgId}`, request.nextUrl));
+        return NextResponse.redirect(new URL(`/${locale}/dashboard`, request.nextUrl));
     }
 
     return intlMiddleware(request);

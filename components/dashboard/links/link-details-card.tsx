@@ -246,11 +246,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             </DialogContent>
           </Dialog>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
-            <Link
-              href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-                currentLink.urlCode
-              }/edit`}
-            >
+            <Link href={`/dashboard/links/${currentLink.urlCode}/edit`}>
               <Edit2 />
             </Link>
           </Button>
@@ -271,7 +267,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                   } else {
                     toast.error("There was a problem deleting your link.");
                   }
-                  router.push(`/dashboard/${session.getOrganization}/links`);
+                  router.push(`/dashboard/links`);
                 }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
@@ -557,11 +553,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
           variant={"outline"}
           className="p-1.5! h-fit! aspect-square!"
         >
-          <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-              currentLink.urlCode
-            }/edit`}
-          >
+          <Link href={`/dashboard/links/${currentLink.urlCode}/edit`}>
             <Edit2 />
           </Link>
         </Button>
@@ -586,7 +578,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 } else {
                   toast.error("There was a problem deleting your link.");
                 }
-                router.push(`/dashboard/${session.getOrganization}/links`);
+                router.push(`/dashboard/links`);
               }}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >

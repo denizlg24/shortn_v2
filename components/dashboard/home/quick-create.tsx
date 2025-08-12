@@ -114,11 +114,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
               <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
                 <p>You can't create any more short links this month.</p>
                 <Button asChild className="h-fit px-4 py-1 rounded w-fit">
-                  <Link
-                    href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
-                  >
-                    Upgrade
-                  </Link>
+                  <Link href={`/dashboard/subscription`}>Upgrade</Link>
                 </Button>
               </div>
             )}
@@ -132,9 +128,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/${user?.sub.split("|")[1]}/links/${
-                        response.data.shortUrl
-                      }/details`
+                      `/dashboard/links/${response.data.shortUrl}/details`
                     );
                   } else if (response.existingUrl) {
                     const existingToast = toast(
@@ -151,9 +145,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                               onClick={async () => {
                                 toast.dismiss(existingToast);
                               }}
-                              href={`/dashboard/${
-                                user?.sub.split("|")[1]
-                              }/links/${response.existingUrl}/details`}
+                              href={`/dashboard/links/${response.existingUrl}/details`}
                               className="underline text-primary font-semibold"
                             >
                               View details.
@@ -239,11 +231,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
               <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
                 <p>You can't create any more QR Codes this month.</p>
                 <Button asChild className="h-fit px-4 py-1 rounded w-fit">
-                  <Link
-                    href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
-                  >
-                    Upgrade
-                  </Link>
+                  <Link href={`/dashboard/subscription`}>Upgrade</Link>
                 </Button>
               </div>
             )}
@@ -256,9 +244,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/${user?.sub.split("|")[1]}/qr-codes/${
-                        response.data.qrCodeId
-                      }/details`
+                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`
                     );
                   } else if (response.message) {
                     switch (response.message) {

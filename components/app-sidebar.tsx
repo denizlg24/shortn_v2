@@ -34,9 +34,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { User } from "next-auth";
 import { useUser } from "@/utils/UserContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const AppSidebar = () => {
   const session = useUser();
@@ -122,9 +121,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/links/create`}
-                              >
+                              <Link href={`/dashboard/links/create`}>
                                 <LinkIcon className="text-primary" />
                                 Shorten a link
                               </Link>
@@ -137,9 +134,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/qr-codes/create`}
-                              >
+                              <Link href={`/dashboard/qr-codes/create`}>
                                 <QrCode className="text-primary" />
                                 Create a QR Code
                               </Link>
@@ -152,9 +147,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/pages/create`}
-                              >
+                              <Link href={`/dashboard/pages/create`}>
                                 <NotepadText className="text-primary" />
                                 Build a landing page
                               </Link>
@@ -173,12 +166,12 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+$/.test(pathname) && "bg-muted"
+                        /^\/dashboard$/.test(pathname) && "bg-muted"
                       )}
                       asChild
                     >
                       <Link href={`/dashboard`}>
-                        {/^\/dashboard\/[^\/]+$/.test(pathname) && (
+                        {/^\/dashboard$/.test(pathname) && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <Home className="w-5! h-5!" />
@@ -190,18 +183,13 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        /^\/dashboard\/links(?:\/.*)?$/.test(pathname) &&
+                          "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/links`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/links`}>
+                        {/^\/dashboard\/links(?:\/.*)?$/.test(pathname) && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <LinkIcon className="w-5! h-5!" />
@@ -215,18 +203,13 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        /^\/dashboard\/qr-codes(?:\/.*)?$/.test(pathname) &&
+                          "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/qr-codes`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/qr-codes`}>
+                        {/^\/dashboard\/qr-codes(?:\/.*)?$/.test(pathname) && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <QrCode className="w-5! h-5!" />
@@ -240,18 +223,13 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        /^\/dashboard\/pages(?:\/.*)?$/.test(pathname) &&
+                          "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/pages`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/pages`}>
+                        {/^\/dashboard\/pages(?:\/.*)?$/.test(pathname) && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <NotepadText className="w-5! h-5!" />

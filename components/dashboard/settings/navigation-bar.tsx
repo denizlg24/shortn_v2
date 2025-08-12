@@ -14,7 +14,7 @@ import { ChevronUp } from "lucide-react";
 export const NavigationBar = () => {
   const { user } = useUser();
   const pathname = usePathname();
-  const prefix = `/dashboard/${user?.sub?.split("|")[1] || ""}`;
+  const prefix = `/dashboard`;
   return (
     <NavigationMenu className="w-full max-w-full! block! border-b pb-3">
       <NavigationMenuList className="w-full! flex flex-row items-center gap-4 max-w-xl! justify-between!">

@@ -171,9 +171,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                 applyToQRCode: data.applyToQR ?? false,
               });
               if (response.success) {
-                router.push(
-                  `/dashboard/${session.getOrganization}/links/${url.urlCode}/details`
-                );
+                router.push(`/dashboard/links/${url.urlCode}/details`);
               } else {
                 urlForm.setError("root", {
                   type: "manual",
@@ -348,7 +346,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
             <div className="flex flex-row items-center justify-end gap-4 w-full">
               <Button
                 onClick={() => {
-                  router.push(`/dashboard/${session.getOrganization}/links`);
+                  router.push(`/dashboard/links`);
                 }}
                 type="button"
                 variant={"secondary"}

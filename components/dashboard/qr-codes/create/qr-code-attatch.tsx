@@ -657,7 +657,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                   }
                   if (updateResponse.success) {
                     router.push(
-                      `/dashboard/${session.getOrganization}/links/${linkToAttach.urlCode}/details`
+                      `/dashboard/links/${linkToAttach.urlCode}/details`
                     );
                   }
                 }

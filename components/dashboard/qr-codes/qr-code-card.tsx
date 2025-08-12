@@ -170,9 +170,7 @@ export const QRCodeCard = ({
         <div className="flex flex-col gap-0 lg:w-[calc(100%-96px-16px)] md:w-[calc(100%-80px-16px)] w-full">
           <div className="w-full max-w-full flex flex-row items-start justify-between gap-4">
             <Link
-              href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-                currentQrCode.qrCodeId
-              }/details`}
+              href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}
               className="font-bold lg:text-lg md:text-base text-sm hover:underline underline-offset-4 truncate "
             >
               {currentQrCode.title}
@@ -192,9 +190,7 @@ export const QRCodeCard = ({
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
                       <Link
-                        href={`/dashboard/${
-                          session.user!.sub.split("|")[1]
-                        }/links/${currentQrCode.attachedUrl}/details`}
+                        href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                       >
                         <LinkIcon /> View short link
                       </Link>
@@ -298,7 +294,7 @@ export const QRCodeCard = ({
                                   qrCode.qrCodeId
                                 );
                                 router.push(
-                                  `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
+                                  `/dashboard/links/${response.data.shortUrl}/details`
                                 );
                               }
                             }}
@@ -343,9 +339,7 @@ export const QRCodeCard = ({
                 className="p-2! aspect-square!"
               >
                 <Link
-                  href={`/dashboard/${
-                    session.user.sub.split("|")[1]
-                  }/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
+                  href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
                 >
                   <Palette />
                 </Link>
@@ -356,9 +350,7 @@ export const QRCodeCard = ({
                 className="p-2! aspect-square!"
               >
                 <Link
-                  href={`/dashboard/${
-                    session.user.sub.split("|")[1]
-                  }/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
+                  href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
                 >
                   <Edit2 />
                 </Link>
@@ -377,9 +369,7 @@ export const QRCodeCard = ({
               </Button>
               <Button variant={"secondary"} asChild>
                 <Link
-                  href={`/dashboard/${
-                    session.user.sub.split("|")[1]
-                  }/qr-codes/${currentQrCode.qrCodeId}/details`}
+                  href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}
                 >
                   <ChartNoAxesColumn />
                   View Details
@@ -415,9 +405,7 @@ export const QRCodeCard = ({
                         <p className="text-sm font-bold">Unlock scan data</p>
                         <div className="w-full flex flex-row gap-1 items-center">
                           <Link
-                            href={`/dashboard/${
-                              session.user.sub.split("|")[1]
-                            }/subscription`}
+                            href={`/dashboard/subscription`}
                             className="underline hover:cursor-pointer"
                           >
                             Upgrade
@@ -612,9 +600,7 @@ export const QRCodeCard = ({
                     className="w-full border-none! rounded-none! justify-start! shadow-none! "
                   >
                     <Link
-                      href={`/dashboard/${
-                        session.user!.sub.split("|")[1]
-                      }/links/${currentQrCode.attachedUrl}/details`}
+                      href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                     >
                       <LinkIcon /> View short link
                     </Link>
@@ -723,7 +709,7 @@ export const QRCodeCard = ({
                                 qrCode.qrCodeId
                               );
                               router.push(
-                                `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
+                                `/dashboard/links/${response.data.shortUrl}/details`
                               );
                             }
                           }}
@@ -766,9 +752,7 @@ export const QRCodeCard = ({
               className="p-1.5! h-fit! aspect-square!"
             >
               <Link
-                href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-                  currentQrCode.qrCodeId
-                }/edit/customize`}
+                href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
               >
                 <Palette />
               </Link>
@@ -779,9 +763,7 @@ export const QRCodeCard = ({
               className="p-1.5! h-fit! aspect-square!"
             >
               <Link
-                href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-                  currentQrCode.qrCodeId
-                }/edit/content`}
+                href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
               >
                 <Edit2 />
               </Link>
@@ -800,9 +782,7 @@ export const QRCodeCard = ({
             </Button>
             <Button variant={"secondary"} className="p-1.5! h-fit!" asChild>
               <Link
-                href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-                  currentQrCode.qrCodeId
-                }/details`}
+                href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}
               >
                 <ChartNoAxesColumn />
                 View Details
@@ -830,9 +810,7 @@ export const QRCodeCard = ({
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
                 <Link
-                  href={`/dashboard/${session.user!.sub.split("|")[1]}/links/${
-                    currentQrCode.attachedUrl
-                  }/details`}
+                  href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                 >
                   <LinkIcon /> View short link
                 </Link>
@@ -937,7 +915,7 @@ export const QRCodeCard = ({
                             qrCode.qrCodeId
                           );
                           router.push(
-                            `/dashboard/${session.getOrganization}/links/${response.data.shortUrl}/details`
+                            `/dashboard/links/${response.data.shortUrl}/details`
                           );
                         }
                       }}
@@ -980,9 +958,7 @@ export const QRCodeCard = ({
           className="p-1.5! h-fit! aspect-square!"
         >
           <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-              currentQrCode.qrCodeId
-            }/edit/customize`}
+            href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
           >
             <Palette />
           </Link>
@@ -993,9 +969,7 @@ export const QRCodeCard = ({
           className="p-1.5! h-fit! aspect-square!"
         >
           <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-              currentQrCode.qrCodeId
-            }/edit/content`}
+            href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
           >
             <Edit2 />
           </Link>
@@ -1013,11 +987,7 @@ export const QRCodeCard = ({
           <Download />
         </Button>
         <Button variant={"secondary"} className="p-1.5! h-fit!" asChild>
-          <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-              currentQrCode.qrCodeId
-            }/details`}
-          >
+          <Link href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}>
             <ChartNoAxesColumn />
             View Details
           </Link>
