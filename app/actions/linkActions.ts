@@ -435,7 +435,7 @@ export async function recordClickFromMiddleware(clickData: {
 
     const ua = new UAParser(userAgent).getResult();
 
-    if (urlDoc.qrCodeId) {
+    if (urlDoc.qrCodeId && urlDoc.isQrCode) {
         const qrCodeDoc = await QRCodeV2.findOne({ urlId: slug });
         if (!qrCodeDoc) {
             return { notFound: true };
