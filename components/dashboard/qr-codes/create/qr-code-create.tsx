@@ -98,13 +98,6 @@ export const QRCodeCreate = ({
     plus: 50,
   };
 
-  const qrCodesLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.qr_codes_this_month ?? 0)
-      : undefined;
-
   const linksLeft =
     session.user?.plan.subscription && session.user.plan.subscription != "pro"
       ? allowedLinks[
