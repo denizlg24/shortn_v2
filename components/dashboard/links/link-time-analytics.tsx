@@ -63,11 +63,9 @@ export const getEngagementOverTimeData = (
 export const LinkTimeAnalytics = ({
   unlocked,
   linkData,
-  organization,
 }: {
   unlocked: boolean;
   linkData: IUrl;
-  organization: string;
 }) => {
   const chartData = getEngagementOverTimeData(linkData);
 
@@ -89,7 +87,7 @@ export const LinkTimeAnalytics = ({
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                 <p className="w-full">
                   <Link
-                    href={`/dashboard/${organization}/subscription`}
+                    href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
                     Upgrade

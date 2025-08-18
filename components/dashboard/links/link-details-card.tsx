@@ -96,14 +96,14 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags(session.user!.sub).then((tags) => {
+        getTags().then((tags) => {
           setTagOptions(tags);
         });
         setNotFound(false);
         return;
       }
       startTransition(() => {
-        getTagsByQuery(input, session.user!.sub).then((tags) => {
+        getTagsByQuery(input).then((tags) => {
           setTagOptions(tags);
           setNotFound(tags.length === 0);
         });
@@ -246,11 +246,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             </DialogContent>
           </Dialog>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
-            <Link
-              href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-                currentLink.urlCode
-              }/edit`}
-            >
+            <Link href={`/dashboard/links/${currentLink.urlCode}/edit`}>
               <Edit2 />
             </Link>
           </Button>
@@ -271,7 +267,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                   } else {
                     toast.error("There was a problem deleting your link.");
                   }
-                  router.push(`/dashboard/${session.getOrganization}/links`);
+                  router.push(`/dashboard/links`);
                 }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
@@ -366,7 +362,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                               if (added) {
                                 const { success } = await removeTagFromLink(
                                   currentLink.urlCode,
-                                  session.user!.sub,
                                   tag.id
                                 );
                                 if (success) {
@@ -379,7 +374,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                               } else {
                                 const { success } = await addTagToLink(
                                   currentLink.urlCode,
-                                  session.user!.sub,
                                   tag.id
                                 );
                                 if (success) {
@@ -412,7 +406,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                                 const { success, tag } =
                                   await createAndAddTagToUrl(
                                     input,
-                                    session.user!.sub,
                                     currentLink.urlCode
                                   );
                                 setInput("");
@@ -557,11 +550,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
           variant={"outline"}
           className="p-1.5! h-fit! aspect-square!"
         >
-          <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-              currentLink.urlCode
-            }/edit`}
-          >
+          <Link href={`/dashboard/links/${currentLink.urlCode}/edit`}>
             <Edit2 />
           </Link>
         </Button>
@@ -586,7 +575,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 } else {
                   toast.error("There was a problem deleting your link.");
                 }
-                router.push(`/dashboard/${session.getOrganization}/links`);
+                router.push(`/dashboard/links`);
               }}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >

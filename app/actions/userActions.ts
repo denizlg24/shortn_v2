@@ -230,8 +230,18 @@ export async function sendVerificationEmail(email: string, locale: string) {
     return true;
 }
 
-export async function updateEmail(sub: string, newEmail: string) {
+export async function updateEmail(newEmail: string) {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const subType = sub.split('|')[0];
         const foundUser = await User.findOne({ sub: { $regex: new RegExp('^' + subType + '\\|') }, email: newEmail });

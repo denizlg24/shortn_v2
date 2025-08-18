@@ -646,7 +646,6 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }
                 if (qrCodeResponse.success && qrCodeResponse.data) {
                   const updateResponse = await attachQRToShortn(
-                    session.user?.sub || "",
                     linkToAttach.urlCode,
                     qrCodeResponse.data.qrCodeId
                   );
@@ -657,7 +656,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                   }
                   if (updateResponse.success) {
                     router.push(
-                      `/dashboard/${session.getOrganization}/links/${linkToAttach.urlCode}/details`
+                      `/dashboard/links/${linkToAttach.urlCode}/details`
                     );
                   }
                 }

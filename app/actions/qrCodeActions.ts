@@ -174,7 +174,7 @@ export async function createQrCode({
 
         if (tags) {
             for (const t of tags) {
-                const tag = await getTagById(t, sub);
+                const tag = await getTagById(t);
                 if (tag) {
                     finalTags.push(tag);
                 }
@@ -233,14 +233,27 @@ interface IFilters {
 
 export const getFilteredQRCodes = async (
     filters: IFilters,
-    userSub: string
 ): Promise<{ qrcodes: IQRCode[]; total: number }> => {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            qrcodes: [],
+            total: 0,
+        };
+    }
+
+    const controller = new AbortController();
+
+    const sub = user?.sub;
+
     await connectDB();
 
     const pipeline: any[] = [];
 
     const matchStage: any = {
-        sub: userSub,
+        sub,
     };
 
     if (filters.startDate || filters.endDate) {
@@ -305,8 +318,8 @@ export const getFilteredQRCodes = async (
     const countPipeline = [...pipeline.filter(stage => !("$skip" in stage || "$limit" in stage)), { $count: "total" }];
 
     const [qrcodes, totalResult] = await Promise.all([
-        QRCodeV2.aggregate(pipeline).exec(),
-        QRCodeV2.aggregate(countPipeline).exec()
+        QRCodeV2.aggregate(pipeline, { signal: controller.signal }).exec(),
+        QRCodeV2.aggregate(countPipeline, { signal: controller.signal }).exec()
     ]);
 
     const total = totalResult[0]?.total || 0;
@@ -320,8 +333,18 @@ export const getFilteredQRCodes = async (
     return { qrcodes: qrcodesSanitized, total };
 };
 
-export const getQRCode = async (sub: string, codeID: string) => {
+export const getQRCode = async (codeID: string) => {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const qr = await QRCodeV2.findOne({ sub, qrCodeId: codeID }).lean();
         if (!qr) {

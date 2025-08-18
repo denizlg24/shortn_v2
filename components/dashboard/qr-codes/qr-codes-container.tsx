@@ -1,107 +1,25 @@
 "use client";
 
-import { getFilteredQRCodes } from "@/app/actions/qrCodeActions";
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
-import { useUser } from "@/utils/UserContext";
-import { parse } from "date-fns";
 import { Loader2 } from "lucide-react";
-import { User } from "next-auth";
-import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
 import { QRCodeCard } from "./qr-code-card";
 
-interface IFilters {
+export const QRCodesContainer = ({
+  qrCodes,
+  total,
+  tags,
+  page,
+  limit,
+}: {
+  qrCodes: IQRCode[];
+  total: number;
   tags: string[];
-  attachedQR: "all" | "on" | "off";
-  sortBy: "date_asc" | "date_desc" | "clicks_asc" | "clicks_desc";
-  query: string;
   page: number;
   limit: number;
-  startDate?: Date;
-  endDate?: Date;
-}
-
-export const QRCodesContainer = () => {
+}) => {
   const router = useRouter();
-  const [qrCodes, setQrCodes] = useState<IQRCode[]>([]);
-  const [qrCodesLoading, setQrCodesLoading] = useState(true);
-  const [filtersReady, setFiltersReady] = useState(false);
-  const [filters, setFilters] = useState<IFilters>({
-    tags: [],
-    attachedQR: "all",
-    sortBy: "date_asc",
-    query: "",
-    page: 1,
-    limit: 10,
-  });
-  const [total, setTotal] = useState(0);
-  const session = useUser();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const getQRCodesWrapper = async (filters: IFilters, user: User) => {
-    try {
-      const { qrcodes, total } = await getFilteredQRCodes(filters, user.sub);
-      setQrCodes(qrcodes);
-      setTotal(total);
-    } catch (err) {
-      console.error("Failed to load QR Codes:", err);
-    }
-    setQrCodesLoading(false);
-  };
-
-  function parseToUTC(dateStr: string): Date {
-    const parsed = parse(dateStr, "MM-dd-yyyy", new Date());
-    return new Date(
-      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
-    );
-  }
-
-  useEffect(() => {
-    setFiltersReady(false);
-    const params = new URLSearchParams(searchParams.toString());
-    setQrCodesLoading(true);
-    setQrCodes([]);
-    let tagIds: string[] = [];
-    const tagsParam = params.get("tags");
-    if (tagsParam) {
-      try {
-        tagIds = JSON.parse(tagsParam);
-      } catch (err) {
-        console.error("Invalid tag param:", err);
-      }
-    }
-
-    const dateParsed = {
-      from: searchParams.get("startDate")
-        ? parseToUTC(searchParams.get("startDate")!)
-        : undefined,
-      to: searchParams.get("endDate")
-        ? parseToUTC(searchParams.get("endDate")!)
-        : undefined,
-    };
-    const newFilters: IFilters = {
-      tags: tagIds,
-      attachedQR: (params.get("attachedQR") as IFilters["attachedQR"]) || "all",
-      sortBy: (params.get("sortBy") as IFilters["sortBy"]) || "date_desc",
-      query: params.get("query") || "",
-      page: parseInt(params.get("page") || "1", 10),
-      limit: parseInt(params.get("limit") || "10", 10),
-      startDate: dateParsed.from || undefined,
-      endDate: dateParsed.to || undefined,
-    };
-    setFilters(newFilters);
-    setFiltersReady(true);
-  }, [pathname, searchParams.toString()]);
-
-  useEffect(() => {
-    if (!filtersReady || !session.user) {
-      return;
-    }
-    getQRCodesWrapper(filters, session.user);
-  }, [filtersReady, session, filters]);
 
   const addTag = (tagId: string) => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -147,12 +65,7 @@ export const QRCodesContainer = () => {
 
   return (
     <div className="w-full col-span-full flex flex-col gap-4">
-      {qrCodesLoading ? (
-        <div className="w-full flex flex-row items-center justify-start font-semibold md:text-base text-sm gap-1">
-          <Loader2 className="animate-spin h-4 w-4 aspect-square" />
-          <p>Loading QR Codes...</p>
-        </div>
-      ) : qrCodes.length > 0 ? (
+      {qrCodes.length > 0 ? (
         <>
           {qrCodes.map((code) => (
             <QRCodeCard
@@ -160,22 +73,10 @@ export const QRCodesContainer = () => {
               qrCode={code}
               addTag={addTag}
               removeTag={removeTag}
-              tags={filters.tags}
+              tags={tags}
             />
           ))}
-
-          {Math.ceil(total / parseInt(searchParams.get("limit") || "10", 10)) >
-            1 && (
-            <PaginationControls
-              totalPages={Math.ceil(
-                total / parseInt(searchParams.get("limit") || "10", 10)
-              )}
-            />
-          )}
-          {parseInt(searchParams.get("page") || "1", 10) >=
-            Math.ceil(
-              total / parseInt(searchParams.get("limit") || "10", 10)
-            ) && (
+          {page >= Math.ceil(total / limit) && (
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
@@ -193,6 +94,9 @@ export const QRCodesContainer = () => {
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>
+      )}
+      {Math.ceil(total / limit) > 1 && (
+        <PaginationControls totalPages={Math.ceil(total / limit)} />
       )}
     </div>
   );

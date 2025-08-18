@@ -50,8 +50,6 @@ export async function createShortn({
     qrCodeId
 }: CreateUrlInput) {
     try {
-        await connectDB();
-
         const session = await auth();
         const user = session?.user;
 
@@ -61,8 +59,9 @@ export async function createShortn({
                 message: 'no-user',
             };
         }
+        const sub = user?.sub;
+        await connectDB();
 
-        const sub = user.sub;
         const urlCode = customCode || nanoid(6);
         const shortUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${urlCode}`;
 
@@ -147,7 +146,7 @@ export async function createShortn({
 
         if (tags) {
             for (const t of tags) {
-                const tag = await getTagById(t, sub);
+                const tag = await getTagById(t);
                 if (tag) {
                     finalTags.push(tag);
                 }
@@ -203,15 +202,25 @@ interface IFilters {
 }
 
 export const getFilteredLinks = async (
-    filters: IFilters,
-    userSub: string
+    filters: IFilters
 ): Promise<{ links: IUrl[]; total: number }> => {
+
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            links: [],
+            total: 0,
+        };
+    }
+    const sub = user?.sub;
     await connectDB();
 
     const pipeline: any[] = [];
 
     const matchStage: any = {
-        sub: userSub,
+        sub,
         isQrCode: false,
     };
 
@@ -302,8 +311,18 @@ export const getFilteredLinks = async (
     return { links: linksSanitized, total };
 };
 
-export const getShortn = async (sub: string, urlCode: string) => {
+export const getShortn = async (urlCode: string) => {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const url = await UrlV3.findOne({ sub, urlCode }).lean();
         if (!url) {
@@ -316,8 +335,18 @@ export const getShortn = async (sub: string, urlCode: string) => {
     }
 }
 
-export const attachQRToShortn = async (sub: string, urlCode: string, qrCodeId: string) => {
+export const attachQRToShortn = async (urlCode: string, qrCodeId: string) => {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const updated = await UrlV3.findOneAndUpdate({ sub, urlCode }, { qrCodeId });
         if (!updated) {
@@ -331,6 +360,7 @@ export const attachQRToShortn = async (sub: string, urlCode: string, qrCodeId: s
 
 export const deleteShortn = async (urlCode: string) => {
     try {
+
         const session = await auth();
         const user = session?.user;
 
@@ -340,8 +370,7 @@ export const deleteShortn = async (urlCode: string) => {
                 message: 'no-user',
             };
         }
-
-        const sub = user.sub;
+        const sub = user?.sub;
         const foundURL = await UrlV3.findOneAndDelete({ urlCode, sub });
         if (!foundURL) {
             return { success: true, deleted: urlCode };
@@ -366,8 +395,7 @@ export const updateShortnData = async ({ urlCode, title, tags, applyToQRCode }: 
                 message: 'no-user',
             };
         }
-
-        const sub = user.sub;
+        const sub = user?.sub;
         await connectDB();
         const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, { title, tags });
         if (applyToQRCode && url?.qrCodeId) {

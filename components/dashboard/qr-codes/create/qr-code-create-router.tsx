@@ -21,7 +21,7 @@ export const QRCodeCreateRouter = () => {
   >(undefined);
 
   const getShortLink = async (id: string) => {
-    const shortnResponse = await getShortn(session.user?.sub || "", id);
+    const shortnResponse = await getShortn(id);
     if (shortnResponse.success && shortnResponse.url) {
       setLink(shortnResponse.url);
       setState("attachToLink");

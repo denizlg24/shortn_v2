@@ -87,7 +87,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     }
 
     if (input.trim() === "") {
-      getTags(session.user!.sub).then((tags) => {
+      getTags().then((tags) => {
         setTagOptions(tags);
       });
       return;
@@ -101,14 +101,14 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags(session.user!.sub).then((tags) => {
+        getTags().then((tags) => {
           setTagOptions(tags);
         });
         setNotFound(false);
         return;
       }
       startTransition(() => {
-        getTagsByQuery(input, session.user!.sub).then((tags) => {
+        getTagsByQuery(input).then((tags) => {
           setTagOptions(tags);
           setNotFound(tags.length === 0);
         });
@@ -122,7 +122,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     if (!session.user?.sub) {
       return;
     }
-    const response = await getShortn(session.user?.sub, id);
+    const response = await getShortn(id);
     if (response.success && response.url) {
       setUrl(response.url);
       setTags(response.url.tags as ITag[]);
@@ -171,11 +171,9 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                 applyToQRCode: data.applyToQR ?? false,
               });
               if (response.success) {
-                router.push(
-                  `/dashboard/${session.getOrganization}/links/${url.urlCode}/details`
-                );
+                router.push(`/dashboard/links/${url.urlCode}/details`);
               } else {
-                urlForm.setError("root", {
+                urlForm.setError("title", {
                   type: "manual",
                   message: "There was a problem updating your Shortn link.",
                 });
@@ -299,10 +297,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                             onSelect={() => {
                               startTransition(async () => {
                                 if (!session.user?.sub) return;
-                                const response = await createTag(
-                                  session.user.sub,
-                                  input
-                                );
+                                const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
                                     const n = [...prev, response.tag as ITag];
@@ -348,7 +343,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
             <div className="flex flex-row items-center justify-end gap-4 w-full">
               <Button
                 onClick={() => {
-                  router.push(`/dashboard/${session.getOrganization}/links`);
+                  router.push(`/dashboard/links`);
                 }}
                 type="button"
                 variant={"secondary"}

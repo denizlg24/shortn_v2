@@ -10,6 +10,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
 import { getUser } from "@/app/actions/userActions";
+import { AbortControllerProvider } from "@/utils/AbortContext";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -60,16 +61,18 @@ export default async function RootLayout({
       <body
         className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14! pt-12!`}
       >
-        <UserProvider initialUser={user}>
-          <NextIntlClientProvider>
-            <SidebarProvider defaultOpen={defaultOpen}>
-              <AppSidebar />
-              <DashboardHeaderClient />
-              {children}
-              <Toaster position="top-center" />
-            </SidebarProvider>
-          </NextIntlClientProvider>
-        </UserProvider>
+        <AbortControllerProvider>
+          <UserProvider initialUser={user}>
+            <NextIntlClientProvider>
+              <SidebarProvider defaultOpen={defaultOpen}>
+                <AppSidebar />
+                <DashboardHeaderClient />
+                {children}
+                <Toaster position="top-center" />
+              </SidebarProvider>
+            </NextIntlClientProvider>
+          </UserProvider>
+        </AbortControllerProvider>
       </body>
     </html>
   );

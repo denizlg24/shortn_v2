@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Circle,
+  Infinity,
   Loader2,
   LockIcon,
   QrCode,
@@ -37,6 +38,29 @@ import { Link, useRouter } from "@/i18n/navigation";
 import InputColor from "@/components/ui/color-input";
 import { attachQRToShortn, createShortn } from "@/app/actions/linkActions";
 import { createQrCode } from "@/app/actions/qrCodeActions";
+import { getLinksLeft } from "../../home/quick-create";
+
+import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
+import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
+import BASE3 from "@/public/QR-CODES-PREVIEW/BASE-3.png";
+import BASE4 from "@/public/QR-CODES-PREVIEW/BASE-4.png";
+import BASE5 from "@/public/QR-CODES-PREVIEW/BASE-5.png";
+import BASE6 from "@/public/QR-CODES-PREVIEW/BASE-6.png";
+
+import BORDER1 from "@/public/QR-CODES-PREVIEW/BORDER-1.png";
+import BORDER2 from "@/public/QR-CODES-PREVIEW/BORDER-2.png";
+import BORDER3 from "@/public/QR-CODES-PREVIEW/BORDER-3.png";
+import BORDER4 from "@/public/QR-CODES-PREVIEW/BORDER-4.png";
+import BORDER5 from "@/public/QR-CODES-PREVIEW/BORDER-5.png";
+import BORDER6 from "@/public/QR-CODES-PREVIEW/BORDER-6.png";
+
+import DOT1 from "@/public/QR-CODES-PREVIEW/DOT-1.png";
+import DOT2 from "@/public/QR-CODES-PREVIEW/DOT-2.png";
+import DOT3 from "@/public/QR-CODES-PREVIEW/DOT-3.png";
+import DOT4 from "@/public/QR-CODES-PREVIEW/DOT-4.png";
+import DOT5 from "@/public/QR-CODES-PREVIEW/DOT-5.png";
+import DOT6 from "@/public/QR-CODES-PREVIEW/DOT-6.png";
+import Image from "next/image";
 
 const qrCodeFormSchema = z.object({
   destination: z
@@ -174,20 +198,11 @@ export const QRCodeCreate = ({
               <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
                 Create a new QR Code
               </h1>
-              {qrCodesLeft == undefined ? (
-                <div className="text-xs w-full flex flex-row items-center gap-1">
-                  <p>You can create </p>
-                  <Skeleton className="w-3 h-3" />
-                  <p> more QR Codes this month.</p>
-                </div>
-              ) : qrCodesLeft > 0 ? (
-                <p className="text-xs gap-1 flex flex-row items-center">
-                  You can create{" "}
-                  <span className="font-bold">{qrCodesLeft}</span> more QR Codes
-                  this month.
-                </p>
-              ) : (
-                <></>
+              {getLinksLeft(
+                session.user?.plan.subscription ?? "free",
+                session.user?.qr_codes_this_month ?? 0,
+                true,
+                "text-xs"
               )}
             </div>
             <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -233,7 +248,12 @@ export const QRCodeCreate = ({
                       </p>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
-                      {linksLeft == undefined ? (
+                      {session?.user?.plan.subscription == "pro" ? (
+                        <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
+                          <Infinity className="min-w-3! w-3! h-3!" />
+                          <p>left</p>
+                        </div>
+                      ) : linksLeft == undefined ? (
                         <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                           <Skeleton className="w-3 h-3" />
                           <p>left</p>
@@ -292,7 +312,7 @@ export const QRCodeCreate = ({
                                   </p>
                                   <div className="w-full flex flex-row gap-1 items-center">
                                     <Link
-                                      href={`/dashboard/${session.getOrganization}/subscription`}
+                                      href={`/dashboard/subscription`}
                                       className="underline hover:cursor-pointer"
                                     >
                                       Upgrade
@@ -308,7 +328,7 @@ export const QRCodeCreate = ({
                           control={qrCodeForm.control}
                           name="customCode"
                           render={({ field }) => (
-                            <FormItem className="w-full">
+                            <FormItem className="w-full relative">
                               <FormControl>
                                 <Input
                                   disabled={
@@ -319,7 +339,7 @@ export const QRCodeCreate = ({
                                   {...field}
                                 />
                               </FormControl>
-                              <FormMessage />
+                              <FormMessage className="absolute -bottom-6" />
                             </FormItem>
                           )}
                         />
@@ -332,7 +352,7 @@ export const QRCodeCreate = ({
               <div className="flex flex-row items-center justify-between mt-4">
                 <Button
                   onClick={() => {
-                    router.push(`/dashboard/${session.getOrganization}`);
+                    router.push(`/dashboard`);
                   }}
                   variant={"secondary"}
                 >
@@ -376,7 +396,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BASE1}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -392,7 +416,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BASE2}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -408,7 +436,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BASE3}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -424,7 +456,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BASE4}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -443,7 +479,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BASE5}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -457,12 +497,18 @@ export const QRCodeCreate = ({
                     }));
                   }}
                   className={cn(
-                    "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
+                    "col-span-1 w-full aspect-square h-full xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "extra-rounded" &&
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <div className="w-full h-auto aspect-square">
+                    <Image
+                      src={BASE6}
+                      alt="border-preview"
+                      className="w-full h-auto aspect-square! object-contain"
+                    />
+                  </div>
                 </Button>
               </div>
             </div>
@@ -487,7 +533,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER1}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -506,7 +556,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER2}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -525,7 +579,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER3}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -544,7 +602,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER4}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -563,7 +625,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER5}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -582,7 +648,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={BORDER6}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
               </div>
               <p className="lg:text-sm text-xs font-medium">Dots</p>
@@ -604,7 +674,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT1}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -623,7 +697,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT2}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -642,7 +720,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT3}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -661,7 +743,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT4}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -680,7 +766,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT5}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
                 <Button
                   variant={"outline"}
@@ -699,7 +789,11 @@ export const QRCodeCreate = ({
                       "border-2 border-primary"
                   )}
                 >
-                  <QrCode />
+                  <Image
+                    src={DOT6}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
               </div>
             </div>
@@ -880,7 +974,7 @@ export const QRCodeCreate = ({
             <div className="flex flex-row items-center justify-between mt-4">
               <Button
                 onClick={() => {
-                  router.push(`/dashboard/${session.getOrganization}`);
+                  router.push(`/dashboard`);
                 }}
                 variant={"secondary"}
               >
@@ -893,11 +987,12 @@ export const QRCodeCreate = ({
                     const firstLinkResponse = await createShortn({
                       longUrl: qrCodeForm.getValues("destination"),
                       title: qrCodeForm.getValues("title") || "",
+                      customCode: qrCodeForm.getValues("customCode") || "",
                     });
                     if (!firstLinkResponse.success) {
                       switch (firstLinkResponse.message) {
                         case "no-user":
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message: "User session error.",
                           });
@@ -905,7 +1000,7 @@ export const QRCodeCreate = ({
                           setCreating(false);
                           return;
                         case "custom-restricted":
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message:
                               "Custom back-halves are restricted to pro accounts.",
@@ -914,15 +1009,24 @@ export const QRCodeCreate = ({
                           setCreating(false);
                           return;
                         case "plan-limit":
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message: "You have reached your plan's link limit.",
                           });
                           setState("configure");
                           setCreating(false);
                           return;
+                        case "duplicate":
+                          qrCodeForm.setError("customCode", {
+                            type: "manual",
+                            message:
+                              "You already have a shortn link with that custom back-half.",
+                          });
+                          setState("configure");
+                          setCreating(false);
+                          break;
                         default:
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message:
                               "There was a problem creating your QR Code.",
@@ -942,16 +1046,16 @@ export const QRCodeCreate = ({
                       if (!qrCodeResponse.success) {
                         switch (qrCodeResponse.message) {
                           case "no-user":
-                            qrCodeForm.setError("root", {
-                              type: "manual",
+                            qrCodeForm.setError("destination", {
+                              type: "destination",
                               message: "User session error.",
                             });
                             setState("configure");
                             setCreating(false);
                             return;
                           case "plan-limit":
-                            qrCodeForm.setError("root", {
-                              type: "manual",
+                            qrCodeForm.setError("destination", {
+                              type: "destination",
                               message:
                                 "You have reached your plan's QR Code limit.",
                             });
@@ -959,7 +1063,7 @@ export const QRCodeCreate = ({
                             setCreating(false);
                             return;
                           default:
-                            qrCodeForm.setError("root", {
+                            qrCodeForm.setError("destination", {
                               type: "manual",
                               message:
                                 "There was a problem creating your QR Code.",
@@ -971,12 +1075,11 @@ export const QRCodeCreate = ({
                       }
                       if (qrCodeResponse.success && qrCodeResponse.data) {
                         const updateResponse = await attachQRToShortn(
-                          session.user?.sub || "",
                           firstLinkResponse.data.shortUrl,
                           qrCodeResponse.data.qrCodeId
                         );
                         if (!updateResponse.success) {
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message:
                               "There was a problem creating your QR Code.",
@@ -987,7 +1090,7 @@ export const QRCodeCreate = ({
                         }
                         if (updateResponse.success) {
                           router.push(
-                            `/dashboard/${session.getOrganization}/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                            `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                           );
                         }
                       }
@@ -1001,7 +1104,7 @@ export const QRCodeCreate = ({
                     if (!qrCodeResponse.success) {
                       switch (qrCodeResponse.message) {
                         case "no-user":
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message: "User session error.",
                           });
@@ -1009,7 +1112,7 @@ export const QRCodeCreate = ({
                           setCreating(false);
                           return;
                         case "plan-limit":
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message:
                               "You have reached your plan's QR Code limit.",
@@ -1018,7 +1121,7 @@ export const QRCodeCreate = ({
                           setCreating(false);
                           return;
                         default:
-                          qrCodeForm.setError("root", {
+                          qrCodeForm.setError("destination", {
                             type: "manual",
                             message:
                               "There was a problem creating your QR Code.",
@@ -1030,7 +1133,7 @@ export const QRCodeCreate = ({
                     }
                     if (qrCodeResponse.success && qrCodeResponse.data) {
                       router.push(
-                        `/dashboard/${session.getOrganization}/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                        `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                       );
                     }
                   }

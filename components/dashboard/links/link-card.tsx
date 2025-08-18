@@ -106,14 +106,14 @@ export const LinkCard = ({
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags(session.user!.sub).then((tags) => {
+        getTags().then((tags) => {
           setTagOptions(tags);
         });
         setNotFound(false);
         return;
       }
       startTransition(() => {
-        getTagsByQuery(input, session.user!.sub).then((tags) => {
+        getTagsByQuery(input).then((tags) => {
           setTagOptions(tags);
           setNotFound(tags.length === 0);
         });
@@ -140,9 +140,7 @@ export const LinkCard = ({
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
       <div className="w-full flex flex-row items-start justify-between">
         <Link
-          href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-            currentLink.urlCode
-          }/details`}
+          href={`/dashboard/links/${currentLink.urlCode}/details`}
           className="font-bold lg:text-2xl md:text-xl text-lg hover:underline underline-offset-4 truncate"
         >
           {currentLink.title}
@@ -253,11 +251,7 @@ export const LinkCard = ({
           </Dialog>
 
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
-            <Link
-              href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-                link.urlCode
-              }/edit`}
-            >
+            <Link href={`/dashboard/links/${link.urlCode}/edit`}>
               <Edit2 />
             </Link>
           </Button>
@@ -290,9 +284,7 @@ export const LinkCard = ({
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
-                <Link
-                  href={`/dashboard/${session.getOrganization}/links/${link.urlCode}/details`}
-                >
+                <Link href={`/dashboard/links/${link.urlCode}/details`}>
                   <LinkIcon /> View link details
                 </Link>
               </Button>
@@ -304,12 +296,8 @@ export const LinkCard = ({
                 <Link
                   href={
                     link.qrCodeId
-                      ? `/dashboard/${
-                          session.user.sub.split("|")[1]
-                        }/qr-codes/${link.qrCodeId}/details`
-                      : `/dashboard/${
-                          session.user.sub.split("|")[1]
-                        }/qr-codes/create?dynamic_id=${link.urlCode}`
+                      ? `/dashboard/qr-codes/${link.qrCodeId}/details`
+                      : `/dashboard/qr-codes/create?dynamic_id=${link.urlCode}`
                   }
                 >
                   <QrCode />
@@ -364,9 +352,7 @@ export const LinkCard = ({
                     <p className="text-sm font-bold">Unlock click data</p>
                     <div className="w-full flex flex-row gap-1 items-center">
                       <Link
-                        href={`/dashboard/${
-                          session.user.sub.split("|")[1]
-                        }/subscription`}
+                        href={`/dashboard/subscription`}
                         className="underline hover:cursor-pointer"
                       >
                         Upgrade
@@ -457,7 +443,6 @@ export const LinkCard = ({
                               if (added) {
                                 const { success } = await removeTagFromLink(
                                   currentLink.urlCode,
-                                  session.user!.sub,
                                   tag.id
                                 );
                                 if (success) {
@@ -472,7 +457,6 @@ export const LinkCard = ({
                               } else {
                                 const { success } = await addTagToLink(
                                   currentLink.urlCode,
-                                  session.user!.sub,
                                   tag.id
                                 );
                                 if (success) {
@@ -505,7 +489,6 @@ export const LinkCard = ({
                                 const { success, tag } =
                                   await createAndAddTagToUrl(
                                     input,
-                                    session.user!.sub,
                                     currentLink.urlCode
                                   );
                                 setInput("");
@@ -550,12 +533,8 @@ export const LinkCard = ({
                 <Link
                   href={
                     link.qrCodeId
-                      ? `/dashboard/${
-                          session.user.sub.split("|")[1]
-                        }/qr-codes/${link.qrCodeId}/details`
-                      : `/dashboard/${
-                          session.user.sub.split("|")[1]
-                        }/qr-codes/create?dynamic_id=${link.urlCode}`
+                      ? `/dashboard/qr-codes/${link.qrCodeId}/details`
+                      : `/dashboard/qr-codes/create?dynamic_id=${link.urlCode}`
                   }
                 >
                   <QrCode
@@ -702,11 +681,7 @@ export const LinkCard = ({
           variant={"outline"}
           className="p-1.5! h-fit! aspect-square!"
         >
-          <Link
-            href={`/dashboard/${session.user.sub.split("|")[1]}/links/${
-              link.urlCode
-            }/edit`}
-          >
+          <Link href={`/dashboard/links/${link.urlCode}/edit`}>
             <Edit2 />
           </Link>
         </Button>
@@ -742,9 +717,7 @@ export const LinkCard = ({
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
-              <Link
-                href={`/dashboard/${session.getOrganization}/links/${link.urlCode}/details`}
-              >
+              <Link href={`/dashboard/links/${link.urlCode}/details`}>
                 <LinkIcon />
                 View link details
               </Link>
@@ -757,12 +730,8 @@ export const LinkCard = ({
               <Link
                 href={
                   link.qrCodeId
-                    ? `/dashboard/${session.user.sub.split("|")[1]}/qr-codes/${
-                        link.qrCodeId
-                      }/details`
-                    : `/dashboard/${
-                        session.user.sub.split("|")[1]
-                      }/qr-codes/create?dynamic_id=${link.urlCode}`
+                    ? `/dashboard/qr-codes/${link.qrCodeId}/details`
+                    : `/dashboard/qr-codes/create?dynamic_id=${link.urlCode}`
                 }
               >
                 <QrCode />

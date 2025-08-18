@@ -86,7 +86,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
     }
 
     if (input.trim() === "") {
-      getTags(session.user!.sub).then((tags) => {
+      getTags().then((tags) => {
         setTagOptions(tags);
       });
       return;
@@ -100,14 +100,14 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags(session.user!.sub).then((tags) => {
+        getTags().then((tags) => {
           setTagOptions(tags);
         });
         setNotFound(false);
         return;
       }
       startTransition(() => {
-        getTagsByQuery(input, session.user!.sub).then((tags) => {
+        getTagsByQuery(input).then((tags) => {
           setTagOptions(tags);
           setNotFound(tags.length === 0);
         });
@@ -121,7 +121,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
     if (!session.user?.sub) {
       return;
     }
-    const response = await getQRCode(session.user?.sub, id);
+    const response = await getQRCode(id);
     if (response.success && response.qr) {
       setQrCode(response.qr);
       setTags(response.qr.tags as ITag[]);
@@ -170,11 +170,9 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
                 applyToLink: data.applyToLink ?? false,
               });
               if (response.success) {
-                router.push(
-                  `/dashboard/${session.getOrganization}/qr-codes/${qrCode.qrCodeId}/details`
-                );
+                router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
               } else {
-                qrCodeForm.setError("root", {
+                qrCodeForm.setError("title", {
                   type: "manual",
                   message: "There was a problem updating your QR Code.",
                 });
@@ -298,10 +296,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
                             onSelect={() => {
                               startTransition(async () => {
                                 if (!session.user?.sub) return;
-                                const response = await createTag(
-                                  session.user.sub,
-                                  input
-                                );
+                                const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
                                     const n = [...prev, response.tag as ITag];
@@ -347,7 +342,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
             <div className="flex flex-row items-center justify-end gap-4 w-full">
               <Button
                 onClick={() => {
-                  router.push(`/dashboard/${session.getOrganization}/qr-codes`);
+                  router.push(`/dashboard/qr-codes`);
                 }}
                 type="button"
                 variant={"secondary"}

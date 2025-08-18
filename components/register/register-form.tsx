@@ -100,13 +100,13 @@ export const RegisterForm = () => {
           });
         }
         if (error == "verification-token") {
-          form.setError("root", {
+          form.setError("email", {
             type: "manual",
             message: "There was a problem sending the verification email.",
           });
         }
         if (error == "server-error") {
-          form.setError("root", {
+          form.setError("email", {
             type: "manual",
             message: "There was an unexpected problem creating your account.",
           });
@@ -260,7 +260,7 @@ export const RegisterForm = () => {
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {
-                    form.setError("root", {
+                    form.setError("email", {
                       type: "manual",
                       message:
                         "Github account doesn't have a shortn account linked.",
@@ -287,7 +287,7 @@ export const RegisterForm = () => {
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {
-                    form.setError("root", {
+                    form.setError("email", {
                       type: "manual",
                       message:
                         "Google account doesn't have a shortn account linked.",

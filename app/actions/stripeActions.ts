@@ -3,6 +3,7 @@
 
 import Stripe from "stripe";
 import env from "@/utils/env";
+import { auth } from "@/auth";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
@@ -50,6 +51,15 @@ export async function getStripeExtraInfo(stripeId: string) {
 
 export async function updatePhone(stripeId: string, phone: string) {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
         const customer = await stripe.customers.update(
             stripeId,
             {
@@ -67,6 +77,15 @@ export async function updatePhone(stripeId: string, phone: string) {
 
 export async function updateTaxId(stripeId: string, tax_id: string) {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
         const taxIds = await stripe.customers.listTaxIds(
             stripeId,
             {

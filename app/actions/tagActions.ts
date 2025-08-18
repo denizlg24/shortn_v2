@@ -1,14 +1,21 @@
 "use server";
 
 
+import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import Tag from "@/models/url/Tag";
 import UrlV3 from "@/models/url/UrlV3";
 import { nanoid } from 'nanoid';
 
-export async function getTagsByQuery(query: string, sub: string) {
-    if (!sub) return [];
+export async function getTagsByQuery(query: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return [];
+    }
+    const sub = user?.sub;
 
     await connectDB();
 
@@ -22,8 +29,14 @@ export async function getTagsByQuery(query: string, sub: string) {
     return lean;
 }
 
-export async function getTagById(id: string, sub: string) {
-    if (!sub) return undefined;
+export async function getTagById(id: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return undefined;
+    }
+    const sub = user?.sub;
 
     await connectDB();
 
@@ -40,8 +53,14 @@ export async function getTagById(id: string, sub: string) {
     return lean;
 }
 
-export async function getTags(sub: string) {
-    if (!sub) return [];
+export async function getTags() {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return []
+    }
+    const sub = user?.sub;
 
     await connectDB();
 
@@ -54,8 +73,17 @@ export async function getTags(sub: string) {
     return lean;
 }
 
-export async function createAndAddTagToUrl(tagName: string, sub: string, urlCode: string) {
-    if (!sub) return { success: false, message: "no-user" }
+export async function createAndAddTagToUrl(tagName: string, urlCode: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            message: 'no-user',
+        };
+    }
+    const sub = user?.sub;
 
     await connectDB();
 
@@ -83,8 +111,17 @@ export async function createAndAddTagToUrl(tagName: string, sub: string, urlCode
     return { success: false, message: "duplicate" }
 }
 
-export async function createAndAddTagToQRCode(tagName: string, sub: string, qrCodeId: string) {
-    if (!sub) return { success: false, message: "no-user" }
+export async function createAndAddTagToQRCode(tagName: string, qrCodeId: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            message: 'no-user',
+        };
+    }
+    const sub = user?.sub;
 
     await connectDB();
 
@@ -116,34 +153,60 @@ export async function createAndAddTagToQRCode(tagName: string, sub: string, qrCo
 
 export async function addTagToLink(
     urlCode: string,
-    userSub: string,
     tagId: string
 ) {
-    const tag = await Tag.findOne({ sub: userSub, id: tagId })
-    await UrlV3.findOneAndUpdate({ urlCode, sub: userSub }, { $push: { tags: tag } });
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            message: 'no-user',
+        };
+    }
+    const sub = user?.sub;
+    const tag = await Tag.findOne({ sub, id: tagId })
+    await UrlV3.findOneAndUpdate({ urlCode, sub }, { $push: { tags: tag } });
     return { success: true };
 }
 
 export async function addTagToQRCode(
     qrCodeId: string,
-    userSub: string,
     tagId: string
 ) {
-    const tag = await Tag.findOne({ sub: userSub, id: tagId })
-    await QRCodeV2.findOneAndUpdate({ qrCodeId, sub: userSub }, { $push: { tags: tag } });
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            message: 'no-user',
+        };
+    }
+    const sub = user?.sub;
+    const tag = await Tag.findOne({ sub, id: tagId })
+    await QRCodeV2.findOneAndUpdate({ qrCodeId, sub }, { $push: { tags: tag } });
     return { success: true };
 }
 
 export async function removeTagFromLink(
     urlCode: string,
-    userSub: string,
     tagId: string
 ): Promise<{ success: boolean; message?: string }> {
     try {
+        const session = await auth();
+        const user = session?.user;
 
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const updated = await UrlV3.findOneAndUpdate(
-            { urlCode, sub: userSub },
+            { urlCode, sub },
             { $pull: { tags: { id: tagId } } },
             { new: true }
         );
@@ -160,14 +223,22 @@ export async function removeTagFromLink(
 
 export async function removeTagFromQRCode(
     qrCodeId: string,
-    userSub: string,
     tagId: string
 ): Promise<{ success: boolean; message?: string }> {
     try {
+        const session = await auth();
+        const user = session?.user;
 
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
+        const sub = user?.sub;
         await connectDB();
         const updated = await QRCodeV2.findOneAndUpdate(
-            { qrCodeId, sub: userSub },
+            { qrCodeId, sub },
             { $pull: { tags: { id: tagId } } },
             { new: true }
         );
@@ -182,8 +253,17 @@ export async function removeTagFromQRCode(
     }
 }
 
-export async function createTag(sub: string, tagName: string) {
-    if (!sub) return { success: false, message: "no-user" }
+export async function createTag(tagName: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            message: 'no-user',
+        };
+    }
+    const sub = user?.sub;
 
     await connectDB();
 

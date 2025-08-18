@@ -151,7 +151,7 @@ export const ProfileCard = () => {
       return;
     }
     setUpdatingEmail(true);
-    const { success, message } = await updateEmail(user.sub, values.email);
+    const { success, message } = await updateEmail(values.email);
     if (success) {
       await sendVerificationEmail(values.email, locale);
       await signOutUser(`/${locale}/verification-sent/${values.email}`);
@@ -162,7 +162,7 @@ export const ProfileCard = () => {
           message: "Email is already registered to another account",
         });
       } else {
-        updateEmailForm.setError("root", {
+        updateEmailForm.setError("email", {
           type: "manual",
           message: "There was a problem updating your email",
         });

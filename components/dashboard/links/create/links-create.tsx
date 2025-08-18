@@ -24,11 +24,12 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, LockIcon } from "lucide-react";
+import { Infinity, Loader2, LockIcon } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { getLinksLeft } from "../../home/quick-create";
 
 const linkFormSchema = z.object({
   destination: z
@@ -93,13 +94,6 @@ export const LinksCreate = () => {
         ] - (session.user.qr_codes_this_month ?? 0)
       : undefined;
 
-  const linksLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.links_this_month ?? 0)
-      : undefined;
-
   const linkForm = useForm<z.infer<typeof linkFormSchema>>({
     resolver: zodResolver(linkFormSchema),
     defaultValues: {
@@ -117,19 +111,11 @@ export const LinksCreate = () => {
         <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
           Create a new short link
         </h1>
-        {linksLeft == undefined ? (
-          <div className="text-xs w-full flex flex-row items-center gap-1">
-            <p>You can create </p>
-            <Skeleton className="w-3 h-3" />
-            <p> more short links this month.</p>
-          </div>
-        ) : linksLeft > 0 ? (
-          <p className="text-xs gap-1 flex flex-row items-center">
-            You can create <span className="font-bold">{linksLeft}</span> more
-            short links this month.
-          </p>
-        ) : (
-          <></>
+        {getLinksLeft(
+          session.user?.plan.subscription ?? "free",
+          session.user?.links_this_month ?? 0,
+          false,
+          "text-xs"
         )}
       </div>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -195,7 +181,7 @@ export const LinksCreate = () => {
                           </p>
                           <div className="w-full flex flex-row gap-1 items-center">
                             <Link
-                              href={`/dashboard/${session.getOrganization}/subscription`}
+                              href={`/dashboard/subscription`}
                               className="underline hover:cursor-pointer"
                             >
                               Upgrade
@@ -239,7 +225,12 @@ export const LinksCreate = () => {
             </p>
           </div>
           <div className="flex flex-row gap-2 items-center">
-            {qrCodesLeft == undefined ? (
+            {session?.user?.plan.subscription == "pro" ? (
+              <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
+                <Infinity className="min-w-3! w-3! h-3!" />
+                <p>left</p>
+              </div>
+            ) : qrCodesLeft == undefined ? (
               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                 <Skeleton className="w-3 h-3" />
                 <p>left</p>
@@ -435,8 +426,16 @@ export const LinksCreate = () => {
                 });
                 if (!firstLinkResponse.success) {
                   switch (firstLinkResponse.message) {
+                    case "duplicate":
+                      linkForm.setError("customCode", {
+                        type: "manual",
+                        message:
+                          "You already have a shortn link with that custom back-half.",
+                      });
+                      setCreating(false);
+                      return;
                     case "no-user":
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "User session error.",
                       });
@@ -451,14 +450,14 @@ export const LinksCreate = () => {
                       setCreating(false);
                       return;
                     case "plan-limit":
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "You have reached your plan's link limit.",
                       });
                       setCreating(false);
                       return;
                     default:
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "There was a problem creating your QR Code.",
                       });
@@ -476,14 +475,14 @@ export const LinksCreate = () => {
                   if (!qrCodeResponse.success) {
                     switch (qrCodeResponse.message) {
                       case "no-user":
-                        linkForm.setError("root", {
+                        linkForm.setError("destination", {
                           type: "manual",
                           message: "User session error.",
                         });
                         setCreating(false);
                         return;
                       case "plan-limit":
-                        linkForm.setError("root", {
+                        linkForm.setError("destination", {
                           type: "manual",
                           message:
                             "You have reached your plan's QR Code limit.",
@@ -491,7 +490,7 @@ export const LinksCreate = () => {
                         setCreating(false);
                         return;
                       default:
-                        linkForm.setError("root", {
+                        linkForm.setError("destination", {
                           type: "manual",
                           message: "There was a problem creating your QR Code.",
                         });
@@ -501,12 +500,11 @@ export const LinksCreate = () => {
                   }
                   if (qrCodeResponse.success && qrCodeResponse.data) {
                     const updateResponse = await attachQRToShortn(
-                      session.user?.sub || "",
                       firstLinkResponse.data.shortUrl,
                       qrCodeResponse.data.qrCodeId
                     );
                     if (!updateResponse.success) {
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "There was a problem creating your QR Code.",
                       });
@@ -515,7 +513,7 @@ export const LinksCreate = () => {
                     }
                     if (updateResponse.success) {
                       router.push(
-                        `/dashboard/${session.getOrganization}/links/${firstLinkResponse.data.shortUrl}/details`
+                        `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
                       );
                     }
                   }
@@ -528,8 +526,16 @@ export const LinksCreate = () => {
                 });
                 if (!firstLinkResponse.success) {
                   switch (firstLinkResponse.message) {
+                    case "duplicate":
+                      linkForm.setError("customCode", {
+                        type: "manual",
+                        message:
+                          "You already have a shortn link with that custom back-half.",
+                      });
+                      setCreating(false);
+                      return;
                     case "no-user":
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "User session error.",
                       });
@@ -544,14 +550,14 @@ export const LinksCreate = () => {
                       setCreating(false);
                       return;
                     case "plan-limit":
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "You have reached your plan's link limit.",
                       });
                       setCreating(false);
                       return;
                     default:
-                      linkForm.setError("root", {
+                      linkForm.setError("destination", {
                         type: "manual",
                         message: "There was a problem creating your QR Code.",
                       });
@@ -561,7 +567,7 @@ export const LinksCreate = () => {
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
                   router.push(
-                    `/dashboard/${session.getOrganization}/links/${firstLinkResponse.data.shortUrl}/details`
+                    `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
                   );
                 }
               }

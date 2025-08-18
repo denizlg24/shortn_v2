@@ -60,7 +60,7 @@ export const LoginForm = () => {
       if (error?.name == "CredentialsSignin") {
         const message = error?.message?.split(".")[0];
         if (!message) {
-          form.setError("root", {
+          form.setError("email", {
             type: "manual",
             message: "Unknown authentication error.",
           });
@@ -68,7 +68,7 @@ export const LoginForm = () => {
         }
         switch (message) {
           case "email-password-missing":
-            form.setError("root", {
+            form.setError("email", {
               type: "manual",
               message: "Email or password is missing.",
             });
@@ -112,14 +112,14 @@ export const LoginForm = () => {
             );
             break;
           default:
-            form.setError("root", {
+            form.setError("password", {
               type: "manual",
               message: "Invalid credentials.",
             });
         }
         setLoading(0);
       } else {
-        form.setError("root", {
+        form.setError("password", {
           type: "manual",
           message: "Unknown authentication error.",
         });
@@ -205,14 +205,14 @@ export const LoginForm = () => {
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
-                  form.setError("root", {
+                  form.setError("email", {
                     type: "manual",
                     message:
                       "Github account doesn't have a shortn account linked.",
                   });
                   setLoading(0);
                 } else {
-                  form.setError("root", {
+                  form.setError("email", {
                     type: "manual",
                     message: "Unknown authentication error.",
                   });
@@ -238,14 +238,14 @@ export const LoginForm = () => {
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
-                  form.setError("root", {
+                  form.setError("email", {
                     type: "manual",
                     message:
                       "Google account doesn't have a shortn account linked.",
                   });
                   setLoading(0);
                 } else {
-                  form.setError("root", {
+                  form.setError("email", {
                     type: "manual",
                     message: "Unknown authentication error.",
                   });

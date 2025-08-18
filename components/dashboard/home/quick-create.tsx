@@ -31,9 +31,12 @@ const urlFormSchema = z.object({
     .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
 });
 
-export const QuickCreate = ({ className }: { className?: string }) => {
-  const { user } = useUser();
-
+export const getLinksLeft = (
+  subscription: string,
+  thisMonth: number,
+  qr?: boolean,
+  className?: string
+) => {
   const allowedLinks = {
     free: 3,
     basic: 25,
@@ -41,16 +44,50 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   };
 
   const linksLeft =
-    user?.plan.subscription && user.plan.subscription != "pro"
-      ? allowedLinks[user.plan.subscription as "free" | "basic" | "plus"] -
-        (user.links_this_month ?? 0)
+    subscription != "pro"
+      ? allowedLinks[subscription as "free" | "basic" | "plus"] - thisMonth
       : undefined;
 
-  const qrCodesLeft =
-    user?.plan.subscription && user.plan.subscription != "pro"
-      ? allowedLinks[user.plan.subscription as "free" | "basic" | "plus"] -
-        (user.qr_codes_this_month ?? 0)
-      : undefined;
+  if (subscription == "pro") {
+    return (
+      <p className={cn("text-sm font-semibold", className)}>
+        You can create <span className="font-bold">UNLIMITED</span>{" "}
+        {qr ? "QR Codes" : "Shortn Links"} this month.
+      </p>
+    );
+  }
+
+  if (linksLeft == undefined) {
+    return (
+      <p className={cn("text-sm font-semibold", className)}>
+        You can create{" "}
+        <span className="bg-accent animate-pulse text-accent rounded">00</span>{" "}
+        more {qr ? "QR Codes" : "Shortn Links"} this month.
+      </p>
+    );
+  }
+  if (linksLeft > 0) {
+    return (
+      <p className={cn("text-sm font-semibold", className)}>
+        You can create <span className="font-bold">{linksLeft}</span> more{" "}
+        {qr ? "QR Codes" : "Shortn Links"} this month.
+      </p>
+    );
+  }
+  if (linksLeft < 0) {
+    return (
+      <p className={cn("text-sm font-semibold", className)}>
+        You can't create any more {qr ? "QR Codes" : "Shortn Links"} this month.{" "}
+        <Button asChild className="h-fit px-4 py-1 rounded w-fit">
+          <Link href={`/dashboard/subscription`}>Upgrade</Link>
+        </Button>
+      </p>
+    );
+  }
+};
+
+export const QuickCreate = ({ className }: { className?: string }) => {
+  const { user } = useUser();
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
@@ -99,30 +136,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </div>
         <TabsContent value="link" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {linksLeft == undefined ? (
-              <div className="text-sm font-semibold w-full flex flex-row items-center gap-1">
-                <p>You can create </p>
-                <Skeleton className="w-3 h-3" />
-                <p> more short links this month.</p>
-              </div>
-            ) : linksLeft > 0 ? (
-              <p className="text-sm font-semibold  gap-1 flex flex-row items-center">
-                You can create <span className="font-bold">{linksLeft}</span>{" "}
-                more short links this month.
-              </p>
-            ) : (
-              <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
-                <p>You can't create any more short links this month.</p>
-                <Button asChild className="h-fit px-4 py-1 rounded w-fit">
-                  <Link
-                    href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
-                  >
-                    Upgrade
-                  </Link>
-                </Button>
-              </div>
+            {getLinksLeft(
+              user?.plan.subscription ?? "free",
+              user?.links_this_month ?? 0
             )}
-
             <Form {...urlForm}>
               <form
                 onSubmit={urlForm.handleSubmit(async (data) => {
@@ -132,9 +149,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/${user?.sub.split("|")[1]}/links/${
-                        response.data.shortUrl
-                      }/details`
+                      `/dashboard/links/${response.data.shortUrl}/details`
                     );
                   } else if (response.existingUrl) {
                     const existingToast = toast(
@@ -151,9 +166,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                               onClick={async () => {
                                 toast.dismiss(existingToast);
                               }}
-                              href={`/dashboard/${
-                                user?.sub.split("|")[1]
-                              }/links/${response.existingUrl}/details`}
+                              href={`/dashboard/links/${response.existingUrl}/details`}
                               className="underline text-primary font-semibold"
                             >
                               View details.
@@ -224,28 +237,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </TabsContent>
         <TabsContent value="qrcode" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {qrCodesLeft == undefined ? (
-              <div className="text-sm font-semibold w-full flex flex-row items-center gap-1">
-                <p>You can create </p>
-                <Skeleton className="w-3 h-3" />
-                <p> more QR Codes this month.</p>
-              </div>
-            ) : qrCodesLeft > 0 ? (
-              <p className="text-sm font-semibold  gap-1 flex flex-row items-center">
-                You can create <span className="font-bold">{qrCodesLeft}</span>{" "}
-                more QR Codes this month.
-              </p>
-            ) : (
-              <div className="text-sm font-semibold w-full flex flex-row items-center gap-2">
-                <p>You can't create any more QR Codes this month.</p>
-                <Button asChild className="h-fit px-4 py-1 rounded w-fit">
-                  <Link
-                    href={`/dashboard/${user?.sub.split("|")[1]}/subscription`}
-                  >
-                    Upgrade
-                  </Link>
-                </Button>
-              </div>
+            {getLinksLeft(
+              user?.plan.subscription ?? "free",
+              user?.qr_codes_this_month ?? 0,
+              true
             )}
             <Form {...qrCodeForm}>
               <form
@@ -256,9 +251,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/${user?.sub.split("|")[1]}/qr-codes/${
-                        response.data.qrCodeId
-                      }/details`
+                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`
                     );
                   } else if (response.message) {
                     switch (response.message) {

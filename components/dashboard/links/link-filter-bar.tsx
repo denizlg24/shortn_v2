@@ -98,7 +98,7 @@ export const LinkFilterBar = () => {
     }
     const finalTags: ITag[] = [];
     for (const id of tagIds) {
-      const tag = await getTagById(id, session.user!.sub);
+      const tag = await getTagById(id);
       if (tag) finalTags.push(tag);
     }
     setTags(finalTags);
@@ -110,7 +110,7 @@ export const LinkFilterBar = () => {
     }
     readTags();
     if (input.trim() === "") {
-      getTags(session.user!.sub).then((tags) => {
+      getTags().then((tags) => {
         setTagOptions(tags);
       });
       return;
@@ -124,13 +124,13 @@ export const LinkFilterBar = () => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags(session.user!.sub).then((tags) => {
+        getTags().then((tags) => {
           setTagOptions(tags);
         });
         return;
       }
       startTransition(() => {
-        getTagsByQuery(input, session.user!.sub).then((tags) => {
+        getTagsByQuery(input).then((tags) => {
           setTagOptions(tags);
         });
       });
@@ -162,7 +162,7 @@ export const LinkFilterBar = () => {
     const getTagsFromId = async () => {
       let ts: ITag[] = [];
       for (const t of tagIds) {
-        const result = await getTagById(t, session.user!.sub);
+        const result = await getTagById(t);
         if (result) ts.push(result);
       }
       setTags(ts);

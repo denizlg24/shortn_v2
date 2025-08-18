@@ -122,9 +122,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/links/create`}
-                              >
+                              <Link href={`/dashboard/links/create`}>
                                 <LinkIcon className="text-primary" />
                                 Shorten a link
                               </Link>
@@ -137,9 +135,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/qr-codes/create`}
-                              >
+                              <Link href={`/dashboard/qr-codes/create`}>
                                 <QrCode className="text-primary" />
                                 Create a QR Code
                               </Link>
@@ -152,9 +148,7 @@ export const AppSidebar = () => {
                               className="h-fit text-base"
                               asChild
                             >
-                              <Link
-                                href={`/dashboard/${session.getOrganization}/pages/create`}
-                              >
+                              <Link href={`/dashboard/pages/create`}>
                                 <NotepadText className="text-primary" />
                                 Build a landing page
                               </Link>
@@ -173,12 +167,12 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+$/.test(pathname) && "bg-muted"
+                        pathname == "/dashboard" && "bg-muted"
                       )}
                       asChild
                     >
                       <Link href={`/dashboard`}>
-                        {/^\/dashboard\/[^\/]+$/.test(pathname) && (
+                        {pathname == "/dashboard" && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <Home className="w-5! h-5!" />
@@ -190,18 +184,12 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        pathname.startsWith("/dashboard/links") && "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/links`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/links(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/links`}>
+                        {pathname.startsWith("/dashboard/links") && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <LinkIcon className="w-5! h-5!" />
@@ -215,18 +203,12 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        pathname.startsWith("/dashboard/qr-codes") && "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/qr-codes`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/qr-codes(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/qr-codes`}>
+                        {pathname.startsWith("/dashboard/qr-codes") && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <QrCode className="w-5! h-5!" />
@@ -240,18 +222,12 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        /^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
-                          pathname
-                        ) && "bg-muted"
+                        pathname.startsWith("/dashboard/pages") && "bg-muted"
                       )}
                       asChild
                     >
-                      <Link
-                        href={`/dashboard/${session.getOrganization}/pages`}
-                      >
-                        {/^\/dashboard\/[^\/]+\/pages(?:\/.*)?$/.test(
-                          pathname
-                        ) && (
+                      <Link href={`/dashboard/pages`}>
+                        {pathname.startsWith("/dashboard/pages") && (
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <NotepadText className="w-5! h-5!" />

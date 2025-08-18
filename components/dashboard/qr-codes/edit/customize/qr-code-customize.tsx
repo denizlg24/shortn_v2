@@ -32,7 +32,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
     if (!session.user?.sub) {
       return;
     }
-    const response = await getQRCode(session.user?.sub, id);
+    const response = await getQRCode(id);
     if (response.success && response.qr) {
       setQrCode(response.qr);
       setOptions(response.qr.options);
@@ -581,7 +581,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
           <div className="flex flex-row items-center justify-between mt-4">
             <Button
               onClick={() => {
-                router.push(`/dashboard/${session.getOrganization}/qr-codes`);
+                router.push(`/dashboard/qr-codes`);
               }}
               variant={"secondary"}
             >
@@ -595,9 +595,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   options
                 );
                 if (response.success) {
-                  router.push(
-                    `/dashboard/${session.getOrganization}/qr-codes/${qrCode.qrCodeId}/details`
-                  );
+                  router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
                 }
                 setCreating(false);
               }}
