@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -84,7 +85,7 @@ export const RegisterForm = () => {
     });
     if (success) {
       router.push(`/verification-sent/${values.email}`);
-      setLoading(0);
+      return;
     } else {
       if (error) {
         if (error == "email-taken") {
@@ -100,13 +101,13 @@ export const RegisterForm = () => {
           });
         }
         if (error == "verification-token") {
-          form.setError("email", {
+          form.setError("root", {
             type: "manual",
             message: "There was a problem sending the verification email.",
           });
         }
         if (error == "server-error") {
-          form.setError("email", {
+          form.setError("root", {
             type: "manual",
             message: "There was an unexpected problem creating your account.",
           });
@@ -239,6 +240,7 @@ export const RegisterForm = () => {
             {loading == 1 ? "Creating account..." : "Create account"}
             {loading == 1 && <Loader2 className="animate-spin" />}
           </Button>
+          <FormRootError />
           <div className="w-full relative flex flex-row justify-center">
             <Separator className=""></Separator>
             <p className="text-xs text-center text-muted-foreground absolute mx-auto -top-2 bg-background px-2">
@@ -257,6 +259,7 @@ export const RegisterForm = () => {
                 const response = await githubAuthenticate();
                 if (response.success && response.url) {
                   router.push(response.url);
+                  return;
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {
@@ -284,6 +287,7 @@ export const RegisterForm = () => {
                 const response = await googleAuthenticate();
                 if (response.success && response.url) {
                   router.push(response.url);
+                  return;
                 } else {
                   const error = response;
                   if (error?.name == "CredentialsSignin") {

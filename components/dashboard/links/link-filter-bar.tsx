@@ -211,23 +211,6 @@ export const LinkFilterBar = () => {
     setCalendarOpen(false);
   };
 
-  const clearDate = () => {
-    setDateRange(undefined);
-    const params = new URLSearchParams();
-
-    if (query) params.set("query", query);
-    if (customLink !== "all") params.set("customLink", customLink);
-    if (attachedQR !== "all") params.set("attachedQR", attachedQR);
-    if (tags.length > 0)
-      params.set("tags", JSON.stringify(tags.map((t) => t.id)));
-
-    params.set("page", "1");
-
-    router.push(`?${params.toString()}`);
-    setMoreFiltersOpen(false);
-    setCalendarOpen(false);
-  };
-
   const clearMoreFilters = () => {
     setCustomLink("all");
     setAttachedQR("all");
@@ -308,15 +291,53 @@ export const LinkFilterBar = () => {
               <Calendar
                 className="w-[225px] mx-auto p-0"
                 mode="range"
+                showOutsideDays={false}
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={(range) => {
+                  if (range?.from && range?.to && range.to != range.from) {
+                    setDateRange(range);
+                    setCalendarOpen(false);
+                  } else {
+                    if (range?.from) {
+                      setDateRange((prev) => {
+                        return { ...prev, from: range.from };
+                      });
+                    } else if (range?.to) {
+                      setDateRange((prev) => {
+                        return { from: prev?.from, to: range.from };
+                      });
+                      setCalendarOpen(false);
+                    }
+                  }
+                }}
                 disabled={(date) => {
                   return date > new Date();
                 }}
               />
               <Separator className="my-2" />
               <div className="flex flex-row w-full items-center gap-2 justify-end">
-                <Button onClick={clearDate} variant={"ghost"}>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDateRange(undefined);
+                    const params = new URLSearchParams();
+
+                    if (query) params.set("query", query);
+                    if (customLink !== "all")
+                      params.set("customLink", customLink);
+                    if (attachedQR !== "all")
+                      params.set("attachedQR", attachedQR);
+                    if (tags.length > 0)
+                      params.set("tags", JSON.stringify(tags.map((t) => t.id)));
+
+                    params.set("page", "1");
+
+                    router.push(`?${params.toString()}`);
+                    setMoreFiltersOpen(false);
+                    setCalendarOpen(false);
+                  }}
+                  variant={"ghost"}
+                >
                   <X />
                   Clear Filters
                 </Button>

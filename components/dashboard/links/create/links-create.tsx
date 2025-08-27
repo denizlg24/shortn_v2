@@ -179,15 +179,15 @@ export const LinksCreate = () => {
                           <p className="text-sm font-bold">
                             Unlock custom codes
                           </p>
-                          <div className="w-full flex flex-row gap-1 items-center">
+                          <p>
                             <Link
                               href={`/dashboard/subscription`}
                               className="underline hover:cursor-pointer"
                             >
                               Upgrade
                             </Link>
-                            <p>to access link stats.</p>
-                          </div>
+                            to access link stats.
+                          </p>
                         </div>
                       </HoverCardContent>
                     </HoverCard>
@@ -569,6 +569,7 @@ export const LinksCreate = () => {
                   router.push(
                     `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
                   );
+                  return;
                 }
               }
               setCreating(false);

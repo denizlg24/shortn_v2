@@ -522,7 +522,6 @@ export const LinkCard = ({
           </div>
         </div>
         <div className="flex flex-row items-center h-6 gap-2 sm:pb-0 pb-2">
-          {}
           <HoverCard>
             <HoverCardTrigger asChild>
               <Button

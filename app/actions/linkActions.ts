@@ -384,7 +384,7 @@ export const deleteShortn = async (urlCode: string) => {
     }
 }
 
-export const updateShortnData = async ({ urlCode, title, tags, applyToQRCode }: { urlCode: string, title: string, tags: ITag[], applyToQRCode: boolean }) => {
+export const updateShortnData = async ({ urlCode, title, tags, custom_code, applyToQRCode }: { urlCode: string, title: string, tags: ITag[], custom_code?: string, applyToQRCode: boolean }) => {
     try {
         const session = await auth();
         const user = session?.user;
@@ -397,7 +397,33 @@ export const updateShortnData = async ({ urlCode, title, tags, applyToQRCode }: 
         }
         const sub = user?.sub;
         await connectDB();
-        const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, { title, tags });
+        if (custom_code && urlCode != custom_code) {
+            const existing = await UrlV3.findOne({ urlCode: custom_code });
+            if (existing) {
+                return {
+                    success: false,
+                    message: 'duplicate',
+                    existingUrl: custom_code,
+                };
+            }
+        }
+
+        const dbUser = await User.findOne({ sub });
+        if (!dbUser) {
+            return { success: false, message: 'no-user' }
+        }
+        if (custom_code && dbUser.plan.subscription != "pro") {
+            return { success: false, message: 'custom-restricted' }
+        }
+        const updateQuery: Record<string, any> = {}
+        updateQuery.title = title;
+        updateQuery.tags = tags;
+        if (custom_code) {
+            updateQuery.urlCode = custom_code;
+            updateQuery.custom_code = true;
+            updateQuery.shortUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${custom_code}`;
+        }
+        const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, { new: true });
         if (applyToQRCode && url?.qrCodeId) {
             const qrCodeId = url.qrCodeId;
             const updatedQR = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId }, { title, tags });
@@ -407,7 +433,7 @@ export const updateShortnData = async ({ urlCode, title, tags, applyToQRCode }: 
             return { success: false };
         }
         if (url)
-            return { success: true };
+            return { success: true, urlCode: url.urlCode };
         return { success: false };
     } catch (error) {
         return { success: false };

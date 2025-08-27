@@ -175,6 +175,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                         </div>
                       </div>
                     );
+                    setLinkLoading(false);
                   } else if (response.message) {
                     switch (response.message) {
                       case "server-error":
@@ -200,8 +201,8 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                       default:
                         break;
                     }
+                    setLinkLoading(false);
                   }
-                  setLinkLoading(false);
                 })}
                 className="w-full sm:grid flex flex-col grid-cols-6 gap-4 items-end pb-2 sm:mt-0 mt-6!"
               >
@@ -278,8 +279,8 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                       default:
                         break;
                     }
+                    setQrCodeLoading(false);
                   }
-                  setQrCodeLoading(false);
                 })}
                 className="w-full sm:grid flex flex-col grid-cols-6 gap-4 items-end pb-2 sm:mt-0 mt-6!"
               >

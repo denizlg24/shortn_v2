@@ -171,6 +171,7 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
               });
               if (response.success) {
                 router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
+                return;
               } else {
                 qrCodeForm.setError("title", {
                   type: "manual",

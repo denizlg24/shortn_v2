@@ -596,6 +596,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                 );
                 if (response.success) {
                   router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
+                  return;
                 }
                 setCreating(false);
               }}

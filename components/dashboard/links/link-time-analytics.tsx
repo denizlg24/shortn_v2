@@ -18,13 +18,19 @@ import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
+import { useState } from "react";
+import { DateRange } from "react-day-picker";
 export const getEngagementOverTimeData = (
   url: IUrl,
   startDate?: Date,
   endDate?: Date
 ) => {
   const defaultEnd = endOfDay(new Date());
-  const defaultStart = startOfDay(subMonths(defaultEnd, 3));
+  const defaultStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() - 2,
+    1
+  );
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
   const rangeEnd = endDate ? startOfDay(endDate) : defaultEnd;
@@ -67,7 +73,16 @@ export const LinkTimeAnalytics = ({
   unlocked: boolean;
   linkData: IUrl;
 }) => {
-  const chartData = getEngagementOverTimeData(linkData);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
+    to: endOfDay(new Date()),
+  });
+
+  const chartData = getEngagementOverTimeData(
+    linkData,
+    dateRange?.from,
+    dateRange?.to
+  );
 
   if (!unlocked) {
     return (
@@ -109,5 +124,13 @@ export const LinkTimeAnalytics = ({
     );
   }
 
-  return <LinkTimeBarChart className="p-0!" chartData={chartData} />;
+  return (
+    <LinkTimeBarChart
+      createdAt={linkData.date}
+      className="p-0!"
+      dateRange={dateRange}
+      setDateRange={setDateRange}
+      chartData={chartData}
+    />
+  );
 };

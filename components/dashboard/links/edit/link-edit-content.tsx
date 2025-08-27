@@ -17,10 +17,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,7 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, LockIcon, X } from "lucide-react";
 import {
   createTag,
   getTagById,
@@ -45,12 +46,30 @@ import { ITag } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
 import { IUrl } from "@/models/url/UrlV3";
 import { getShortn, updateShortnData } from "@/app/actions/linkActions";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 const urlFormSchema = z.object({
   title: z
     .string()
     .min(3, "Your title must be at least 3 characters long.")
     .max(52, "Your title can't be longer than 52 characters."),
+  custom_code: z
+    .union([
+      z
+        .string()
+        .min(3, "Back-half must be at least 3 characters long")
+        .max(52, "Back-half can't be longer than 52 characters")
+        .regex(
+          /^[a-zA-Z0-9_-]+$/,
+          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)"
+        ),
+      z.literal(""),
+    ])
+    .optional(),
   applyToQR: z.boolean().default(false).optional(),
 });
 
@@ -67,6 +86,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     resolver: zodResolver(urlFormSchema),
     defaultValues: {
       title: "",
+      custom_code: "",
       applyToQR: false,
     },
   });
@@ -126,7 +146,10 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     if (response.success && response.url) {
       setUrl(response.url);
       setTags(response.url.tags as ITag[]);
-      urlForm.reset({ title: response.url.title });
+      urlForm.reset({
+        title: response.url.title,
+        custom_code: response.url.customCode ? response.url.urlCode : "",
+      });
     }
   };
 
@@ -169,16 +192,40 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                 title: data.title,
                 tags: tags,
                 applyToQRCode: data.applyToQR ?? false,
+                custom_code: data.custom_code ? data.custom_code : undefined,
               });
               if (response.success) {
-                router.push(`/dashboard/links/${url.urlCode}/details`);
+                router.push(`/dashboard/links/${response.urlCode}/details`);
+                return;
               } else {
-                urlForm.setError("title", {
-                  type: "manual",
-                  message: "There was a problem updating your Shortn link.",
-                });
+                switch (response.message) {
+                  case "duplicate":
+                    urlForm.setError("custom_code", {
+                      type: "manual",
+                      message: "A shortn with that back half already exists.",
+                    });
+                    break;
+                  case "no-user":
+                    urlForm.setError("root", {
+                      type: "manual",
+                      message: "You don't seem to be logged in.",
+                    });
+                    break;
+                  case "custom-restricted":
+                    urlForm.setError("custom_code", {
+                      type: "manual",
+                      message:
+                        "You are not allowed to use custom back halves without a PRO account.",
+                    });
+                    break;
+                  default:
+                    urlForm.setError("root", {
+                      type: "manual",
+                      message: "An unexpected error occurred.",
+                    });
+                }
+                setCreating(false);
               }
-              setCreating(false);
             })}
             className="w-full flex flex-col gap-4"
           >
@@ -190,6 +237,51 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                   <FormLabel>Title</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={urlForm.control}
+              name="custom_code"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Custom Back-half{" "}
+                    {session.user?.plan.subscription != "pro" && (
+                      <HoverCard>
+                        <HoverCardTrigger asChild>
+                          <Button className="p-0! h-fit!" variant={"link"}>
+                            <LockIcon className="w-3! h-3!" />
+                          </Button>
+                        </HoverCardTrigger>
+                        <HoverCardContent asChild>
+                          <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                            <p className="text-sm font-bold">
+                              Unlock custom codes
+                            </p>
+                            <p>
+                              <Link
+                                href={`/dashboard/subscription`}
+                                className="underline hover:cursor-pointer"
+                              >
+                                Upgrade
+                              </Link>{" "}
+                              to access link stats.
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={session.user?.plan.subscription != "pro"}
+                      className="w-full"
+                      placeholder=""
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -353,6 +445,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
               <Button type="submit" disabled={creating}>
                 {creating ? "Saving..." : "Save changes"}
               </Button>
+              <FormRootError />
             </div>
           </form>
         </Form>

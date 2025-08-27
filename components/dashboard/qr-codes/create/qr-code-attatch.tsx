@@ -710,6 +710,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                     router.push(
                       `/dashboard/links/${linkToAttach.urlCode}/details`
                     );
+                    return;
                   }
                 }
                 setCreating(false);

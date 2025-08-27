@@ -41,6 +41,7 @@ export const RecoverPassword = () => {
     const { success, message } = await sendRecoveryEmail(values.email, locale);
     if (success) {
       router.push(`/recover/sent/${values.email}`);
+      return;
     } else if (message) {
       if (message == "no-user") {
         form.setError("email", {

@@ -15,6 +15,24 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ChevronDownIcon, X } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  differenceInMonths,
+  differenceInYears,
+  endOfDay,
+  format,
+  isSameDay,
+  startOfDay,
+} from "date-fns";
+import { Separator } from "@/components/ui/separator";
 export const description = "An interactive bar chart";
 
 const chartConfig = {
@@ -33,8 +51,14 @@ const chartConfig = {
 
 export function LinkTimeBarChart({
   chartData,
+  setDateRange,
+  dateRange,
   className,
+  createdAt,
 }: {
+  setDateRange: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
+  dateRange: DateRange | undefined;
+  createdAt: Date;
   chartData: { date: string; desktop: number; mobile: number }[];
   className?: string;
 }) {
@@ -47,6 +71,100 @@ export function LinkTimeBarChart({
     }),
     []
   );
+  const [open, setOpen] = React.useState(false);
+  const [mobileStartOpened, mobileStartOpen] = React.useState(false);
+  const [mobileEndOpened, mobileEndOpen] = React.useState(false);
+
+  function getDateRange(option: string, createdAt: Date): DateRange {
+    const now = endOfDay(new Date());
+    setOpen(false);
+    mobileStartOpen(false);
+    mobileEndOpen(false);
+    switch (option) {
+      case "This month":
+        return {
+          from: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
+          to: now,
+        };
+
+      case "Last month": {
+        const from = startOfDay(
+          new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        );
+        const to = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
+        return { from, to };
+      }
+
+      case "Last 3 months":
+        return {
+          from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
+          to: now,
+        };
+
+      case "Last 6 months":
+        return {
+          from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 5, 1)),
+          to: now,
+        };
+
+      case "Last 9 months":
+        return {
+          from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 8, 1)),
+          to: now,
+        };
+
+      case "Last year":
+        return {
+          from: startOfDay(new Date(now.getFullYear() - 1, now.getMonth(), 1)),
+          to: now,
+        };
+
+      case "All time":
+        return {
+          from: startOfDay(new Date(createdAt)),
+          to: now,
+        };
+
+      default:
+        return { from: undefined, to: undefined };
+    }
+  }
+
+  function formatHumanDateRange(
+    range: DateRange | undefined,
+    createdAt: Date
+  ): string {
+    if (!range?.from || !range?.to) return "for the last 3 months";
+
+    const now = endOfDay(new Date());
+    const from = startOfDay(range.from);
+    const to = endOfDay(range.to);
+
+    if (
+      isSameDay(from, startOfDay(createdAt)) &&
+      Math.abs(to.getTime() - now.getTime()) < 1000 * 60 * 60 * 24
+    ) {
+      return "of all time";
+    }
+
+    if (Math.abs(to.getTime() - now.getTime()) < 1000 * 60 * 60 * 24) {
+      const diffMonths =
+        now.getMonth() -
+        from.getMonth() +
+        12 * (now.getFullYear() - from.getFullYear());
+      const diffYears = now.getFullYear() - from.getFullYear();
+      if (diffYears >= 1 && diffMonths >= 12)
+        return diffYears === 1
+          ? "for last year"
+          : `for the last ${diffYears} years`;
+      if (diffMonths === 0) return "for this month";
+      if (diffMonths === 1) return "for last month";
+      return `for the last ${diffMonths + 1} months`;
+    }
+
+    return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
+  }
+
   return (
     <div
       className={cn(
@@ -55,10 +173,219 @@ export function LinkTimeBarChart({
       )}
     >
       <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
-        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3 sm:!py-0">
+        <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3">
           <CardTitle>Engagements over time</CardTitle>
-          <CardDescription>
-            Showing total short link visitors for the selected period.
+          <CardDescription className="flex flex-col gap-2">
+            <p>
+              Showing total short link visitors{" "}
+              {formatHumanDateRange(dateRange, createdAt)}
+            </p>
+            <div className="flex flex-row items-center gap-2 flex-wrap">
+              <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date"
+                    className="w-48 justify-between font-normal md:flex hidden"
+                  >
+                    {dateRange
+                      ? `${
+                          dateRange.from
+                            ? format(dateRange.from, "dd/MM/yyyy")
+                            : ""
+                        }${
+                          dateRange.to
+                            ? `-${format(dateRange.to, "dd/MM/yyyy")}`
+                            : ""
+                        }`
+                      : "Select a period"}
+                    <ChevronDownIcon />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto md:max-w-full max-w-[300px] overflow-hidden p-0 md:flex hidden flex-col gap-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="range"
+                    showOutsideDays={false}
+                    numberOfMonths={2}
+                    selected={dateRange}
+                    captionLayout="label"
+                    onSelect={(range) => {
+                      if (range?.from && range?.to && range.to != range.from) {
+                        setDateRange(range);
+                        setOpen(false);
+                      } else {
+                        if (range?.from) {
+                          setDateRange((prev) => {
+                            return { ...prev, from: range.from };
+                          });
+                        } else if (range?.to) {
+                          setDateRange((prev) => {
+                            return { from: prev?.from, to: range.from };
+                          });
+                          setOpen(false);
+                        }
+                      }
+                    }}
+                  />
+                  <Separator className="mb-2" />
+                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
+                    {[
+                      "This month",
+                      "Last month",
+                      "Last 3 months",
+                      "Last 6 months",
+                      "Last 9 months",
+                      "Last year",
+                      "All time",
+                    ].map((opt) => (
+                      <Button
+                        key={opt}
+                        variant="secondary"
+                        className="text-xs p-2 h-fit grow"
+                        onClick={() =>
+                          setDateRange(getDateRange(opt, createdAt))
+                        }
+                      >
+                        {opt}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <Popover open={mobileStartOpened} onOpenChange={mobileStartOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date"
+                    className="w-24 justify-between font-normal md:hidden flex px-2"
+                  >
+                    {dateRange
+                      ? `${
+                          dateRange.from
+                            ? format(dateRange.from, "dd/MM/yyyy")
+                            : ""
+                        }`
+                      : "Start"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto max-w-[300px] overflow-hidden p-0 md:hidden flex flex-col gap-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    showOutsideDays={false}
+                    numberOfMonths={1}
+                    selected={dateRange?.from}
+                    captionLayout="label"
+                    className="mx-auto"
+                    onSelect={(date) => {
+                      setDateRange((prev) => {
+                        return { ...prev, from: date };
+                      });
+                      mobileStartOpen(false);
+                    }}
+                  />
+                  <Separator className="mb-2" />
+                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
+                    {[
+                      "This month",
+                      "Last month",
+                      "Last 3 months",
+                      "Last 6 months",
+                      "Last 9 months",
+                      "Last year",
+                      "All time",
+                    ].map((opt) => (
+                      <Button
+                        key={opt}
+                        variant="secondary"
+                        className="text-xs p-2 h-fit grow"
+                        onClick={() =>
+                          setDateRange(getDateRange(opt, createdAt))
+                        }
+                      >
+                        {opt}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              <p className="md:hidden">-</p>
+              <Popover open={mobileEndOpened} onOpenChange={mobileEndOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    id="date"
+                    className="w-24 justify-between font-normal md:hidden flex px-2"
+                  >
+                    {dateRange?.to
+                      ? `${format(dateRange.to, "dd/MM/yyyy")}`
+                      : "End"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto max-w-[300px] overflow-hidden p-0 md:hidden flex flex-col gap-0"
+                  align="start"
+                >
+                  <Calendar
+                    mode="single"
+                    showOutsideDays={false}
+                    numberOfMonths={1}
+                    selected={dateRange?.from}
+                    captionLayout="label"
+                    className="mx-auto"
+                    onSelect={(date) => {
+                      setDateRange((prev) => {
+                        if (prev?.from) {
+                          return { ...prev, to: date };
+                        }
+                        return prev;
+                      });
+                      mobileEndOpen(false);
+                    }}
+                  />
+                  <Separator className="mb-2" />
+                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
+                    {[
+                      "This month",
+                      "Last month",
+                      "Last 3 months",
+                      "Last 6 months",
+                      "Last 9 months",
+                      "Last year",
+                      "All time",
+                    ].map((opt) => (
+                      <Button
+                        key={opt}
+                        variant="secondary"
+                        className="text-xs p-2 h-fit grow"
+                        onClick={() =>
+                          setDateRange(getDateRange(opt, createdAt))
+                        }
+                      >
+                        {opt}
+                      </Button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {dateRange && (
+                <Button
+                  onClick={() => {
+                    setOpen(false);
+                    setDateRange(undefined);
+                  }}
+                  variant={"ghost"}
+                >
+                  <X />
+                  Clear Period
+                </Button>
+              )}
+            </div>
           </CardDescription>
         </div>
         <div className="flex">

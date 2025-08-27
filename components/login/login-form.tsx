@@ -12,6 +12,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
@@ -55,12 +56,13 @@ export const LoginForm = () => {
     const response = await authenticate(values);
     if (response == true) {
       router.push("/dashboard");
+      return;
     } else {
       const error = response;
       if (error?.name == "CredentialsSignin") {
         const message = error?.message?.split(".")[0];
         if (!message) {
-          form.setError("email", {
+          form.setError("root", {
             type: "manual",
             message: "Unknown authentication error.",
           });
@@ -112,14 +114,14 @@ export const LoginForm = () => {
             );
             break;
           default:
-            form.setError("password", {
+            form.setError("root", {
               type: "manual",
               message: "Invalid credentials.",
             });
         }
         setLoading(0);
       } else {
-        form.setError("password", {
+        form.setError("root", {
           type: "manual",
           message: "Unknown authentication error.",
         });
@@ -178,6 +180,7 @@ export const LoginForm = () => {
           {loading == 1 ? "Signing you in..." : "Login"}
           {loading == 1 && <Loader2 className="animate-spin" />}
         </Button>
+        <FormRootError />
         <Link
           className="text-primary underline text-sm -mt-3 w-fit ml-auto"
           href={"/recover"}
@@ -202,6 +205,7 @@ export const LoginForm = () => {
               const response = await githubAuthenticate();
               if (response.success && response.url) {
                 router.push(response.url);
+                return;
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
@@ -212,7 +216,7 @@ export const LoginForm = () => {
                   });
                   setLoading(0);
                 } else {
-                  form.setError("email", {
+                  form.setError("root", {
                     type: "manual",
                     message: "Unknown authentication error.",
                   });
@@ -235,6 +239,7 @@ export const LoginForm = () => {
               const response = await googleAuthenticate();
               if (response.success && response.url) {
                 router.push(response.url);
+                return;
               } else {
                 const error = response;
                 if (error?.name == "CredentialsSignin") {
@@ -245,7 +250,7 @@ export const LoginForm = () => {
                   });
                   setLoading(0);
                 } else {
-                  form.setError("email", {
+                  form.setError("root", {
                     type: "manual",
                     message: "Unknown authentication error.",
                   });

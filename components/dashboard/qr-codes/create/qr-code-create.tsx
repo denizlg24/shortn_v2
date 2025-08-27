@@ -1085,6 +1085,7 @@ export const QRCodeCreate = ({
                           router.push(
                             `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                           );
+                          return;
                         }
                       }
                     }
@@ -1128,6 +1129,7 @@ export const QRCodeCreate = ({
                       router.push(
                         `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
                       );
+                      return;
                     }
                   }
                   setCreating(false);
