@@ -20,6 +20,12 @@ import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
+import { DataTable } from "../tables/location-table/data-table";
+import {
+  aggregateClicksByLocation,
+  locationColumns,
+} from "../tables/location-table/columns";
+import { CardDescription, CardTitle } from "@/components/ui/card";
 export const getEngagementOverTimeData = (
   url: IUrl,
   startDate?: Date,
@@ -33,7 +39,7 @@ export const getEngagementOverTimeData = (
   );
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
-  const rangeEnd = endDate ? endOfDay(endDate) : defaultEnd;
+  const rangeEnd = endDate ? startOfDay(endDate) : defaultEnd;
 
   const grouped: Record<string, { desktop: number; mobile: number }> = {};
 
@@ -66,30 +72,19 @@ export const getEngagementOverTimeData = (
   });
 };
 
-export const LinkTimeAnalytics = ({
+export const LinkLocationAnalytics = ({
   unlocked,
   linkData,
 }: {
   unlocked: boolean;
   linkData: IUrl;
 }) => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
-    to: endOfDay(new Date()),
-  });
-
-  const chartData = getEngagementOverTimeData(
-    linkData,
-    dateRange?.from,
-    dateRange?.to
-  );
-
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Engagements over time
+            Location data
           </h1>
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -107,7 +102,7 @@ export const LinkTimeAnalytics = ({
                   >
                     Upgrade
                   </Link>{" "}
-                  to see data about your engagements over time
+                  to see location data.
                 </p>
               </div>
             </HoverCardContent>
@@ -124,13 +119,17 @@ export const LinkTimeAnalytics = ({
     );
   }
 
+  const data = aggregateClicksByLocation(linkData.clicks.all, "country");
+
   return (
-    <LinkTimeBarChart
-      createdAt={linkData.date}
-      className="p-0!"
-      dateRange={dateRange}
-      setDateRange={setDateRange}
-      chartData={chartData}
-    />
+    <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-1 items-start">
+        <CardTitle>Location data</CardTitle>
+        <CardDescription>
+          Showing location data of short link's clicks
+        </CardDescription>
+      </div>
+      <DataTable data={data} columns={locationColumns} />
+    </div>
   );
 };

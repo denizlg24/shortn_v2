@@ -30,7 +30,6 @@ import {
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -40,7 +39,7 @@ import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { useUser } from "@/utils/UserContext";
-import { format, parse, subMonths } from "date-fns";
+import { format, parse } from "date-fns";
 import {
   CalendarIcon,
   Check,
@@ -50,7 +49,7 @@ import {
   X,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 export const LinkFilterBar = () => {
@@ -132,10 +131,9 @@ export const LinkFilterBar = () => {
         });
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-        });
+
+      getTagsByQuery(input).then((tags) => {
+        setTagOptions(tags);
       });
     }, 300);
 
@@ -581,214 +579,430 @@ export const LinkFilterBar = () => {
             )}
           </div>
         )}
-        <Popover open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              id="filters"
-              variant={"outline"}
-              className="w-full md:max-w-[120px]! max-w-full"
-            >
-              <Settings2 className="size-3.5" />
-              <p className="font-semibold">
-                {tags.length === 0 &&
-                customLink === "all" &&
-                attachedQR === "all" ? (
-                  <>Add Filters</>
-                ) : (
-                  <>
-                    {(() => {
-                      let count = tags.length;
-                      if (customLink !== "all") count++;
-                      if (attachedQR !== "all") count++;
-                      return `${count} filter${count > 1 ? "s" : ""}`;
-                    })()}
-                  </>
-                )}
-              </p>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[320px] overflow-hidden p-0">
-            <div className="p-4 w-full flex flex-col gap-4">
-              <div className="text-left flex flex-col gap-0">
-                <h1 className="font-bold xs:text-base text-sm text-left">
-                  Filters
-                </h1>
-              </div>
-              <div className="w-full flex flex-col gap-2">
-                <Label className="font-semibold">Tags</Label>
-                <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      aria-expanded={open}
-                      className="w-full justify-between"
-                    >
-                      <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
-                        {tags.length > 0
-                          ? tags.map((tag) => {
-                              return (
-                                <p
-                                  onClick={(e) => {
-                                    e.stopPropagation();
+        {isMobile ? (
+          <Dialog open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
+            <DialogTrigger asChild>
+              <Button
+                id="filters"
+                variant={"outline"}
+                className="w-full md:max-w-[120px]! max-w-full"
+              >
+                <Settings2 className="size-3.5" />
+                <p className="font-semibold">
+                  {tags.length === 0 &&
+                  customLink === "all" &&
+                  attachedQR === "all" ? (
+                    <>Add Filters</>
+                  ) : (
+                    <>
+                      {(() => {
+                        let count = tags.length;
+                        if (customLink !== "all") count++;
+                        if (attachedQR !== "all") count++;
+                        return `${count} filter${count > 1 ? "s" : ""}`;
+                      })()}
+                    </>
+                  )}
+                </p>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="w-full min-w-[250px] overflow-hidden p-0 pt-6">
+              <DialogHeader className="px-4 text-left">
+                <DialogTitle>Filters</DialogTitle>
+                <DialogDescription>
+                  Apply filters to better find your short links.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="p-4 pt-0 w-full flex flex-col gap-4">
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Tags</Label>
+                  <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
+                          {tags.length > 0
+                            ? tags.map((tag) => {
+                                return (
+                                  <p
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTags((prev) => {
+                                        const n = [...prev];
+                                        const index = n.indexOf(tag);
+                                        n.splice(index, 1);
+                                        return n;
+                                      });
+                                    }}
+                                    key={tag.id}
+                                    className={cn(
+                                      "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    )}
+                                  >
+                                    {tag.tagName}
+                                    <X className="w-3! h-3!" />
+                                  </p>
+                                );
+                              })
+                            : "Select tags..."}
+                        </div>
+
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-full min-w-[250px] p-0 pt-6">
+                      <DialogHeader className="px-4 text-left">
+                        <DialogTitle>Edit tags</DialogTitle>
+                        <DialogDescription>
+                          Add or remove tags to make it easier to find your
+                          link.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Command>
+                        <CommandInput
+                          placeholder="Search tags..."
+                          className="h-9"
+                          value={input}
+                          onValueChange={setInput}
+                        />
+                        <CommandList className="items-stretch flex flex-col gap-1 w-full">
+                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandGroup className="w-full">
+                            {tagOptions.map((tag) => (
+                              <CommandItem
+                                className="w-full! max-w-full! justify-center gap-1"
+                                key={tag.id}
+                                value={tag.tagName}
+                                onSelect={async (val) => {
+                                  const added = tags?.some(
+                                    (_tag) => _tag.id == tag.id
+                                  );
+                                  if (added) {
                                     setTags((prev) => {
                                       const n = [...prev];
-                                      const index = n.indexOf(tag);
+                                      const index = n.findIndex((t) => {
+                                        t.id == tag.id;
+                                      });
                                       n.splice(index, 1);
                                       return n;
                                     });
-                                  }}
-                                  key={tag.id}
-                                  className={cn(
-                                    "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
-                                  )}
-                                >
-                                  {tag.tagName}
-                                  <X className="w-3! h-3!" />
-                                </p>
-                              );
-                            })
-                          : "Select tags..."}
-                      </div>
-
-                      <ChevronsUpDown className="opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    align="start"
-                    side="bottom"
-                    className="w-full min-w-[250px] p-0"
-                  >
-                    <Command>
-                      <CommandInput
-                        placeholder="Search tags..."
-                        className="h-9"
-                        value={input}
-                        onValueChange={setInput}
-                      />
-                      <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                        <CommandEmpty>No options.</CommandEmpty>
-                        <CommandGroup className="w-full">
-                          {tagOptions.map((tag) => (
-                            <CommandItem
-                              className="w-full! max-w-full! justify-center gap-1"
-                              key={tag.id}
-                              value={tag.tagName}
-                              onSelect={async (val) => {
-                                const added = tags?.some(
-                                  (_tag) => _tag.id == tag.id
-                                );
-                                if (added) {
-                                  setTags((prev) => {
-                                    const n = [...prev];
-                                    const index = n.findIndex((t) => {
-                                      t.id == tag.id;
+                                  } else {
+                                    setTags((prev) => {
+                                      const n = [...prev, tag];
+                                      return n;
                                     });
-                                    n.splice(index, 1);
-                                    return n;
-                                  });
-                                } else {
-                                  setTags((prev) => {
-                                    const n = [...prev, tag];
-                                    return n;
-                                  });
-                                }
-                              }}
-                            >
-                              {tag.tagName}
-                              <Check
-                                className={cn(
-                                  "ml-auto",
-                                  tags?.some((_tag) => _tag.id == tag.id)
-                                    ? "opacity-100"
-                                    : "opacity-0"
-                                )}
-                              />
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                                  }
+                                }}
+                              >
+                                {tag.tagName}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    tags?.some((_tag) => _tag.id == tag.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Link Type</Label>
+                  <Select
+                    value={customLink}
+                    onValueChange={setCustomLink}
+                    defaultValue="all"
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue defaultValue={"all"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="on">
+                          Links<span className="font-semibold -mx-1">with</span>
+                          custom back-halves
+                        </SelectItem>
+                        <SelectItem value="off" className="gap-0!">
+                          Links
+                          <span className="font-semibold -mx-1">without</span>
+                          custom back-halves
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Attached QR Code</Label>
+                  <Select
+                    value={attachedQR}
+                    onValueChange={setAttachedQR}
+                    defaultValue="all"
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue defaultValue={"all"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">
+                          Links
+                          <span className="font-semibold -mx-1">
+                            with or without
+                          </span>
+                          attached QR Codes
+                        </SelectItem>
+                        <SelectItem value="on">
+                          Links
+                          <span className="font-semibold -mx-1">with</span>
+                          attached QR Codes only
+                        </SelectItem>
+                        <SelectItem value="off">
+                          Links
+                          <span className="font-semibold -mx-1">without</span>
+                          attached QR Codes only
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-row w-full items-center gap-2 justify-end">
+                  <Button onClick={clearMoreFilters} variant={"ghost"}>
+                    <X />
+                    Clear Filters
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      applyFilters({});
+                    }}
+                    variant={"default"}
+                  >
+                    Apply
+                  </Button>
+                </div>
               </div>
-              <div className="w-full flex flex-col gap-2">
-                <Label className="font-semibold">Link Type</Label>
-                <Select
-                  value={customLink}
-                  onValueChange={setCustomLink}
-                  defaultValue="all"
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue defaultValue={"all"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="on">
-                        Links<span className="font-semibold -mx-1">with</span>
-                        custom back-halves
-                      </SelectItem>
-                      <SelectItem value="off" className="gap-0!">
-                        Links
-                        <span className="font-semibold -mx-1">without</span>
-                        custom back-halves
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+            </DialogContent>
+          </Dialog>
+        ) : (
+          <Popover open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                id="filters"
+                variant={"outline"}
+                className="w-full md:max-w-[120px]! max-w-full"
+              >
+                <Settings2 className="size-3.5" />
+                <p className="font-semibold">
+                  {tags.length === 0 &&
+                  customLink === "all" &&
+                  attachedQR === "all" ? (
+                    <>Add Filters</>
+                  ) : (
+                    <>
+                      {(() => {
+                        let count = tags.length;
+                        if (customLink !== "all") count++;
+                        if (attachedQR !== "all") count++;
+                        return `${count} filter${count > 1 ? "s" : ""}`;
+                      })()}
+                    </>
+                  )}
+                </p>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[320px] overflow-hidden p-0">
+              <div className="p-4 w-full flex flex-col gap-4">
+                <div className="text-left flex flex-col gap-0">
+                  <h1 className="font-bold xs:text-base text-sm text-left">
+                    Filters
+                  </h1>
+                </div>
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Tags</Label>
+                  <Popover open={open} onOpenChange={setOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        aria-expanded={open}
+                        className="w-full justify-between"
+                      >
+                        <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
+                          {tags.length > 0
+                            ? tags.map((tag) => {
+                                return (
+                                  <p
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setTags((prev) => {
+                                        const n = [...prev];
+                                        const index = n.indexOf(tag);
+                                        n.splice(index, 1);
+                                        return n;
+                                      });
+                                    }}
+                                    key={tag.id}
+                                    className={cn(
+                                      "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    )}
+                                  >
+                                    {tag.tagName}
+                                    <X className="w-3! h-3!" />
+                                  </p>
+                                );
+                              })
+                            : "Select tags..."}
+                        </div>
+
+                        <ChevronsUpDown className="opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent
+                      align="start"
+                      side="bottom"
+                      className="w-full min-w-[250px] p-0"
+                    >
+                      <Command>
+                        <CommandInput
+                          placeholder="Search tags..."
+                          className="h-9"
+                          value={input}
+                          onValueChange={setInput}
+                        />
+                        <CommandList className="items-stretch flex flex-col gap-1 w-full">
+                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandGroup className="w-full">
+                            {tagOptions.map((tag) => (
+                              <CommandItem
+                                className="w-full! max-w-full! justify-center gap-1"
+                                key={tag.id}
+                                value={tag.tagName}
+                                onSelect={async (val) => {
+                                  const added = tags?.some(
+                                    (_tag) => _tag.id == tag.id
+                                  );
+                                  if (added) {
+                                    setTags((prev) => {
+                                      const n = [...prev];
+                                      const index = n.findIndex((t) => {
+                                        t.id == tag.id;
+                                      });
+                                      n.splice(index, 1);
+                                      return n;
+                                    });
+                                  } else {
+                                    setTags((prev) => {
+                                      const n = [...prev, tag];
+                                      return n;
+                                    });
+                                  }
+                                }}
+                              >
+                                {tag.tagName}
+                                <Check
+                                  className={cn(
+                                    "ml-auto",
+                                    tags?.some((_tag) => _tag.id == tag.id)
+                                      ? "opacity-100"
+                                      : "opacity-0"
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Link Type</Label>
+                  <Select
+                    value={customLink}
+                    onValueChange={setCustomLink}
+                    defaultValue="all"
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue defaultValue={"all"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="on">
+                          Links<span className="font-semibold -mx-1">with</span>
+                          custom back-halves
+                        </SelectItem>
+                        <SelectItem value="off" className="gap-0!">
+                          Links
+                          <span className="font-semibold -mx-1">without</span>
+                          custom back-halves
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="w-full flex flex-col gap-2">
+                  <Label className="font-semibold">Attached QR Code</Label>
+                  <Select
+                    value={attachedQR}
+                    onValueChange={setAttachedQR}
+                    defaultValue="all"
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue defaultValue={"all"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="all">
+                          Links
+                          <span className="font-semibold -mx-1">
+                            with or without
+                          </span>
+                          attached QR Codes
+                        </SelectItem>
+                        <SelectItem value="on">
+                          Links
+                          <span className="font-semibold -mx-1">with</span>
+                          attached QR Codes only
+                        </SelectItem>
+                        <SelectItem value="off">
+                          Links
+                          <span className="font-semibold -mx-1">without</span>
+                          attached QR Codes only
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-row w-full items-center gap-2 justify-end">
+                  <Button onClick={clearMoreFilters} variant={"ghost"}>
+                    <X />
+                    Clear Filters
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      applyFilters({});
+                    }}
+                    variant={"default"}
+                  >
+                    Apply
+                  </Button>
+                </div>
               </div>
-              <div className="w-full flex flex-col gap-2">
-                <Label className="font-semibold">Attached QR Code</Label>
-                <Select
-                  value={attachedQR}
-                  onValueChange={setAttachedQR}
-                  defaultValue="all"
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue defaultValue={"all"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="all">
-                        Links
-                        <span className="font-semibold -mx-1">
-                          with or without
-                        </span>
-                        attached QR Codes
-                      </SelectItem>
-                      <SelectItem value="on">
-                        Links
-                        <span className="font-semibold -mx-1">with</span>
-                        attached QR Codes only
-                      </SelectItem>
-                      <SelectItem value="off">
-                        Links
-                        <span className="font-semibold -mx-1">without</span>
-                        attached QR Codes only
-                      </SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-row w-full items-center gap-2 justify-end">
-                <Button onClick={clearMoreFilters} variant={"ghost"}>
-                  <X />
-                  Clear Filters
-                </Button>
-                <Button
-                  onClick={() => {
-                    applyFilters({});
-                  }}
-                  variant={"default"}
-                >
-                  Apply
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
+        )}
+
         {query && (
           <Button
             className="md:w-auto w-full"

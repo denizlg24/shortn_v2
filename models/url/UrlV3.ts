@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { ITag, tagSchema } from "./Tag";
 
-interface ClickEntry {
+export interface ClickEntry {
     timestamp: Date;
     ip: string;
     country?: string;
