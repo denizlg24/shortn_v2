@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
@@ -56,6 +57,8 @@ export const QRCodesFilterBar = () => {
   const [open, setOpen] = useState(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarStartOpen, setCalendarStartOpen] = useState(false);
+  const [calendarEndOpen, setCalendarEndOpen] = useState(false);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
 
@@ -167,19 +170,46 @@ export const QRCodesFilterBar = () => {
     getTagsFromId();
   }, [pathname, searchParams.toString(), session.user]);
 
-  const applyFilters = () => {
+  const applyFilters = ({
+    override_query,
+    override_attachedQR,
+    override_tags,
+    override_start,
+    override_end,
+    override_page,
+  }: {
+    override_query?: string;
+    override_attachedQR?: string;
+    override_tags?: ITag[];
+    override_start?: Date;
+    override_end?: Date;
+    override_page?: number;
+  }) => {
     const params = new URLSearchParams();
 
     if (query) params.set("query", query);
+    if (override_query) params.set("query", override_query);
+
     if (attachedQR !== "all") params.set("attachedQR", attachedQR);
+    if (override_attachedQR && override_attachedQR !== "all")
+      params.set("attachedQR", override_attachedQR);
+
     if (tags.length > 0)
       params.set("tags", JSON.stringify(tags.map((t) => t.id)));
+    if (override_tags && override_tags.length > 0)
+      params.set("tags", JSON.stringify(override_tags.map((t) => t.id)));
+
     if (dateRange?.from)
       params.set("startDate", format(dateRange.from, "MM-dd-yyyy"));
+    if (override_start)
+      params.set("startDate", format(override_start, "MM-dd-yyyy"));
+
     if (dateRange?.to)
       params.set("endDate", format(dateRange.to, "MM-dd-yyyy"));
+    if (override_end) params.set("endDate", format(override_end, "MM-dd-yyyy"));
 
     params.set("page", "1");
+    if (override_page) params.set("page", override_page.toString());
 
     router.push(`?${params.toString()}`);
     setMoreFiltersOpen(false);
@@ -224,6 +254,8 @@ export const QRCodesFilterBar = () => {
     setCalendarOpen(false);
   };
 
+  const isMobile = useIsMobile();
+
   return (
     <div className="w-full flex md:flex-row flex-col justify-start gap-2 lg:items-center items-start pb-4 border-b-2 relative col-span-full">
       <div className="relative w-full lg:max-w-[375px] md:max-w-[300px]">
@@ -252,93 +284,292 @@ export const QRCodesFilterBar = () => {
       </div>
 
       <div className="flex md:flex-row flex-col sm:items-center items-start gap-2 w-full">
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              id="date-picker"
-              variant={"outline"}
-              className="w-full md:max-w-[200px]! max-w-full"
-            >
-              <CalendarIcon className="size-3.5" />
-              <p className="font-semibold">
-                {dateRange?.from && dateRange?.to
-                  ? `${format(dateRange.from, "MMM dd")} – ${format(
-                      dateRange.to,
-                      "MMM dd"
-                    )}`
-                  : "Filter by created date"}
-              </p>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-[320px]">
-            <div className="p-0 w-full">
-              <div className="text-left flex flex-col gap-0">
-                <h1 className="font-bold xs:text-base text-sm text-left">
-                  Filter by created date
-                </h1>
-                <p className="text-muted-foreground xs:text-sm text-xs text-left">
-                  Display only QR Codes created on the selected range.
+        {!isMobile ? (
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                id="date-picker"
+                variant={"outline"}
+                className="w-full md:max-w-[200px]! max-w-full"
+              >
+                <CalendarIcon className="size-3.5" />
+                <p className="font-semibold">
+                  {dateRange?.from && dateRange?.to
+                    ? `${format(dateRange.from, "MMM dd")} – ${format(
+                        dateRange.to,
+                        "MMM dd"
+                      )}`
+                    : "Filter by created date"}
                 </p>
-              </div>
-              <Separator className="my-2" />
-              <Calendar
-                className="w-[225px] mx-auto p-0"
-                mode="range"
-                showOutsideDays={false}
-                selected={dateRange}
-                onSelect={(range) => {
-                  if (range?.from && range?.to && range.to != range.from) {
-                    setDateRange(range);
-                    setCalendarOpen(false);
-                  } else {
-                    if (range?.from) {
-                      setDateRange((prev) => {
-                        return { ...prev, from: range.from };
-                      });
-                    } else if (range?.to) {
-                      setDateRange((prev) => {
-                        return { from: prev?.from, to: range.from };
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto">
+              <div className="p-0 w-full">
+                <div className="text-left flex flex-col gap-0">
+                  <h1 className="font-bold xs:text-base text-sm text-left">
+                    Filter by created date
+                  </h1>
+                  <p className="text-muted-foreground xs:text-sm text-xs text-left">
+                    Display only QR Codes created on the selected range.
+                  </p>
+                </div>
+                <Separator className="my-2" />
+                <Calendar
+                  className="mx-auto p-0"
+                  mode="range"
+                  numberOfMonths={2}
+                  showOutsideDays={false}
+                  fixedWeeks
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    if (range?.from && range?.to && range.to != range.from) {
+                      setDateRange(range);
+                      applyFilters({
+                        override_start: range.from,
+                        override_end: range.to,
                       });
                       setCalendarOpen(false);
+                    } else {
+                      if (range?.from) {
+                        setDateRange((prev) => {
+                          return { ...prev, from: range.from };
+                        });
+                      } else if (range?.to) {
+                        setDateRange((prev) => {
+                          return { from: prev?.from, to: range.from };
+                        });
+                        setCalendarOpen(false);
+                        applyFilters({
+                          override_start: range.from,
+                          override_end: range.to,
+                        });
+                      }
                     }
-                  }
-                }}
-                disabled={(date) => {
-                  return date > new Date();
-                }}
-              />
-              <Separator className="my-2" />
-              <div className="flex flex-row w-full items-center gap-2 justify-end">
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDateRange(undefined);
-                    const params = new URLSearchParams();
-
-                    if (query) params.set("query", query);
-                    if (attachedQR !== "all")
-                      params.set("attachedQR", attachedQR);
-                    if (tags.length > 0)
-                      params.set("tags", JSON.stringify(tags.map((t) => t.id)));
-
-                    params.set("page", "1");
-
-                    router.push(`?${params.toString()}`);
-                    setMoreFiltersOpen(false);
-                    setCalendarOpen(false);
                   }}
-                  variant={"ghost"}
-                >
-                  <X />
-                  Clear Filters
-                </Button>
-                <Button onClick={applyFilters} variant={"default"}>
-                  Apply
-                </Button>
+                  disabled={(date) => {
+                    return date > new Date();
+                  }}
+                />
+                <Separator className="my-2" />
+                <div className="flex flex-row w-full items-center gap-2 justify-end">
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDateRange(undefined);
+                      const params = new URLSearchParams();
+
+                      if (query) params.set("query", query);
+                      if (attachedQR !== "all")
+                        params.set("attachedQR", attachedQR);
+                      if (tags.length > 0)
+                        params.set(
+                          "tags",
+                          JSON.stringify(tags.map((t) => t.id))
+                        );
+
+                      params.set("page", "1");
+                      setCalendarOpen(false);
+                      router.push(`?${params.toString()}`);
+                    }}
+                    variant={"ghost"}
+                  >
+                    <X />
+                    Clear Filters
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setCalendarOpen(false);
+                      applyFilters({});
+                    }}
+                    variant={"default"}
+                  >
+                    Apply
+                  </Button>
+                </div>
               </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <div className="flex flex-row items-center w-full gap-2">
+            <Dialog
+              open={calendarStartOpen}
+              onOpenChange={setCalendarStartOpen}
+            >
+              <DialogTrigger asChild>
+                <Button
+                  id="date-picker"
+                  variant={"outline"}
+                  className="grow flex-1"
+                >
+                  <CalendarIcon className="size-3.5" />
+                  <p className="font-semibold">
+                    {dateRange?.from
+                      ? `${format(dateRange.from, "dd/MM/yyyy")}`
+                      : "Filter by created date"}
+                  </p>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[320px]">
+                <DialogHeader>
+                  <DialogTitle>Filter by created date</DialogTitle>
+                  <DialogDescription>
+                    Display only short links created on the selected range.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="p-0 w-full">
+                  <Separator className="my-2" />
+                  <Calendar
+                    className="mx-auto p-0"
+                    mode="single"
+                    showOutsideDays={false}
+                    selected={dateRange?.from}
+                    onSelect={(date) => {
+                      if (!date) {
+                        setDateRange(undefined);
+                      } else {
+                        setDateRange((prev) => ({
+                          ...prev,
+                          from: date,
+                        }));
+                      }
+                      setCalendarStartOpen(false);
+                      applyFilters({ override_start: date });
+                    }}
+                    disabled={(date) => {
+                      return date > new Date();
+                    }}
+                  />
+                  <Separator className="my-2" />
+                  <div className="flex flex-row w-full items-center gap-2 justify-end">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDateRange(undefined);
+                        const params = new URLSearchParams();
+
+                        if (query) params.set("query", query);
+                        if (attachedQR !== "all")
+                          params.set("attachedQR", attachedQR);
+                        if (tags.length > 0)
+                          params.set(
+                            "tags",
+                            JSON.stringify(tags.map((t) => t.id))
+                          );
+
+                        params.set("page", "1");
+                        setCalendarStartOpen(false);
+                        router.push(`?${params.toString()}`);
+                      }}
+                      variant={"ghost"}
+                    >
+                      <X />
+                      Clear Filters
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setCalendarStartOpen(false);
+                        applyFilters({});
+                      }}
+                      variant={"default"}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            {dateRange?.from && (
+              <>
+                <p>-</p>
+                <Dialog
+                  open={calendarEndOpen}
+                  onOpenChange={setCalendarEndOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      id="date-picker"
+                      variant={"outline"}
+                      className="grow flex-1"
+                    >
+                      <CalendarIcon className="size-3.5" />
+                      <p className="font-semibold">
+                        {dateRange?.to
+                          ? `${format(dateRange.to, "dd/MM/yyyy")}`
+                          : "End"}
+                      </p>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[320px]">
+                    <DialogHeader>
+                      <DialogTitle>Filter by created date</DialogTitle>
+                      <DialogDescription>
+                        Display only short links created on the selected range.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="p-0 w-full">
+                      <Separator className="my-2" />
+                      <Calendar
+                        className="mx-auto p-0"
+                        mode="single"
+                        showOutsideDays={false}
+                        selected={dateRange?.to}
+                        onSelect={(date) => {
+                          setDateRange((prev) => {
+                            if (!prev) {
+                              return prev;
+                            }
+                            return { ...prev, to: date };
+                          });
+                          setCalendarEndOpen(false);
+                          applyFilters({ override_end: date });
+                        }}
+                        disabled={(date) => {
+                          return date > new Date();
+                        }}
+                      />
+                      <Separator className="my-2" />
+                      <div className="flex flex-row w-full items-center gap-2 justify-end">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDateRange(undefined);
+                            const params = new URLSearchParams();
+
+                            if (query) params.set("query", query);
+                            if (attachedQR !== "all")
+                              params.set("attachedQR", attachedQR);
+                            if (tags.length > 0)
+                              params.set(
+                                "tags",
+                                JSON.stringify(tags.map((t) => t.id))
+                              );
+
+                            params.set("page", "1");
+                            setCalendarEndOpen(false);
+                            router.push(`?${params.toString()}`);
+                          }}
+                          variant={"ghost"}
+                        >
+                          <X />
+                          Clear Filters
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setCalendarEndOpen(false);
+                            applyFilters({});
+                          }}
+                          variant={"default"}
+                        >
+                          Apply
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
+          </div>
+        )}
         <Popover open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -506,7 +737,12 @@ export const QRCodesFilterBar = () => {
                   <X />
                   Clear Filters
                 </Button>
-                <Button onClick={applyFilters} variant={"default"}>
+                <Button
+                  onClick={() => {
+                    applyFilters({});
+                  }}
+                  variant={"default"}
+                >
                   Apply
                 </Button>
               </div>
@@ -514,7 +750,12 @@ export const QRCodesFilterBar = () => {
           </PopoverContent>
         </Popover>
         {query && (
-          <Button className="md:w-auto w-full" onClick={applyFilters}>
+          <Button
+            className="md:w-auto w-full"
+            onClick={() => {
+              applyFilters({});
+            }}
+          >
             Search
           </Button>
         )}
