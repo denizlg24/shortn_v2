@@ -30,6 +30,7 @@ import {
 } from "@/utils/color-converter";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
+import { ScrollPopoverContent } from "./scroll-popover-content";
 
 export const colorSchema = z
   .string()
@@ -335,7 +336,7 @@ export default function InputColor({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-3" align="start">
+          <ScrollPopoverContent className="w-auto p-3" align="start">
             <div className="color-picker space-y-3">
               <div className="relative">
                 <Button
@@ -515,7 +516,7 @@ export default function InputColor({
                 ) : null}
               </div>
             </div>
-          </PopoverContent>
+          </ScrollPopoverContent>
         </Popover>
         <div className="relative flex-1 sm:flex-none">
           <Input

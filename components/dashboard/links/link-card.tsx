@@ -73,6 +73,7 @@ import {
 import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 
 export const LinkCard = ({
   link,
@@ -257,7 +258,7 @@ export const LinkCard = ({
                 <Ellipsis />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+            <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
               <Button
                 onClick={async () => {
                   const response = await deleteShortn(currentLink.urlCode);
@@ -306,7 +307,7 @@ export const LinkCard = ({
               >
                 <NotepadText /> Add to a page
               </Button>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         </div>
       </div>
@@ -413,7 +414,7 @@ export const LinkCard = ({
                     <PlusCircle className="text-primary w-3! h-3!" /> Add tag
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
+                <ScrollPopoverContent
                   align="start"
                   side="bottom"
                   className="w-full min-w-[250px] p-0"
@@ -499,7 +500,7 @@ export const LinkCard = ({
                       </CommandGroup>
                     </CommandList>
                   </Command>
-                </PopoverContent>
+                </ScrollPopoverContent>
               </Popover>
             </div>
           </div>
@@ -687,7 +688,7 @@ export const LinkCard = ({
               <Ellipsis />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+          <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
             <Button
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
@@ -737,7 +738,7 @@ export const LinkCard = ({
             >
               <NotepadText /> Add to a page
             </Button>
-          </PopoverContent>
+          </ScrollPopoverContent>
         </Popover>
       </div>
     </div>

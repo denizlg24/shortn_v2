@@ -39,6 +39,7 @@ import {
   DialogTrigger,
 } from "./dialog";
 import { cn } from "@/lib/utils";
+import { ScrollPopoverContent } from "./scroll-popover-content";
 
 export const DashboardHeaderClient = () => {
   const session = useUser();
@@ -270,7 +271,7 @@ export const DashboardHeaderClient = () => {
                   <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[300px] p-0 z-99">
+              <ScrollPopoverContent className="w-[300px] p-0 z-99">
                 <div className="w-full p-4 flex flex-row gap-2 items-stretch justify-start">
                   <Avatar className="h-full! w-auto! max-h-10 aspect-square! rounded-full!">
                     {user.profilePicture && (
@@ -376,7 +377,7 @@ export const DashboardHeaderClient = () => {
                     Sign out
                   </Button>
                 </div>
-              </PopoverContent>
+              </ScrollPopoverContent>
             </Popover>
             <LocaleSwitcher />
           </>

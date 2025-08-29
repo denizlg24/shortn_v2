@@ -25,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import {
   Select,
   SelectContent,
@@ -290,11 +291,7 @@ export const LinkFilterBar = () => {
         {!isMobile ? (
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
-              <Button
-                id="date-picker"
-                variant={"outline"}
-                className="w-full md:max-w-[200px]! max-w-full"
-              >
+              <Button id="date-picker" variant={"outline"} className="w-fit">
                 <CalendarIcon className="size-3.5" />
                 <p className="font-semibold">
                   {dateRange?.from && dateRange?.to
@@ -306,7 +303,7 @@ export const LinkFilterBar = () => {
                 </p>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto">
+            <ScrollPopoverContent className="w-auto">
               <div className="p-0 w-full">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
@@ -392,7 +389,7 @@ export const LinkFilterBar = () => {
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         ) : (
           <div className="flex flex-row items-center w-full gap-2">
@@ -726,7 +723,7 @@ export const LinkFilterBar = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue defaultValue={"all"} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-99">
                       <SelectGroup>
                         <SelectItem value="all">All</SelectItem>
                         <SelectItem value="on">
@@ -752,7 +749,7 @@ export const LinkFilterBar = () => {
                     <SelectTrigger className="w-full">
                       <SelectValue defaultValue={"all"} />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="z-99">
                       <SelectGroup>
                         <SelectItem value="all">
                           Links
@@ -795,11 +792,7 @@ export const LinkFilterBar = () => {
         ) : (
           <Popover open={moreFiltersOpen} onOpenChange={setMoreFiltersOpen}>
             <PopoverTrigger asChild>
-              <Button
-                id="filters"
-                variant={"outline"}
-                className="w-full md:max-w-[120px]! max-w-full"
-              >
+              <Button id="filters" variant={"outline"} className="w-fit">
                 <Settings2 className="size-3.5" />
                 <p className="font-semibold">
                   {tags.length === 0 &&
@@ -819,7 +812,7 @@ export const LinkFilterBar = () => {
                 </p>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[320px] overflow-hidden p-0">
+            <ScrollPopoverContent className="w-[320px] overflow-hidden p-0">
               <div className="p-4 w-full flex flex-col gap-4">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
@@ -867,7 +860,7 @@ export const LinkFilterBar = () => {
                         <ChevronsUpDown className="opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
+                    <ScrollPopoverContent
                       align="start"
                       side="bottom"
                       className="w-full min-w-[250px] p-0"
@@ -922,7 +915,7 @@ export const LinkFilterBar = () => {
                           </CommandGroup>
                         </CommandList>
                       </Command>
-                    </PopoverContent>
+                    </ScrollPopoverContent>
                   </Popover>
                 </div>
                 <div className="w-full flex flex-col gap-2">
@@ -999,7 +992,7 @@ export const LinkFilterBar = () => {
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         )}
 

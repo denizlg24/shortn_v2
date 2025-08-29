@@ -70,6 +70,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { createShortn } from "@/app/actions/linkActions";
 import { attachShortnToQR, deleteQRCode } from "@/app/actions/qrCodeActions";
 import { toast } from "sonner";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 
 export const QRCodeCard = ({
   qrCode,
@@ -182,7 +183,7 @@ export const QRCodeCard = ({
                     <Ellipsis />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+                <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
                   {currentQrCode.attachedUrl ? (
                     <Button
                       asChild
@@ -331,7 +332,7 @@ export const QRCodeCard = ({
                   >
                     <Trash2 /> Delete
                   </Button>
-                </PopoverContent>
+                </ScrollPopoverContent>
               </Popover>
               <Button
                 asChild
@@ -472,7 +473,7 @@ export const QRCodeCard = ({
                         tag
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
+                    <ScrollPopoverContent
                       align="start"
                       side="bottom"
                       className="w-full min-w-[250px] p-0"
@@ -561,7 +562,7 @@ export const QRCodeCard = ({
                           </CommandGroup>
                         </CommandList>
                       </Command>
-                    </PopoverContent>
+                    </ScrollPopoverContent>
                   </Popover>
                 </div>
               </div>
@@ -589,7 +590,7 @@ export const QRCodeCard = ({
                   <Ellipsis />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+              <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
                 {currentQrCode.attachedUrl ? (
                   <Button
                     asChild
@@ -741,7 +742,7 @@ export const QRCodeCard = ({
                 >
                   <Trash2 /> Delete
                 </Button>
-              </PopoverContent>
+              </ScrollPopoverContent>
             </Popover>
             <Button
               asChild
@@ -799,7 +800,7 @@ export const QRCodeCard = ({
               <Ellipsis />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+          <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
             {currentQrCode.attachedUrl ? (
               <Button
                 asChild
@@ -947,7 +948,7 @@ export const QRCodeCard = ({
             >
               <Trash2 /> Delete
             </Button>
-          </PopoverContent>
+          </ScrollPopoverContent>
         </Popover>
         <Button
           asChild

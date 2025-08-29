@@ -6,6 +6,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
@@ -79,7 +80,7 @@ export const LinkAdditionsCard = ({
                       <Ellipsis />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+                  <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
                     <Button
                       variant={"outline"}
                       asChild
@@ -104,7 +105,7 @@ export const LinkAdditionsCard = ({
                       <Download />
                       Download
                     </Button>
-                  </PopoverContent>
+                  </ScrollPopoverContent>
                 </Popover>
               </>
             ) : (

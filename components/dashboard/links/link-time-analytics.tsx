@@ -73,10 +73,7 @@ export const LinkTimeAnalytics = ({
   unlocked: boolean;
   linkData: IUrl;
 }) => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
-    to: endOfDay(new Date()),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const chartData = getEngagementOverTimeData(
     linkData,

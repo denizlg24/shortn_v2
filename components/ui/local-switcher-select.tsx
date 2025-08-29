@@ -8,6 +8,7 @@ import { Button } from "./button";
 import { CiGlobe } from "react-icons/ci";
 import { routing } from "@/i18n/routing";
 import { CircleFlag } from "react-circle-flags";
+import { ScrollPopoverContent } from "./scroll-popover-content";
 
 export const LocaleSwitcherSelect = ({
   defaultValue,
@@ -49,7 +50,7 @@ export const LocaleSwitcherSelect = ({
           <CiGlobe className="w-full h-full" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-70 flex flex-col z-99">
+      <ScrollPopoverContent className="w-70 flex flex-col z-99">
         {routing.locales.map((locale) => {
           return (
             <Button
@@ -80,7 +81,7 @@ export const LocaleSwitcherSelect = ({
             </Button>
           );
         })}
-      </PopoverContent>
+      </ScrollPopoverContent>
     </Popover>
   );
 };

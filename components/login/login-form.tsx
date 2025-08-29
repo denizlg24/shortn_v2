@@ -21,7 +21,7 @@ import {
   googleAuthenticate,
 } from "@/app/actions/authenticate";
 import { useState } from "react";
-import { Eye, EyeClosed, Loader2, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2, XCircle } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
@@ -171,7 +171,7 @@ export const LoginForm = () => {
                 variant="link"
                 className="absolute right-0 top-6"
               >
-                {!showPassword ? <EyeClosed /> : <Eye />}
+                {!showPassword ? <EyeOff /> : <Eye />}
               </Button>
             </FormItem>
           )}
