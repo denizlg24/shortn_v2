@@ -60,6 +60,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 
 const urlFormSchema = z.object({
   title: z
@@ -458,7 +459,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent
+                  <ScrollPopoverContent
                     align="start"
                     side="bottom"
                     className="w-full min-w-[250px] p-0"
@@ -534,7 +535,7 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
                         </CommandGroup>
                       </CommandList>
                     </Command>
-                  </PopoverContent>
+                  </ScrollPopoverContent>
                 </Popover>
               )}
             </div>

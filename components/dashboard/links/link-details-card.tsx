@@ -35,6 +35,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -256,7 +257,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 <Ellipsis />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+            <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
               <Button
                 onClick={async () => {
                   const response = await deleteShortn(currentLink.urlCode);
@@ -274,7 +275,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
               >
                 <Trash2 /> Delete
               </Button>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         </div>
       </div>
@@ -336,7 +337,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                     <PlusCircle className="text-primary w-3! h-3!" /> Add tag
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
+                <ScrollPopoverContent
                   align="start"
                   side="bottom"
                   className="w-full min-w-[250px] p-0"
@@ -422,7 +423,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                       </CommandGroup>
                     </CommandList>
                   </Command>
-                </PopoverContent>
+                </ScrollPopoverContent>
               </Popover>
             </div>
           </div>
@@ -563,7 +564,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
               <Ellipsis />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+          <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
             <Button
               variant={"outline"}
               onClick={async () => {
@@ -581,7 +582,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             >
               <Trash2 /> Delete
             </Button>
-          </PopoverContent>
+          </ScrollPopoverContent>
         </Popover>
       </div>
     </div>

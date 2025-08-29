@@ -26,6 +26,10 @@ import {
   locationColumns,
 } from "../tables/location-table/columns";
 import { CardDescription, CardTitle } from "@/components/ui/card";
+import countries from "i18n-iso-countries";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+// Load locales you need
+import en from "i18n-iso-countries/langs/en.json";
 export const getEngagementOverTimeData = (
   url: IUrl,
   startDate?: Date,
@@ -79,6 +83,11 @@ export const LinkLocationAnalytics = ({
   unlocked: boolean;
   linkData: IUrl;
 }) => {
+  const [selected, setSelected] = useState<"country" | "city" | "region">(
+    "country"
+  );
+  countries.registerLocale(en);
+
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -119,7 +128,12 @@ export const LinkLocationAnalytics = ({
     );
   }
 
-  const data = aggregateClicksByLocation(linkData.clicks.all, "country");
+  const transformed = linkData.clicks.all.map((click) => ({
+    ...click,
+    country: click.country ? countries.getName(click.country, "en") : undefined,
+  }));
+
+  const data = aggregateClicksByLocation(transformed, selected);
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
@@ -129,7 +143,20 @@ export const LinkLocationAnalytics = ({
           Showing location data of short link's clicks
         </CardDescription>
       </div>
-      <DataTable data={data} columns={locationColumns} />
+      <div className="w-full flex flex-col gap-2">
+        <Tabs
+          value={selected}
+          onValueChange={(e) => {
+            setSelected(e as "country" | "city" | "region");
+          }}
+        >
+          <TabsList className="w-full sm:max-w-sm">
+            <TabsTrigger value="country">Countries</TabsTrigger>
+            <TabsTrigger value="city">Cities</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <DataTable data={data} columns={locationColumns} />
+      </div>
     </div>
   );
 };

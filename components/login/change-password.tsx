@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { useState } from "react";
-import { Eye, EyeClosed, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
@@ -102,7 +102,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
                   variant="link"
                   className="absolute right-0 top-6"
                 >
-                  {!showPassword ? <EyeClosed /> : <Eye />}
+                  {!showPassword ? <EyeOff /> : <Eye />}
                 </Button>
               </FormItem>
             )}
@@ -132,7 +132,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
                   variant="link"
                   className="absolute right-0 top-6"
                 >
-                  {!confirmShowPassword ? <EyeClosed /> : <Eye />}
+                  {!confirmShowPassword ? <EyeOff /> : <Eye />}
                 </Button>
               </FormItem>
             )}

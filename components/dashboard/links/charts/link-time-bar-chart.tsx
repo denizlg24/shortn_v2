@@ -41,6 +41,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 export const description = "An interactive bar chart";
 
 const chartConfig = {
@@ -188,13 +189,13 @@ export function LinkTimeBarChart({
               Showing total short link visitors{" "}
               {formatHumanDateRange(dateRange, createdAt)}
             </p>
-            <div className="flex flex-row items-center gap-2 flex-wrap">
+            <div className="w-full flex flex-row items-center gap-2 flex-wrap">
               <Popover open={open} onOpenChange={setOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     id="date"
-                    className="w-48 justify-between font-normal md:flex hidden"
+                    className="w-full max-w-48 justify-between font-normal md:flex hidden"
                   >
                     {dateRange
                       ? `${
@@ -210,8 +211,8 @@ export function LinkTimeBarChart({
                     <ChevronDownIcon />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto md:max-w-full max-w-[300px] overflow-hidden p-0 md:flex hidden flex-col gap-0"
+                <ScrollPopoverContent
+                  className="w-auto md:max-w-[488px] max-w-[300px] overflow-hidden p-0 md:flex hidden flex-col gap-0"
                   align="start"
                 >
                   <Calendar
@@ -242,7 +243,7 @@ export function LinkTimeBarChart({
                     }}
                   />
                   <Separator className="mb-2" />
-                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
+                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
                     {[
                       "This month",
                       "Last month",
@@ -264,26 +265,23 @@ export function LinkTimeBarChart({
                       </Button>
                     ))}
                   </div>
-                </PopoverContent>
+                </ScrollPopoverContent>
               </Popover>
               <Dialog open={mobileStartOpened} onOpenChange={mobileStartOpen}>
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
                     id="date"
-                    className="w-24 justify-between font-normal md:hidden flex px-2"
+                    className="grow flex-1 max-w-48 justify-between font-normal md:hidden flex px-2"
                   >
                     {dateRange?.from
-                      ? `${
-                          dateRange.from
-                            ? format(dateRange.from, "dd/MM/yyyy")
-                            : ""
-                        }`
-                      : "Start"}
+                      ? `${format(dateRange.from, "dd/MM/yyyy")}`
+                      : "Select a start date"}
+                    <ChevronDownIcon />
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
-                  <DialogHeader className="hidden">
+                  <DialogHeader className="px-4">
                     <DialogTitle>Select start date</DialogTitle>
                     <DialogDescription>
                       Select the date from which to start displaying click data.
@@ -339,7 +337,7 @@ export function LinkTimeBarChart({
                       <Button
                         variant="outline"
                         id="date"
-                        className="w-24 justify-between font-normal md:hidden flex px-2"
+                        className="grow flex-1 justify-between font-normal md:hidden flex px-2"
                       >
                         {dateRange?.to
                           ? `${format(dateRange.to, "dd/MM/yyyy")}`
@@ -347,7 +345,7 @@ export function LinkTimeBarChart({
                       </Button>
                     </DialogTrigger>
                     <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
-                      <DialogHeader className="hidden">
+                      <DialogHeader className="px-4">
                         <DialogTitle>Select end date</DialogTitle>
                         <DialogDescription>
                           Select the date from which to stop displaying click

@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { ScrollPopoverContent } from "./scroll-popover-content";
 
 type PhoneInputProps = Omit<
   React.ComponentProps<"input">,
@@ -110,7 +111,7 @@ const CountrySelect = ({
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <ScrollPopoverContent className="w-[300px] p-0">
         <Command>
           <CommandInput
             value={searchValue}
@@ -148,7 +149,7 @@ const CountrySelect = ({
             </ScrollArea>
           </CommandList>
         </Command>
-      </PopoverContent>
+      </ScrollPopoverContent>
     </Popover>
   );
 };

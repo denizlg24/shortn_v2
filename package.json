@@ -51,6 +51,7 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.19.1",
     "hamburger-react": "^2.5.2",
+    "i18n-iso-countries": "^7.14.0",
     "input-otp": "^1.4.2",
     "isbot": "^5.1.28",
     "jsdom": "^26.1.0",

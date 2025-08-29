@@ -12,13 +12,54 @@ import { useUser } from "@/utils/UserContext";
 import { Loader2, QrCode } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useEffect, useState } from "react";
+import Image from "next/image";
+import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
+import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
+import BASE3 from "@/public/QR-CODES-PREVIEW/BASE-3.png";
+import BASE4 from "@/public/QR-CODES-PREVIEW/BASE-4.png";
+import BASE5 from "@/public/QR-CODES-PREVIEW/BASE-5.png";
+import BASE6 from "@/public/QR-CODES-PREVIEW/BASE-6.png";
+
+import BORDER1 from "@/public/QR-CODES-PREVIEW/BORDER-1.png";
+import BORDER2 from "@/public/QR-CODES-PREVIEW/BORDER-2.png";
+import BORDER3 from "@/public/QR-CODES-PREVIEW/BORDER-3.png";
+import BORDER4 from "@/public/QR-CODES-PREVIEW/BORDER-4.png";
+import BORDER5 from "@/public/QR-CODES-PREVIEW/BORDER-5.png";
+import BORDER6 from "@/public/QR-CODES-PREVIEW/BORDER-6.png";
+
+import DOT1 from "@/public/QR-CODES-PREVIEW/DOT-1.png";
+import DOT2 from "@/public/QR-CODES-PREVIEW/DOT-2.png";
+import DOT3 from "@/public/QR-CODES-PREVIEW/DOT-3.png";
+import DOT4 from "@/public/QR-CODES-PREVIEW/DOT-4.png";
+import DOT5 from "@/public/QR-CODES-PREVIEW/DOT-5.png";
+import DOT6 from "@/public/QR-CODES-PREVIEW/DOT-6.png";
 
 export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
   const session = useUser();
 
-  const [options, setOptions] = useState<Partial<Options> | undefined>(
-    undefined
-  );
+  const [options, setOptions] = useState<Partial<Options>>({
+    type: "svg",
+    data: "https://shortn.at",
+    dotsOptions: {
+      color: "#000",
+      type: "square",
+    },
+    cornersSquareOptions: {
+      type: "rounded",
+    },
+    cornersDotOptions: {
+      type: "rounded",
+    },
+    backgroundOptions: {
+      color: "#ffffff",
+    },
+    imageOptions: {
+      crossOrigin: "anonymous",
+    },
+    qrOptions: {
+      errorCorrectionLevel: "M",
+    },
+  });
 
   const router = useRouter();
 
@@ -49,7 +90,6 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
   if (!options || !qrCode) {
     return <Skeleton className="w-full col-span-full aspect-video h-auto" />;
   }
-
   return (
     <div className="w-full flex flex-row items-start justify-between gap-4 col-span-full">
       <div className="w-full flex flex-col gap-6 items-start">
@@ -68,7 +108,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                 onClick={() => {
                   setOptions((prev) => ({
                     ...prev,
-                    dotsOptions: { ...prev?.dotsOptions, type: "square" },
+                    dotsOptions: { ...prev.dotsOptions, type: "square" },
                   }));
                 }}
                 className={cn(
@@ -77,14 +117,18 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BASE1}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
                 onClick={() => {
                   setOptions((prev) => ({
                     ...prev,
-                    dotsOptions: { ...prev?.dotsOptions, type: "rounded" },
+                    dotsOptions: { ...prev.dotsOptions, type: "rounded" },
                   }));
                 }}
                 className={cn(
@@ -93,14 +137,18 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BASE2}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
                 onClick={() => {
                   setOptions((prev) => ({
                     ...prev,
-                    dotsOptions: { ...prev?.dotsOptions, type: "dots" },
+                    dotsOptions: { ...prev.dotsOptions, type: "dots" },
                   }));
                 }}
                 className={cn(
@@ -109,14 +157,18 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BASE3}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
                 onClick={() => {
                   setOptions((prev) => ({
                     ...prev,
-                    dotsOptions: { ...prev?.dotsOptions, type: "classy" },
+                    dotsOptions: { ...prev.dotsOptions, type: "classy" },
                   }));
                 }}
                 className={cn(
@@ -125,7 +177,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BASE4}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -133,7 +189,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     dotsOptions: {
-                      ...prev?.dotsOptions,
+                      ...prev.dotsOptions,
                       type: "classy-rounded",
                     },
                   }));
@@ -144,7 +200,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BASE5}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -152,18 +212,24 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     dotsOptions: {
-                      ...prev?.dotsOptions,
+                      ...prev.dotsOptions,
                       type: "extra-rounded",
                     },
                   }));
                 }}
                 className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
+                  "col-span-1 w-full aspect-square h-full xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "extra-rounded" &&
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <div className="w-full h-auto aspect-square">
+                  <Image
+                    src={BASE6}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
+                </div>
               </Button>
             </div>
           </div>
@@ -177,7 +243,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "square",
                     },
                   }));
@@ -188,7 +254,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER1}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -196,7 +266,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "rounded",
                     },
                   }));
@@ -207,7 +277,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER2}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -215,7 +289,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "dots",
                     },
                   }));
@@ -226,7 +300,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER3}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -234,7 +312,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "classy",
                     },
                   }));
@@ -245,7 +323,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER4}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -253,7 +335,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "classy-rounded",
                     },
                   }));
@@ -264,7 +346,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER5}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -272,7 +358,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersSquareOptions: {
-                      ...prev?.cornersSquareOptions,
+                      ...prev.cornersSquareOptions,
                       type: "extra-rounded",
                     },
                   }));
@@ -283,7 +369,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={BORDER6}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
             </div>
             <p className="lg:text-sm text-xs font-medium">Dots</p>
@@ -294,7 +384,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "square",
                     },
                   }));
@@ -305,7 +395,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT1}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -313,7 +407,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "rounded",
                     },
                   }));
@@ -324,7 +418,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT2}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -332,7 +430,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "dots",
                     },
                   }));
@@ -343,7 +441,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT3}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -351,7 +453,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "classy",
                     },
                   }));
@@ -362,7 +464,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT4}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -370,7 +476,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "classy-rounded",
                     },
                   }));
@@ -381,7 +487,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT5}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
               <Button
                 variant={"outline"}
@@ -389,7 +499,7 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                   setOptions((prev) => ({
                     ...prev,
                     cornersDotOptions: {
-                      ...prev?.cornersDotOptions,
+                      ...prev.cornersDotOptions,
                       type: "extra-rounded",
                     },
                   }));
@@ -400,7 +510,11 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
+                <Image
+                  src={DOT6}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
               </Button>
             </div>
           </div>

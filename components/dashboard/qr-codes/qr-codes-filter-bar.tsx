@@ -25,6 +25,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import {
   Select,
   SelectContent,
@@ -303,7 +304,7 @@ export const QRCodesFilterBar = () => {
                 </p>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto">
+            <ScrollPopoverContent className="w-auto">
               <div className="p-0 w-full">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
@@ -387,7 +388,7 @@ export const QRCodesFilterBar = () => {
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         ) : (
           <div className="flex flex-row items-center w-full gap-2">
@@ -778,7 +779,7 @@ export const QRCodesFilterBar = () => {
                 </p>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[320px] overflow-hidden p-0">
+            <ScrollPopoverContent className="w-[320px] overflow-hidden p-0">
               <div className="p-4 w-full flex flex-col gap-4">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
@@ -826,7 +827,7 @@ export const QRCodesFilterBar = () => {
                         <ChevronsUpDown className="opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent
+                    <ScrollPopoverContent
                       align="start"
                       side="bottom"
                       className="w-full min-w-[250px] p-0"
@@ -881,7 +882,7 @@ export const QRCodesFilterBar = () => {
                           </CommandGroup>
                         </CommandList>
                       </Command>
-                    </PopoverContent>
+                    </ScrollPopoverContent>
                   </Popover>
                 </div>
                 <div className="w-full flex flex-col gap-2">
@@ -932,7 +933,7 @@ export const QRCodesFilterBar = () => {
                   </Button>
                 </div>
               </div>
-            </PopoverContent>
+            </ScrollPopoverContent>
           </Popover>
         )}
 
