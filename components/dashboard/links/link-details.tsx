@@ -13,6 +13,7 @@ import { LinkAdditionsCard } from "./link-additions-card";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { getQRCode } from "@/app/actions/qrCodeActions";
 import { LinkTimeAnalytics } from "./link-time-analytics";
+import { LinkLocationAnalytics } from "./link-location-analytics";
 
 export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
   const [loading, setLoading] = useState(true);
@@ -79,6 +80,13 @@ export const LinkDetails = ({ urlCode }: { urlCode: string }) => {
           <LinkAdditionsCard qrCode={qrCode} url={url} />
           <LinkTimeAnalytics
             unlocked={session.user.plan.subscription != "free"}
+            linkData={url}
+          />
+          <LinkLocationAnalytics
+            unlocked={
+              session.user.plan.subscription == "plus" ||
+              session.user.plan.subscription == "pro"
+            }
             linkData={url}
           />
         </>

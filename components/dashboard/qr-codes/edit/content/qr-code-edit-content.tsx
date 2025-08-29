@@ -2,7 +2,6 @@
 
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -25,7 +24,7 @@ import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { Label } from "@/components/ui/label";
@@ -44,6 +43,15 @@ import {
 } from "@/app/actions/tagActions";
 import { ITag } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const qrCodeFormSchema = z.object({
   title: z
@@ -77,8 +85,8 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
   const [tags, setTags] = useState<ITag[]>([]);
 
   const [notFound, setNotFound] = useState(false);
-  const [fetching, startTransition] = useTransition();
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!session.user) {
@@ -106,11 +114,9 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
         setNotFound(false);
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-          setNotFound(tags.length === 0);
-        });
+      getTagsByQuery(input).then((tags) => {
+        setTagOptions(tags);
+        setNotFound(tags.length === 0);
       });
     }, 300);
 
@@ -197,105 +203,108 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
             />
             <div className="w-full flex flex-col gap-2">
               <Label className="font-semibold">Tags</Label>
-              <Popover open={open} onOpenChange={setOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={open}
-                    className="w-full justify-between"
-                  >
-                    <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
-                      {tags.length > 0
-                        ? tags.map((tag) => {
-                            return (
-                              <p
-                                onClick={(e) => {
-                                  e.stopPropagation();
+
+              {isMobile ? (
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
+                        {tags.length > 0
+                          ? tags.map((tag) => {
+                              return (
+                                <p
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTags((prev) => {
+                                      const n = [...prev];
+                                      const index = n.indexOf(tag);
+                                      n.splice(index, 1);
+                                      return n;
+                                    });
+                                  }}
+                                  key={tag.id}
+                                  className={cn(
+                                    "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                  )}
+                                >
+                                  {tag.tagName}
+                                  <X className="w-3! h-3!" />
+                                </p>
+                              );
+                            })
+                          : "Add tags..."}
+                      </div>
+
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-full min-w-[250px] p-0 pt-6">
+                    <DialogHeader className="px-4 text-left">
+                      <DialogTitle>Edit tags</DialogTitle>
+                      <DialogDescription>
+                        Add or remove tags to make it easier to find your link.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Command className="w-full">
+                      <CommandInput
+                        value={input}
+                        onValueChange={setInput}
+                        placeholder="Search tags..."
+                        className="h-9"
+                      />
+                      <CommandList className="items-stretch flex flex-col gap-1 w-full">
+                        <CommandGroup className="w-full">
+                          {tagOptions.map((tag) => (
+                            <CommandItem
+                              className="w-full! max-w-full! justify-center gap-1"
+                              key={tag.id}
+                              value={tag.tagName}
+                              onSelect={async (val) => {
+                                const added = tags?.some(
+                                  (_tag) => _tag.id == tag.id
+                                );
+                                if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
-                                    const index = n.indexOf(tag);
+                                    const index = n.findIndex((t) => {
+                                      t.id == tag.id;
+                                    });
                                     n.splice(index, 1);
                                     return n;
                                   });
-                                }}
-                                key={tag.id}
-                                className={cn(
-                                  "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                  "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
-                                )}
-                              >
-                                {tag.tagName}
-                                <X className="w-3! h-3!" />
-                              </p>
-                            );
-                          })
-                        : "Add tags..."}
-                    </div>
-
-                    <ChevronsUpDown className="opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  side="bottom"
-                  className="w-full min-w-[250px] p-0"
-                >
-                  <Command className="w-full">
-                    <CommandInput
-                      value={input}
-                      onValueChange={setInput}
-                      placeholder="Search tags..."
-                      className="h-9"
-                    />
-                    <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                      <CommandGroup className="w-full">
-                        {tagOptions.map((tag) => (
-                          <CommandItem
-                            className="w-full! max-w-full! justify-center gap-1"
-                            key={tag.id}
-                            value={tag.tagName}
-                            onSelect={async (val) => {
-                              const added = tags?.some(
-                                (_tag) => _tag.id == tag.id
-                              );
-                              if (added) {
-                                setTags((prev) => {
-                                  const n = [...prev];
-                                  const index = n.findIndex((t) => {
-                                    t.id == tag.id;
+                                } else {
+                                  setTags((prev) => {
+                                    const n = [...prev, tag];
+                                    return n;
                                   });
-                                  n.splice(index, 1);
-                                  return n;
-                                });
-                              } else {
-                                setTags((prev) => {
-                                  const n = [...prev, tag];
-                                  return n;
-                                });
-                              }
-                            }}
-                          >
-                            {tag.tagName}
-                            <Check
-                              className={cn(
-                                "ml-auto",
-                                tags?.some(
-                                  (_tag) => _tag.tagName == tag.tagName
-                                )
-                                  ? "opacity-100"
-                                  : "opacity-0"
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                        {shouldShowAddTag && (
-                          <CommandItem
-                            className="w-full! max-w-full! justify-center gap-1"
-                            key={input}
-                            value={input}
-                            onSelect={() => {
-                              startTransition(async () => {
+                                }
+                              }}
+                            >
+                              {tag.tagName}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  tags?.some(
+                                    (_tag) => _tag.tagName == tag.tagName
+                                  )
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                          {shouldShowAddTag && (
+                            <CommandItem
+                              className="w-full! max-w-full! justify-center gap-1"
+                              key={input}
+                              value={input}
+                              onSelect={async () => {
                                 if (!session.user?.sub) return;
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
@@ -305,17 +314,135 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
                                   });
                                   setInput("");
                                 }
-                              });
-                            }}
-                          >
-                            Create "{input}"
-                          </CommandItem>
-                        )}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+                              }}
+                            >
+                              Create "{input}"
+                            </CommandItem>
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </DialogContent>
+                </Dialog>
+              ) : (
+                <Popover open={open} onOpenChange={setOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={open}
+                      className="w-full justify-between"
+                    >
+                      <div className="flex flex-row items-center gap-1 flex-wrap w-full h-full snap-y snap-start overflow-y-scroll">
+                        {tags.length > 0
+                          ? tags.map((tag) => {
+                              return (
+                                <p
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTags((prev) => {
+                                      const n = [...prev];
+                                      const index = n.indexOf(tag);
+                                      n.splice(index, 1);
+                                      return n;
+                                    });
+                                  }}
+                                  key={tag.id}
+                                  className={cn(
+                                    "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                  )}
+                                >
+                                  {tag.tagName}
+                                  <X className="w-3! h-3!" />
+                                </p>
+                              );
+                            })
+                          : "Add tags..."}
+                      </div>
+
+                      <ChevronsUpDown className="opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    align="start"
+                    side="bottom"
+                    className="w-full min-w-[250px] p-0"
+                  >
+                    <Command className="w-full">
+                      <CommandInput
+                        value={input}
+                        onValueChange={setInput}
+                        placeholder="Search tags..."
+                        className="h-9"
+                      />
+                      <CommandList className="items-stretch flex flex-col gap-1 w-full">
+                        <CommandGroup className="w-full">
+                          {tagOptions.map((tag) => (
+                            <CommandItem
+                              className="w-full! max-w-full! justify-center gap-1"
+                              key={tag.id}
+                              value={tag.tagName}
+                              onSelect={async (val) => {
+                                const added = tags?.some(
+                                  (_tag) => _tag.id == tag.id
+                                );
+                                if (added) {
+                                  setTags((prev) => {
+                                    const n = [...prev];
+                                    const index = n.findIndex((t) => {
+                                      t.id == tag.id;
+                                    });
+                                    n.splice(index, 1);
+                                    return n;
+                                  });
+                                } else {
+                                  setTags((prev) => {
+                                    const n = [...prev, tag];
+                                    return n;
+                                  });
+                                }
+                              }}
+                            >
+                              {tag.tagName}
+                              <Check
+                                className={cn(
+                                  "ml-auto",
+                                  tags?.some(
+                                    (_tag) => _tag.tagName == tag.tagName
+                                  )
+                                    ? "opacity-100"
+                                    : "opacity-0"
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
+                          {shouldShowAddTag && (
+                            <CommandItem
+                              className="w-full! max-w-full! justify-center gap-1"
+                              key={input}
+                              value={input}
+                              onSelect={async () => {
+                                if (!session.user?.sub) return;
+                                const response = await createTag(input);
+                                if (response.success && response.tag) {
+                                  setTags((prev) => {
+                                    const n = [...prev, response.tag as ITag];
+                                    return n;
+                                  });
+                                  setInput("");
+                                }
+                              }}
+                            >
+                              Create "{input}"
+                            </CommandItem>
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
             {qrCode.attachedUrl && (
               <FormField

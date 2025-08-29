@@ -33,6 +33,14 @@ import {
   startOfDay,
 } from "date-fns";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 export const description = "An interactive bar chart";
 
 const chartConfig = {
@@ -208,10 +216,13 @@ export function LinkTimeBarChart({
                 >
                   <Calendar
                     mode="range"
-                    showOutsideDays={false}
                     numberOfMonths={2}
+                    showOutsideDays={false}
+                    fixedWeeks
                     selected={dateRange}
-                    captionLayout="label"
+                    disabled={(date) => {
+                      return date > new Date();
+                    }}
                     onSelect={(range) => {
                       if (range?.from && range?.to && range.to != range.from) {
                         setDateRange(range);
@@ -255,14 +266,14 @@ export function LinkTimeBarChart({
                   </div>
                 </PopoverContent>
               </Popover>
-              <Popover open={mobileStartOpened} onOpenChange={mobileStartOpen}>
-                <PopoverTrigger asChild>
+              <Dialog open={mobileStartOpened} onOpenChange={mobileStartOpen}>
+                <DialogTrigger asChild>
                   <Button
                     variant="outline"
                     id="date"
                     className="w-24 justify-between font-normal md:hidden flex px-2"
                   >
-                    {dateRange
+                    {dateRange?.from
                       ? `${
                           dateRange.from
                             ? format(dateRange.from, "dd/MM/yyyy")
@@ -270,11 +281,14 @@ export function LinkTimeBarChart({
                         }`
                       : "Start"}
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto max-w-[300px] overflow-hidden p-0 md:hidden flex flex-col gap-0"
-                  align="start"
-                >
+                </DialogTrigger>
+                <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
+                  <DialogHeader className="hidden">
+                    <DialogTitle>Select start date</DialogTitle>
+                    <DialogDescription>
+                      Select the date from which to start displaying click data.
+                    </DialogDescription>
+                  </DialogHeader>
                   <Calendar
                     mode="single"
                     showOutsideDays={false}
@@ -283,6 +297,9 @@ export function LinkTimeBarChart({
                     captionLayout="label"
                     className="mx-auto"
                     onSelect={(date) => {
+                      if (!date) {
+                        setDateRange(undefined);
+                      }
                       setDateRange((prev) => {
                         return { ...prev, from: date };
                       });
@@ -290,7 +307,7 @@ export function LinkTimeBarChart({
                     }}
                   />
                   <Separator className="mb-2" />
-                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
+                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
                     {[
                       "This month",
                       "Last month",
@@ -312,67 +329,76 @@ export function LinkTimeBarChart({
                       </Button>
                     ))}
                   </div>
-                </PopoverContent>
-              </Popover>
-              <p className="md:hidden">-</p>
-              <Popover open={mobileEndOpened} onOpenChange={mobileEndOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    id="date"
-                    className="w-24 justify-between font-normal md:hidden flex px-2"
-                  >
-                    {dateRange?.to
-                      ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                      : "End"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  className="w-auto max-w-[300px] overflow-hidden p-0 md:hidden flex flex-col gap-0"
-                  align="start"
-                >
-                  <Calendar
-                    mode="single"
-                    showOutsideDays={false}
-                    numberOfMonths={1}
-                    selected={dateRange?.from}
-                    captionLayout="label"
-                    className="mx-auto"
-                    onSelect={(date) => {
-                      setDateRange((prev) => {
-                        if (prev?.from) {
-                          return { ...prev, to: date };
-                        }
-                        return prev;
-                      });
-                      mobileEndOpen(false);
-                    }}
-                  />
-                  <Separator className="mb-2" />
-                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[300px]">
-                    {[
-                      "This month",
-                      "Last month",
-                      "Last 3 months",
-                      "Last 6 months",
-                      "Last 9 months",
-                      "Last year",
-                      "All time",
-                    ].map((opt) => (
+                </DialogContent>
+              </Dialog>
+              {dateRange?.from && (
+                <>
+                  <p className="md:hidden">-</p>
+                  <Dialog open={mobileEndOpened} onOpenChange={mobileEndOpen}>
+                    <DialogTrigger asChild>
                       <Button
-                        key={opt}
-                        variant="secondary"
-                        className="text-xs p-2 h-fit grow"
-                        onClick={() =>
-                          setDateRange(getDateRange(opt, createdAt))
-                        }
+                        variant="outline"
+                        id="date"
+                        className="w-24 justify-between font-normal md:hidden flex px-2"
                       >
-                        {opt}
+                        {dateRange?.to
+                          ? `${format(dateRange.to, "dd/MM/yyyy")}`
+                          : "End"}
                       </Button>
-                    ))}
-                  </div>
-                </PopoverContent>
-              </Popover>
+                    </DialogTrigger>
+                    <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
+                      <DialogHeader className="hidden">
+                        <DialogTitle>Select end date</DialogTitle>
+                        <DialogDescription>
+                          Select the date from which to stop displaying click
+                          data.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Calendar
+                        mode="single"
+                        showOutsideDays={false}
+                        numberOfMonths={1}
+                        selected={dateRange?.from}
+                        captionLayout="label"
+                        className="mx-auto"
+                        onSelect={(date) => {
+                          setDateRange((prev) => {
+                            if (prev?.from) {
+                              return { ...prev, to: date };
+                            }
+                            return prev;
+                          });
+                          mobileEndOpen(false);
+                        }}
+                      />
+                      <Separator className="mb-2" />
+                      <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
+                        {[
+                          "This month",
+                          "Last month",
+                          "Last 3 months",
+                          "Last 6 months",
+                          "Last 9 months",
+                          "Last year",
+                          "All time",
+                        ].map((opt) => (
+                          <Button
+                            key={opt}
+                            variant="secondary"
+                            className="text-xs p-2 h-fit grow"
+                            onClick={() =>
+                              setDateRange(getDateRange(opt, createdAt))
+                            }
+                          >
+                            {opt}
+                          </Button>
+                        ))}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </>
+              )}
+
               {dateRange && (
                 <Button
                   onClick={() => {

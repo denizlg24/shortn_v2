@@ -1,17 +1,9 @@
 "use client";
 
 import { PaginationControls } from "@/components/ui/pagination-controls";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { IUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
-import { Loader2 } from "lucide-react";
-import { User } from "next-auth";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { LinkCard } from "./link-card";
-import { parse } from "date-fns";
-import { getFilteredLinks } from "@/app/actions/linkActions";
-import { useAbortController } from "@/utils/AbortContext";
 
 export const LinkContainer = ({
   links,

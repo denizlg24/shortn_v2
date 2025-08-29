@@ -158,8 +158,8 @@ export const DashboardHeaderClient = () => {
               >
                 <Link
                   className={cn(
-                    "border-b-2 rounded-none! border-b-transparent",
-                    pathname == "/dashboard" && "border-b-primary"
+                    "border-r-2 rounded-none! border-r-transparent",
+                    pathname == "/dashboard" && "border-r-primary bg-accent"
                   )}
                   href={`/dashboard`}
                 >
@@ -178,9 +178,9 @@ export const DashboardHeaderClient = () => {
               >
                 <Link
                   className={cn(
-                    "border-b-2 rounded-none! border-b-transparent",
+                    "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/links") &&
-                      "border-b-primary"
+                      "border-r-primary bg-accent"
                   )}
                   href={`/dashboard/links`}
                 >
@@ -199,9 +199,9 @@ export const DashboardHeaderClient = () => {
               >
                 <Link
                   className={cn(
-                    "border-b-2 rounded-none! border-b-transparent",
+                    "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/qr-codes") &&
-                      "border-b-primary"
+                      "border-r-primary bg-accent"
                   )}
                   href={`/dashboard/qr-codes`}
                 >
@@ -220,9 +220,9 @@ export const DashboardHeaderClient = () => {
               >
                 <Link
                   className={cn(
-                    "border-b-2 rounded-none! border-b-transparent",
+                    "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/pages") &&
-                      "border-b-primary"
+                      "border-r-primary bg-accent"
                   )}
                   href={`/dashboard/pages`}
                 >

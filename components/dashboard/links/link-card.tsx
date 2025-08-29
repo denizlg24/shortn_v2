@@ -92,11 +92,9 @@ export const LinkCard = ({
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [notFound, setNotFound] = useState(false);
-  const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
 
-  //action
   const [justCopied, setJustCopied] = useState(false);
 
   useEffect(() => {
@@ -112,11 +110,9 @@ export const LinkCard = ({
         setNotFound(false);
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-          setNotFound(tags.length === 0);
-        });
+      getTagsByQuery(input).then((tags) => {
+        setTagOptions(tags);
+        setNotFound(tags.length === 0);
       });
     }, 300);
 
@@ -484,19 +480,17 @@ export const LinkCard = ({
                             className="w-full! max-w-full! justify-center gap-1"
                             key={input}
                             value={input}
-                            onSelect={() => {
-                              startTransition(async () => {
-                                const { success, tag } =
-                                  await createAndAddTagToUrl(
-                                    input,
-                                    currentLink.urlCode
-                                  );
-                                setInput("");
-                                if (success && tag) {
-                                  currentLink.tags?.push(tag);
-                                }
-                                tagOpenChange(false);
-                              });
+                            onSelect={async () => {
+                              const { success, tag } =
+                                await createAndAddTagToUrl(
+                                  input,
+                                  currentLink.urlCode
+                                );
+                              setInput("");
+                              if (success && tag) {
+                                currentLink.tags?.push(tag);
+                              }
+                              tagOpenChange(false);
                             }}
                           >
                             Create "{input}"
