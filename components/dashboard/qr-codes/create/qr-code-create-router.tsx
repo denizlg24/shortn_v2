@@ -5,10 +5,10 @@ import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { QRCodeCreate } from "./qr-code-create";
-import { getShortn } from "@/app/actions/linkActions";
 import { useUser } from "@/utils/UserContext";
 import { IUrl } from "@/models/url/UrlV3";
 import { QRCodeAttach } from "./qr-code-attatch";
+import { getShortn } from "@/app/[locale]/dashboard/links/[urlCode]/details/page";
 
 export const QRCodeCreateRouter = () => {
   const session = useUser();

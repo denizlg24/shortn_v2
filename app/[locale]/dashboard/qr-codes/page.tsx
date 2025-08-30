@@ -1,8 +1,11 @@
-import { getFilteredQRCodes } from "@/app/actions/qrCodeActions";
+import { auth } from "@/auth";
 import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { QRCodesContainer } from "@/components/dashboard/qr-codes/qr-codes-container";
 import { QRCodesFilterBar } from "@/components/dashboard/qr-codes/qr-codes-filter-bar";
-import { parse } from "date-fns";
+import { connectDB } from "@/lib/mongodb";
+import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
+import { ITag } from "@/models/url/Tag";
+import { addDays, parse } from "date-fns";
 import { setRequestLocale } from "next-intl/server";
 
 interface IFilters {
@@ -15,6 +18,114 @@ interface IFilters {
   startDate?: Date;
   endDate?: Date;
 }
+
+const getFilteredQRCodes = async (
+  filters: IFilters
+): Promise<{ qrcodes: IQRCode[]; total: number }> => {
+  const session = await auth();
+  const user = session?.user;
+
+  if (!user) {
+    return {
+      qrcodes: [],
+      total: 0,
+    };
+  }
+
+  const controller = new AbortController();
+
+  const sub = user?.sub;
+
+  await connectDB();
+
+  const pipeline: any[] = [];
+
+  const matchStage: any = {
+    sub,
+  };
+
+  if (filters.startDate || filters.endDate) {
+    matchStage.date = {};
+    if (filters.startDate) {
+      matchStage.date.$gte = filters.startDate;
+    }
+    if (filters.endDate) {
+      matchStage.date.$lte = addDays(filters.endDate, 1);
+    }
+  }
+
+  if (filters.tags.length > 0) {
+    matchStage.tags = { $elemMatch: { id: { $in: filters.tags } } };
+  }
+
+  if (filters.attachedQR === "on") {
+    matchStage.attachedUrl = {
+      $exists: true,
+      $ne: null,
+      $not: { $eq: "" },
+    };
+  } else if (filters.attachedQR === "off") {
+    matchStage.attachedUrl = { $in: [null, undefined, ""] };
+  }
+
+  if (filters.query.trim()) {
+    pipeline.push({
+      $search: {
+        index: "qr-code-text-search",
+        text: {
+          query: filters.query.trim(),
+          path: ["title", "longUrl", "tags.tagName"],
+        },
+      },
+    });
+  }
+
+  pipeline.push({ $match: matchStage });
+
+  let sortStage: Record<string, 1 | -1> = {};
+  switch (filters.sortBy) {
+    case "date_asc":
+      sortStage = { date: 1 };
+      break;
+    case "date_desc":
+      sortStage = { date: -1 };
+      break;
+    case "clicks_asc":
+      sortStage = { "clicks.total": 1 };
+      break;
+    case "clicks_desc":
+      sortStage = { "clicks.total": -1 };
+      break;
+  }
+  pipeline.push({ $sort: sortStage });
+
+  const skip = (filters.page - 1) * filters.limit;
+  pipeline.push({ $skip: skip });
+  pipeline.push({ $limit: filters.limit });
+
+  const countPipeline = [
+    ...pipeline.filter((stage) => !("$skip" in stage || "$limit" in stage)),
+    { $count: "total" },
+  ];
+
+  const [qrcodes, totalResult] = await Promise.all([
+    QRCodeV2.aggregate(pipeline, { signal: controller.signal }).exec(),
+    QRCodeV2.aggregate(countPipeline, { signal: controller.signal }).exec(),
+  ]);
+
+  const total = totalResult[0]?.total || 0;
+
+  const qrcodesSanitized = qrcodes.map((qrcode) => ({
+    ...qrcode,
+    _id: qrcode._id.toString(),
+    tags: qrcode.tags?.map((tag: ITag) => ({
+      ...tag,
+      _id: (tag._id as any).toString(),
+    })),
+  }));
+
+  return { qrcodes: qrcodesSanitized, total };
+};
 
 export default async function Home({
   params,

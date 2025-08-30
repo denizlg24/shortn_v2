@@ -1,6 +1,5 @@
 "use client";
 
-import { auth } from "@/auth";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -8,13 +7,11 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { useUser } from "@/utils/UserContext";
 import { ChevronUp } from "lucide-react";
 
 export const NavigationBar = () => {
-  const { user } = useUser();
   const pathname = usePathname();
-  const prefix = `/dashboard/${user?.sub?.split("|")[1] || ""}`;
+  const prefix = `/dashboard}`;
   return (
     <NavigationMenu className="w-full max-w-full! block! border-b pb-3">
       <NavigationMenuList className="w-full! flex flex-row items-center gap-4 max-w-xl! justify-between!">

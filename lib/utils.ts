@@ -61,3 +61,30 @@ export function generateUniqueId({
 
   return createId(availableChars, length);
 }
+
+export type ApiSuccess<T> = { success: true } & T;
+export type ApiFailure = { success: false; message: string };
+export type ApiResponse<T> = ApiSuccess<T> | ApiFailure;
+
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
+export async function fetchApi<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<ApiResponse<T>> {
+  const res = await fetch(`/api/${path}`, {
+    ...options,
+  });
+
+  if (!res.ok) {
+    throw new ApiError(res.status, await res.text());
+  }
+
+  return (await res.json()) as ApiResponse<T>;
+}

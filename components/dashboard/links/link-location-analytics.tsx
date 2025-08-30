@@ -14,7 +14,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
+import { Earth, Lock, MapPinned } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
@@ -151,8 +151,14 @@ export const LinkLocationAnalytics = ({
           }}
         >
           <TabsList className="w-full sm:max-w-sm">
-            <TabsTrigger value="country">Countries</TabsTrigger>
-            <TabsTrigger value="city">Cities</TabsTrigger>
+            <TabsTrigger value="country">
+              <Earth />
+              Countries
+            </TabsTrigger>
+            <TabsTrigger value="city">
+              <MapPinned />
+              Cities
+            </TabsTrigger>
           </TabsList>
         </Tabs>
         <DataTable data={data} columns={locationColumns} />

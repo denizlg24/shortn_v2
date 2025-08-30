@@ -1,22 +1,24 @@
 import { LinksEditContent } from "@/components/dashboard/links/edit/link-edit-content";
 import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { getShortn } from "../details/page";
+import { notFound } from "next/navigation";
 
-export default function Home({
+export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string; urlCode: string }>;
 }) {
-  const { locale, urlCode } = use<{
-    locale: string;
-    urlCode: string;
-  }>(params);
+  const { locale, urlCode } = await params;
   setRequestLocale(locale);
+  const { success, url } = await getShortn(urlCode);
+  if (!success || !url) {
+    notFound();
+  }
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-4xl mx-auto grid grid-cols-6 gap-6">
-        <LinksEditContent urlCode={urlCode} />
+        <LinksEditContent url={url} />
       </div>
     </main>
   );
