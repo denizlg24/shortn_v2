@@ -8,7 +8,7 @@ import { QRCodeCreate } from "./qr-code-create";
 import { useUser } from "@/utils/UserContext";
 import { IUrl } from "@/models/url/UrlV3";
 import { QRCodeAttach } from "./qr-code-attatch";
-import { getShortn } from "@/app/[locale]/dashboard/links/[urlCode]/details/page";
+import { getShortn } from "@/utils/fetching-functions";
 
 export const QRCodeCreateRouter = () => {
   const session = useUser();

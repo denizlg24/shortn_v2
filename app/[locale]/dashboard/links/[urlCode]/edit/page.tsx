@@ -1,6 +1,6 @@
 import { LinksEditContent } from "@/components/dashboard/links/edit/link-edit-content";
+import { getShortn } from "@/utils/fetching-functions";
 import { setRequestLocale } from "next-intl/server";
-import { getShortn } from "../details/page";
 import { notFound } from "next/navigation";
 
 export default async function Home({

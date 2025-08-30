@@ -3,8 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import Tag from "@/models/url/Tag";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-    const id = params.id;
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
     const session = await auth();
     const user = session?.user;
 

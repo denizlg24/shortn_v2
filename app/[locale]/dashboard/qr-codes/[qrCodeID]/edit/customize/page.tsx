@@ -1,5 +1,5 @@
-import { getQRCode } from "@/app/[locale]/dashboard/links/[urlCode]/details/page";
 import { QRCodeCustomize } from "@/components/dashboard/qr-codes/edit/customize/qr-code-customize";
+import { getQRCode } from "@/utils/fetching-functions";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 
