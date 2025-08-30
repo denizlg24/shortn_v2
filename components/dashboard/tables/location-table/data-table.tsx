@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import React from "react";
+import React, { useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Eye, EyeOff } from "lucide-react";
 import {
@@ -31,6 +31,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -48,7 +49,6 @@ export function DataTable<TData, TValue>({
   const table = useReactTable({
     data,
     columns,
-
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -65,7 +65,7 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-col w-full gap-2">
       <div className="flex flex-row items-center gap-2 w-full justify-between">
         <Input
-          placeholder="Filter by location..."
+          placeholder="Search for..."
           value={(
             (table.getColumn("location")?.getFilterValue() as string) ?? ""
           ).replace("__HIDE_UNKNOWN__", "")}
@@ -76,10 +76,10 @@ export function DataTable<TData, TValue>({
                 event.target.value.replace("__HIDE_UNKNOWN__", "")
               )
           }
-          className="grow sm:max-w-sm"
+          className="grow sm:max-w-md"
         />
         <div className="flex flex-row gap-1 items-center justify-start">
-          <p className="text-xs font-semibold">Unknown locations</p>
+          <p className="text-xs font-semibold">Unknown</p>
           <Switch
             checked={!hideUnknown}
             className="shrink-0"
@@ -93,15 +93,24 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
       <div className="overflow-hidden rounded-md border">
-        <Table>
-          <TableHeader>
+        <Table className="w-full">
+          <TableHeader className="">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow className="" key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead
-                      className="p-0!"
-                      style={{ width: `${header.getSize()}px !important` }}
+                      className={cn(
+                        "p-0!",
+                        header.id == "location"
+                          ? "w-[70%]!"
+                          : header.id == "clicks"
+                          ? "w-[15%]!"
+                          : "w-[15%]!"
+                      )}
+                      style={{
+                        width: header.getSize(),
+                      }}
                       key={header.id}
                     >
                       {header.isPlaceholder
@@ -124,7 +133,13 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      style={{
+                        width: cell.column.getSize(),
+                        minWidth: cell.column.columnDef.minSize,
+                      }}
+                      key={cell.id}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()

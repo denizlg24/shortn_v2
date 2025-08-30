@@ -39,8 +39,11 @@ export const LinkDetails = ({
           />
           <LinkLocationAnalytics
             unlocked={
-              session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
+                ? "all"
+                : session.user.plan.subscription == "plus"
+                ? "location"
+                : "none"
             }
             linkData={url}
           />
