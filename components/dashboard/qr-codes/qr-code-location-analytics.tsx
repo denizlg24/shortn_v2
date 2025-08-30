@@ -1,13 +1,4 @@
 import { IUrl } from "@/models/url/UrlV3";
-import { LinkTimeBarChart } from "./charts/link-time-bar-chart";
-import {
-  format,
-  eachDayOfInterval,
-  isWithinInterval,
-  subMonths,
-  startOfDay,
-  endOfDay,
-} from "date-fns";
 import {
   HoverCard,
   HoverCardContent,
@@ -19,24 +10,22 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { useState } from "react";
-import { DateRange } from "react-day-picker";
 import { DataTable } from "../tables/location-table/data-table";
-import {
-  aggregateClicksByLocation,
-  locationColumns,
-} from "../tables/location-table/columns";
+import { aggregateClicksByLocation } from "../tables/location-table/columns";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
+import { IQRCode } from "@/models/url/QRCodeV2";
+import { locationColumns } from "./qr-code-location-columns";
 
-export const LinkLocationAnalytics = ({
+export const QRCodeLocationAnalytics = ({
   unlocked,
   linkData,
 }: {
   unlocked: boolean;
-  linkData: IUrl;
+  linkData: IQRCode;
 }) => {
   const [selected, setSelected] = useState<"country" | "city" | "region">(
     "country"
@@ -95,7 +84,7 @@ export const LinkLocationAnalytics = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle>Location data</CardTitle>
         <CardDescription>
-          Showing location data of short link's clicks
+          Showing location data of qr code's scans
         </CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">

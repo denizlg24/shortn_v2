@@ -45,20 +45,13 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 export const description = "An interactive bar chart";
 
 const chartConfig = {
-  views: {
-    label: "Clicks",
-  },
-  desktop: {
-    label: "Desktop",
+  scans: {
+    label: "Scans",
     color: "var(--chart-1)",
-  },
-  mobile: {
-    label: "Mobile",
-    color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
-export function LinkTimeBarChart({
+export function QRCodeTimeBarChart({
   chartData,
   setDateRange,
   dateRange,
@@ -68,15 +61,10 @@ export function LinkTimeBarChart({
   setDateRange: React.Dispatch<React.SetStateAction<DateRange | undefined>>;
   dateRange: DateRange | undefined;
   createdAt: Date;
-  chartData: { date: string; desktop: number; mobile: number }[];
+  chartData: { date: string; scans: number }[];
   className?: string;
 }) {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>("desktop");
-  const total = () => ({
-    desktop: chartData.reduce((acc, curr) => acc + curr.desktop, 0),
-    mobile: chartData.reduce((acc, curr) => acc + curr.mobile, 0),
-  });
+  const total = () => chartData.reduce((acc, curr) => acc + curr.scans, 0);
 
   const [open, setOpen] = React.useState(false);
   const [mobileStartOpened, mobileStartOpen] = React.useState(false);
@@ -181,10 +169,10 @@ export function LinkTimeBarChart({
     >
       <CardHeader className="flex flex-col items-stretch border-b !p-0 sm:flex-row">
         <div className="flex flex-1 flex-col justify-center gap-1 px-6 pt-4 pb-3">
-          <CardTitle>Engagements over time</CardTitle>
+          <CardTitle>Scans over time</CardTitle>
           <CardDescription className="flex flex-col gap-2">
             <p>
-              Showing total short link visitors{" "}
+              Showing total QR Code scans{" "}
               {formatHumanDateRange(dateRange, createdAt)}
             </p>
             <div className="w-full flex flex-row items-center gap-2 flex-wrap">
@@ -282,7 +270,7 @@ export function LinkTimeBarChart({
                   <DialogHeader className="px-4">
                     <DialogTitle>Select start date</DialogTitle>
                     <DialogDescription>
-                      Select the date from which to start displaying click data.
+                      Select the date from which to start displaying scan data.
                     </DialogDescription>
                   </DialogHeader>
                   <Calendar
@@ -346,7 +334,7 @@ export function LinkTimeBarChart({
                       <DialogHeader className="px-4">
                         <DialogTitle>Select end date</DialogTitle>
                         <DialogDescription>
-                          Select the date from which to stop displaying click
+                          Select the date from which to stop displaying scan
                           data.
                         </DialogDescription>
                       </DialogHeader>
@@ -411,24 +399,12 @@ export function LinkTimeBarChart({
           </CardDescription>
         </div>
         <div className="flex">
-          {["desktop", "mobile"].map((key) => {
-            const chart = key as keyof typeof chartConfig;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6"
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className="text-muted-foreground text-xs">
-                  {chartConfig[chart].label}
-                </span>
-                <span className="text-lg leading-none font-bold sm:text-3xl">
-                  {total()[key as keyof typeof total]}
-                </span>
-              </button>
-            );
-          })}
+          <button className="data-[active=true]:bg-muted/50 relative z-30 flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6">
+            <span className="text-muted-foreground text-xs">Scans</span>
+            <span className="text-lg leading-none font-bold sm:text-3xl">
+              {total()}
+            </span>
+          </button>
         </div>
       </CardHeader>
       <CardContent className="px-2 sm:p-6">
@@ -463,18 +439,18 @@ export function LinkTimeBarChart({
               content={
                 <ChartTooltipContent
                   className="w-[150px]"
-                  nameKey="views"
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString("en-US", {
+                  nameKey="scans"
+                  labelFormatter={(value) =>
+                    new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
                       year: "numeric",
-                    });
-                  }}
+                    })
+                  }
                 />
               }
             />
-            <Bar dataKey={activeChart} fill={`var(--color-${activeChart})`} />
+            <Bar dataKey="scans" fill="var(--chart-1)" />
           </BarChart>
         </ChartContainer>
       </CardContent>

@@ -39,6 +39,7 @@ import {
   Check,
   Copy,
   CopyCheck,
+  CornerDownRight,
   Download,
   Edit2,
   Ellipsis,
@@ -305,6 +306,7 @@ export const QRCodeCard = ({
                                 );
                               }
                             }}
+                            disabled={creating}
                           >
                             {creating ? (
                               <>
@@ -384,7 +386,11 @@ export const QRCodeCard = ({
               </Button>
             </div>
           </div>
-          <div className="w-full flex flex-row justify-start">
+          <div className="lg:text-base text-sm truncate font-semibold">
+            Website
+          </div>
+          <div className="w-full flex flex-row justify-start items-center gap-1">
+            <CornerDownRight className="w-4 h-4 shrink-0" />
             <Link
               href={currentQrCode.longUrl}
               className="lg:text-base md:text-sm text-xs hover:underline truncate"
@@ -717,6 +723,7 @@ export const QRCodeCard = ({
                               );
                             }
                           }}
+                          disabled={creating}
                         >
                           {creating ? (
                             <>

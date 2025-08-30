@@ -52,7 +52,11 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   const cookieStore = await cookies();
-  const defaultOpen = cookieStore.get("sidebar_state")?.value === "true";
+  const sidebarCookie = cookieStore.get("sidebar_state");
+  let defaultOpen = true;
+  if (sidebarCookie?.value) {
+    defaultOpen = sidebarCookie.value === "true";
+  }
 
   const { user } = await getUser();
 

@@ -249,123 +249,6 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                     "border-2 border-primary"
                 )}
               >
-                <QrCode />
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "rounded",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "rounded" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <QrCode />
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "dots",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "dots" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <QrCode />
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "classy",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "classy" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <QrCode />
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "classy-rounded",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "classy-rounded" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <QrCode />
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "extra-rounded",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "extra-rounded" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <QrCode />
-              </Button>
-            </div>
-            <p className="lg:text-sm text-xs font-medium">Dots</p>
-            <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
-              <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    cornersSquareOptions: {
-                      ...prev.cornersSquareOptions,
-                      type: "square",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
-                  options.cornersSquareOptions?.type == "square" &&
-                    "border-2 border-primary"
-                )}
-              >
                 <Image
                   src={BORDER1}
                   alt="border-preview"
@@ -488,12 +371,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 />
               </Button>
             </div>
-          </div>
-          <div className="w-full flex flex-col gap-2 items-start">
-            <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-              Choose your colors
-            </h1>
-            <p className="lg:text-base text-sm font-semibold">Presets</p>
+            <p className="lg:text-sm text-xs font-medium">Dots</p>
             <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
               <Button
                 variant={"outline"}
@@ -632,6 +510,152 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                   alt="border-preview"
                   className="w-full h-auto aspect-square! object-contain"
                 />
+              </Button>
+            </div>
+          </div>
+          <div className="w-full flex flex-col gap-2 items-start">
+            <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
+              Choose your colors
+            </h1>
+            <p className="lg:text-base text-sm font-semibold">Presets</p>
+            <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(0);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#000",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 0 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#000]"></div>
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(1);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#DE3121",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 1 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#DE3121]"></div>
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(2);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#EF8000",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 2 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#EF8000]"></div>
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(3);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#198639",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 3 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#198639]"></div>
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(4);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#229CE0",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 4 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#229CE0]"></div>
+              </Button>
+              <Button
+                variant={"outline"}
+                onClick={() => {
+                  setPresetChosen(5);
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      color: "#6B52D1",
+                    },
+                    backgroundOptions: {
+                      ...prev.backgroundOptions,
+                      color: "#ffffff",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
+                  presetChosen == 5 && "border-2 border-primary"
+                )}
+              >
+                <div className="w-full h-full rounded-full bg-[#6B52D1]"></div>
               </Button>
             </div>
           </div>
