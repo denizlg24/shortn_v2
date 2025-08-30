@@ -33,7 +33,7 @@ export const SortingControls = ({
   return (
     <div className={cn("w-full flex flex-row gap-2 items-center", className)}>
       <Label className="w-max">{label}</Label>
-      <Select value={sort} onValueChange={setSort}>
+      <Select value={sort} onValueChange={setSort} defaultValue="date_desc">
         <SelectTrigger className="w-[180px] bg-background">
           <SelectValue />
         </SelectTrigger>

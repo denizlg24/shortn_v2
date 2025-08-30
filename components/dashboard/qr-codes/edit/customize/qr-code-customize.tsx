@@ -1,17 +1,15 @@
 "use client";
 
-import { getQRCode, updateQRCodeOptions } from "@/app/actions/qrCodeActions";
+import { updateQRCodeOptions } from "@/app/actions/qrCodeActions";
 import { Button } from "@/components/ui/button";
 import InputColor from "@/components/ui/color-input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
-import { useUser } from "@/utils/UserContext";
-import { Loader2, QrCode } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
 import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
@@ -34,32 +32,8 @@ import DOT4 from "@/public/QR-CODES-PREVIEW/DOT-4.png";
 import DOT5 from "@/public/QR-CODES-PREVIEW/DOT-5.png";
 import DOT6 from "@/public/QR-CODES-PREVIEW/DOT-6.png";
 
-export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
-  const session = useUser();
-
-  const [options, setOptions] = useState<Partial<Options>>({
-    type: "svg",
-    data: "https://shortn.at",
-    dotsOptions: {
-      color: "#000",
-      type: "square",
-    },
-    cornersSquareOptions: {
-      type: "rounded",
-    },
-    cornersDotOptions: {
-      type: "rounded",
-    },
-    backgroundOptions: {
-      color: "#ffffff",
-    },
-    imageOptions: {
-      crossOrigin: "anonymous",
-    },
-    qrOptions: {
-      errorCorrectionLevel: "M",
-    },
-  });
+export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
+  const [options, setOptions] = useState<Partial<Options>>(qrCode.options);
 
   const router = useRouter();
 
@@ -67,29 +41,6 @@ export const QRCodeCustomize = ({ qrCodeId }: { qrCodeId: string }) => {
 
   const [creating, setCreating] = useState(false);
 
-  const [qrCode, setQrCode] = useState<IQRCode | undefined>(undefined);
-
-  const getQRWrapper = async (id: string) => {
-    if (!session.user?.sub) {
-      return;
-    }
-    const response = await getQRCode(id);
-    if (response.success && response.qr) {
-      setQrCode(response.qr);
-      setOptions(response.qr.options);
-    }
-  };
-
-  useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-    getQRWrapper(qrCodeId);
-  }, [qrCodeId, session.user]);
-
-  if (!options || !qrCode) {
-    return <Skeleton className="w-full col-span-full aspect-video h-auto" />;
-  }
   return (
     <div className="w-full flex flex-row items-start justify-between gap-4 col-span-full">
       <div className="w-full flex flex-col gap-6 items-start">

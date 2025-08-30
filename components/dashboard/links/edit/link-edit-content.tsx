@@ -2,7 +2,6 @@
 
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -20,32 +19,21 @@ import {
   FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
-import { IQRCode } from "@/models/url/QRCodeV2";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
+import { cn, fetchApi } from "@/lib/utils";
 import { Check, ChevronsUpDown, LockIcon, X } from "lucide-react";
-import {
-  createTag,
-  getTagById,
-  getTags,
-  getTagsByQuery,
-} from "@/app/actions/tagActions";
+import { createTag } from "@/app/actions/tagActions";
 import { ITag } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
 import { IUrl } from "@/models/url/UrlV3";
-import { getShortn, updateShortnData } from "@/app/actions/linkActions";
+import { updateShortnData } from "@/app/actions/linkActions";
 import {
   HoverCard,
   HoverCardContent,
@@ -61,7 +49,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
-
 const urlFormSchema = z.object({
   title: z
     .string()
@@ -83,20 +70,18 @@ const urlFormSchema = z.object({
   applyToQR: z.boolean().default(false).optional(),
 });
 
-export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
+export const LinksEditContent = ({ url }: { url: IUrl }) => {
   const session = useUser();
 
   const router = useRouter();
 
   const [creating, setCreating] = useState(false);
 
-  const [url, setUrl] = useState<IUrl | undefined>(undefined);
-
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
     defaultValues: {
-      title: "",
-      custom_code: "",
+      title: url.title || "",
+      custom_code: url.urlCode,
       applyToQR: false,
     },
   });
@@ -118,8 +103,12 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     }
 
     if (input.trim() === "") {
-      getTags().then((tags) => {
-        setTagOptions(tags);
+      fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        } else {
+          setTagOptions([]);
+        }
       });
       return;
     }
@@ -132,43 +121,30 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags().then((tags) => {
-          setTagOptions(tags);
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+            setNotFound(false);
+          } else {
+            setTagOptions([]);
+            setNotFound(true);
+          }
         });
-        setNotFound(false);
         return;
       }
-
-      getTagsByQuery(input).then((tags) => {
-        setTagOptions(tags);
-        setNotFound(tags.length === 0);
+      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+          setNotFound(res.tags.length === 0);
+        } else {
+          setTagOptions([]);
+          setNotFound(true);
+        }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [input]);
-
-  const getUrlWrapper = async (id: string) => {
-    if (!session.user?.sub) {
-      return;
-    }
-    const response = await getShortn(id);
-    if (response.success && response.url) {
-      setUrl(response.url);
-      setTags(response.url.tags as ITag[]);
-      urlForm.reset({
-        title: response.url.title,
-        custom_code: response.url.customCode ? response.url.urlCode : "",
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-    getUrlWrapper(urlCode);
-  }, [urlCode, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -179,9 +155,6 @@ export const LinksEditContent = ({ urlCode }: { urlCode: string }) => {
     setExactTagMatch(_shouldShowAddTag);
   }, [tagOptions, notFound, input]);
 
-  if (!url) {
-    return <Skeleton className="w-full col-span-full aspect-video h-auto" />;
-  }
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
       <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">

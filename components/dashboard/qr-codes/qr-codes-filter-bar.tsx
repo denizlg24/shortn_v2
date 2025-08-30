@@ -1,5 +1,4 @@
 "use client";
-import { getTagById, getTags, getTagsByQuery } from "@/app/actions/tagActions";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -38,7 +37,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { useUser } from "@/utils/UserContext";
 import { format, parse } from "date-fns";
@@ -98,8 +97,8 @@ export const QRCodesFilterBar = () => {
     }
     const finalTags: ITag[] = [];
     for (const id of tagIds) {
-      const tag = await getTagById(id);
-      if (tag) finalTags.push(tag);
+      const tag = await fetchApi<{ tag: ITag }>(`tags/${id}`);
+      if (tag.success) finalTags.push(tag.tag);
     }
     setTags(finalTags);
   };
@@ -110,8 +109,12 @@ export const QRCodesFilterBar = () => {
     }
     readTags();
     if (input.trim() === "") {
-      getTags().then((tags) => {
-        setTagOptions(tags);
+      fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        } else {
+          setTagOptions([]);
+        }
       });
       return;
     }
@@ -124,15 +127,21 @@ export const QRCodesFilterBar = () => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags().then((tags) => {
-          setTagOptions(tags);
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+          } else {
+            setTagOptions([]);
+          }
         });
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-        });
+      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        } else {
+          setTagOptions([]);
+        }
       });
     }, 300);
 
@@ -162,8 +171,8 @@ export const QRCodesFilterBar = () => {
     const getTagsFromId = async () => {
       let ts: ITag[] = [];
       for (const t of tagIds) {
-        const result = await getTagById(t);
-        if (result) ts.push(result);
+        const tag = await fetchApi<{ tag: ITag }>(`tags/${t}`);
+        if (tag.success) ts.push(tag.tag);
       }
       setTags(ts);
     };
@@ -739,12 +748,19 @@ export const QRCodesFilterBar = () => {
                   </Select>
                 </div>
                 <div className="flex flex-row w-full items-center gap-2 justify-end">
-                  <Button onClick={clearMoreFilters} variant={"ghost"}>
+                  <Button
+                    onClick={() => {
+                      setMoreFiltersOpen(false);
+                      clearMoreFilters();
+                    }}
+                    variant={"ghost"}
+                  >
                     <X />
                     Clear Filters
                   </Button>
                   <Button
                     onClick={() => {
+                      setMoreFiltersOpen(false);
                       applyFilters({});
                     }}
                     variant={"default"}
@@ -919,12 +935,19 @@ export const QRCodesFilterBar = () => {
                   </Select>
                 </div>
                 <div className="flex flex-row w-full items-center gap-2 justify-end">
-                  <Button onClick={clearMoreFilters} variant={"ghost"}>
+                  <Button
+                    onClick={() => {
+                      setMoreFiltersOpen(false);
+                      clearMoreFilters();
+                    }}
+                    variant={"ghost"}
+                  >
                     <X />
                     Clear Filters
                   </Button>
                   <Button
                     onClick={() => {
+                      setMoreFiltersOpen(false);
                       applyFilters({});
                     }}
                     variant={"default"}

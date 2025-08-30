@@ -1,6 +1,9 @@
-import { getShortn } from "@/app/actions/linkActions";
-import { getQRCode } from "@/app/actions/qrCodeActions";
+import { auth } from "@/auth";
 import { LinkDetails } from "@/components/dashboard/links/link-details";
+import { connectDB } from "@/lib/mongodb";
+import QRCodeV2 from "@/models/url/QRCodeV2";
+import UrlV3 from "@/models/url/UrlV3";
+import { getQRCode, getShortn } from "@/utils/fetching-functions";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 

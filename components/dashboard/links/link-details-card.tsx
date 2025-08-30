@@ -3,8 +3,6 @@ import { deleteShortn } from "@/app/actions/linkActions";
 import {
   addTagToLink,
   createAndAddTagToUrl,
-  getTags,
-  getTagsByQuery,
   removeTagFromLink,
 } from "@/app/actions/tagActions";
 import { Button } from "@/components/ui/button";
@@ -39,7 +37,7 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
@@ -97,17 +95,25 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags().then((tags) => {
-          setTagOptions(tags);
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+            setNotFound(false);
+          } else {
+            setTagOptions([]);
+            setNotFound(true);
+          }
         });
-        setNotFound(false);
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-          setNotFound(tags.length === 0);
-        });
+      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+          setNotFound(res.tags.length === 0);
+        } else {
+          setTagOptions([]);
+          setNotFound(true);
+        }
       });
     }, 300);
 

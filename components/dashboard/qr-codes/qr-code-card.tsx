@@ -3,8 +3,6 @@ import {
   addTagToQRCode,
   createAndAddTagToQRCode,
   createAndAddTagToUrl,
-  getTags,
-  getTagsByQuery,
   removeTagFromLink,
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
@@ -29,7 +27,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import Image from "next/image";
@@ -115,17 +113,25 @@ export const QRCodeCard = ({
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags().then((tags) => {
-          setTagOptions(tags);
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+            setNotFound(false);
+          } else {
+            setTagOptions([]);
+            setNotFound(true);
+          }
         });
-        setNotFound(false);
         return;
       }
-      startTransition(() => {
-        getTagsByQuery(input).then((tags) => {
-          setTagOptions(tags);
-          setNotFound(tags.length === 0);
-        });
+      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+          setNotFound(res.tags.length === 0);
+        } else {
+          setTagOptions([]);
+          setNotFound(true);
+        }
       });
     }, 300);
 

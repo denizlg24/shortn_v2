@@ -8,7 +8,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
-import { getQRCode, updateQRCodeData } from "@/app/actions/qrCodeActions";
+import { updateQRCodeData } from "@/app/actions/qrCodeActions";
 import {
   Form,
   FormControl,
@@ -33,14 +33,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
-import {
-  createTag,
-  getTagById,
-  getTags,
-  getTagsByQuery,
-} from "@/app/actions/tagActions";
+import { createTag } from "@/app/actions/tagActions";
 import { ITag } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -62,19 +57,17 @@ const qrCodeFormSchema = z.object({
   applyToLink: z.boolean().default(false).optional(),
 });
 
-export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
+export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
   const session = useUser();
 
   const router = useRouter();
 
   const [creating, setCreating] = useState(false);
 
-  const [qrCode, setQrCode] = useState<IQRCode | undefined>(undefined);
-
   const qrCodeForm = useForm<z.infer<typeof qrCodeFormSchema>>({
     resolver: zodResolver(qrCodeFormSchema),
     defaultValues: {
-      title: "",
+      title: qrCode.title,
       applyToLink: false,
     },
   });
@@ -95,8 +88,12 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
     }
 
     if (input.trim() === "") {
-      getTags().then((tags) => {
-        setTagOptions(tags);
+      fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        } else {
+          setTagOptions([]);
+        }
       });
       return;
     }
@@ -109,39 +106,30 @@ export const QRCodeEditContent = ({ qrCodeId }: { qrCodeId: string }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        getTags().then((tags) => {
-          setTagOptions(tags);
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+            setNotFound(false);
+          } else {
+            setTagOptions([]);
+            setNotFound(true);
+          }
         });
-        setNotFound(false);
         return;
       }
-      getTagsByQuery(input).then((tags) => {
-        setTagOptions(tags);
-        setNotFound(tags.length === 0);
+      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+          setNotFound(res.tags.length === 0);
+        } else {
+          setTagOptions([]);
+          setNotFound(true);
+        }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [input]);
-
-  const getQRWrapper = async (id: string) => {
-    if (!session.user?.sub) {
-      return;
-    }
-    const response = await getQRCode(id);
-    if (response.success && response.qr) {
-      setQrCode(response.qr);
-      setTags(response.qr.tags as ITag[]);
-      qrCodeForm.reset({ title: response.qr.title });
-    }
-  };
-
-  useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-    getQRWrapper(qrCodeId);
-  }, [qrCodeId, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);

@@ -14,7 +14,7 @@ import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
 import { addDays } from 'date-fns';
 import { ITag } from '@/models/url/Tag';
-import { getTagById } from './tagActions';
+import { fetchApi } from '@/lib/utils';
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
@@ -174,9 +174,9 @@ export async function createQrCode({
 
         if (tags) {
             for (const t of tags) {
-                const tag = await getTagById(t);
-                if (tag) {
-                    finalTags.push(tag);
+                const tag = await fetchApi<{ tag: ITag }>(`tags/${t}`);
+                if (tag.success) {
+                    finalTags.push(tag.tag);
                 }
             }
         }
@@ -218,143 +218,6 @@ export async function createQrCode({
         }
     }
 
-}
-
-interface IFilters {
-    tags: string[];
-    attachedQR: "all" | "on" | "off";
-    sortBy: "date_asc" | "date_desc" | "clicks_asc" | "clicks_desc";
-    query: string;
-    page: number;
-    limit: number;
-    startDate?: Date;
-    endDate?: Date;
-}
-
-export const getFilteredQRCodes = async (
-    filters: IFilters,
-): Promise<{ qrcodes: IQRCode[]; total: number }> => {
-    const session = await auth();
-    const user = session?.user;
-
-    if (!user) {
-        return {
-            qrcodes: [],
-            total: 0,
-        };
-    }
-
-    const controller = new AbortController();
-
-    const sub = user?.sub;
-
-    await connectDB();
-
-    const pipeline: any[] = [];
-
-    const matchStage: any = {
-        sub,
-    };
-
-    if (filters.startDate || filters.endDate) {
-        matchStage.date = {};
-        if (filters.startDate) {
-            matchStage.date.$gte = filters.startDate;
-        }
-        if (filters.endDate) {
-            matchStage.date.$lte = addDays(filters.endDate, 1);
-        }
-    }
-
-    if (filters.tags.length > 0) {
-        matchStage.tags = { $elemMatch: { id: { $in: filters.tags } } };
-    }
-
-    if (filters.attachedQR === "on") {
-        matchStage.attachedUrl = {
-            $exists: true,
-            $ne: null,
-            $not: { $eq: "" }
-        };
-    } else if (filters.attachedQR === "off") {
-        matchStage.attachedUrl = { $in: [null, undefined, ""] };
-    }
-
-    if (filters.query.trim()) {
-        pipeline.push({
-            $search: {
-                index: "qr-code-text-search",
-                text: {
-                    query: filters.query.trim(),
-                    path: ["title", "longUrl", "tags.tagName"],
-                }
-            }
-        });
-    }
-
-    pipeline.push({ $match: matchStage });
-
-    let sortStage: Record<string, 1 | -1> = {};
-    switch (filters.sortBy) {
-        case "date_asc":
-            sortStage = { date: 1 };
-            break;
-        case "date_desc":
-            sortStage = { date: -1 };
-            break;
-        case "clicks_asc":
-            sortStage = { "clicks.total": 1 };
-            break;
-        case "clicks_desc":
-            sortStage = { "clicks.total": -1 };
-            break;
-    }
-    pipeline.push({ $sort: sortStage });
-
-    const skip = (filters.page - 1) * filters.limit;
-    pipeline.push({ $skip: skip });
-    pipeline.push({ $limit: filters.limit });
-
-    const countPipeline = [...pipeline.filter(stage => !("$skip" in stage || "$limit" in stage)), { $count: "total" }];
-
-    const [qrcodes, totalResult] = await Promise.all([
-        QRCodeV2.aggregate(pipeline, { signal: controller.signal }).exec(),
-        QRCodeV2.aggregate(countPipeline, { signal: controller.signal }).exec()
-    ]);
-
-    const total = totalResult[0]?.total || 0;
-
-    const qrcodesSanitized = qrcodes.map((qrcode) => ({
-        ...qrcode,
-        _id: qrcode._id.toString(),
-        tags: qrcode.tags?.map((tag: ITag) => ({ ...tag, _id: (tag._id as any).toString() })),
-    }));
-
-    return { qrcodes: qrcodesSanitized, total };
-};
-
-export const getQRCode = async (codeID: string) => {
-    try {
-        const session = await auth();
-        const user = session?.user;
-
-        if (!user) {
-            return {
-                success: false,
-                message: 'no-user',
-            };
-        }
-        const sub = user?.sub;
-        await connectDB();
-        const qr = await QRCodeV2.findOne({ sub, qrCodeId: codeID }).lean();
-        if (!qr) {
-            return { success: false, qr: undefined };
-        }
-        const filtered = { ...qr, _id: qr._id.toString(), tags: qr.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })) };
-        return { success: true, qr: filtered };
-    } catch (error) {
-        return { success: false, qr: undefined };
-    }
 }
 
 export const updateQRCodeOptions = async (codeId: string, options: Partial<Options>) => {
