@@ -14,7 +14,14 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { Earth, Lock, MapPinned } from "lucide-react";
+import {
+  AppWindowMac,
+  Earth,
+  Globe,
+  Lock,
+  MapPinned,
+  MonitorSmartphone,
+} from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
@@ -31,19 +38,36 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
 
+export function getDataTitle(
+  selected: "country" | "city" | "device" | "browser" | "os"
+) {
+  switch (selected) {
+    case "country":
+      return "Country";
+    case "city":
+      return "City";
+    case "device":
+      return "Device";
+    case "browser":
+      return "Browser";
+    case "os":
+      return "OS";
+  }
+}
+
 export const LinkLocationAnalytics = ({
   unlocked,
   linkData,
 }: {
-  unlocked: boolean;
+  unlocked: "none" | "location" | "all";
   linkData: IUrl;
 }) => {
-  const [selected, setSelected] = useState<"country" | "city" | "region">(
-    "country"
-  );
+  const [selected, setSelected] = useState<
+    "country" | "city" | "device" | "browser" | "os"
+  >("country");
   countries.registerLocale(en);
 
-  if (!unlocked) {
+  if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
@@ -93,30 +117,108 @@ export const LinkLocationAnalytics = ({
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Location data</CardTitle>
+        <CardTitle>Advanced data</CardTitle>
         <CardDescription>
-          Showing location data of short link's clicks
+          Showing advanced data of short link's clicks
         </CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">
         <Tabs
           value={selected}
           onValueChange={(e) => {
-            setSelected(e as "country" | "city" | "region");
+            setSelected(e as "country" | "city" | "device" | "browser" | "os");
           }}
         >
-          <TabsList className="w-full sm:max-w-sm">
-            <TabsTrigger value="country">
+          <TabsList className="w-full sm:max-w-md">
+            <TabsTrigger className="h-fit!" value="country">
               <Earth />
               Countries
             </TabsTrigger>
-            <TabsTrigger value="city">
+            <TabsTrigger className="h-fit!" value="city">
               <MapPinned />
               Cities
             </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="device"
+            >
+              <MonitorSmartphone />
+              Device
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="browser"
+            >
+              <Globe />
+              Browser
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="os"
+            >
+              <AppWindowMac />
+              OS
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
           </TabsList>
         </Tabs>
-        <DataTable data={data} columns={locationColumns} />
+        <Tabs
+          value={selected}
+          onValueChange={(e) => {
+            setSelected(e as "device" | "browser" | "os");
+          }}
+        >
+          <TabsList className="w-full sm:hidden flex">
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="device"
+            >
+              <MonitorSmartphone />
+              Device
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="browser"
+            >
+              <Globe />
+              Browser
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="os"
+            >
+              <AppWindowMac />
+              OS
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <DataTable
+          data={data}
+          columns={locationColumns(getDataTitle(selected), "Click")}
+        />
       </div>
     </div>
   );

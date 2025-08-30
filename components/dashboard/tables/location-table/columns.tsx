@@ -7,7 +7,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export function aggregateClicksByLocation(
   entries: ClickEntry[],
-  level: "country" | "region" | "city" = "country"
+  level: "country" | "city" | "device" | "browser" | "os" = "country"
 ) {
   const total = entries.length;
   const counts: Record<string, number> = {};
@@ -19,8 +19,14 @@ export function aggregateClicksByLocation(
       case "city":
         key = entry.city?.trim() || "Unknown City";
         break;
-      case "region":
-        key = entry.region?.trim() || "Unknown Region";
+      case "device":
+        key = entry.deviceType?.trim() || "Unknown Device";
+        break;
+      case "browser":
+        key = entry.browser?.trim() || "Unknown Browser";
+        break;
+      case "os":
+        key = entry.os?.trim() || "Unknown OS";
         break;
       case "country":
       default:
@@ -46,17 +52,23 @@ export interface LocationStats {
   percentage: number;
 }
 
-export const locationColumns: ColumnDef<LocationStats>[] = [
+export const locationColumns = (
+  title: string,
+  clicks: string
+): ColumnDef<LocationStats>[] => [
   {
     id: "location",
     accessorKey: "location",
-    size: 1000,
+    enableResizing: true,
     filterFn: (row, _columnId, filterValue) => {
       if (filterValue === "__HIDE_UNKNOWN__") {
         return (
           row.original.location !== "Unknown Country" &&
           row.original.location !== "Unknown Region" &&
-          row.original.location !== "Unknown City"
+          row.original.location !== "Unknown City" &&
+          row.original.location !== "Unknown Device" &&
+          row.original.location !== "Unknown OS" &&
+          row.original.location !== "Unknown Browser"
         );
       }
       if (typeof filterValue === "string" && filterValue.trim().length > 0) {
@@ -78,14 +90,13 @@ export const locationColumns: ColumnDef<LocationStats>[] = [
           column.clearSorting();
         }
       };
-
       return (
         <Button
           variant="ghost"
           onClick={handleClick}
           className="flex items-center w-fit!"
         >
-          Location
+          {title}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -97,15 +108,13 @@ export const locationColumns: ColumnDef<LocationStats>[] = [
       );
     },
     cell: ({ row }) => (
-      <div className="w-full truncate">{row.original.location}</div>
+      <div className="w-full truncate capitalize">{row.original.location}</div>
     ),
   },
   {
     id: "clicks",
     accessorKey: "clicks",
-    size: 84,
-    maxSize: 84,
-    minSize: 84,
+    enableResizing: true,
     header: ({ column }) => {
       const sortState = column.getIsSorted();
 
@@ -118,14 +127,13 @@ export const locationColumns: ColumnDef<LocationStats>[] = [
           column.clearSorting();
         }
       };
-
       return (
         <Button
           variant="ghost"
           onClick={handleClick}
-          className="flex items-center justify-end w-fit!"
+          className="flex items-center ml-auto w-fit!"
         >
-          Clicks
+          {clicks}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -148,8 +156,7 @@ export const locationColumns: ColumnDef<LocationStats>[] = [
   {
     id: "percentage",
     accessorKey: "percentage",
-    size: 112,
-    maxSize: 112,
+    enableResizing: true,
     header: ({ column }) => {
       const sortState = column.getIsSorted();
 
@@ -162,14 +169,13 @@ export const locationColumns: ColumnDef<LocationStats>[] = [
           column.clearSorting();
         }
       };
-
       return (
         <Button
           variant="ghost"
           onClick={handleClick}
-          className="flex items-center justify-end w-fit!"
+          className="flex items-center ml-auto w-fit!"
         >
-          % of Total
+          %
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (

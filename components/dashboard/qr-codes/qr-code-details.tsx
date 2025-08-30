@@ -31,8 +31,11 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
           />
           <QRCodeLocationAnalytics
             unlocked={
-              session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
+                ? "all"
+                : session.user.plan.subscription == "plus"
+                ? "location"
+                : "none"
             }
             linkData={qr}
           />
