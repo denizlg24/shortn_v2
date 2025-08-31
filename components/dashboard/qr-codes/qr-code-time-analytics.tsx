@@ -85,11 +85,9 @@ export const QRCodeTimeAnalytics = ({
             Scans over time
           </h1>
           <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button className="xs:rounded-xl! p-1! px-2! h-fit! rounded! text-xs xs:w-fit w-full hover:cursor-help">
-                <Lock />
-                Upgrade
-              </Button>
+            <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
+              <Lock className="w-4 h-4" />
+              Upgrade
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">

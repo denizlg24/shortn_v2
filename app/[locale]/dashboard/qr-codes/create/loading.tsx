@@ -3,12 +3,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Loading() {
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
-      <div className="w-full max-w-4xl mx-auto grid grid-cols-6 gap-6">
-        <div className="w-full flex flex-col gap-6 items-start col-span-full">
-          <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-            Edit your QR Code
-          </h1>
-          <Skeleton className="w-full h-[250px]" />
+      <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
+        <div className="w-full flex flex-row items-start justify-between gap-4 col-span-full">
+          <div className="w-full flex flex-col gap-6 items-start">
+            <div className="flex flex-col gap-1 w-full items-start">
+              <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
+                Create a new QR Code
+              </h1>
+            </div>
+            <Skeleton className="w-full h-[300px]" />
+          </div>
+          <Skeleton className="w-full max-w-xs lg:flex hidden flex-col gap-4 items-center text-center" />
         </div>
       </div>
     </main>

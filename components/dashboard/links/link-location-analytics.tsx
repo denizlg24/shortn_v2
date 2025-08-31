@@ -72,14 +72,12 @@ export const LinkLocationAnalytics = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Location data
+            Advanced data
           </h1>
           <HoverCard>
-            <HoverCardTrigger asChild>
-              <Button className="xs:rounded-xl! p-1! px-2! h-fit! rounded! text-xs xs:w-fit w-full hover:cursor-help">
-                <Lock />
-                Upgrade
-              </Button>
+            <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
+              <Lock className="w-4 h-4" />
+              Upgrade
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
@@ -90,7 +88,7 @@ export const LinkLocationAnalytics = ({
                   >
                     Upgrade
                   </Link>{" "}
-                  to see location data.
+                  to see advanced data.
                 </p>
               </div>
             </HoverCardContent>

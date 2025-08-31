@@ -14,79 +14,37 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
+import {
+  AppWindowMac,
+  Earth,
+  Globe,
+  Lock,
+  MapPinned,
+  MonitorSmartphone,
+  TriangleAlert,
+} from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
-import { useState } from "react";
-import { DateRange } from "react-day-picker";
-export const getEngagementOverTimeData = (
-  url: IUrl,
-  startDate?: Date,
-  endDate?: Date
-) => {
-  const defaultEnd = endOfDay(new Date());
-  const defaultStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth() - 2,
-    1
-  );
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  aggregateReferrers,
+  ReferrerDonutChart,
+} from "./charts/referrer-donut-chart";
 
-  const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
-  const rangeEnd = endDate ? endOfDay(endDate) : defaultEnd;
-
-  const grouped: Record<string, { desktop: number; mobile: number }> = {};
-
-  for (const click of url.clicks.all) {
-    if (
-      isWithinInterval(click.timestamp, { start: rangeStart, end: rangeEnd })
-    ) {
-      const dateKey = format(click.timestamp, "yyyy-MM-dd");
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = { desktop: 0, mobile: 0 };
-      }
-
-      if (click.deviceType?.toLowerCase() === "desktop") {
-        grouped[dateKey].desktop++;
-      } else {
-        grouped[dateKey].mobile++;
-      }
-    }
-  }
-
-  const allDates = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
-
-  return allDates.map((date) => {
-    const key = format(date, "yyyy-MM-dd");
-    return {
-      date: key,
-      desktop: grouped[key]?.desktop ?? 0,
-      mobile: grouped[key]?.mobile ?? 0,
-    };
-  });
-};
-
-export const LinkTimeAnalytics = ({
+export const LinkSourceData = ({
   unlocked,
   linkData,
 }: {
   unlocked: boolean;
   linkData: IUrl;
 }) => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-
-  const chartData = getEngagementOverTimeData(
-    linkData,
-    dateRange?.from,
-    dateRange?.to
-  );
-
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Engagements over time
+            Referrer data
           </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
@@ -102,7 +60,7 @@ export const LinkTimeAnalytics = ({
                   >
                     Upgrade
                   </Link>{" "}
-                  to see data about your engagements over time
+                  to see referrer data.
                 </p>
               </div>
             </HoverCardContent>
@@ -119,13 +77,26 @@ export const LinkTimeAnalytics = ({
     );
   }
 
+  const data = aggregateReferrers(linkData.clicks.all);
+
   return (
-    <LinkTimeBarChart
-      createdAt={linkData.date}
-      className="p-0!"
-      dateRange={dateRange}
-      setDateRange={setDateRange}
-      chartData={chartData}
-    />
+    <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
+      <div className="w-full flex flex-col gap-1 items-start">
+        <CardTitle>Referrer Data</CardTitle>
+        <CardDescription>
+          Showing referrer data of short link's clicks
+        </CardDescription>
+      </div>
+      <div className="w-full flex flex-col gap-2">
+        {data.length > 0 && (
+          <ReferrerDonutChart chartData={data} labelTitle="Clicks" />
+        )}
+        {data.length == 0 && (
+          <p className="text-sm font-semibold mx-auto text-center my-8">
+            No data available for this link
+          </p>
+        )}
+      </div>
+    </div>
   );
 };
