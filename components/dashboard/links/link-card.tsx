@@ -343,14 +343,12 @@ export const LinkCard = ({
             <ChartNoAxesColumn className="w-4 h-4" />
             {session.user.plan.subscription == "free" ? (
               <HoverCard>
-                <HoverCardTrigger asChild>
-                  <Button
-                    className="p-0! px-1! rounded-none! h-fit text-xs font-normal gap-1!"
-                    variant={"secondary"}
-                  >
-                    <LockIcon className="w-3! h-3!" />
-                    Click Data
-                  </Button>
+                <HoverCardTrigger
+                  className="px-1 rounded-none! h-fit text-xs flex flex-row bg-secondary items-center py-0.5 shadow-xs font-normal
+                  gap-1! hover:cursor-help"
+                >
+                  <LockIcon className="w-3! h-3!" />
+                  Click Data
                 </HoverCardTrigger>
                 <HoverCardContent asChild>
                   <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">

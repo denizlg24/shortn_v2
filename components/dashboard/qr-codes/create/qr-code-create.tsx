@@ -290,13 +290,8 @@ export const QRCodeCreate = ({
                           </p>
                           {session.user?.plan.subscription != "pro" && (
                             <HoverCard>
-                              <HoverCardTrigger asChild>
-                                <Button
-                                  className="p-0! h-fit!"
-                                  variant={"link"}
-                                >
-                                  <LockIcon className="w-3! h-3!" />
-                                </Button>
+                              <HoverCardTrigger>
+                                <LockIcon className="w-3! h-3!" />
                               </HoverCardTrigger>
                               <HoverCardContent asChild>
                                 <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">

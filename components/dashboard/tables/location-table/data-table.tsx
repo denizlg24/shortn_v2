@@ -21,17 +21,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import React, { useEffect } from "react";
+import React from "react";
 import { Input } from "@/components/ui/input";
-import { Eye, EyeOff } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
+import { Search } from "lucide-react";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -63,7 +57,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="flex flex-col w-full gap-2">
-      <div className="flex flex-row items-center gap-2 w-full justify-between">
+      <div className="flex flex-row items-center gap-2 w-full justify-between relative">
         <Input
           placeholder="Search for..."
           value={(
@@ -76,8 +70,9 @@ export function DataTable<TData, TValue>({
                 event.target.value.replace("__HIDE_UNKNOWN__", "")
               )
           }
-          className="grow sm:max-w-md"
+          className="grow sm:max-w-md pl-6"
         />
+        <Search className="absolute w-3 h-3 left-2 top-3.25" />
         <div className="flex flex-row gap-1 items-center justify-start">
           <p className="text-xs font-semibold">Unknown</p>
           <Switch

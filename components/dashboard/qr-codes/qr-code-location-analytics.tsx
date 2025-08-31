@@ -52,7 +52,7 @@ export const QRCodeLocationAnalytics = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Location data
+            Advanced data
           </h1>
           <HoverCard>
             <HoverCardTrigger asChild>
@@ -70,7 +70,7 @@ export const QRCodeLocationAnalytics = ({
                   >
                     Upgrade
                   </Link>{" "}
-                  to see location data.
+                  to see advanced data.
                 </p>
               </div>
             </HoverCardContent>
