@@ -22,7 +22,7 @@ export default function Home({
         <div className="flex flex-col items-start max-w-sm mx-auto gap-4 text-center">
           <MailCheck className="text-green-600 w-12 h-12 mx-auto" />
           <h1 className="lg:text-2xl md:text-lg sm:text-base text-sm font-bold text-left">
-            We've sent you an email!
+            We&apos;ve sent you an email!
           </h1>
           <h2 className="lg:text-base sm:text-sm text-xs font-normal text-left">
             Check your inbox{" "}

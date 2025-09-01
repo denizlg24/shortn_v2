@@ -17,7 +17,6 @@ import {
   Infinity,
   Loader2,
   LockIcon,
-  QrCode,
 } from "lucide-react";
 import {
   Form,
@@ -347,7 +346,7 @@ export const QRCodeCreate = ({
                   Cancel
                 </Button>
                 <Button
-                  onClick={qrCodeForm.handleSubmit((data) => {
+                  onClick={qrCodeForm.handleSubmit(() => {
                     setOptions((prev) => ({
                       ...prev,
                       data: `${process.env.NEXT_PUBLIC_APP_URL}/qr-code-preview`,
@@ -1152,7 +1151,7 @@ export const QRCodeCreate = ({
           <StyledQRCode className="w-full" options={options} />
         </div>
         <p className="text-xs text-muted-foreground">
-          This code is preview only, so don't copy it just yet.
+          This code is preview only, so don&apos;t copy it just yet.
           <br /> Your code will be generated once you finish creating it.
         </p>
       </div>

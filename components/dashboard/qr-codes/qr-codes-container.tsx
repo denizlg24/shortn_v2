@@ -3,7 +3,6 @@
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
-import { Loader2 } from "lucide-react";
 import { QRCodeCard } from "./qr-code-card";
 
 export const QRCodesContainer = ({
@@ -80,7 +79,7 @@ export const QRCodesContainer = ({
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You've reached the end of your QR Codes
+                You&apos;ve reached the end of your QR Codes
               </p>
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
             </div>
@@ -90,7 +89,7 @@ export const QRCodesContainer = ({
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You've reached the end of your QR Codes
+            You&apos;ve reached the end of your QR Codes
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

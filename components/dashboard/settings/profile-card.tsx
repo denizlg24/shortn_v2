@@ -3,7 +3,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { Session } from "next-auth";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
@@ -113,7 +112,7 @@ export const ProfileCard = () => {
       setUploading(true);
       const { success, url } = await uploadImage(file);
       if (success && url) {
-        const { success, message } = await updateUserField(
+        const { success } = await updateUserField(
           user.sub,
           "profilePicture",
           url
@@ -240,7 +239,7 @@ export const ProfileCard = () => {
         phone: user.phone_number || "",
       });
     }
-  }, [user]);
+  }, [form, user]);
 
   if (!user || loading) {
     return (
@@ -341,7 +340,7 @@ export const ProfileCard = () => {
                   onClick={async () => {
                     if (user.profilePicture) {
                       setRemoving(true);
-                      const { success, message } = await deleteProfilePicture(
+                      const { success } = await deleteProfilePicture(
                         user.sub,
                         user.profilePicture
                       );
@@ -374,7 +373,7 @@ export const ProfileCard = () => {
               className="hidden"
             />
             <p className="text-xs text-muted-foreground">
-              We support PNGs, JPEGS and GIF's under 10MB.
+              We support PNGs, JPEGS and GIF&apos;s under 10MB.
             </p>
           </div>
         </div>

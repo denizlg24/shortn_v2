@@ -12,7 +12,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
@@ -77,7 +76,8 @@ export const getLinksLeft = (
   if (linksLeft < 0) {
     return (
       <p className={cn("text-sm font-semibold", className)}>
-        You can't create any more {qr ? "QR Codes" : "Shortn Links"} this month.{" "}
+        You can&apos;t create any more {qr ? "QR Codes" : "Shortn Links"} this
+        month.{" "}
         <Button asChild className="h-fit px-4 py-1 rounded w-fit">
           <Link href={`/dashboard/subscription`}>Upgrade</Link>
         </Button>

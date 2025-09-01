@@ -8,7 +8,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -22,17 +21,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
+
 import { Input } from "@/components/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,21 +33,15 @@ import { ITag } from "@/models/url/Tag";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
-import { link } from "fs";
+
 import {
   Calendar,
-  ChartNoAxesColumn,
   Check,
   Copy,
   CopyCheck,
   Edit2,
   Ellipsis,
-  LinkIcon,
-  Loader2,
-  LockIcon,
-  NotepadText,
   PlusCircle,
-  QrCode,
   Share2,
   Tags,
   Trash2,
@@ -73,7 +58,7 @@ import {
   FacebookIcon,
   TwitterIcon,
 } from "next-share";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
@@ -81,7 +66,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [notFound, setNotFound] = useState(false);
-  const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
 
@@ -118,7 +102,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -362,7 +346,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                             className="w-full! max-w-full! justify-center gap-1"
                             key={tag.id}
                             value={tag.tagName}
-                            onSelect={async (val) => {
+                            onSelect={async () => {
                               const added = currentLink.tags?.some(
                                 (_tag) => _tag.id == tag.id
                               );
@@ -408,22 +392,20 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                             className="w-full! max-w-full! justify-center gap-1"
                             key={input}
                             value={input}
-                            onSelect={() => {
-                              startTransition(async () => {
-                                const { success, tag } =
-                                  await createAndAddTagToUrl(
-                                    input,
-                                    currentLink.urlCode
-                                  );
-                                setInput("");
-                                if (success && tag) {
-                                  currentLink.tags?.push(tag);
-                                }
-                                tagOpenChange(false);
-                              });
+                            onSelect={async () => {
+                              const { success, tag } =
+                                await createAndAddTagToUrl(
+                                  input,
+                                  currentLink.urlCode
+                                );
+                              setInput("");
+                              if (success && tag) {
+                                currentLink.tags?.push(tag);
+                              }
+                              tagOpenChange(false);
                             }}
                           >
-                            Create "{input}"
+                            Create &quot;{input}&quot;
                           </CommandItem>
                         )}
                       </CommandGroup>

@@ -36,7 +36,6 @@ import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
   Calendar,
-  ChartNoAxesColumn,
   Check,
   CornerDownRight,
   Download,
@@ -50,7 +49,7 @@ import {
   Trash2,
 } from "lucide-react";
 import Image from "next/image";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getLinksLeft } from "../home/quick-create";
 import { toast } from "sonner";
 
@@ -59,7 +58,6 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [notFound, setNotFound] = useState(false);
-  const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -104,7 +102,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -235,7 +233,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               }
                             }
                             if (response.success && response.data) {
-                              const update = await attachShortnToQR(
+                              await attachShortnToQR(
                                 response.data.shortUrl,
                                 qrCode.qrCodeId
                               );
@@ -255,6 +253,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             <>Create link</>
                           )}
                         </Button>
+                        {error && (
+                          <p className="text-sm font-semibold text-center mx-auto text-destructive">
+                            {error}
+                          </p>
+                        )}
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -406,7 +409,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             }
                           }
                           if (response.success && response.data) {
-                            const update = await attachShortnToQR(
+                            await attachShortnToQR(
                               response.data.shortUrl,
                               qrCode.qrCodeId
                             );
@@ -543,7 +546,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={tag.id}
                               value={tag.tagName}
-                              onSelect={async (val) => {
+                              onSelect={async () => {
                                 const added = qrCode.tags?.some(
                                   (_tag) => _tag.id == tag.id
                                 );
@@ -589,22 +592,20 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={input}
                               value={input}
-                              onSelect={() => {
-                                startTransition(async () => {
-                                  const { success, tag } =
-                                    await createAndAddTagToUrl(
-                                      input,
-                                      qrCode.qrCodeId
-                                    );
-                                  setInput("");
-                                  if (success && tag) {
-                                    qrCode.tags?.push(tag);
-                                  }
-                                  tagOpenChange(false);
-                                });
+                              onSelect={async () => {
+                                const { success, tag } =
+                                  await createAndAddTagToUrl(
+                                    input,
+                                    qrCode.qrCodeId
+                                  );
+                                setInput("");
+                                if (success && tag) {
+                                  qrCode.tags?.push(tag);
+                                }
+                                tagOpenChange(false);
                               }}
                             >
-                              Create "{input}"
+                              Create &quot;{input}&quot;
                             </CommandItem>
                           )}
                         </CommandGroup>

@@ -28,11 +28,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";
 import { Check, ChevronsUpDown, X } from "lucide-react";
 import { createTag } from "@/app/actions/tagActions";
@@ -97,7 +93,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
       });
       return;
     }
-  }, [session.user]);
+  }, [input, session.user]);
 
   useEffect(() => {
     if (!session.user) {
@@ -129,7 +125,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -254,16 +250,16 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={tag.id}
                               value={tag.tagName}
-                              onSelect={async (val) => {
+                              onSelect={async () => {
                                 const added = tags?.some(
                                   (_tag) => _tag.id == tag.id
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
-                                    const index = n.findIndex((t) => {
-                                      t.id == tag.id;
-                                    });
+                                    const index = n.findIndex(
+                                      (t) => t.id == tag.id
+                                    );
                                     n.splice(index, 1);
                                     return n;
                                   });
@@ -305,7 +301,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 }
                               }}
                             >
-                              Create "{input}"
+                              Create &quot;{input}&quot;
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -372,16 +368,16 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={tag.id}
                               value={tag.tagName}
-                              onSelect={async (val) => {
+                              onSelect={async () => {
                                 const added = tags?.some(
                                   (_tag) => _tag.id == tag.id
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
-                                    const index = n.findIndex((t) => {
-                                      t.id == tag.id;
-                                    });
+                                    const index = n.findIndex(
+                                      (t) => t.id == tag.id
+                                    );
                                     n.splice(index, 1);
                                     return n;
                                   });
@@ -423,7 +419,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 }
                               }}
                             >
-                              Create "{input}"
+                              Create &quot;{input}&quot;
                             </CommandItem>
                           )}
                         </CommandGroup>

@@ -14,11 +14,9 @@ import { LinkStackedSourceData } from "./link-stacked-source-data";
 import { LinkTimeByDateData } from "./link-time-by-date-data";
 
 export const LinkDetails = ({
-  urlCode,
   url,
   qr,
 }: {
-  urlCode: string;
   url: IUrl;
   qr: IQRCode | undefined;
 }) => {

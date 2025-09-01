@@ -1,28 +1,11 @@
 import { IUrl } from "@/models/url/UrlV3";
-import { LinkTimeBarChart } from "./charts/link-time-bar-chart";
-import {
-  format,
-  eachDayOfInterval,
-  isWithinInterval,
-  subMonths,
-  startOfDay,
-  endOfDay,
-} from "date-fns";
+
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Button } from "@/components/ui/button";
-import {
-  AppWindowMac,
-  Earth,
-  Globe,
-  Lock,
-  MapPinned,
-  MonitorSmartphone,
-  TriangleAlert,
-} from "lucide-react";
+import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
@@ -84,7 +67,7 @@ export const LinkSourceData = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle>Referrer Data</CardTitle>
         <CardDescription>
-          Showing referrer data of short link's clicks
+          Showing referrer data of short link&apos;s clicks
         </CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">

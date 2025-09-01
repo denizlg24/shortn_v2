@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Label, LabelList, Pie, PieChart, TooltipProps } from "recharts";
+import { Label, Pie, PieChart, TooltipProps } from "recharts";
 
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -10,7 +10,6 @@ import {
   ChartLegend,
   ChartLegendContent,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 
 export type ReferrerStats = {
@@ -47,7 +46,9 @@ export function aggregateReferrers(
     .sort((a, b) => b.clicks - a.clicks);
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ReferrerTooltipContent(props: TooltipProps<any, any>) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { active, payload } = props as TooltipProps<any, any> & {
     payload?: {
       payload: ReferrerStats & { fill: string };

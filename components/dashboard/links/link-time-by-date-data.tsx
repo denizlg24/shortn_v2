@@ -1,43 +1,18 @@
 "use client";
 import { IUrl } from "@/models/url/UrlV3";
-import { LinkTimeBarChart } from "./charts/link-time-bar-chart";
-import {
-  format,
-  eachDayOfInterval,
-  isWithinInterval,
-  subMonths,
-  startOfDay,
-  endOfDay,
-  isSameDay,
-} from "date-fns";
+
+import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import {
-  AppWindowMac,
-  ChevronDownIcon,
-  Earth,
-  Globe,
-  Lock,
-  MapPinned,
-  MonitorSmartphone,
-  X,
-} from "lucide-react";
+import { ChevronDownIcon, Lock, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import {
-  aggregateReferrers,
-  ReferrerDonutChart,
-} from "./charts/referrer-donut-chart";
-import {
-  groupClicksByDateAndReferrer,
-  ReferrerStackedBarChart,
-} from "./charts/referrer-stacked-bar-chart";
 import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";

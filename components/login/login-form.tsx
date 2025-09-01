@@ -27,7 +27,6 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
-import { AuthError } from "next-auth";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -96,8 +95,8 @@ export const LoginForm = () => {
                 </div>
                 <div className="w-full">
                   <p className="text-sm">
-                    You still haven't verified your email. Please check your
-                    inbox and{" "}
+                    You still haven&apos;t verified your email. Please check
+                    your inbox and{" "}
                     <Link
                       onClick={async () => {
                         await sendVerificationEmail(values.email, locale);
@@ -265,7 +264,7 @@ export const LoginForm = () => {
           </Button>
         </div>
         <div className="flex flex-row items-center gap-1 text-sm justify-center w-full">
-          <p>Don't have an account? </p>
+          <p>Don&apos;t have an account? </p>
           <Link className="text-primary underline" href={"/register"}>
             Register now.
           </Link>

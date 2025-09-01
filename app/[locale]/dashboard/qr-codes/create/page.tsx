@@ -6,7 +6,7 @@ export default async function Home({
   params,
   searchParams,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   params: Promise<{ locale: string }>;
   searchParams: Promise<{ [key: string]: string | undefined }>;
 }) {

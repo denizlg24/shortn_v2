@@ -8,9 +8,8 @@ export default function Home({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale, organization } = use<{
+  const { locale } = use<{
     locale: string;
-    organization: string;
   }>(params);
   setRequestLocale(locale);
   return (

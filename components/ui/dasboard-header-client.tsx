@@ -2,7 +2,7 @@
 import { Skeleton } from "./skeleton";
 
 import { Avatar, AvatarFallback, AvatarImage } from "./avatar";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Popover, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import {
   ChevronDown,
@@ -32,7 +32,6 @@ import Hamburger from "hamburger-react";
 import Image from "next/image";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,

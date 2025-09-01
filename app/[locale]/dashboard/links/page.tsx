@@ -35,8 +35,10 @@ const getFilteredLinks = async (
   const sub = user?.sub;
   await connectDB();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pipeline: any[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const matchStage: any = {
     sub,
     isQrCode: false,
@@ -128,6 +130,7 @@ const getFilteredLinks = async (
     _id: link._id.toString(),
     tags: link.tags?.map((tag: ITag) => ({
       ...tag,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       _id: (tag._id as any).toString(),
     })),
   }));

@@ -1,4 +1,3 @@
-import { NavigationBar } from "@/components/dashboard/settings/navigation-bar";
 import { NavigationBarContainer } from "@/components/dashboard/settings/navigation-bar-container";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";

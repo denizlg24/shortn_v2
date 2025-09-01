@@ -38,8 +38,10 @@ const getFilteredQRCodes = async (
 
   await connectDB();
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const pipeline: any[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const matchStage: any = {
     sub,
   };
@@ -120,6 +122,7 @@ const getFilteredQRCodes = async (
     _id: qrcode._id.toString(),
     tags: qrcode.tags?.map((tag: ITag) => ({
       ...tag,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       _id: (tag._id as any).toString(),
     })),
   }));

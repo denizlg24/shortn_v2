@@ -30,6 +30,7 @@ export async function GET(req: Request) {
         }).limit(10).lean();
         const lean = tags.map((tag) => ({ ...tag, _id: tag._id.toString() }));
         return NextResponse.json({ success: true, tags: lean }, { status: 200 });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return NextResponse.json({ success: false, tags: [] }, { status: 500 });
     }

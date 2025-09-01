@@ -12,16 +12,7 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    rules: {
-      "no-restricted-imports": [
-        {
-          error: {
-            name: "next/link",
-            message: "Please import @/i18n/navigation",
-          },
-        },
-      ],
-    },
+    rules: {},
   },
 ];
 

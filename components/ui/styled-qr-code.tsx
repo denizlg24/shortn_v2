@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import QRCodeStyling, { Options } from "qr-code-styling";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect } from "react";
 
 export const StyledQRCode = ({
   options,
@@ -28,9 +28,11 @@ export const StyledQRCode = ({
       });
 
       qr.append(containerRef.current);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {}
 
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       if (containerRef.current) containerRef.current!.innerHTML = "";
     };
   }, [options]);

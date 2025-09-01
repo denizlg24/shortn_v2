@@ -10,7 +10,6 @@ import {
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 export const SortingControls = ({
   label,

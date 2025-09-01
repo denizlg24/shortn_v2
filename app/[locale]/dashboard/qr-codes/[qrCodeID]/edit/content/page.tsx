@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 export default async function Home({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   params: Promise<{ locale: string; qrCodeID: string }>;
 }) {
   const { locale, qrCodeID } = await params;

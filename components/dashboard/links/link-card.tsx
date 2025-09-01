@@ -19,7 +19,6 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -38,11 +37,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
@@ -59,7 +54,6 @@ import {
   Edit2,
   Ellipsis,
   LinkIcon,
-  Loader2,
   LockIcon,
   NotepadText,
   PlusCircle,
@@ -68,7 +62,7 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -126,7 +120,7 @@ export const LinkCard = ({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -439,7 +433,7 @@ export const LinkCard = ({
                             className="w-full! max-w-full! justify-center gap-1"
                             key={tag.id}
                             value={tag.tagName}
-                            onSelect={async (val) => {
+                            onSelect={async () => {
                               const added = currentLink.tags?.some(
                                 (_tag) => _tag.id == tag.id
                               );
@@ -500,7 +494,7 @@ export const LinkCard = ({
                               tagOpenChange(false);
                             }}
                           >
-                            Create "{input}"
+                            Create &quot;{input}&quot;
                           </CommandItem>
                         )}
                       </CommandGroup>

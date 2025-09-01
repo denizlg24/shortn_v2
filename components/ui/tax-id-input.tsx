@@ -34,11 +34,7 @@ export const TaxIdInput: React.FC<TaxIdInputProps> = ({
   value,
   onChange,
   className,
-  defaultValue,
 }) => {
-  if (!value && value != "") {
-    return;
-  }
   const initialCountry = value?.slice(0, 2).toLowerCase() || "pt";
   const initialId = value?.slice(2) || "";
   const [loading, setLoading] = React.useState(true);
@@ -49,6 +45,7 @@ export const TaxIdInput: React.FC<TaxIdInputProps> = ({
       setLoading(false);
     }
   }, [value, loading]);
+
   const [countryCode, setCountryCode] = React.useState(initialCountry);
   const [input, setInput] = React.useState(initialId);
 
@@ -62,6 +59,10 @@ export const TaxIdInput: React.FC<TaxIdInputProps> = ({
     setCountryCode(code);
     onChange?.(`${code}${input}`);
   };
+
+  if (!value && value != "") {
+    return;
+  }
 
   return (
     <div className={cn("flex", className)}>

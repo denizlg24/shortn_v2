@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { ITag, tagSchema } from "./Tag";
+import { tagSchema } from "./Tag";
 import { Options, } from "qr-code-styling";
 interface ClickEntry {
     timestamp: Date;
