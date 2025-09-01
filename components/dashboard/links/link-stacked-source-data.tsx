@@ -205,8 +205,8 @@ export const LinkStackedSourceData = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle>Referrer x Time Data</CardTitle>
         <CardDescription>
-          Showing referrer by time data of short link's clicks{" "}
-          {formatHumanDateRange(dateRange, createdAt)}
+          Showing referrer by time data{" "}
+          {formatHumanDateRange(dateRange, createdAt)}.
         </CardDescription>
         <div className="w-full flex flex-row items-center gap-2 flex-wrap">
           <Popover open={open} onOpenChange={setOpen}>

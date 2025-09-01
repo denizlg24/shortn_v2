@@ -23,6 +23,7 @@ import {
   format,
   isWithinInterval,
   startOfDay,
+  subDays,
 } from "date-fns";
 export const description = "A stacked bar chart with a legend";
 
@@ -32,9 +33,7 @@ export function groupClicksByDateAndReferrer(
   endDate?: Date
 ): StackedBarData[] {
   const defaultEnd = endOfDay(new Date());
-  const defaultStart = startOfDay(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
+  const defaultStart = startOfDay(subDays(defaultEnd, 31));
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
   const rangeEnd = endDate ? endOfDay(endDate) : defaultEnd;

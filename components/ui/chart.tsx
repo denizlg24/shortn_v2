@@ -290,6 +290,7 @@ function ChartLegendContent({
       )}
     >
       {payload.map((item) => {
+        console.log(item);
         const key = `${nameKey ?? item.dataKey ?? "value"}`;
         const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
@@ -310,7 +311,7 @@ function ChartLegendContent({
                 }}
               />
             )}
-            {itemConfig?.label}
+            {itemConfig?.label ?? item.value}
           </div>
         );
       })}
