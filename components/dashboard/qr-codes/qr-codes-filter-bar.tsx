@@ -1,5 +1,5 @@
 "use client";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Command,
@@ -19,18 +19,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -50,7 +45,7 @@ import {
   X,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 export const QRCodesFilterBar = () => {
@@ -85,7 +80,7 @@ export const QRCodesFilterBar = () => {
 
   const [tags, setTags] = useState<ITag[]>([]);
 
-  const readTags = async () => {
+  const readTags = useCallback(async () => {
     let tagIds: string[] = [];
     const tagsParam = searchParams.get("tags");
     if (tagsParam) {
@@ -101,7 +96,7 @@ export const QRCodesFilterBar = () => {
       if (tag.success) finalTags.push(tag.tag);
     }
     setTags(finalTags);
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     if (!session.user) {
@@ -118,7 +113,7 @@ export const QRCodesFilterBar = () => {
       });
       return;
     }
-  }, [session.user]);
+  }, [input, readTags, session.user]);
 
   useEffect(() => {
     if (!session.user) {
@@ -146,13 +141,13 @@ export const QRCodesFilterBar = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     if (moreFiltersOpen) {
       readTags();
     }
-  }, [moreFiltersOpen]);
+  }, [moreFiltersOpen, readTags]);
 
   useEffect(() => {
     if (!session.user) {
@@ -169,7 +164,7 @@ export const QRCodesFilterBar = () => {
       }
     }
     const getTagsFromId = async () => {
-      let ts: ITag[] = [];
+      const ts: ITag[] = [];
       for (const t of tagIds) {
         const tag = await fetchApi<{ tag: ITag }>(`tags/${t}`);
         if (tag.success) ts.push(tag.tag);
@@ -178,6 +173,7 @@ export const QRCodesFilterBar = () => {
     };
 
     getTagsFromId();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams.toString(), session.user]);
 
   const applyFilters = ({
@@ -676,16 +672,16 @@ export const QRCodesFilterBar = () => {
                                 className="w-full! max-w-full! justify-center gap-1"
                                 key={tag.id}
                                 value={tag.tagName}
-                                onSelect={async (val) => {
+                                onSelect={async () => {
                                   const added = tags?.some(
                                     (_tag) => _tag.id == tag.id
                                   );
                                   if (added) {
                                     setTags((prev) => {
                                       const n = [...prev];
-                                      const index = n.findIndex((t) => {
-                                        t.id == tag.id;
-                                      });
+                                      const index = n.findIndex(
+                                        (t) => t.id == tag.id
+                                      );
                                       n.splice(index, 1);
                                       return n;
                                     });
@@ -863,16 +859,16 @@ export const QRCodesFilterBar = () => {
                                 className="w-full! max-w-full! justify-center gap-1"
                                 key={tag.id}
                                 value={tag.tagName}
-                                onSelect={async (val) => {
+                                onSelect={async () => {
                                   const added = tags?.some(
                                     (_tag) => _tag.id == tag.id
                                   );
                                   if (added) {
                                     setTags((prev) => {
                                       const n = [...prev];
-                                      const index = n.findIndex((t) => {
-                                        t.id == tag.id;
-                                      });
+                                      const index = n.findIndex(
+                                        (t) => t.id == tag.id
+                                      );
                                       n.splice(index, 1);
                                       return n;
                                     });

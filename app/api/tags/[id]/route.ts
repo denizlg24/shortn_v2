@@ -26,6 +26,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
             const lean = { ...tag, _id: tag._id.toString() };
             return NextResponse.json({ success: true, tag: lean }, { status: 200 });
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return NextResponse.json({ success: false, tag: undefined }, { status: 500 });
     }

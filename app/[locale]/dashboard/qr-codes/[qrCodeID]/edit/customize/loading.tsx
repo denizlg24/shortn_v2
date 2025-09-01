@@ -24,7 +24,7 @@ export default function Loading() {
             </p>
             <Skeleton className="w-full h-auto max-w-52 aspect-square bg-background p-4 flex flex-col" />
             <p className="text-xs text-muted-foreground">
-              This code is preview only, so don't copy it just yet.
+              This code is preview only, so don&apos;t copy it just yet.
               <br /> Your code will be generated once you finish creating it.
             </p>
           </div>

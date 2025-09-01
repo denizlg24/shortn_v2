@@ -4,7 +4,7 @@
 import { auth } from '@/auth';
 import { connectDB } from '@/lib/mongodb';
 import { User } from '@/models/auth/User';
-import QRCodeV2, { IQRCode } from '@/models/url/QRCodeV2';
+import QRCodeV2 from '@/models/url/QRCodeV2';
 import UrlV3 from '@/models/url/UrlV3';
 import { nanoid } from 'nanoid';
 import QRCodeStyling, {
@@ -12,7 +12,6 @@ import QRCodeStyling, {
 } from "qr-code-styling";
 import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
-import { addDays } from 'date-fns';
 import { ITag } from '@/models/url/Tag';
 import { fetchApi } from '@/lib/utils';
 
@@ -94,6 +93,7 @@ export async function createQrCode({
             try {
                 const url = new URL(longUrl);
                 resolvedTitle = `${url.hostname} - untitled`;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (e) {
                 resolvedTitle = `QR Code created on ${formatFallbackDate()}`;
             }
@@ -239,8 +239,9 @@ export const updateQRCodeOptions = async (codeId: string, options: Partial<Optio
             nodeCanvas,
         }
         const base64 = await generateQRCodeBase64(finalOptions);
-        const qr = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: codeId }, { options, qrCodeBase64: base64 });
+        await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: codeId }, { options, qrCodeBase64: base64 });
         return { success: true };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false };
     }
@@ -272,6 +273,7 @@ export const updateQRCodeData = async ({ qrCodeId, title, tags, applyToLink }: {
         if (qr)
             return { success: true };
         return { success: false };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false };
     }
@@ -297,6 +299,7 @@ export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
             return { success: false, message: 'error-updating' };
         }
         return { success: true };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'server-error' }
     }
@@ -320,11 +323,12 @@ export const deleteQRCode = async (qrCodeId: string) => {
         if (!foundQR) {
             return { success: true, deleted: qrCodeId };
         }
-        const foundRootURL = await UrlV3.findOneAndDelete({ sub, urlCode: foundQR.urlId, isQrCode: true });
+        await UrlV3.findOneAndDelete({ sub, urlCode: foundQR.urlId, isQrCode: true });
         if (foundQR.attachedUrl) {
-            const detachURL = await UrlV3.findOneAndUpdate({ sub, qrCodeId: foundQR.qrCodeId }, { qrCodeId: "" });
+            await UrlV3.findOneAndUpdate({ sub, qrCodeId: foundQR.qrCodeId }, { qrCodeId: "" });
         }
         return { success: true, deleted: qrCodeId };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'server-error' };
     }

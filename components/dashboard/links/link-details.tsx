@@ -11,13 +11,12 @@ import { Link } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
+import { LinkTimeByDateData } from "./link-time-by-date-data";
 
 export const LinkDetails = ({
-  urlCode,
   url,
   qr,
 }: {
-  urlCode: string;
   url: IUrl;
   qr: IQRCode | undefined;
 }) => {
@@ -36,8 +35,20 @@ export const LinkDetails = ({
           <LinkDetailsCard currentLink={url} />
           <LinkAdditionsCard qrCode={qr} url={url} />
           <LinkTimeAnalytics
-            unlocked={session.user.plan.subscription != "free"}
+            unlocked={
+              session.user.plan.subscription == "plus" ||
+              session.user.plan.subscription == "pro"
+            }
             linkData={url}
+            createdAt={url.date}
+          />
+          <LinkTimeByDateData
+            unlocked={
+              session.user.plan.subscription == "plus" ||
+              session.user.plan.subscription == "pro"
+            }
+            linkData={url}
+            createdAt={url.date}
           />
           <LinkLocationAnalytics
             unlocked={

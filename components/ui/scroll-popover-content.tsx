@@ -16,6 +16,7 @@ export const ScrollPopoverContent = React.forwardRef<
   const localRef = React.useRef<HTMLDivElement | null>(null);
 
   const handleOpenAutoFocus = (e: Event) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onOpenAutoFocus?.(e as any);
 
     if (!localRef.current) return;
@@ -42,6 +43,7 @@ export const ScrollPopoverContent = React.forwardRef<
       ref={(node) => {
         localRef.current = node;
         if (typeof ref === "function") ref(node);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         else if (ref) (ref as React.MutableRefObject<any>).current = node;
       }}
       onOpenAutoFocus={handleOpenAutoFocus}

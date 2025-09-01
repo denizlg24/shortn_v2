@@ -1,19 +1,11 @@
 import { IUrl } from "@/models/url/UrlV3";
-import { LinkTimeBarChart } from "./charts/link-time-bar-chart";
-import {
-  format,
-  eachDayOfInterval,
-  isWithinInterval,
-  subMonths,
-  startOfDay,
-  endOfDay,
-} from "date-fns";
+
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { Button } from "@/components/ui/button";
+
 import {
   AppWindowMac,
   Earth,
@@ -26,7 +18,7 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { useState } from "react";
-import { DateRange } from "react-day-picker";
+
 import { DataTable } from "../tables/location-table/data-table";
 import {
   aggregateClicksByLocation,
@@ -117,7 +109,7 @@ export const LinkLocationAnalytics = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle>Advanced data</CardTitle>
         <CardDescription>
-          Showing advanced data of short link's clicks
+          Showing advanced data of short link&apos;s clicks
         </CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">

@@ -4,13 +4,12 @@ import { attachQRToShortn } from "@/app/actions/linkActions";
 import { createQrCode } from "@/app/actions/qrCodeActions";
 import { Button } from "@/components/ui/button";
 import InputColor from "@/components/ui/color-input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
-import { Loader2, LucideLink, QrCode } from "lucide-react";
+import { Loader2, LucideLink } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useState } from "react";
 
@@ -761,7 +760,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
           <StyledQRCode className="w-full" options={options} />
         </div>
         <p className="text-xs text-muted-foreground">
-          This code is preview only, so don't copy it just yet.
+          This code is preview only, so don&apos;t copy it just yet.
           <br /> Your code will be generated once you finish creating it.
         </p>
       </div>

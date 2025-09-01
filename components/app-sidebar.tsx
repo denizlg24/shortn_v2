@@ -4,12 +4,10 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
 import {
@@ -25,18 +23,15 @@ import { Link, usePathname } from "@/i18n/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Separator } from "./ui/separator";
-import { IPlan } from "@/models/auth/User";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { User } from "next-auth";
 import { useUser } from "@/utils/UserContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const AppSidebar = () => {
   const session = useUser();

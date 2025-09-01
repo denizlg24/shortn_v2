@@ -5,7 +5,7 @@ export default function NotFound() {
         <div className="col-span-2 w-full flex flex-col md:items-start items-center md:text-left text-center gap-4">
           <h1 className="font-bold text-4xl">Oops!</h1>
           <h2 className="text-xl">
-            This link doesn't seem to exist. If you think this is a mistake
+            This link doesn&apos;t seem to exist. If you think this is a mistake
             contact us.
           </h2>
         </div>

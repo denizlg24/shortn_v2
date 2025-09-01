@@ -62,8 +62,8 @@ export const RecoverPassword = () => {
           Forgot your password?
         </h1>
         <h2 className="lg:text-lg md:text-base text-sm">
-          No problem, we'll send you a link to recover it easily through your
-          email.
+          No problem, we&apos;ll send you a link to recover it easily through
+          your email.
         </h2>
       </div>
       <Form {...form}>

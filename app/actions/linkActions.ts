@@ -4,8 +4,7 @@
 import { auth } from '@/auth';
 import { connectDB } from '@/lib/mongodb';
 import { User } from '@/models/auth/User';
-import UrlV3, { IUrl } from '@/models/url/UrlV3';
-import { addDays } from 'date-fns';
+import UrlV3 from '@/models/url/UrlV3';
 import { nanoid } from 'nanoid';
 import { UAParser } from 'ua-parser-js';
 import { isbot } from 'isbot';
@@ -86,6 +85,7 @@ export async function createShortn({
             try {
                 const url = new URL(longUrl);
                 resolvedTitle = `${url.hostname} - untitled`;
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
             } catch (e) {
                 resolvedTitle = `Shortn created on ${formatFallbackDate()}`;
             }
@@ -181,24 +181,13 @@ export async function createShortn({
                 title: newUrl.title,
             },
         };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return {
             success: false,
             message: "server-error"
         }
     }
-}
-
-interface IFilters {
-    tags: string[];
-    customLink: "all" | "on" | "off";
-    attachedQR: "all" | "on" | "off";
-    sortBy: "date_asc" | "date_desc" | "clicks_asc" | "clicks_desc";
-    query: string;
-    page: number;
-    limit: number;
-    startDate?: Date;
-    endDate?: Date;
 }
 
 export const getShortn = async (urlCode: string) => {
@@ -220,6 +209,7 @@ export const getShortn = async (urlCode: string) => {
         }
         const filtered = { ...url, _id: url._id.toString(), tags: url.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })) };
         return { success: true, url: filtered };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, url: undefined };
     }
@@ -243,6 +233,7 @@ export const attachQRToShortn = async (urlCode: string, qrCodeId: string) => {
             return { success: false, message: 'error-updating' };
         }
         return { success: true };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'server-error' }
     }
@@ -266,9 +257,10 @@ export const deleteShortn = async (urlCode: string) => {
             return { success: true, deleted: urlCode };
         }
         if (foundURL.qrCodeId) {
-            const detachQR = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: foundURL.qrCodeId }, { attachedUrl: "" });
+            await QRCodeV2.findOneAndUpdate({ sub, qrCodeId: foundURL.qrCodeId }, { attachedUrl: "" });
         }
         return { success: true, deleted: urlCode };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: 'server-error' };
     }
@@ -305,6 +297,7 @@ export const updateShortnData = async ({ urlCode, title, tags, custom_code, appl
         if (custom_code && dbUser.plan.subscription != "pro") {
             return { success: false, message: 'custom-restricted' }
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const updateQuery: Record<string, any> = {}
         updateQuery.title = title;
         updateQuery.tags = tags;
@@ -325,6 +318,7 @@ export const updateShortnData = async ({ urlCode, title, tags, custom_code, appl
         if (url)
             return { success: true, urlCode: url.urlCode };
         return { success: false };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false };
     }

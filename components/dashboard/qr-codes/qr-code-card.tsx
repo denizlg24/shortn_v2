@@ -1,15 +1,11 @@
 import {
-  addTagToLink,
   addTagToQRCode,
   createAndAddTagToQRCode,
-  createAndAddTagToUrl,
-  removeTagFromLink,
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -20,11 +16,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
@@ -37,8 +29,6 @@ import {
   Calendar,
   ChartNoAxesColumn,
   Check,
-  Copy,
-  CopyCheck,
   CornerDownRight,
   Download,
   Edit2,
@@ -46,15 +36,12 @@ import {
   LinkIcon,
   Loader2,
   LockIcon,
-  NotepadText,
   Palette,
   PlusCircle,
-  QrCode,
-  Share2,
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useTransition, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogClose,
@@ -101,7 +88,6 @@ export const QRCodeCard = ({
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [notFound, setNotFound] = useState(false);
-  const [fetching, startTransition] = useTransition();
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -137,7 +123,7 @@ export const QRCodeCard = ({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -297,7 +283,7 @@ export const QRCodeCard = ({
                                 }
                               }
                               if (response.success && response.data) {
-                                const update = await attachShortnToQR(
+                                await attachShortnToQR(
                                   response.data.shortUrl,
                                   qrCode.qrCodeId
                                 );
@@ -502,7 +488,7 @@ export const QRCodeCard = ({
                                 className="w-full! max-w-full! justify-center gap-1"
                                 key={tag.id}
                                 value={tag.tagName}
-                                onSelect={async (val) => {
+                                onSelect={async () => {
                                   const added = currentQrCode.tags?.some(
                                     (_tag) => _tag.id == tag.id
                                   );
@@ -551,22 +537,20 @@ export const QRCodeCard = ({
                                 className="w-full! max-w-full! justify-center gap-1"
                                 key={input}
                                 value={input}
-                                onSelect={() => {
-                                  startTransition(async () => {
-                                    const { success, tag } =
-                                      await createAndAddTagToQRCode(
-                                        input,
-                                        currentQrCode.qrCodeId
-                                      );
-                                    setInput("");
-                                    if (success && tag) {
-                                      currentQrCode.tags?.push(tag);
-                                    }
-                                    tagOpenChange(false);
-                                  });
+                                onSelect={async () => {
+                                  const { success, tag } =
+                                    await createAndAddTagToQRCode(
+                                      input,
+                                      currentQrCode.qrCodeId
+                                    );
+                                  setInput("");
+                                  if (success && tag) {
+                                    currentQrCode.tags?.push(tag);
+                                  }
+                                  tagOpenChange(false);
                                 }}
                               >
-                                Create "{input}"
+                                Create &quot;{input}&quot;
                               </CommandItem>
                             )}
                           </CommandGroup>
@@ -712,7 +696,7 @@ export const QRCodeCard = ({
                               }
                             }
                             if (response.success && response.data) {
-                              const update = await attachShortnToQR(
+                              await attachShortnToQR(
                                 response.data.shortUrl,
                                 qrCode.qrCodeId
                               );
@@ -919,7 +903,7 @@ export const QRCodeCard = ({
                           }
                         }
                         if (response.success && response.data) {
-                          const update = await attachShortnToQR(
+                          await attachShortnToQR(
                             response.data.shortUrl,
                             qrCode.qrCodeId
                           );

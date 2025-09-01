@@ -26,6 +26,7 @@ export const getShortn = async (urlCode: string) => {
       tags: url.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
     };
     return { success: true, url: filtered };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return { success: false, url: undefined };
   }
@@ -54,6 +55,7 @@ export const getQRCode = async (codeID: string) => {
       tags: qr.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
     };
     return { success: true, qr: filtered };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return { success: false, qr: undefined };
   }

@@ -112,7 +112,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
       });
       return;
     }
-  }, [session.user]);
+  }, [input, session.user]);
 
   useEffect(() => {
     if (!session.user) {
@@ -144,7 +144,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input]);
+  }, [input, session.user]);
 
   useEffect(() => {
     const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
@@ -331,16 +331,16 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={tag.id}
                               value={tag.tagName}
-                              onSelect={async (val) => {
+                              onSelect={async () => {
                                 const added = tags?.some(
                                   (_tag) => _tag.id == tag.id
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
-                                    const index = n.findIndex((t) => {
-                                      t.id == tag.id;
-                                    });
+                                    const index = n.findIndex(
+                                      (t) => t.id == tag.id
+                                    );
                                     n.splice(index, 1);
                                     return n;
                                   });
@@ -382,7 +382,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 }
                               }}
                             >
-                              Create "{input}"
+                              Create &quot;{input}&quot;
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -449,16 +449,16 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                               className="w-full! max-w-full! justify-center gap-1"
                               key={tag.id}
                               value={tag.tagName}
-                              onSelect={async (val) => {
+                              onSelect={async () => {
                                 const added = tags?.some(
                                   (_tag) => _tag.id == tag.id
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
-                                    const index = n.findIndex((t) => {
-                                      t.id == tag.id;
-                                    });
+                                    const index = n.findIndex(
+                                      (t) => t.id == tag.id
+                                    );
                                     n.splice(index, 1);
                                     return n;
                                   });
@@ -500,7 +500,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 }
                               }}
                             >
-                              Create "{input}"
+                              Create &quot;{input}&quot;
                             </CommandItem>
                           )}
                         </CommandGroup>

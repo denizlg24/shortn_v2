@@ -32,7 +32,7 @@ export const VerificationHolder = ({
     };
 
     verify();
-  }, []);
+  }, [email, token]);
 
   switch (verificationResult) {
     case "true":

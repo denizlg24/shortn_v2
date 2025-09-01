@@ -3,7 +3,7 @@
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { Popover, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import { CiGlobe } from "react-icons/ci";
 import { routing } from "@/i18n/routing";

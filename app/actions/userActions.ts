@@ -47,6 +47,7 @@ export const createAccount = async ({ email, password, username, displayName, lo
         } else {
             return { success: false, error: "verification-token" };
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, error: "server-error" };
     }
@@ -67,6 +68,7 @@ export async function deleteProfilePicture(sub: string, oldPic: string) {
             return { success };
         }
         return { success: false, message: 'error-deleting' }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (e) {
         return { success: false, message: 'server-error' };
     }
@@ -117,6 +119,7 @@ export async function getUser() {
             }
         }
         return { success: false, user: null };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, user: null };
     }
@@ -142,6 +145,7 @@ export async function recoverPassword(token: string, password: string) {
             return { success: true };
         }
         return { success: false, message: "error-updating" };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: "server-error" };
     }
@@ -253,6 +257,7 @@ export async function updateEmail(newEmail: string) {
             return { success: true, message: null };
         }
         return { success: false, message: "error-updating" }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: "server-error" };
     }
@@ -266,6 +271,7 @@ export async function updateUserField(sub: string, field: string, value: unknown
             return { success: true, message: null };
         }
         return { success: false, message: "user-not-found" }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: "server-error" }
     }
@@ -290,6 +296,7 @@ export async function verifyEmail(email: string, token: string) {
             return { success: true };
         }
         return { success: false, message: "error-updating" };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: "server-error" };
     }

@@ -2,13 +2,7 @@
 
 import { getUser } from "@/app/actions/userActions";
 import { User } from "next-auth";
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 
 type UserContextType = {
   user: User | null;

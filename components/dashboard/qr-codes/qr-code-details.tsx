@@ -7,6 +7,7 @@ import { ChevronLeft } from "lucide-react";
 import { QRCodeDetailsCard } from "./qr-code-details-card";
 import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
 import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
+import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 
 export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
   const session = useUser();
@@ -26,8 +27,17 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
           </Button>
           <QRCodeDetailsCard qrCode={qr} />
           <QRCodeTimeAnalytics
+            createdAt={qr.date}
             unlocked={session.user.plan.subscription != "free"}
-            qrCodeData={qr}
+            linkData={qr}
+          />
+          <QRCodeTimeByDateData
+            unlocked={
+              session.user.plan.subscription == "plus" ||
+              session.user.plan.subscription == "pro"
+            }
+            linkData={qr}
+            createdAt={qr.date}
           />
           <QRCodeLocationAnalytics
             unlocked={

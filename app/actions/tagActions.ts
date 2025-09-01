@@ -40,6 +40,7 @@ export async function createAndAddTagToUrl(tagName: string, urlCode: string) {
     const exists = url.tags?.some(t => t.tagName === tag?.tagName);
     if (!exists) {
         await UrlV3.findOneAndUpdate({ urlCode, sub }, { $push: { tags: tag } });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tagDocument = { tagName: tag.tagName, id: tag.id, sub: tag.sub, _id: (tag._id as any).toString() };
         return { success: true, tag: tagDocument };
     }
@@ -80,6 +81,7 @@ export async function createAndAddTagToQRCode(tagName: string, qrCodeId: string)
     const exists = qrCode.tags?.some(t => t.tagName === tag?.tagName);
     if (!exists) {
         await QRCodeV2.findOneAndUpdate({ qrCodeId, sub }, { $push: { tags: tag } });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const tagDocument = { tagName: tag.tagName, id: tag.id, sub: tag.sub, _id: (tag._id as any).toString() };
         return { success: true, tag: tagDocument };
     }
@@ -151,6 +153,7 @@ export async function removeTagFromLink(
         }
 
         return { success: true };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
         return { success: false, message: 'server-error' };
     }
@@ -183,6 +186,7 @@ export async function removeTagFromQRCode(
         }
 
         return { success: true };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
         return { success: false, message: 'server-error' };
     }
@@ -202,7 +206,7 @@ export async function createTag(tagName: string) {
 
     await connectDB();
 
-    let tag = await Tag.findOne({ tagName, sub });
+    const tag = await Tag.findOne({ tagName, sub });
 
     if (!tag) {
         const newId = nanoid(6);
@@ -212,6 +216,7 @@ export async function createTag(tagName: string) {
             id: newId,
         });
         if (newTag) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             return { success: true, tag: { sub, tagName, id: newId, _id: (newTag._id as any).toString() } }
         }
         return { success: false, message: 'server-error' };

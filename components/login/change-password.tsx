@@ -6,8 +6,6 @@ import z from "zod";
 
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useLocale } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { recoverPassword } from "@/app/actions/userActions";
 import {
@@ -37,8 +35,6 @@ const resetFormSchema = z
   });
 
 export const ChangePassword = ({ token }: { token: string }) => {
-  const locale = useLocale();
-  const router = useRouter();
   const [loading, setLoading] = useState(0);
   const [showPassword, toggleShowPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
@@ -69,8 +65,8 @@ export const ChangePassword = ({ token }: { token: string }) => {
           Update your password
         </h1>
         <h2 className="lg:text-lg md:text-base text-sm">
-          No problem, we'll send you a link to recover it easily through your
-          email.
+          No problem, we&apos;ll send you a link to recover it easily through
+          your email.
         </h2>
       </div>
       <Form {...form}>

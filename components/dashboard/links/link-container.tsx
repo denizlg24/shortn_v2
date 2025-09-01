@@ -79,7 +79,7 @@ export const LinkContainer = ({
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You've reached the end of your links
+                You&apos;ve reached the end of your links
               </p>
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
             </div>
@@ -89,7 +89,7 @@ export const LinkContainer = ({
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You've reached the end of your links
+            You&apos;ve reached the end of your links
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

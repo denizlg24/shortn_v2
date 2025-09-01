@@ -1,13 +1,7 @@
 "use client";
-import { ClickEntry, IUrl } from "@/models/url/UrlV3";
-import {
-  format,
-  startOfDay,
-  endOfDay,
-  isSameDay,
-  eachDayOfInterval,
-  isWithinInterval,
-} from "date-fns";
+import { IUrl } from "@/models/url/UrlV3";
+
+import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import {
   HoverCard,
   HoverCardContent,
@@ -33,51 +27,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  groupClicksByDateAndTimeBuckets,
+  TimeOfDayStackedBarChart,
+} from "./charts/time-of-day-stacked-bar-chart";
 
-import { QRCodeTimeBarChart } from "../qr-codes/charts/qr-code-time-bar-chart";
-
-export const getEngagementOverTimeData = (
-  entries: ClickEntry[],
-  startDate?: Date,
-  endDate?: Date
-) => {
-  const defaultEnd = endOfDay(new Date());
-  const defaultStart = new Date(
-    new Date().getFullYear(),
-    new Date().getMonth() - 2,
-    1
-  );
-
-  const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
-  const rangeEnd = endDate ? endOfDay(endDate) : defaultEnd;
-
-  const grouped: Record<string, number> = {};
-
-  for (const click of entries) {
-    if (
-      isWithinInterval(click.timestamp, { start: rangeStart, end: rangeEnd })
-    ) {
-      const dateKey = format(click.timestamp, "yyyy-MM-dd");
-      if (!grouped[dateKey]) {
-        grouped[dateKey] = 1;
-      } else {
-        grouped[dateKey]++;
-      }
-    }
-  }
-
-  const allDates = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
-
-  return allDates.map((date) => {
-    const key = format(date, "yyyy-MM-dd");
-    return {
-      date: key,
-      scans: grouped[key] ?? 0,
-    };
-  });
-};
-
-export const LinkTimeAnalytics = ({
+export const LinkTimeByDateData = ({
   unlocked,
   linkData,
   createdAt,
@@ -186,7 +141,7 @@ export const LinkTimeAnalytics = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Engagements over Time
+            Engagements over Time and Date
           </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
@@ -202,7 +157,7 @@ export const LinkTimeAnalytics = ({
                   >
                     Upgrade
                   </Link>{" "}
-                  to see Engagements over Time data.
+                  to see Engagements over Time and Date data.
                 </p>
               </div>
             </HoverCardContent>
@@ -219,17 +174,19 @@ export const LinkTimeAnalytics = ({
     );
   }
 
-  const groupedData = getEngagementOverTimeData(
+  const groupedData = groupClicksByDateAndTimeBuckets(
     linkData.clicks.all,
+    6,
     dateRange?.from,
     dateRange?.to
   );
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Engagements over Time</CardTitle>
+        <CardTitle>Engagements over Time and Date</CardTitle>
         <CardDescription>
-          Showing engagement data {formatHumanDateRange(dateRange, createdAt)}.
+          Showing engagements over time and date data{" "}
+          {formatHumanDateRange(dateRange, createdAt)}.
         </CardDescription>
         <div className="w-full flex flex-row items-center gap-2 flex-wrap">
           <Popover open={open} onOpenChange={setOpen}>
@@ -322,7 +279,7 @@ export const LinkTimeAnalytics = ({
               <DialogHeader className="px-4">
                 <DialogTitle>Select start date</DialogTitle>
                 <DialogDescription>
-                  Select the date from which to start displaying scan data.
+                  Select the date from which to start displaying click data.
                 </DialogDescription>
               </DialogHeader>
               <Calendar
@@ -384,7 +341,7 @@ export const LinkTimeAnalytics = ({
                   <DialogHeader className="px-4">
                     <DialogTitle>Select end date</DialogTitle>
                     <DialogDescription>
-                      Select the date from which to stop displaying scan data.
+                      Select the date from which to stop displaying click data.
                     </DialogDescription>
                   </DialogHeader>
                   <Calendar
@@ -447,7 +404,7 @@ export const LinkTimeAnalytics = ({
         </div>
       </div>
       <div className="w-full flex flex-col gap-2">
-        <QRCodeTimeBarChart chartData={groupedData} />
+        <TimeOfDayStackedBarChart chartData={groupedData} />
       </div>
     </div>
   );

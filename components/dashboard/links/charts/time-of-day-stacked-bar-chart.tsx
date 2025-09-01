@@ -1,5 +1,5 @@
 "use client";
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+
 import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartConfig,
@@ -11,93 +11,94 @@ import {
 } from "@/components/ui/chart";
 import { ClickEntry } from "@/models/url/UrlV3";
 import {
-  eachDayOfInterval,
-  endOfDay,
-  format,
-  isWithinInterval,
   startOfDay,
-  subDays,
+  endOfDay,
+  isWithinInterval,
+  eachDayOfInterval,
+  format,
+  getHours,
 } from "date-fns";
-export const description = "A stacked bar chart with a legend";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-export function groupClicksByDateAndReferrer(
+export type TimeOfDayStackBarData = {
+  date: string;
+  [time: string]: number | string;
+};
+
+export function groupClicksByDateAndTimeBuckets(
   clicks: ClickEntry[],
+  bucketSizeHours = 6,
   startDate?: Date,
   endDate?: Date
-): StackedBarData[] {
+): TimeOfDayStackBarData[] {
   const defaultEnd = endOfDay(new Date());
-  const defaultStart = startOfDay(subDays(defaultEnd, 31));
+  const defaultStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth() - 2,
+    1
+  );
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
   const rangeEnd = endDate ? endOfDay(endDate) : defaultEnd;
 
-  const counts: Record<string, Record<string, number>> = {};
-  const allReferrers = new Set<string>();
+  const bucketsPerDay = Math.ceil(24 / bucketSizeHours);
 
-  // Group clicks by date and referrer
+  // grouped data: { [date]: { [bucket]: count } }
+  const grouped: Record<string, Record<string, number>> = {};
+
+  const getBucketLabel = (hour: number) => {
+    const bucketIndex = Math.floor(hour / bucketSizeHours);
+    const startHour = bucketIndex * bucketSizeHours;
+    const endHour = startHour + bucketSizeHours;
+    return `${startHour.toString().padStart(2, "0")}:00-${endHour
+      .toString()
+      .padStart(2, "0")}:00`;
+  };
+
   for (const click of clicks) {
     if (
-      !isWithinInterval(new Date(click.timestamp), {
-        start: rangeStart,
-        end: rangeEnd,
-      })
+      isWithinInterval(click.timestamp, { start: rangeStart, end: rangeEnd })
     ) {
-      continue;
+      const dateKey = format(click.timestamp, "yyyy-MM-dd");
+      const hour = getHours(click.timestamp);
+      const bucketLabel = getBucketLabel(hour);
+
+      if (!grouped[dateKey]) grouped[dateKey] = {};
+      if (!grouped[dateKey][bucketLabel]) grouped[dateKey][bucketLabel] = 0;
+
+      grouped[dateKey][bucketLabel]++;
     }
-
-    const dateKey = format(new Date(click.timestamp), "yyyy-MM-dd");
-
-    let ref = click.referrer?.trim();
-    if (!ref) {
-      ref = "direct";
-    } else {
-      try {
-        const url = new URL(ref);
-        ref = url.hostname.replace(/^www\./, "");
-      } catch {
-        ref = ref.replace(/^www\./, "");
-      }
-    }
-
-    allReferrers.add(ref);
-
-    if (!counts[dateKey]) counts[dateKey] = {};
-    counts[dateKey][ref] = (counts[dateKey][ref] ?? 0) + 1;
   }
 
-  // Generate all dates in the interval
   const allDates = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
 
-  // Build final array with missing dates/referrers filled with 0
   return allDates.map((date) => {
     const key = format(date, "yyyy-MM-dd");
-    const refData = counts[key] ?? {};
+    const buckets: Record<string, number> = {};
 
-    const entry: StackedBarData = { date: key };
-    allReferrers.forEach((ref) => {
-      entry[ref] = refData[ref] ?? 0;
-    });
+    for (let i = 0; i < bucketsPerDay; i++) {
+      const startHour = i * bucketSizeHours;
+      const endHour = startHour + bucketSizeHours;
+      const label = `${startHour.toString().padStart(2, "0")}:00-${endHour
+        .toString()
+        .padStart(2, "0")}:00`;
 
-    return entry;
+      buckets[label] = grouped[key]?.[label] ?? 0;
+    }
+
+    return { date: key, ...buckets };
   });
 }
 
-function generateChartConfig(data: StackedBarData[]) {
-  const referrerKeys = Object.keys(data[0]).filter((k) => k !== "date");
+function generateChartConfig(data: TimeOfDayStackBarData[]) {
+  const timeOfDayKeys = Object.keys(data[0]).filter((k) => k !== "date");
 
   return Object.fromEntries(
-    referrerKeys.map((key, i) => {
-      const label =
-        key === "direct"
-          ? "direct"
-          : key.length > 20
-          ? key.slice(0, 17) + "…"
-          : key;
-
+    timeOfDayKeys.map((key, i) => {
       return [
         key,
         {
-          label,
+          key,
           color: `var(--chart-${(i % 5) + 1})`,
         },
       ];
@@ -105,18 +106,15 @@ function generateChartConfig(data: StackedBarData[]) {
   ) satisfies ChartConfig;
 }
 
-export type StackedBarData = {
-  date: string;
-  [referrer: string]: number | string;
-};
+export const description = "A stacked bar chart with a legend";
 
-export function ReferrerStackedBarChart({
+export function TimeOfDayStackedBarChart({
   chartData,
 }: {
-  chartData: StackedBarData[];
+  chartData: TimeOfDayStackBarData[];
 }) {
   if (!chartData.length) return null;
-  const referrerKeys = Array.from(
+  const timeOfDayKeys = Array.from(
     chartData.reduce((acc, d) => {
       Object.keys(d).forEach((k) => {
         if (k !== "date") acc.add(k);
@@ -128,7 +126,10 @@ export function ReferrerStackedBarChart({
   return (
     <Card className="border-none p-0 shadow-none w-full">
       <CardContent className="p-0">
-        <ChartContainer config={chartConfig}>
+        <ChartContainer
+          className="h-[250px] w-full aspect-auto"
+          config={chartConfig}
+        >
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -146,7 +147,7 @@ export function ReferrerStackedBarChart({
             />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <ChartLegend content={<ChartLegendContent />} />
-            {referrerKeys.map((key, i) => (
+            {timeOfDayKeys.map((key, i) => (
               <Bar
                 key={key}
                 dataKey={key}

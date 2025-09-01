@@ -43,6 +43,7 @@ export async function getStripeExtraInfo(stripeId: string) {
             tax_id = taxIds.data[0].value;
         }
         return { phone_number, tax_id };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { phone_number: "", tax_id: "" }
     }
@@ -60,7 +61,7 @@ export async function updatePhone(stripeId: string, phone: string) {
                 message: 'no-user',
             };
         }
-        const customer = await stripe.customers.update(
+        await stripe.customers.update(
             stripeId,
             {
                 phone
@@ -93,12 +94,12 @@ export async function updateTaxId(stripeId: string, tax_id: string) {
             }
         );
         if (taxIds.data && taxIds.data.length > 0) {
-            const deleted = await stripe.customers.deleteTaxId(
+            await stripe.customers.deleteTaxId(
                 stripeId,
                 taxIds.data[0].id
             );
         }
-        const taxId = await stripe.customers.createTaxId(
+        await stripe.customers.createTaxId(
             stripeId,
             {
                 type: 'eu_vat',

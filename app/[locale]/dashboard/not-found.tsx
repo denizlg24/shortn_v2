@@ -9,7 +9,7 @@ export default function NotFound() {
         <div className="col-span-2 w-full flex flex-col md:items-start items-center md:text-left text-center gap-4">
           <h1 className="font-bold text-4xl">Oops!</h1>
           <h2 className="text-xl">
-            We can't seem to find the resource you're looking for.
+            We can&apos;t seem to find the resource you&apos;re looking for.
           </h2>
           <p>Error code: 404</p>
           <div className="flex flex-col gap-1 text-sm">

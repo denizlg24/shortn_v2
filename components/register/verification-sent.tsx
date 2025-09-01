@@ -36,7 +36,7 @@ export const VerificationSentComponent = ({ email }: { email: string }) => {
     <div className="flex flex-col items-start max-w-sm mx-auto gap-4 text-center">
       <MailCheck className="text-green-600 w-12 h-12 mx-auto" />
       <h1 className="lg:text-2xl md:text-lg sm:text-base text-sm font-bold text-left">
-        We've sent you an email!
+        We&apos;ve sent you an email!
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs font-normal text-left">
         Check your inbox{" "}
@@ -44,7 +44,9 @@ export const VerificationSentComponent = ({ email }: { email: string }) => {
         get your account verified to use shortn.
       </h2>
       <div className="w-full flex flex-row items-end justify-start gap-1 ">
-        <p className="text-sm align-text-bottom">Didn't receive an email?</p>
+        <p className="text-sm align-text-bottom">
+          Didn&apos;t receive an email?
+        </p>
         <Button
           type="button"
           onClick={async () => {

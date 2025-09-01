@@ -13,15 +13,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Hamburger from "hamburger-react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "./collapsible";
+
 import {
   BarChart,
-  ChevronDown,
   Contact,
   HelpCircle,
   LinkIcon,
@@ -36,7 +30,6 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -52,7 +45,6 @@ import {
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setOpen] = useState(false);
-  const [isToursBurgerOpen, setToursBurgerOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => {

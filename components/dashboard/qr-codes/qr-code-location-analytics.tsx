@@ -1,4 +1,3 @@
-import { IUrl } from "@/models/url/UrlV3";
 import {
   HoverCard,
   HoverCardContent,
@@ -29,11 +28,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import en from "i18n-iso-countries/langs/en.json";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { getDataTitle } from "../links/link-location-analytics";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 export const QRCodeLocationAnalytics = ({
   unlocked,
@@ -99,7 +93,7 @@ export const QRCodeLocationAnalytics = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle>Advanced Data</CardTitle>
         <CardDescription>
-          Showing advanced data of qr code's scans
+          Showing advanced data of qr code&apos;s scans
         </CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">
