@@ -1,13 +1,8 @@
-import { NavigationBarContainer } from "@/components/dashboard/settings/navigation-bar-container";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
 
-export default function Home({
-  params,
-}: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
-}) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function Home({ params }: { params: any }) {
   const { locale } = use<{
     locale: string;
   }>(params);

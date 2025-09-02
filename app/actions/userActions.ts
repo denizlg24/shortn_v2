@@ -195,7 +195,6 @@ export async function sendRecoveryEmail(email: string, locale: string) {
 }
 
 import { VerificationToken } from "@/models/auth/Token";
-import { CONFIG_FILES } from "next/dist/shared/lib/constants";
 
 export async function sendVerificationEmail(email: string, locale: string) {
     await connectDB();

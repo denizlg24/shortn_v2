@@ -6,7 +6,7 @@ import {
 } from "postcode-validator";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, ClockFading, Loader2 } from "lucide-react";
 import {
@@ -128,7 +128,7 @@ export const BillingCard = ({
       return false;
     };
 
-    let updated: Record<string, boolean> = {};
+    const updated: Record<string, boolean> = {};
 
     // --- Tax ID
     if (

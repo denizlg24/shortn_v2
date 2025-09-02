@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   //  AlertCircle,
@@ -52,7 +52,6 @@ import { deleteProfilePicture } from "@/app/actions/userActions";
 import { signOutUser } from "@/app/actions/signOut";
 import { updateEmail } from "@/app/actions/userActions";
 import { sendVerificationEmail } from "@/app/actions/userActions";
-import { IUser } from "@/models/auth/User";
 //import { checkVAT, countries } from "jsvat";
 //import Stripe from "stripe";
 //import {
@@ -250,7 +249,7 @@ export const ProfileCard = ({
       return false;
     };
 
-    let updated = [0, 0, 0];
+    const updated = [0, 0, 0];
 
     {
       /*if (

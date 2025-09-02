@@ -21,7 +21,6 @@ import { cn } from "@/lib/utils";
 
 // assets
 import { ChevronDown, CheckIcon, Globe } from "lucide-react";
-import { CircleFlag } from "react-circle-flags";
 
 // data
 import { countries } from "country-data-list";

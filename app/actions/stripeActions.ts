@@ -104,8 +104,8 @@ export async function updateTaxId(stripeId: string, tax_id: string) {
         const country = countries.find(c => tax_id.startsWith(c.codes[0]));
         let stripe_type = 'eu_vat';
         if (country) {
-            const stripeType = mapJsvatToStripe(country.codes[0]);
-            console.log(stripeType);
+            stripe_type = mapJsvatToStripe(country.codes[0]);
+            console.log(stripe_type);
         }
         await stripe.customers.createTaxId(
             stripeId,

@@ -1,4 +1,3 @@
-import { NavigationBarContainer } from "@/components/dashboard/settings/navigation-bar-container";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
 import { setRequestLocale } from "next-intl/server";
 import { use } from "react";
