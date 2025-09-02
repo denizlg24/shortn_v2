@@ -4,7 +4,7 @@
 import { connectDB } from "@/lib/mongodb";
 import { generateUniqueId } from "@/lib/utils";
 import { User } from "@/models/auth/User";
-import bcrypt from "bcryptjs";
+import bcrypt, { compareSync } from "bcryptjs";
 import { createFreePlan } from "./stripeActions";
 
 export const createAccount = async ({ email, password, username, displayName, locale }: { email: string, password: string, username: string, displayName: string, locale: string }) => {
@@ -60,7 +60,7 @@ export async function deleteProfilePicture(sub: string, oldPic: string) {
 
     try {
         await connectDB();
-        const { success } = await updateUserField(sub, "profilePicture", "");
+        const { success } = await updateUserField("profilePicture", "");
         if (success) {
             if (oldPic.startsWith(`https://${env.PINATA_GATEWAY}`)) {
                 await deletePicture(oldPic);
@@ -195,6 +195,7 @@ export async function sendRecoveryEmail(email: string, locale: string) {
 }
 
 import { VerificationToken } from "@/models/auth/Token";
+import { CONFIG_FILES } from "next/dist/shared/lib/constants";
 
 export async function sendVerificationEmail(email: string, locale: string) {
     await connectDB();
@@ -263,11 +264,27 @@ export async function updateEmail(newEmail: string) {
     }
 }
 
-export async function updateUserField(sub: string, field: string, value: unknown) {
+export async function updateUserField(field: string, value: unknown) {
     try {
+        const session = await auth();
+        const user = session?.user;
+
+        if (!user) {
+            return {
+                success: false,
+                message: 'no-user',
+            };
+        }
         await connectDB();
-        const user = await User.findOneAndUpdate({ sub }, { [field]: value });
-        if (user) {
+        const sub = user?.sub;
+        if (field == 'username') {
+            const duplicateUser = await User.findOne({ username: value });
+            if (duplicateUser) {
+                return { success: false, message: 'duplicate' };
+            }
+        }
+        const foundUser = await User.findOneAndUpdate({ sub }, { [field]: value });
+        if (foundUser) {
             return { success: true, message: null };
         }
         return { success: false, message: "user-not-found" }
@@ -296,6 +313,34 @@ export async function verifyEmail(email: string, token: string) {
             return { success: true };
         }
         return { success: false, message: "error-updating" };
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+        return { success: false, message: "server-error" };
+    }
+}
+
+export async function updatePassword({ old, newPassword }: { old: string, newPassword: string }) {
+    try {
+        const session = await auth();
+        if (!session?.user) {
+            throw new Error("unauthenticated");
+        }
+        await connectDB();
+        const user = await User.findOne({ sub: session.user.sub });
+        if (!user) {
+            return { success: false, message: "user-not-found" };
+        }
+        const verifyOld = compareSync(old, user.password);
+        if (!verifyOld) {
+            return { success: false, message: "password-incorrect" };
+        }
+
+        const hashedPassword = hashSync(newPassword, 10);
+        const updated = await User.findOneAndUpdate({ sub: session.user.sub }, { password: hashedPassword });
+        if (updated) {
+            return { success: true };
+        }
+        return { success: false, message: "server-error" };
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
         return { success: false, message: "server-error" };

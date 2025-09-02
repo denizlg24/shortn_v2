@@ -4,6 +4,8 @@
 import Stripe from "stripe";
 import env from "@/utils/env";
 import { auth } from "@/auth";
+import { countries } from "jsvat";
+import { mapJsvatToStripe } from "@/lib/utils";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
@@ -99,10 +101,16 @@ export async function updateTaxId(stripeId: string, tax_id: string) {
                 taxIds.data[0].id
             );
         }
+        const country = countries.find(c => tax_id.startsWith(c.codes[0]));
+        let stripe_type = 'eu_vat';
+        if (country) {
+            const stripeType = mapJsvatToStripe(country.codes[0]);
+            console.log(stripeType);
+        }
         await stripe.customers.createTaxId(
             stripeId,
             {
-                type: 'eu_vat',
+                type: stripe_type as Stripe.CustomerCreateTaxIdParams.Type,
                 value: tax_id,
             }
         );
@@ -113,4 +121,57 @@ export async function updateTaxId(stripeId: string, tax_id: string) {
         }
         return { success: false, message: "server-error" }
     }
+}
+
+export async function getTaxVerification(stripeId: string) {
+    const taxIds = await stripe.customers.listTaxIds(
+        stripeId,
+        {
+            limit: 1,
+        }
+    );
+    if (taxIds.data && taxIds.data.length > 0) {
+        return taxIds.data[0].verification ?? undefined
+    }
+    return undefined;
+}
+
+export async function getUserAddress(stripeId: string) {
+    const customer = await stripe.customers.retrieve(stripeId);
+    if (!customer.deleted) {
+        const address = customer.address ?? undefined;
+        return address;
+    }
+    return undefined;
+}
+
+export async function updateUserAddress(stripeId: string, address: {
+    line1: string | undefined,
+    line2: string | undefined,
+    city: string | undefined,
+    country: string | undefined,
+    postal_code: string | undefined
+}) {
+    try {
+        const customer = await stripe.customers.update(
+            stripeId,
+            {
+                address: {
+                    line1: address.line1 ?? undefined,
+                    line2: address.line2 ?? undefined,
+                    city: address.city ?? undefined,
+                    country: address.country ?? undefined,
+                    postal_code: address.postal_code ?? undefined
+                }
+            }
+        );
+        if (customer) {
+            return { success: true }
+        } else {
+            return { success: false, message: 'not-found' }
+        }
+    } catch {
+        return { success: false, message: "server-error" };
+    }
+
 }
