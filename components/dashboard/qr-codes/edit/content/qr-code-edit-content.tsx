@@ -72,7 +72,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
 
-  const [tags, setTags] = useState<ITag[]>([]);
+  const [tags, setTags] = useState<ITag[]>((qrCode.tags as ITag[]) || []);
 
   const [notFound, setNotFound] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
@@ -307,6 +307,26 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                         </CommandGroup>
                       </CommandList>
                     </Command>
+                    {tags != qrCode.tags && (
+                      <div className="w-full flex flex-row items-center gap-2 justify-start px-2 pb-2 -mt-2">
+                        <Button
+                          onClick={() => {
+                            setOpen(false);
+                          }}
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          variant={"secondary"}
+                          onClick={() => {
+                            setTags(qrCode.tags as ITag[]);
+                            setOpen(false);
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    )}
                   </DialogContent>
                 </Dialog>
               ) : (

@@ -3,9 +3,17 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
+import {
+  //  AlertCircle,
+  //  CheckCircle,
+  CheckCircle2,
+  //  ClockFading,
+  Loader2,
+  Trash2,
+  Upload,
+} from "lucide-react";
 import {
   Form,
   FormControl,
@@ -26,8 +34,8 @@ import pt from "react-phone-number-input/locale/pt";
 import es from "react-phone-number-input/locale/es";
 import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { updateTaxId } from "@/app/actions/stripeActions";
-import { TaxIdInput } from "@/components/ui/tax-id-input";
+//import { getTaxVerification, updateTaxId } from "@/app/actions/stripeActions";
+//import { TaxIdInput } from "@/components/ui/tax-id-input";
 import { toast } from "sonner";
 import { updatePhone } from "@/app/actions/stripeActions";
 import {
@@ -44,6 +52,13 @@ import { deleteProfilePicture } from "@/app/actions/userActions";
 import { signOutUser } from "@/app/actions/signOut";
 import { updateEmail } from "@/app/actions/userActions";
 import { sendVerificationEmail } from "@/app/actions/userActions";
+//import { checkVAT, countries } from "jsvat";
+//import Stripe from "stripe";
+//import {
+//  HoverCard,
+//  HoverCardContent,
+//  HoverCardTrigger,
+//} from "@/components/ui/hover-card";
 
 const updateEmailFormSchema = z.object({
   email: z
@@ -65,7 +80,17 @@ const updateProfileFormSchema = z.object({
       /^[a-zA-Z0-9_]+$/,
       "Only letters, numbers, and underscores are allowed"
     ),
-  "tax-id": z.string(),
+  /*"tax-id": z.string().refine(
+    (val) => {
+      if (val) {
+        return checkVAT(val, countries).isValid;
+      }
+      return true;
+    },
+    {
+      message: "Must be a valid tax number",
+    }
+  ),*/
   phone: z.string().refine(
     (t) => {
       if (t) return isValidPhoneNumber(t);
@@ -75,7 +100,29 @@ const updateProfileFormSchema = z.object({
   ),
 });
 
-export const ProfileCard = () => {
+export const ProfileCard = ({
+  user,
+}: {
+  user: {
+    id: string;
+    sub: string;
+    email: string;
+    displayName: string;
+    profilePicture: string | undefined;
+    stripeId: string;
+    username: string;
+    emailVerified: boolean;
+    createdAt: Date;
+    plan: {
+      subscription: string;
+      lastPaid: Date;
+    };
+    links_this_month: number;
+    qr_codes_this_month: number;
+    phone_number: string;
+    tax_id: string;
+  };
+}) => {
   const locale = useLocale();
   const localeMap = {
     en: en,
@@ -83,13 +130,16 @@ export const ProfileCard = () => {
     es: es,
   };
 
-  const { user, refresh, loading } = useUser();
+  const { refresh, loading } = useUser();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [changesLoading, setChangesLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [removing, setRemoving] = useState(false);
+  /*const [verification, setVerification] = useState<
+    Stripe.TaxId.Verification | undefined
+  >(undefined);*/
   const handleClick = () => {
     inputRef.current?.click();
   };
@@ -112,13 +162,10 @@ export const ProfileCard = () => {
       setUploading(true);
       const { success, url } = await uploadImage(file);
       if (success && url) {
-        const { success } = await updateUserField(
-          user.sub,
-          "profilePicture",
-          url
-        );
+        const { success } = await updateUserField("profilePicture", url);
         if (success) {
           toast.success("Profile picture has been updated!");
+          user.profilePicture = url as string;
           await refresh();
         } else {
           toast.success("There was a problem updating profile picture.");
@@ -133,7 +180,7 @@ export const ProfileCard = () => {
     defaultValues: {
       fullName: user?.displayName || "",
       username: user?.username || "",
-      "tax-id": user?.tax_id || "",
+      //"tax-id": user?.tax_id || "",
       phone: user?.phone_number || "",
     },
   });
@@ -177,7 +224,7 @@ export const ProfileCard = () => {
     setChangesLoading(true);
 
     const updateField = async (
-      field: "tax-id" | "phone",
+      field: "phone",
       updater: (
         stripeId: string,
         value: string
@@ -202,15 +249,17 @@ export const ProfileCard = () => {
       return false;
     };
 
-    let updated = 0;
+    const updated = [0, 0, 0];
 
-    if (
+    {
+      /*if (
       await updateField("tax-id", updateTaxId, {
         invalid: "Your tax ID is not valid.",
         server: "There was a problem updating your tax ID.",
       })
     ) {
       updated++;
+    }*/
     }
 
     if (
@@ -219,29 +268,67 @@ export const ProfileCard = () => {
         server: "There was a problem updating your phone number.",
       })
     ) {
-      updated++;
+      user.phone_number = values.phone;
+      updated[2] = 1;
+    }
+    if (form.getFieldState("username").isDirty) {
+      const { success, message } = await updateUserField(
+        "username",
+        values.username
+      );
+      if (success) {
+        user.username = values.username;
+        updated[1] = 1;
+      } else {
+        form.setError("username", {
+          type: "manual",
+          message:
+            message === "server-error"
+              ? "There was a problem updating your username."
+              : message == "duplicate"
+              ? "That username is already taken."
+              : "Your username is not valid.",
+        });
+      }
+    }
+    if (form.getFieldState("fullName").isDirty) {
+      const { success, message } = await updateUserField(
+        "displayName",
+        values.fullName
+      );
+      if (success) {
+        user.displayName = values.fullName;
+        updated[0] = 1;
+      } else {
+        form.setError("fullName", {
+          type: "manual",
+          message:
+            message === "server-error"
+              ? "There was a problem updating your display name."
+              : "That display name is invalid.",
+        });
+      }
     }
 
-    if (updated > 0) {
+    if (updated.some((a) => a == 1)) {
       toast.success("Your profile has been updated!");
       await refresh();
+      const resetValues: Record<string, unknown> = {
+        fullName: updated[0] == 1 ? user.displayName || "" : values.fullName,
+        username: updated[1] == 1 ? user.username || "" : values.username,
+        phone: updated[2] == 1 ? user.phone_number || "" : values.phone,
+      };
+      form.reset(resetValues, {
+        keepErrors: true,
+        keepDirty: false,
+        keepTouched: true,
+      });
     }
 
     setChangesLoading(false);
   }
 
-  useEffect(() => {
-    if (user) {
-      form.reset({
-        fullName: user.displayName || "",
-        username: user.username || "",
-        "tax-id": user.tax_id || "",
-        phone: user.phone_number || "",
-      });
-    }
-  }, [form, user]);
-
-  if (!user || loading) {
+  if (loading) {
     return (
       <div className="w-full flex flex-col">
         <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
@@ -276,10 +363,6 @@ export const ProfileCard = () => {
             <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
             <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
           </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
         </div>
       </div>
     );
@@ -299,7 +382,7 @@ export const ProfileCard = () => {
           {user.profilePicture && (
             <AvatarImage
               className="object-cover"
-              src={user.profilePicture}
+              src={user.profilePicture != "" ? user.profilePicture : undefined}
               alt={user.displayName}
             />
           )}
@@ -397,24 +480,54 @@ export const ProfileCard = () => {
               </FormItem>
             )}
           />
-          <FormField
+          {/*<FormField
             control={form.control}
             name="tax-id"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel className="gap-1">
-                  Tax Number
-                  <span className="text-xs text-muted-foreground">
-                    (EU only)
-                  </span>
-                </FormLabel>
+              <FormItem className="relative">
+                <FormLabel className="gap-1">Tax Number</FormLabel>
                 <FormControl>
                   <TaxIdInput {...field} />
                 </FormControl>
+                {verification && (
+                  <div className="absolute top-8 right-2 z-10">
+                    {verification.status == "verified" && (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <CheckCircle className="text-green-600 w-4 h-4" />
+                        </HoverCardTrigger>
+                        <HoverCardContent className="p-2 text-sm w-fit">
+                          <p>Tax number verified.</p>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                    {verification.status == "pending" && (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <ClockFading className="text-amber-600 w-4 h-4" />
+                        </HoverCardTrigger>
+                        <HoverCardContent className="p-2 text-sm w-fit">
+                          <p>Tax number pending.</p>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                    {verification.status == "unverified" && (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <AlertCircle className="text-red-600 w-4 h-4" />
+                        </HoverCardTrigger>
+                        <HoverCardContent className="p-2 text-sm w-fit">
+                          <p>Tax number not verified.</p>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                  </div>
+                )}
                 <FormMessage />
               </FormItem>
             )}
-          />
+                    />*/}
+
           <FormField
             control={form.control}
             name="username"
@@ -446,18 +559,36 @@ export const ProfileCard = () => {
               </FormItem>
             )}
           />
-          {form.formState.isDirty && (
-            <Button disabled={changesLoading}>
-              {changesLoading ? (
-                <>
-                  <Loader2 className="animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>Save Changes</>
-              )}
-            </Button>
-          )}
+          <div className="grid xs:grid-cols-2 grid-cols-1 w-full col-span-full gap-6 gap-y-2">
+            {form.formState.isDirty && (
+              <>
+                <Button type="submit" disabled={changesLoading}>
+                  {changesLoading ? (
+                    <>
+                      <Loader2 className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>Save Changes</>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    form.reset({
+                      fullName: user.displayName || "",
+                      username: user.username || "",
+                      //"tax-id": user.tax_id || "",
+                      phone: user.phone_number || "",
+                    });
+                  }}
+                  variant={"outline"}
+                >
+                  Cancel
+                </Button>
+              </>
+            )}
+          </div>
         </form>
       </Form>
       <Separator className="my-4" />
@@ -492,7 +623,7 @@ export const ProfileCard = () => {
           <Separator className="col-span-full" />
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="mt-2">Update Email</Button>
+              <Button className="mt-2 w-fit">Update Email</Button>
             </DialogTrigger>
             <DialogContent className="z-99">
               <DialogHeader>
