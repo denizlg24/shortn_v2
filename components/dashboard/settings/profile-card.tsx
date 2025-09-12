@@ -3,7 +3,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   //  AlertCircle,
@@ -101,9 +101,9 @@ const updateProfileFormSchema = z.object({
 });
 
 export const ProfileCard = ({
-  user,
+  initialUser,
 }: {
-  user: {
+  initialUser: {
     id: string;
     sub: string;
     email: string;
@@ -137,6 +137,25 @@ export const ProfileCard = ({
   const [uploading, setUploading] = useState(false);
   const [updatingEmail, setUpdatingEmail] = useState(false);
   const [removing, setRemoving] = useState(false);
+  const [user, setUser] = useState<{
+    id: string;
+    sub: string;
+    email: string;
+    displayName: string;
+    profilePicture: string | undefined;
+    stripeId: string;
+    username: string;
+    emailVerified: boolean;
+    createdAt: Date;
+    plan: {
+      subscription: string;
+      lastPaid: Date;
+    };
+    links_this_month: number;
+    qr_codes_this_month: number;
+    phone_number: string;
+    tax_id: string;
+  }>(initialUser);
   /*const [verification, setVerification] = useState<
     Stripe.TaxId.Verification | undefined
   >(undefined);*/
@@ -165,7 +184,10 @@ export const ProfileCard = ({
         const { success } = await updateUserField("profilePicture", url);
         if (success) {
           toast.success("Profile picture has been updated!");
-          user.profilePicture = url as string;
+          setUser((prev) => ({
+            ...prev,
+            profilePicture: url as string,
+          }));
           await refresh();
         } else {
           toast.success("There was a problem updating profile picture.");
@@ -261,14 +283,14 @@ export const ProfileCard = ({
       updated++;
     }*/
     }
-
+    const updateFields: Record<string, string> = {};
     if (
       await updateField("phone", updatePhone, {
         invalid: "Your phone number is not valid.",
         server: "There was a problem updating your phone number.",
       })
     ) {
-      user.phone_number = values.phone;
+      updateFields["phone_number"] = values.phone;
       updated[2] = 1;
     }
     if (form.getFieldState("username").isDirty) {
@@ -277,7 +299,7 @@ export const ProfileCard = ({
         values.username
       );
       if (success) {
-        user.username = values.username;
+        updateFields["username"] = values.username;
         updated[1] = 1;
       } else {
         form.setError("username", {
@@ -297,7 +319,7 @@ export const ProfileCard = ({
         values.fullName
       );
       if (success) {
-        user.displayName = values.fullName;
+        updateFields["displayName"] = values.fullName;
         updated[0] = 1;
       } else {
         form.setError("fullName", {
@@ -313,20 +335,23 @@ export const ProfileCard = ({
     if (updated.some((a) => a == 1)) {
       toast.success("Your profile has been updated!");
       await refresh();
-      const resetValues: Record<string, unknown> = {
-        fullName: updated[0] == 1 ? user.displayName || "" : values.fullName,
-        username: updated[1] == 1 ? user.username || "" : values.username,
-        phone: updated[2] == 1 ? user.phone_number || "" : values.phone,
-      };
-      form.reset(resetValues, {
-        keepErrors: true,
-        keepDirty: false,
-        keepTouched: true,
-      });
+      setUser((prev) => ({
+        ...prev,
+        ...updateFields,
+      }));
     }
 
     setChangesLoading(false);
   }
+
+  useEffect(() => {
+    form.reset(user, {
+      keepErrors: true,
+      keepDirty: false,
+      keepTouched: false,
+      keepDirtyValues:false,
+    });
+  }, [form, user]);
 
   if (loading) {
     return (
@@ -480,54 +505,6 @@ export const ProfileCard = ({
               </FormItem>
             )}
           />
-          {/*<FormField
-            control={form.control}
-            name="tax-id"
-            render={({ field }) => (
-              <FormItem className="relative">
-                <FormLabel className="gap-1">Tax Number</FormLabel>
-                <FormControl>
-                  <TaxIdInput {...field} />
-                </FormControl>
-                {verification && (
-                  <div className="absolute top-8 right-2 z-10">
-                    {verification.status == "verified" && (
-                      <HoverCard>
-                        <HoverCardTrigger>
-                          <CheckCircle className="text-green-600 w-4 h-4" />
-                        </HoverCardTrigger>
-                        <HoverCardContent className="p-2 text-sm w-fit">
-                          <p>Tax number verified.</p>
-                        </HoverCardContent>
-                      </HoverCard>
-                    )}
-                    {verification.status == "pending" && (
-                      <HoverCard>
-                        <HoverCardTrigger>
-                          <ClockFading className="text-amber-600 w-4 h-4" />
-                        </HoverCardTrigger>
-                        <HoverCardContent className="p-2 text-sm w-fit">
-                          <p>Tax number pending.</p>
-                        </HoverCardContent>
-                      </HoverCard>
-                    )}
-                    {verification.status == "unverified" && (
-                      <HoverCard>
-                        <HoverCardTrigger>
-                          <AlertCircle className="text-red-600 w-4 h-4" />
-                        </HoverCardTrigger>
-                        <HoverCardContent className="p-2 text-sm w-fit">
-                          <p>Tax number not verified.</p>
-                        </HoverCardContent>
-                      </HoverCard>
-                    )}
-                  </div>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-                    />*/}
-
           <FormField
             control={form.control}
             name="username"

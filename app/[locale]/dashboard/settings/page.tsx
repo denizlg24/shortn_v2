@@ -14,5 +14,5 @@ export default async function Home({
   if (!success || !user) {
     notFound();
   }
-  return <ProfileCard user={user} />;
+  return <ProfileCard initialUser={user} />;
 }

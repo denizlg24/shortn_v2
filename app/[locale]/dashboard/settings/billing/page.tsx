@@ -23,6 +23,6 @@ export default async function Home({
     getTaxVerification(user.stripeId),
   ]);
   return (
-    <BillingCard user={user} address={address} verification={verification} />
+    <BillingCard initialUser={user} initialAddress={address} initialVerification={verification} />
   );
 }
