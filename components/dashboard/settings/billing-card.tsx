@@ -6,7 +6,7 @@ import {
 } from "postcode-validator";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, ClockFading, Loader2 } from "lucide-react";
 import {
@@ -71,20 +71,23 @@ const updateBillingSchema = z
   );
 
 export const BillingCard = ({
-  user,
-  address,
-  verification,
+  initialUser,
+  initialAddress,
+  initialVerification,
 }: {
-  user: {
+  initialUser: {
     tax_id: string | undefined;
     phone_number: string | undefined;
     stripeId: string;
   };
-  address: Stripe.Address | undefined;
-  verification: Stripe.TaxId.Verification | undefined;
+  initialAddress: Stripe.Address | undefined;
+  initialVerification: Stripe.TaxId.Verification | undefined;
 }) => {
   const { refresh, loading } = useUser();
   const [changesLoading, setChangesLoading] = useState(false);
+  const [user, setUser] = useState(initialUser);
+  const [address, setAddress] = useState(initialAddress);
+  const [verification, setVerification] = useState(initialVerification);
   const updateBillingForm = useForm<z.infer<typeof updateBillingSchema>>({
     resolver: zodResolver(updateBillingSchema),
     defaultValues: {
@@ -138,8 +141,6 @@ export const BillingCard = ({
       })
     ) {
       updated["tax-id"] = true;
-      user.tax_id = values["tax-id"];
-      verification = await getTaxVerification(user.stripeId);
     }
 
     // --- Address
@@ -153,14 +154,6 @@ export const BillingCard = ({
       });
 
     if (addrSuccess) {
-      address = {
-        line1: values.line1,
-        line2: values.line2 || null,
-        country: values.country,
-        postal_code: values.postal_code,
-        city: values.city,
-        state: null,
-      };
       updated["address"] = true;
     } else {
       // Attach error to postal_code (main culprit), but you could spread to all
@@ -176,27 +169,48 @@ export const BillingCard = ({
     // --- Handle success/failure
     if (Object.keys(updated).length > 0) {
       toast.success("Your profile has been updated!");
-
-      // Build reset values: keep failed fields as-is
-      const resetValues = {
-        "tax-id": updated["tax-id"] ? values["tax-id"] : values["tax-id"],
-        line1: values.line1,
-        line2: values.line2,
-        country: values.country,
-        postal_code: values.postal_code,
-        city: values.city,
-      };
-
-      updateBillingForm.reset(resetValues, {
-        keepErrors: true,
-        keepDirty: false,
-        keepTouched: true,
-      });
-
       await refresh();
+      if (updated["tax-id"]) {
+        setUser((prev) => ({
+          ...prev,
+          tax_id: values["tax-id"],
+        }));
+        const newVerification = await getTaxVerification(user.stripeId);
+        setVerification(newVerification);
+      }
+      if (updated["address"]) {
+        setAddress((prev) => ({
+          ...prev,
+          line1: values.line1,
+          line2: values.line2 || null,
+          country: values.country,
+          postal_code: values.postal_code,
+          city: values.city,
+          state: null,
+        }));
+      }
     }
     setChangesLoading(false);
   }
+
+  useEffect(() => {
+    updateBillingForm.reset(
+      {
+        "tax-id": user.tax_id,
+        line1: address?.line1 || "",
+        line2: address?.line2 || "",
+        city: address?.city || "",
+        postal_code: address?.postal_code || "",
+        country: address?.country || "",
+      },
+      {
+        keepErrors: true,
+        keepDirty: false,
+        keepTouched: false,
+        keepDirtyValues: false,
+      }
+    );
+  }, [user, address, updateBillingForm]);
 
   if (loading) {
     return (
