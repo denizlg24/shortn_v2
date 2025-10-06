@@ -29,15 +29,15 @@ import {
   groupClicksByDateAndTimeBuckets,
   TimeOfDayStackedBarChart,
 } from "../links/charts/time-of-day-stacked-bar-chart";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { ClickEntry } from "@/models/url/Click";
 
 export const QRCodeTimeByDateData = ({
   unlocked,
-  linkData,
+  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  linkData: IQRCode;
+  clicks:ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -174,7 +174,7 @@ export const QRCodeTimeByDateData = ({
   }
 
   const groupedData = groupClicksByDateAndTimeBuckets(
-    linkData.clicks.all,
+    clicks,
     6,
     dateRange?.from,
     dateRange?.to

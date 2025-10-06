@@ -484,18 +484,16 @@ export const QRCodeCreate = ({
                     }));
                   }}
                   className={cn(
-                    "col-span-1 w-full aspect-square h-full xs:p-2! p-1! rounded!",
+                    "col-span-1 w-full aspect-square! h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "extra-rounded" &&
                       "border-2 border-primary"
                   )}
                 >
-                  <div className="w-full h-auto aspect-square">
-                    <Image
-                      src={BASE6}
-                      alt="border-preview"
-                      className="w-full h-auto aspect-square! object-contain"
-                    />
-                  </div>
+                  <Image
+                    src={BASE6}
+                    alt="border-preview"
+                    className="w-full h-auto aspect-square! object-contain"
+                  />
                 </Button>
               </div>
             </div>

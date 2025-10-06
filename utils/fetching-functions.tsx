@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import Clicks from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 
@@ -31,6 +32,48 @@ export const getShortn = async (urlCode: string) => {
     return { success: false, url: undefined };
   }
 };
+
+export const getClicks = async (urlCode:string) => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const clicks = await Clicks.find({urlCode,sub,type:'click'}).lean();
+    const filtered = clicks.map((click) => ({...click,_id:(click._id as any).toString()}));
+    return filtered;
+  } catch (error) {
+    return [];
+  }
+}
+
+export const getScans = async (qrCodeId:string) => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const clicks = await Clicks.find({urlCode:qrCodeId,sub,type:'scan'}).lean();
+    const filtered = clicks.map((click) => ({...click,_id:(click._id as any).toString()}));
+    return filtered;
+  } catch (error) {
+    return [];
+  }
+}
 
 export const getQRCode = async (codeID: string) => {
   try {

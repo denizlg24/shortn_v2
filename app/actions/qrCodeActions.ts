@@ -14,6 +14,7 @@ import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
 import { ITag } from '@/models/url/Tag';
 import { fetchApi } from '@/lib/utils';
+import Clicks from '@/models/url/Click';
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
@@ -320,6 +321,7 @@ export const deleteQRCode = async (qrCodeId: string) => {
 
         const sub = user.sub;
         const foundQR = await QRCodeV2.findOneAndDelete({ qrCodeId, sub });
+        await Clicks.deleteMany({urlCode:qrCodeId,type:'scan'});
         if (!foundQR) {
             return { success: true, deleted: qrCodeId };
         }

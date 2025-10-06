@@ -8,8 +8,9 @@ import { QRCodeDetailsCard } from "./qr-code-details-card";
 import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
 import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
 import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
+import { ClickEntry } from "@/models/url/Click";
 
-export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
+export const QRCodeDetails = ({ qr,clicks }: { qr: IQRCode,clicks:ClickEntry[] }) => {
   const session = useUser();
 
   return (
@@ -29,14 +30,14 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
           <QRCodeTimeAnalytics
             createdAt={qr.date}
             unlocked={session.user.plan.subscription != "free"}
-            linkData={qr}
+            clicks={clicks}
           />
           <QRCodeTimeByDateData
             unlocked={
               session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
             }
-            linkData={qr}
+            clicks={clicks}
             createdAt={qr.date}
           />
           <QRCodeLocationAnalytics
@@ -47,7 +48,7 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
                 ? "location"
                 : "none"
             }
-            linkData={qr}
+            clicks={clicks}
           />
         </>
       )}

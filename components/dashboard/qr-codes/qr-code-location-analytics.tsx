@@ -26,15 +26,15 @@ import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
-import { IQRCode } from "@/models/url/QRCodeV2";
 import { getDataTitle } from "../links/link-location-analytics";
+import { ClickEntry } from "@/models/url/Click";
 
 export const QRCodeLocationAnalytics = ({
   unlocked,
-  linkData,
+  clicks,
 }: {
   unlocked: "none" | "location" | "all";
-  linkData: IQRCode;
+  clicks: ClickEntry[];
 }) => {
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
@@ -81,10 +81,10 @@ export const QRCodeLocationAnalytics = ({
     );
   }
 
-  const transformed = linkData.clicks.all.map((click) => ({
+  const transformed = clicks.map((click) => ({
     ...click,
     country: click.country ? countries.getName(click.country, "en") : undefined,
-  }));
+  })) as ClickEntry[];
 
   const data = aggregateClicksByLocation(transformed, selected);
 

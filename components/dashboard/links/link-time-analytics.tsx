@@ -1,5 +1,4 @@
 "use client";
-import { ClickEntry, IUrl } from "@/models/url/UrlV3";
 import {
   format,
   startOfDay,
@@ -35,6 +34,7 @@ import {
 } from "@/components/ui/dialog";
 
 import { QRCodeTimeBarChart } from "../qr-codes/charts/qr-code-time-bar-chart";
+import { ClickEntry } from "@/models/url/Click";
 
 export const getEngagementOverTimeData = (
   entries: ClickEntry[],
@@ -79,11 +79,11 @@ export const getEngagementOverTimeData = (
 
 export const LinkTimeAnalytics = ({
   unlocked,
-  linkData,
+  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  linkData: IUrl;
+  clicks: ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -220,7 +220,7 @@ export const LinkTimeAnalytics = ({
   }
 
   const groupedData = getEngagementOverTimeData(
-    linkData.clicks.all,
+    clicks,
     dateRange?.from,
     dateRange?.to
   );

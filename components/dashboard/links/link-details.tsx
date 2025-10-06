@@ -12,14 +12,17 @@ import { ChevronLeft } from "lucide-react";
 import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
 import { LinkTimeByDateData } from "./link-time-by-date-data";
+import { ClickEntry } from "@/models/url/Click";
 
 export const LinkDetails = ({
   url,
   qr,
+  clicks
 }: {
   url: IUrl;
   qr: IQRCode | undefined;
-}) => {
+  clicks:ClickEntry[];
+  }) => {
   const session = useUser();
 
   return (
@@ -39,7 +42,7 @@ export const LinkDetails = ({
               session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
             }
-            linkData={url}
+            clicks={clicks}
             createdAt={url.date}
           />
           <LinkTimeByDateData
@@ -47,7 +50,7 @@ export const LinkDetails = ({
               session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
             }
-            linkData={url}
+            clicks={clicks}
             createdAt={url.date}
           />
           <LinkLocationAnalytics
@@ -58,16 +61,16 @@ export const LinkDetails = ({
                 ? "location"
                 : "none"
             }
-            linkData={url}
+            clicks={clicks}
           />
           <div className="w-full grid lg:grid-cols-2 grid-cols-1 gap-4">
             <LinkSourceData
               unlocked={session.user.plan.subscription == "pro"}
-              linkData={url}
+              clicks={clicks}
             />
             <LinkStackedSourceData
               unlocked={session.user.plan.subscription == "pro"}
-              linkData={url}
+              clicks={clicks}
               createdAt={url.date}
             />
           </div>

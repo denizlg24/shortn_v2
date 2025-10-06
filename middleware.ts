@@ -39,7 +39,7 @@ export async function middleware(request: NextRequest) {
             const { longUrl } = await res.json();
 
             if (longUrl) {
-                return NextResponse.redirect(longUrl);
+                return NextResponse.redirect(longUrl,301);
             }
             return NextResponse.redirect(new URL(`/${request.cookies.get('NEXT_LOCALE')?.value || 'en'}/url-not-found`, request.nextUrl));
         } catch (error) {

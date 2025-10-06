@@ -25,17 +25,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { IQRCode } from "@/models/url/QRCodeV2";
 import { getEngagementOverTimeData } from "../links/link-time-analytics";
 import { QRCodeTimeBarChart } from "./charts/qr-code-time-bar-chart";
+import { ClickEntry } from "@/models/url/Click";
 
 export const QRCodeTimeAnalytics = ({
   unlocked,
-  linkData,
+  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  linkData: IQRCode;
+  clicks: ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -172,7 +172,7 @@ export const QRCodeTimeAnalytics = ({
   }
 
   const groupedData = getEngagementOverTimeData(
-    linkData.clicks.all,
+    clicks,
     dateRange?.from,
     dateRange?.to
   );

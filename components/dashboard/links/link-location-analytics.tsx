@@ -1,5 +1,3 @@
-import { IUrl } from "@/models/url/UrlV3";
-
 import {
   HoverCard,
   HoverCardContent,
@@ -29,6 +27,7 @@ import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
+import { ClickEntry } from "@/models/url/Click";
 
 export function getDataTitle(
   selected: "country" | "city" | "device" | "browser" | "os"
@@ -49,10 +48,10 @@ export function getDataTitle(
 
 export const LinkLocationAnalytics = ({
   unlocked,
-  linkData,
+  clicks,
 }: {
   unlocked: "none" | "location" | "all";
-  linkData: IUrl;
+  clicks: ClickEntry[];
 }) => {
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
@@ -97,10 +96,10 @@ export const LinkLocationAnalytics = ({
     );
   }
 
-  const transformed = linkData.clicks.all.map((click) => ({
+  const transformed = clicks.map((click) => ({
     ...click,
     country: click.country ? countries.getName(click.country, "en") : undefined,
-  }));
+  })) as ClickEntry[];
 
   const data = aggregateClicksByLocation(transformed, selected);
 

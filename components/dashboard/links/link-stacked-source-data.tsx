@@ -1,5 +1,4 @@
 "use client";
-import { IUrl } from "@/models/url/UrlV3";
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import {
   HoverCard,
@@ -31,14 +30,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ClickEntry } from "@/models/url/Click";
 
 export const LinkStackedSourceData = ({
   unlocked,
-  linkData,
+ clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  linkData: IUrl;
+ clicks: ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -175,7 +175,7 @@ export const LinkStackedSourceData = ({
   }
 
   const groupedData = groupClicksByDateAndReferrer(
-    linkData.clicks.all,
+    clicks,
     dateRange?.from,
     dateRange?.to
   );

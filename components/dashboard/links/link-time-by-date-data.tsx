@@ -1,5 +1,4 @@
 "use client";
-import { IUrl } from "@/models/url/UrlV3";
 
 import { format, startOfDay, endOfDay, isSameDay } from "date-fns";
 import {
@@ -31,14 +30,15 @@ import {
   groupClicksByDateAndTimeBuckets,
   TimeOfDayStackedBarChart,
 } from "./charts/time-of-day-stacked-bar-chart";
+import { ClickEntry } from "@/models/url/Click";
 
 export const LinkTimeByDateData = ({
   unlocked,
-  linkData,
+  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  linkData: IUrl;
+  clicks: ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -175,7 +175,7 @@ export const LinkTimeByDateData = ({
   }
 
   const groupedData = groupClicksByDateAndTimeBuckets(
-    linkData.clicks.all,
+    clicks,
     6,
     dateRange?.from,
     dateRange?.to

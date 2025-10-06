@@ -1,5 +1,3 @@
-import { IUrl } from "@/models/url/UrlV3";
-
 import {
   HoverCard,
   HoverCardContent,
@@ -14,13 +12,14 @@ import {
   aggregateReferrers,
   ReferrerDonutChart,
 } from "./charts/referrer-donut-chart";
+import { ClickEntry } from "@/models/url/Click";
 
 export const LinkSourceData = ({
   unlocked,
-  linkData,
+  clicks,
 }: {
   unlocked: boolean;
-  linkData: IUrl;
+  clicks: ClickEntry[];
 }) => {
   if (!unlocked) {
     return (
@@ -60,7 +59,7 @@ export const LinkSourceData = ({
     );
   }
 
-  const data = aggregateReferrers(linkData.clicks.all);
+  const data = aggregateReferrers(clicks);
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">

@@ -9,7 +9,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { ClickEntry } from "@/models/url/UrlV3";
+import { ClickEntry } from "@/models/url/Click";
 import {
   startOfDay,
   endOfDay,
