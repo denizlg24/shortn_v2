@@ -15,7 +15,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { DataTable } from "../tables/location-table/data-table";
 import {
@@ -28,6 +28,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
 import { ClickEntry } from "@/models/url/Click";
+import { useClicks } from "@/utils/ClickDataContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function getDataTitle(
   selected: "country" | "city" | "device" | "browser" | "os"
@@ -48,16 +50,16 @@ export function getDataTitle(
 
 export const LinkLocationAnalytics = ({
   unlocked,
-  clicks,
 }: {
   unlocked: "none" | "location" | "all";
-  clicks: ClickEntry[];
 }) => {
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
   >("country");
   countries.registerLocale(en);
-
+  const { getClicks } = useClicks();
+  const [loading,setLoading] = useState(true);
+  const [clicks,setClicks] = useState<ClickEntry[]>([]);
   if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -94,6 +96,114 @@ export const LinkLocationAnalytics = ({
         </div>
       </div>
     );
+  }
+  useEffect(() => {
+    getClicks(undefined, undefined,setClicks,setLoading);
+  }, []);
+  if(loading){
+    return <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-1 items-start">
+      <CardTitle>Advanced data</CardTitle>
+      <CardDescription>
+        Showing advanced data of short link&apos;s clicks
+      </CardDescription>
+    </div>
+    <div className="w-full flex flex-col gap-2">
+    <Tabs
+          value={selected}
+          onValueChange={(e) => {
+            setSelected(e as "country" | "city" | "device" | "browser" | "os");
+          }}
+        >
+          <TabsList className="w-full sm:max-w-md">
+            <TabsTrigger className="h-fit!" value="country">
+              <Earth />
+              Countries
+            </TabsTrigger>
+            <TabsTrigger className="h-fit!" value="city">
+              <MapPinned />
+              Cities
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="device"
+            >
+              <MonitorSmartphone />
+              Device
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="browser"
+            >
+              <Globe />
+              Browser
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative sm:flex hidden"
+              value="os"
+            >
+              <AppWindowMac />
+              OS
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Tabs
+          value={selected}
+          onValueChange={(e) => {
+            setSelected(e as "device" | "browser" | "os");
+          }}
+        >
+          <TabsList className="w-full sm:hidden flex">
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="device"
+            >
+              <MonitorSmartphone />
+              Device
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="browser"
+            >
+              <Globe />
+              Browser
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              disabled={unlocked == "location"}
+              className="h-fit! relative"
+              value="os"
+            >
+              <AppWindowMac />
+              OS
+              {unlocked == "location" && (
+                <Lock className="w-3! h-3! absolute -top-2 -right-2" />
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Skeleton className="w-full h-[120px]"/>
+    </div>
+    </div>
   }
 
   const transformed = clicks.map((click) => ({

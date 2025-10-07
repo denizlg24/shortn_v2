@@ -11,7 +11,7 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -30,21 +30,23 @@ import {
   TimeOfDayStackedBarChart,
 } from "../links/charts/time-of-day-stacked-bar-chart";
 import { ClickEntry } from "@/models/url/Click";
+import { useScans } from "@/utils/ScanDataContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const QRCodeTimeByDateData = ({
   unlocked,
-  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  clicks:ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
-
+  const { getScans } = useScans();
+  const [loading, setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>([]);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -169,6 +171,30 @@ export const QRCodeTimeByDateData = ({
             className="w-full h-full object-cover  min-h-[150px]"
           />
         </div>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    getScans(
+      dateRange?.from ? dateRange.from.toDateString() : undefined,
+      dateRange?.to ? dateRange.to.toDateString() : undefined,
+      setClicks,
+      setLoading
+    );
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
+        <div className="w-full flex flex-col gap-1 items-start">
+          <CardTitle>Scans over Time and Date</CardTitle>
+          <CardDescription>
+            Showing scans over time and date data{" "}
+            {formatHumanDateRange(dateRange, createdAt)}.
+          </CardDescription>
+        </div>
+        <Skeleton className="w-full h-[250px]" />
       </div>
     );
   }

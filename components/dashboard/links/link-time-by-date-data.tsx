@@ -12,7 +12,7 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -31,21 +31,23 @@ import {
   TimeOfDayStackedBarChart,
 } from "./charts/time-of-day-stacked-bar-chart";
 import { ClickEntry } from "@/models/url/Click";
+import { useClicks } from "@/utils/ClickDataContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const LinkTimeByDateData = ({
   unlocked,
-  clicks,
   createdAt,
 }: {
   unlocked: boolean;
-  clicks: ClickEntry[];
   createdAt: Date;
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
-
+  const { getClicks } = useClicks();
+  const [loading,setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>([]);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -169,6 +171,26 @@ export const LinkTimeByDateData = ({
             alt="Scans over time locked illustration"
             className="w-full h-full object-cover  min-h-[150px]"
           />
+        </div>
+      </div>
+    );
+  }
+
+  useEffect(() => {
+    getClicks(undefined, undefined, setClicks,setLoading);
+  }, []);
+  if (loading) {
+    return (
+      <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
+        <div className="w-full flex flex-col gap-1 items-start">
+          <CardTitle>Engagements over Time and Date</CardTitle>
+          <CardDescription>
+            Showing engagements over time and date data{" "}
+            {formatHumanDateRange(dateRange, createdAt)}.
+          </CardDescription>
+        </div>
+        <div className="w-full flex flex-col gap-2">
+          <Skeleton className="w-full h-[250px]" />
         </div>
       </div>
     );

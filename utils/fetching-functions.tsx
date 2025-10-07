@@ -33,11 +33,14 @@ export const getShortn = async (urlCode: string) => {
   }
 };
 
-export const getClicks = async (urlCode:string) => {
+export const getClicks = async (
+  urlCode: string,
+  startDate: Date | undefined,
+  endDate: Date | undefined
+) => {
   try {
     const session = await auth();
     const user = session?.user;
-
     if (!user) {
       return {
         success: false,
@@ -46,19 +49,33 @@ export const getClicks = async (urlCode:string) => {
     }
     const sub = user?.sub;
     await connectDB();
-    const clicks = await Clicks.find({urlCode,sub,type:'click'}).lean();
-    const filtered = clicks.map((click) => ({...click,_id:(click._id as any).toString()}));
+    const dateFilter: any = {};
+    if (startDate) {
+      dateFilter.$gte = startDate;
+    }
+    if (endDate) {
+      dateFilter.$lte = endDate;
+    }
+    const query: any = { urlCode, sub, type: "click" };
+    if (Object.keys(dateFilter).length > 0) {
+      query.timestamp = dateFilter;
+    }
+    const clicks = await Clicks.find(query).lean();
+    const filtered = clicks.map((click) => ({
+      ...click,
+      _id: (click._id as any).toString(),
+    }));
     return filtered;
   } catch (error) {
     return [];
   }
-}
+};
 
-export const getScans = async (qrCodeId:string) => {
+export const getScans = async (qrCodeId: string,startDate: Date | undefined,
+  endDate: Date | undefined) => {
   try {
     const session = await auth();
     const user = session?.user;
-
     if (!user) {
       return {
         success: false,
@@ -67,13 +84,27 @@ export const getScans = async (qrCodeId:string) => {
     }
     const sub = user?.sub;
     await connectDB();
-    const clicks = await Clicks.find({urlCode:qrCodeId,sub,type:'scan'}).lean();
-    const filtered = clicks.map((click) => ({...click,_id:(click._id as any).toString()}));
+    const dateFilter: any = {};
+    if (startDate) {
+      dateFilter.$gte = startDate;
+    }
+    if (endDate) {
+      dateFilter.$lte = endDate;
+    }
+    const query: any = { urlCode:qrCodeId, sub, type: "scan" };
+    if (Object.keys(dateFilter).length > 0) {
+      query.timestamp = dateFilter;
+    }
+    const clicks = await Clicks.find(query).lean();
+    const filtered = clicks.map((click) => ({
+      ...click,
+      _id: (click._id as any).toString(),
+    }));
     return filtered;
   } catch (error) {
     return [];
   }
-}
+};
 
 export const getQRCode = async (codeID: string) => {
   try {

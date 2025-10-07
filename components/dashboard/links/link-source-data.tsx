@@ -12,15 +12,20 @@ import {
   aggregateReferrers,
   ReferrerDonutChart,
 } from "./charts/referrer-donut-chart";
+import { useClicks } from "@/utils/ClickDataContext";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ClickEntry } from "@/models/url/Click";
 
 export const LinkSourceData = ({
   unlocked,
-  clicks,
 }: {
   unlocked: boolean;
-  clicks: ClickEntry[];
 }) => {
+  const { getClicks} = useClicks();
+  const [loading,setLoading] = useState(true);
+  const [clicks,setClicks] = useState<ClickEntry[]>([]);
+  
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -57,6 +62,23 @@ export const LinkSourceData = ({
         </div>
       </div>
     );
+  }
+  useEffect(() => {
+    getClicks(undefined, undefined,setClicks,setLoading);
+  }, []);
+
+  if(loading){
+    return <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
+    <div className="w-full flex flex-col gap-1 items-start">
+      <CardTitle>Referrer Data</CardTitle>
+      <CardDescription>
+        Showing referrer data of short link&apos;s clicks
+      </CardDescription>
+    </div>
+    <div className="w-full flex flex-col gap-2">
+      <Skeleton className="w-full h-[323px]"/>
+    </div>
+  </div>
   }
 
   const data = aggregateReferrers(clicks);

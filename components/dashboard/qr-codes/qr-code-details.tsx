@@ -8,15 +8,15 @@ import { QRCodeDetailsCard } from "./qr-code-details-card";
 import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
 import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
 import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
-import { ClickEntry } from "@/models/url/Click";
+import { ScanDataProvider } from "@/utils/ScanDataContext";
 
-export const QRCodeDetails = ({ qr,clicks }: { qr: IQRCode,clicks:ClickEntry[] }) => {
+export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
   const session = useUser();
 
   return (
     <>
       {qr && session.user && (
-        <>
+        <ScanDataProvider urlCode={qr.qrCodeId}>
           <Button variant={"link"} asChild>
             <Link
               className="font-semibold mr-auto"
@@ -30,14 +30,12 @@ export const QRCodeDetails = ({ qr,clicks }: { qr: IQRCode,clicks:ClickEntry[] }
           <QRCodeTimeAnalytics
             createdAt={qr.date}
             unlocked={session.user.plan.subscription != "free"}
-            clicks={clicks}
           />
           <QRCodeTimeByDateData
             unlocked={
               session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
             }
-            clicks={clicks}
             createdAt={qr.date}
           />
           <QRCodeLocationAnalytics
@@ -48,9 +46,8 @@ export const QRCodeDetails = ({ qr,clicks }: { qr: IQRCode,clicks:ClickEntry[] }
                 ? "location"
                 : "none"
             }
-            clicks={clicks}
           />
-        </>
+        </ScanDataProvider>
       )}
     </>
   );
