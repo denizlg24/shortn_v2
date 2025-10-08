@@ -46,7 +46,7 @@ export const LinkTimeByDateData = ({
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks } = useClicks();
-  const [loading,setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
@@ -137,7 +137,9 @@ export const LinkTimeByDateData = ({
 
     return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
   }
-
+  useEffect(() => {
+    if (unlocked) getClicks(undefined, undefined, setClicks, setLoading);
+  }, [getClicks, unlocked]);
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -176,9 +178,6 @@ export const LinkTimeByDateData = ({
     );
   }
 
-  useEffect(() => {
-    getClicks(undefined, undefined, setClicks,setLoading);
-  }, []);
   if (loading) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">

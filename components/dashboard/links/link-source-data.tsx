@@ -17,15 +17,13 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClickEntry } from "@/models/url/Click";
 
-export const LinkSourceData = ({
-  unlocked,
-}: {
-  unlocked: boolean;
-}) => {
-  const { getClicks} = useClicks();
-  const [loading,setLoading] = useState(true);
-  const [clicks,setClicks] = useState<ClickEntry[]>([]);
-  
+export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
+  const { getClicks } = useClicks();
+  const [loading, setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  useEffect(() => {
+    if (unlocked) getClicks(undefined, undefined, setClicks, setLoading);
+  }, [getClicks,unlocked]);
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -63,22 +61,21 @@ export const LinkSourceData = ({
       </div>
     );
   }
-  useEffect(() => {
-    getClicks(undefined, undefined,setClicks,setLoading);
-  }, []);
 
-  if(loading){
-    return <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
-    <div className="w-full flex flex-col gap-1 items-start">
-      <CardTitle>Referrer Data</CardTitle>
-      <CardDescription>
-        Showing referrer data of short link&apos;s clicks
-      </CardDescription>
-    </div>
-    <div className="w-full flex flex-col gap-2">
-      <Skeleton className="w-full h-[323px]"/>
-    </div>
-  </div>
+  if (loading) {
+    return (
+      <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
+        <div className="w-full flex flex-col gap-1 items-start">
+          <CardTitle>Referrer Data</CardTitle>
+          <CardDescription>
+            Showing referrer data of short link&apos;s clicks
+          </CardDescription>
+        </div>
+        <div className="w-full flex flex-col gap-2">
+          <Skeleton className="w-full h-[323px]" />
+        </div>
+      </div>
+    );
   }
 
   const data = aggregateReferrers(clicks);

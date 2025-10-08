@@ -43,6 +43,12 @@ export const QRCodeLocationAnalytics = ({
   const { getScans } = useScans();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
+
+  useEffect(() => {
+    if (unlocked != "none")
+      getScans(undefined, undefined, setClicks, setLoading);
+  }, [getScans, unlocked]);
+
   if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -82,9 +88,7 @@ export const QRCodeLocationAnalytics = ({
       </div>
     );
   }
-  useEffect(() => {
-    getScans(undefined, undefined, setClicks, setLoading);
-  }, []);
+
   if (loading) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">

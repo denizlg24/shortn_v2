@@ -12,7 +12,6 @@ import { ChevronLeft } from "lucide-react";
 import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
 import { LinkTimeByDateData } from "./link-time-by-date-data";
-import { ClickEntry } from "@/models/url/Click";
 import { ClickDataProvider } from "@/utils/ClickDataContext";
 
 export const LinkDetails = ({

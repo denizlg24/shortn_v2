@@ -46,8 +46,8 @@ export const LinkStackedSourceData = ({
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks } = useClicks();
-  const [clicks,setClicks] = useState<ClickEntry[]>([]);
-  const [loading,setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -138,6 +138,16 @@ export const LinkStackedSourceData = ({
     return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
   }
 
+  useEffect(() => {
+    if (unlocked)
+      getClicks(
+        dateRange?.from ? dateRange.from.toDateString() : undefined,
+        dateRange?.to ? dateRange.to.toDateString() : undefined,
+        setClicks,
+        setLoading
+      );
+  }, [dateRange, getClicks, unlocked]);
+
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -175,13 +185,6 @@ export const LinkStackedSourceData = ({
       </div>
     );
   }
-
-  useEffect(() => {
-    getClicks(
-      dateRange?.from ? dateRange.from.toDateString() : undefined,
-      dateRange?.to ? dateRange.to.toDateString() : undefined,setClicks,setLoading
-    );
-  }, [dateRange]);
 
   if (loading) {
     return (

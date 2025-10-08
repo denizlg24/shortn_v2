@@ -134,7 +134,15 @@ export const QRCodeTimeAnalytics = ({
 
     return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
   }
-
+  useEffect(() => {
+    if (unlocked)
+      getScans(
+        dateRange?.from ? dateRange.from.toDateString() : undefined,
+        dateRange?.to ? dateRange.to.toDateString() : undefined,
+        setClicks,
+        setLoading
+      );
+  }, [getScans, dateRange, unlocked]);
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -172,14 +180,6 @@ export const QRCodeTimeAnalytics = ({
       </div>
     );
   }
-  useEffect(() => {
-    getScans(
-      dateRange?.from ? dateRange.from.toDateString() : undefined,
-      dateRange?.to ? dateRange.to.toDateString() : undefined,
-      setClicks,
-      setLoading
-    );
-  }, []);
 
   if (loading) {
     return (
