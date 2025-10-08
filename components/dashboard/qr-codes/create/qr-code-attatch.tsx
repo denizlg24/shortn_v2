@@ -201,30 +201,28 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 />
               </Button>
               <Button
-                variant={"outline"}
-                onClick={() => {
-                  setOptions((prev) => ({
-                    ...prev,
-                    dotsOptions: {
-                      ...prev.dotsOptions,
-                      type: "extra-rounded",
-                    },
-                  }));
-                }}
-                className={cn(
-                  "col-span-1 w-full aspect-square h-full xs:p-2! p-1! rounded!",
-                  options.dotsOptions?.type == "extra-rounded" &&
-                    "border-2 border-primary"
-                )}
-              >
-                <div className="w-full h-auto aspect-square">
+                  variant={"outline"}
+                  onClick={() => {
+                    setOptions((prev) => ({
+                      ...prev,
+                      dotsOptions: {
+                        ...prev.dotsOptions,
+                        type: "extra-rounded",
+                      },
+                    }));
+                  }}
+                  className={cn(
+                    "col-span-1 w-full aspect-square! h-auto xs:p-2! p-1! rounded!",
+                    options.dotsOptions?.type == "extra-rounded" &&
+                      "border-2 border-primary"
+                  )}
+                >
                   <Image
                     src={BASE6}
                     alt="border-preview"
                     className="w-full h-auto aspect-square! object-contain"
                   />
-                </div>
-              </Button>
+                </Button>
             </div>
           </div>
           <div className="w-full flex flex-col gap-2 items-start">

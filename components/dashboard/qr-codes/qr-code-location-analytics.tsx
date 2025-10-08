@@ -15,7 +15,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DataTable } from "../tables/location-table/data-table";
 import {
   aggregateClicksByLocation,
@@ -26,20 +26,28 @@ import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
-import { IQRCode } from "@/models/url/QRCodeV2";
 import { getDataTitle } from "../links/link-location-analytics";
+import { ClickEntry } from "@/models/url/Click";
+import { useScans } from "@/utils/ScanDataContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const QRCodeLocationAnalytics = ({
   unlocked,
-  linkData,
 }: {
   unlocked: "none" | "location" | "all";
-  linkData: IQRCode;
 }) => {
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
   >("country");
   countries.registerLocale(en);
+  const { getScans } = useScans();
+  const [loading, setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+
+  useEffect(() => {
+    if (unlocked != "none")
+      getScans(undefined, undefined, setClicks, setLoading);
+  }, [getScans, unlocked]);
 
   if (unlocked == "none") {
     return (
@@ -81,10 +89,25 @@ export const QRCodeLocationAnalytics = ({
     );
   }
 
-  const transformed = linkData.clicks.all.map((click) => ({
+  if (loading) {
+    return (
+      <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
+        <div className="w-full flex flex-col gap-1 items-start">
+          <CardTitle>Advanced Data</CardTitle>
+          <CardDescription>
+            Showing advanced data of qr code&apos;s scans
+          </CardDescription>
+        </div>
+        <div className="w-full flex flex-col gap-2">
+          <Skeleton className="w-full h-[250px]" />
+        </div>
+      </div>
+    );
+  }
+  const transformed = clicks.map((click) => ({
     ...click,
     country: click.country ? countries.getName(click.country, "en") : undefined,
-  }));
+  })) as ClickEntry[];
 
   const data = aggregateClicksByLocation(transformed, selected);
 

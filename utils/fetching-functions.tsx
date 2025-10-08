@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
+import Clicks from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 
@@ -29,6 +30,79 @@ export const getShortn = async (urlCode: string) => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return { success: false, url: undefined };
+  }
+};
+
+export const getClicks = async (
+  urlCode: string,
+  startDate: Date | undefined,
+  endDate: Date | undefined
+) => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const dateFilter: any = {};
+    if (startDate) {
+      dateFilter.$gte = startDate;
+    }
+    if (endDate) {
+      dateFilter.$lte = endDate;
+    }
+    const query: any = { urlCode, sub, type: "click" };
+    if (Object.keys(dateFilter).length > 0) {
+      query.timestamp = dateFilter;
+    }
+    const clicks = await Clicks.find(query).lean();
+    const filtered = clicks.map((click) => ({
+      ...click,
+      _id: (click._id as any).toString(),
+    }));
+    return filtered;
+  } catch (error) {
+    return [];
+  }
+};
+
+export const getScans = async (qrCodeId: string,startDate: Date | undefined,
+  endDate: Date | undefined) => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const dateFilter: any = {};
+    if (startDate) {
+      dateFilter.$gte = startDate;
+    }
+    if (endDate) {
+      dateFilter.$lte = endDate;
+    }
+    const query: any = { urlCode:qrCodeId, sub, type: "scan" };
+    if (Object.keys(dateFilter).length > 0) {
+      query.timestamp = dateFilter;
+    }
+    const clicks = await Clicks.find(query).lean();
+    const filtered = clicks.map((click) => ({
+      ...click,
+      _id: (click._id as any).toString(),
+    }));
+    return filtered;
+  } catch (error) {
+    return [];
   }
 };
 

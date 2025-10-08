@@ -9,7 +9,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { ClickEntry } from "@/models/url/UrlV3";
 import {
   eachDayOfInterval,
   endOfDay,
@@ -18,6 +17,7 @@ import {
   startOfDay,
   subDays,
 } from "date-fns";
+import { ClickEntry } from "@/models/url/Click";
 export const description = "A stacked bar chart with a legend";
 
 export function groupClicksByDateAndReferrer(

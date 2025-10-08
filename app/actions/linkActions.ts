@@ -12,6 +12,7 @@ import { Geo } from '@vercel/functions';
 import QRCodeV2 from '@/models/url/QRCodeV2';
 import { ITag } from '@/models/url/Tag';
 import { fetchApi } from '@/lib/utils';
+import Clicks from '@/models/url/Click';
 
 interface CreateUrlInput {
     longUrl: string;
@@ -253,6 +254,7 @@ export const deleteShortn = async (urlCode: string) => {
         }
         const sub = user?.sub;
         const foundURL = await UrlV3.findOneAndDelete({ urlCode, sub });
+        await Clicks.deleteMany({urlCode,type:'click'});
         if (!foundURL) {
             return { success: true, deleted: urlCode };
         }
@@ -301,12 +303,17 @@ export const updateShortnData = async ({ urlCode, title, tags, custom_code, appl
         const updateQuery: Record<string, any> = {}
         updateQuery.title = title;
         updateQuery.tags = tags;
+        let updateCode: false|string = false;
         if (custom_code) {
             updateQuery.urlCode = custom_code;
             updateQuery.custom_code = true;
             updateQuery.shortUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${custom_code}`;
+            updateCode = custom_code;
         }
         const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, { new: true });
+        if(updateCode){
+            await Clicks.updateMany({type:'click',urlCode},{urlCode:custom_code});
+        }
         if (applyToQRCode && url?.qrCodeId) {
             const qrCodeId = url.qrCodeId;
             const updatedQR = await QRCodeV2.findOneAndUpdate({ sub, qrCodeId }, { title, tags });
@@ -315,6 +322,7 @@ export const updateShortnData = async ({ urlCode, title, tags, custom_code, appl
             }
             return { success: false };
         }
+
         if (url)
             return { success: true, urlCode: url.urlCode };
         return { success: false };
@@ -334,23 +342,50 @@ export async function recordClickFromMiddleware(clickData: {
     geo?: Geo;
     query?: Record<string, string>;
 }) {
-    const { slug, ip, userAgent = '', referrer, language, geo, query, timezone } = clickData;
+    try {
+        const { slug, ip, userAgent = '', referrer, language, geo, query, timezone } = clickData;
 
-    if (isbot(userAgent)) return { ignored: true };
-
-    await connectDB();
-
-    const urlDoc = await UrlV3.findOne({ urlCode: slug });
-    if (!urlDoc) return { notFound: true };
-
-    const ua = new UAParser(userAgent).getResult();
-
-    if (urlDoc.qrCodeId && urlDoc.isQrCode) {
-        const qrCodeDoc = await QRCodeV2.findOne({ urlId: slug });
-        if (!qrCodeDoc) {
-            return { notFound: true };
+        if (isbot(userAgent)) return { ignored: true };
+    
+        await connectDB();
+    
+        const urlDoc = await UrlV3.findOne({ urlCode: slug });
+        if (!urlDoc) return { notFound: true };
+    
+        const ua = new UAParser(userAgent).getResult();
+    
+        if (urlDoc.qrCodeId && urlDoc.isQrCode) {
+            const qrCodeDoc = await QRCodeV2.findOne({ urlId: slug });
+            if (!qrCodeDoc) {
+                return { notFound: true };
+            }
+            await qrCodeDoc.recordClick();
+            await Clicks.create({
+                urlCode:qrCodeDoc.qrCodeId,
+                type:'scan',
+                sub:qrCodeDoc.sub,
+                ip,
+                country: geo?.country,
+                region: geo?.countryRegion,
+                city: geo?.city,
+                timezone,
+                language,
+                referrer,
+                pathname: `/${slug}`,
+                queryParams: query,
+                userAgent,
+                browser: ua.browser.name,
+                os: ua.os.name,
+                deviceType: ua.device.type || 'desktop',
+            })
+            return { success: true };
         }
-        await qrCodeDoc.recordClick({
+    
+        await urlDoc.recordClick();
+        await Clicks.create({
+            urlCode:urlDoc.urlCode,
+            sub:urlDoc.sub,
+            type:'click',
             ip,
             country: geo?.country,
             region: geo?.countryRegion,
@@ -364,25 +399,12 @@ export async function recordClickFromMiddleware(clickData: {
             browser: ua.browser.name,
             os: ua.os.name,
             deviceType: ua.device.type || 'desktop',
-        });
+        })
+    
         return { success: true };
+    } catch (error) {
+        console.log(error);
+        return {success:false};
     }
-
-    await urlDoc.recordClick({
-        ip,
-        country: geo?.country,
-        region: geo?.countryRegion,
-        city: geo?.city,
-        timezone,
-        language,
-        referrer,
-        pathname: `/${slug}`,
-        queryParams: query,
-        userAgent,
-        browser: ua.browser.name,
-        os: ua.os.name,
-        deviceType: ua.device.type || 'desktop',
-    });
-
-    return { success: true };
+   
 }

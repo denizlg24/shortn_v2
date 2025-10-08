@@ -8,6 +8,7 @@ import { QRCodeDetailsCard } from "./qr-code-details-card";
 import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
 import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
 import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
+import { ScanDataProvider } from "@/utils/ScanDataContext";
 
 export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
   const session = useUser();
@@ -15,7 +16,7 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
   return (
     <>
       {qr && session.user && (
-        <>
+        <ScanDataProvider urlCode={qr.qrCodeId}>
           <Button variant={"link"} asChild>
             <Link
               className="font-semibold mr-auto"
@@ -29,14 +30,12 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
           <QRCodeTimeAnalytics
             createdAt={qr.date}
             unlocked={session.user.plan.subscription != "free"}
-            linkData={qr}
           />
           <QRCodeTimeByDateData
             unlocked={
               session.user.plan.subscription == "plus" ||
               session.user.plan.subscription == "pro"
             }
-            linkData={qr}
             createdAt={qr.date}
           />
           <QRCodeLocationAnalytics
@@ -47,9 +46,8 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
                 ? "location"
                 : "none"
             }
-            linkData={qr}
           />
-        </>
+        </ScanDataProvider>
       )}
     </>
   );
