@@ -20,7 +20,7 @@ export type ReferrerStats = {
 export const description = "A donut chart with text";
 
 export function aggregateReferrers(
-  clicks: { referrer?: string | null }[]
+  clicks: { referrer?: string | null | undefined }[]
 ): ReferrerStats[] {
   const counts: Record<string, number> = {};
 

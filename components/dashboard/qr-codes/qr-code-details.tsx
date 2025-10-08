@@ -29,7 +29,8 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
           <QRCodeDetailsCard qrCode={qr} />
           <QRCodeTimeAnalytics
             createdAt={qr.date}
-            unlocked={session.user.plan.subscription != "free"}
+            unlocked={session.user.plan.subscription == "plus" ||
+            session.user.plan.subscription == "pro"}
           />
           <QRCodeTimeByDateData
             unlocked={
