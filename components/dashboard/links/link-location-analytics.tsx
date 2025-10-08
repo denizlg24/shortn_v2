@@ -63,7 +63,7 @@ export const LinkLocationAnalytics = ({
   useEffect(() => {
     if (unlocked != "none")
       getClicks(undefined, undefined, setClicks, setLoading);
-  }, [getClicks,unlocked]);
+  }, [getClicks, unlocked]);
   if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
