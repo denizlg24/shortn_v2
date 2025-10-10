@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
-import Clicks from "@/models/url/Click";
+import Clicks, { ClickEntry } from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 
@@ -61,18 +61,43 @@ export const getClicks = async (
       query.timestamp = dateFilter;
     }
     const clicks = await Clicks.find(query).lean();
-    const filtered = clicks.map((click) => ({
-      ...click,
-      _id: (click._id as any).toString(),
-    }));
+    let filtered: ClickEntry[] = [];
+    switch (user.plan.subscription) {
+      case "free":
+      case "basic":
+        filtered = [];
+        break;
+      case "plus":
+        filtered = clicks.map((click) => ({
+          ...click,
+          deviceType: undefined,
+          browser: undefined,
+          os: undefined,
+          referrer: undefined,
+          _id: (click._id as any).toString(),
+        }));
+        break;
+      case "pro":
+        filtered = clicks.map((click) => ({
+          ...click,
+          _id: (click._id as any).toString(),
+        }));
+        break;
+      default:
+        filtered = [];
+        break;
+    }
     return filtered;
   } catch (error) {
     return [];
   }
 };
 
-export const getScans = async (qrCodeId: string,startDate: Date | undefined,
-  endDate: Date | undefined) => {
+export const getScans = async (
+  qrCodeId: string,
+  startDate: Date | undefined,
+  endDate: Date | undefined
+) => {
   try {
     const session = await auth();
     const user = session?.user;
@@ -91,15 +116,37 @@ export const getScans = async (qrCodeId: string,startDate: Date | undefined,
     if (endDate) {
       dateFilter.$lte = endDate;
     }
-    const query: any = { urlCode:qrCodeId, sub, type: "scan" };
+    const query: any = { urlCode: qrCodeId, sub, type: "scan" };
     if (Object.keys(dateFilter).length > 0) {
       query.timestamp = dateFilter;
     }
     const clicks = await Clicks.find(query).lean();
-    const filtered = clicks.map((click) => ({
-      ...click,
-      _id: (click._id as any).toString(),
-    }));
+    let filtered: ClickEntry[] = [];
+    switch (user.plan.subscription) {
+      case "free":
+      case "basic":
+        filtered = [];
+        break;
+      case "plus":
+        filtered = clicks.map((click) => ({
+          ...click,
+          deviceType: undefined,
+          browser: undefined,
+          os: undefined,
+          referrer: undefined,
+          _id: (click._id as any).toString(),
+        }));
+        break;
+      case "pro":
+        filtered = clicks.map((click) => ({
+          ...click,
+          _id: (click._id as any).toString(),
+        }));
+        break;
+      default:
+        filtered = [];
+        break;
+    }
     return filtered;
   } catch (error) {
     return [];
