@@ -1,4 +1,6 @@
 import {
+  getCharges,
+  getPaymentMethods,
   getTaxVerification,
   getUserAddress,
 } from "@/app/actions/stripeActions";
@@ -18,11 +20,14 @@ export default async function Home({
   if (!user) {
     notFound();
   }
-  const [address, verification] = await Promise.all([
+  const [address, verification,paymentMethods,chargeResponse] = await Promise.all([
     getUserAddress(user.stripeId),
     getTaxVerification(user.stripeId),
+    getPaymentMethods(user.stripeId),
+    getCharges(user.stripeId)
   ]);
+
   return (
-    <BillingCard initialUser={user} initialAddress={address} initialVerification={verification} />
+    <BillingCard initialUser={user} initialAddress={address} initialVerification={verification} initialPaymentMethods={paymentMethods.methods} charges={chargeResponse.charges} hasMoreCharges={chargeResponse.has_more} />
   );
 }

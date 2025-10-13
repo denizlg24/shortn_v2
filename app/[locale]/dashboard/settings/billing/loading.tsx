@@ -37,6 +37,12 @@ export default function Loading() {
           <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground/35!" />
         </div>
       </div>
+      <Separator className="my-4" />
+      <div className="w-full grid grid-cols-2 max-w-xl gap-x-4 gap-y-6">
+        <Skeleton className="h-[131px] col-span-1 rounded bg-muted-foreground/35!" />
+        <Skeleton className="h-[131px] col-span-1 rounded bg-muted-foreground/35!" />
+        <Skeleton className="col-span-full w-full h-[131px] rounded bg-muted-foreground/35!" />
+      </div>
     </div>
   );
 }

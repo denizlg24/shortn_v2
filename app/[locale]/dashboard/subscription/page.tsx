@@ -145,7 +145,7 @@ export default async function Home({
                   <h4 className="text-2xl font-bold text-primary">
                     {plan.name}
                   </h4>
-                  <div className="mt-2 flex items-end gap-2">
+                  <div className="mt-2 flex items-center gap-2">
                     <span className="text-3xl font-extrabold text-primary">
                       {plan.price}
                     </span>

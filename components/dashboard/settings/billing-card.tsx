@@ -37,6 +37,8 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { CountryDropdown } from "@/components/ui/country-dropdown";
+import { Card } from "@/components/ui/card";
+import { addMonths, format } from "date-fns";
 
 const updateBillingSchema = z
   .object({
@@ -74,15 +76,26 @@ export const BillingCard = ({
   initialUser,
   initialAddress,
   initialVerification,
+  initialPaymentMethods,
+  charges,
+  hasMoreCharges
 }: {
   initialUser: {
     tax_id: string | undefined;
     phone_number: string | undefined;
     stripeId: string;
+    plan:{
+      subscription:string,
+      lastPaid:Date
+    }
   };
   initialAddress: Stripe.Address | undefined;
   initialVerification: Stripe.TaxId.Verification | undefined;
+  initialPaymentMethods:Stripe.PaymentMethod[],
+  charges:Stripe.Charge[],
+  hasMoreCharges:boolean
 }) => {
+  console.log(hasMoreCharges);
   const { refresh, loading } = useUser();
   const [changesLoading, setChangesLoading] = useState(false);
   const [user, setUser] = useState(initialUser);
@@ -193,6 +206,10 @@ export const BillingCard = ({
     setChangesLoading(false);
   }
 
+  ///PAYMENT METHODS
+
+  const[paymentMethods] = useState<Stripe.PaymentMethod[]>(initialPaymentMethods);
+
   useEffect(() => {
     updateBillingForm.reset(
       {
@@ -247,6 +264,12 @@ export const BillingCard = ({
             <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
             <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
           </div>
+        </div>
+        <Separator className="my-4" />
+        <div className="w-full grid grid-col-2 max-w-xl gap-x-4 gap-y-6">
+          <Skeleton className="h-[131px]"/>
+          <Skeleton className="h-[131px]"/>
+          <Skeleton className="col-span-full h-[131px]"/>
         </div>
       </div>
     );
@@ -411,6 +434,33 @@ export const BillingCard = ({
           </div>
         </form>
       </Form>
+      <Separator className="my-4" />
+      <div className="grid grid-cols-2 w-full max-w-xl gap-x-4 gap-y-6">
+        <Card className="p-0! gap-0!">
+          <div className="p-3! rounded-t-xl border bg-muted">
+            <h1 className="sm:text-lg text-base font-bold">Payment Methods</h1>
+          </div>
+          <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
+            {paymentMethods.length > 0 ? <></>: <p className="text-center w-full font-semibold text-xs my-auto">No payment methods yet.</p>}
+          </div>
+        </Card>
+        <Card className="p-0! gap-0!">
+          <div className="p-3! rounded-t-xl border bg-muted">
+            <h1 className="sm:text-lg text-base font-bold">Next renewal date</h1>
+          </div>
+          <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
+            <p className="text-xs font-normal my-auto text-center">Your <span className="capitalize font-semibold">{user.plan.subscription}</span> plan is set to renew on <span className="font-semibold">{format(addMonths(user.plan.lastPaid,1),"dd/MM/yyyy")}</span>.</p>
+          </div>
+        </Card>
+        <Card className="p-0! gap-0! col-span-full">
+          <div className="p-3! rounded-t-xl border bg-muted">
+            <h1 className="sm:text-lg text-base font-bold">Payment History</h1>
+          </div>
+          <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
+            {charges.length > 0 ? <></>: <p className="text-center w-full font-semibold text-xs my-auto">You haven&apos;t made any payments yet.</p>}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };

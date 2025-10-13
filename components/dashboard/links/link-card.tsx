@@ -347,15 +347,15 @@ export const LinkCard = ({
                 <HoverCardContent asChild>
                   <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                     <p className="text-sm font-bold">Unlock click data</p>
-                    <div className="w-full flex flex-row gap-1 items-center">
+                    <p>
                       <Link
-                        href={`/dashboard/subscription`}
                         className="underline hover:cursor-pointer"
+                        href={`/dashboard/subscription`}
                       >
                         Upgrade
-                      </Link>
-                      <p>to access link stats.</p>
-                    </div>
+                      </Link>{" "}
+                      to access link stats.
+                    </p>
                   </div>
                 </HoverCardContent>
               </HoverCard>
