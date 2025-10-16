@@ -27,7 +27,7 @@ jobs:
           done
           title_clean=${title// /-}
           title_clean=${title_clean//[^a-zA-Z0-9_-]/}
-          branchname="$type/$number-${title_clean,,}"
+          branchname="$TYPE/$number-${title_clean,,}"
           git switch -c "$branchname"
           git config --global user.name 'github-actions'
           git config --global user.email \
