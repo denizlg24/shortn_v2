@@ -181,3 +181,51 @@ export const getQRCode = async (codeID: string) => {
     return { success: false, qr: undefined };
   }
 };
+
+export const getActiveLinks = async () => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return {
+        success: false,
+        total: 0,
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const total = await UrlV3.countDocuments({sub,isQrCode:false});
+    if (!total) {
+      return { success: false, total: 0 };
+    }
+    return { success: true, total };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return { success: false, total:0 };
+  }
+}
+
+export const getActiveCodes = async () => {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return {
+        success: false,
+        total: 0,
+      };
+    }
+    const sub = user?.sub;
+    await connectDB();
+    const total = await QRCodeV2.countDocuments({sub});
+    if (!total) {
+      return { success: false, total: 0 };
+    }
+    return { success: true, total };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (error) {
+    return { success: false, total:0 };
+  }
+}

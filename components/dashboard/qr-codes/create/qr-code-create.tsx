@@ -297,15 +297,15 @@ export const QRCodeCreate = ({
                                   <p className="text-sm font-bold">
                                     Unlock custom codes
                                   </p>
-                                  <div className="w-full flex flex-row gap-1 items-center">
+                                  <p>
                                     <Link
-                                      href={`/dashboard/subscription`}
                                       className="underline hover:cursor-pointer"
+                                      href={`/dashboard/subscription`}
                                     >
                                       Upgrade
-                                    </Link>
-                                    <p>to access link stats.</p>
-                                  </div>
+                                    </Link>{" "}
+                                    to access link stats.
+                                  </p>
                                 </div>
                               </HoverCardContent>
                             </HoverCard>

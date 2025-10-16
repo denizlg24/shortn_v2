@@ -175,3 +175,49 @@ export async function updateUserAddress(stripeId: string, address: {
     }
 
 }
+
+export async function getPaymentMethods(stripeId: string) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            methods: [],
+        };
+    }
+    try {
+        const paymentMethods = await stripe.customers.listPaymentMethods(stripeId);
+        return { success: true, methods: paymentMethods.data }
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            methods: [],
+        };
+    }
+}
+
+export async function getCharges(stripeId: string, limit: number = 3) {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+        return {
+            success: false,
+            charges: [],
+            has_more: false
+        };
+    }
+    try {
+        const charges = await stripe.charges.list({ customer: stripeId, limit });
+        return { success: true, charges: charges.data, has_more: charges.has_more }
+    } catch (error) {
+        console.log(error);
+        return {
+            success: false,
+            charges: [],
+            has_more: false,
+        };
+    }
+}
