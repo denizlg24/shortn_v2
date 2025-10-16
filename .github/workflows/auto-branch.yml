@@ -14,13 +14,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4.1.1
 
+      - name: Determine branch type
+        id: branch_type
+        run: |
+          TYPE="feature"  # default
+          for label in $(echo "${{ github.event.issue.labels[*].name }}" | tr ',' '\n'); do
+            case "$label" in
+              feature|bugfix|chore|hotfix) TYPE=$label ;;
+            esac
+          done
+          echo "type=$TYPE" >> $GITHUB_OUTPUT
+
       - name: Create issue branch
         env:
           number: ${{ github.event.issue.number }}
           title: ${{ github.event.issue.title }}
         run: |
-          title=${title// /-}
-          branchname=$number-${title,,}
+          title_clean=${title// /-}
+          title_clean=${title_clean//[^a-zA-Z0-9_-]/}
+          branchname="$type/$number-${title_clean,,}"
           git switch -c "$branchname"
           git config --global user.name 'github-actions'
           git config --global user.email \
