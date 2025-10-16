@@ -85,7 +85,7 @@
     "next-intl": "^4.3.1",
     "next-share": "^0.27.0",
     "next-themes": "^0.4.6",
-    "nodemailer": "^6.10.1",
+    "nodemailer": "^7.0.7",
     "pinata": "^2.4.9",
     "postcode-validator": "^3.10.5",
     "prettier": "^3.6.2",
