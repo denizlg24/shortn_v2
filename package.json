@@ -65,7 +65,7 @@
     "date-fns": "^4.1.0",
     "devicons-react": "^1.4.1",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.19.1",
+    "framer-motion": "^12.23.24",
     "hamburger-react": "^2.5.2",
     "husky": "^9.1.7",
     "i18n-iso-countries": "^7.14.0",
