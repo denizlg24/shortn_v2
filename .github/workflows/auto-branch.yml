@@ -1,30 +1,28 @@
-name: Auto Create Branch from Label
+name: Create branch on assignment
 
 on:
   issues:
-    types: [labeled]
+    types:
+      - assigned
 
 jobs:
-  create-branch:
-    if: github.event.label.name == 'in-progress'
-    runs-on: ubuntu-latest
+  createbranch:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     steps:
-      - name: Sanitize branch name
-        id: sanitize
+      - name: Check out repository
+        uses: actions/checkout@v4.1.1
+
+      - name: Create issue branch
+        env:
+          number: ${{ github.event.issue.number }}
+          title: ${{ github.event.issue.title }}
         run: |
-          TITLE="${{ github.event.issue.title }}"
-          CLEANED=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
-          echo "branch_name=feature/$CLEANED" >> $GITHUB_OUTPUT
-
-      - name: Create branch
-        uses: peter-evans/create-branch@v5
-        with:
-          branch: ${{ steps.sanitize.outputs.branch_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Comment on issue
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: ${{ github.event.issue.number }}
-          body: |
-            🚀 Created branch **${{ steps.sanitize.outputs.branch_name }}** automatically for this issue.
+          title=${title// /-}
+          branchname=$number-${title,,}
+          git switch -c "$branchname"
+          git config --global user.name 'github-actions'
+          git config --global user.email \
+              '41898282+github-actions[bot]@users.noreply.github.com'
+          git push -u origin "$branchname"
