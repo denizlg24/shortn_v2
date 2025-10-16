@@ -77,7 +77,7 @@
     "libaddress-validator": "^0.1.5",
     "lint-staged": "^16.2.4",
     "lucide-react": "^0.523.0",
-    "mongodb": "^6.17.0",
+    "mongodb": "^6.20.0",
     "mongoose": "^8.16.1",
     "nanoid": "^5.1.6",
     "next": "^15.5.2",
