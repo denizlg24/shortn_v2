@@ -6,7 +6,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "prettier --write .",
+    "type-check": "tsc --noEmit",
+    "test": "jest --passWithNoTests",
+    "ci": "pnpm lint && pnpm type-check && pnpm test && pnpm build",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.10.0",
@@ -52,12 +66,15 @@
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.19.1",
     "hamburger-react": "^2.5.2",
+    "husky": "^9.1.7",
     "i18n-iso-countries": "^7.14.0",
     "input-otp": "^1.4.2",
     "isbot": "^5.1.28",
+    "jest": "^30.2.0",
     "jsdom": "^26.1.0",
     "jsvat": "^2.5.4",
     "libaddress-validator": "^0.1.5",
+    "lint-staged": "^16.2.4",
     "lucide-react": "^0.523.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
