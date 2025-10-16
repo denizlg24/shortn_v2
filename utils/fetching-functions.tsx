@@ -36,7 +36,7 @@ export const getShortn = async (urlCode: string) => {
 export const getClicks = async (
   urlCode: string,
   startDate: Date | undefined,
-  endDate: Date | undefined
+  endDate: Date | undefined,
 ) => {
   try {
     const session = await auth();
@@ -49,14 +49,14 @@ export const getClicks = async (
     }
     const sub = user?.sub;
     await connectDB();
-    const dateFilter: any = {};
+    const dateFilter: Record<string, unknown> = {};
     if (startDate) {
       dateFilter.$gte = startDate;
     }
     if (endDate) {
       dateFilter.$lte = endDate;
     }
-    const query: any = { urlCode, sub, type: "click" };
+    const query: Record<string, unknown> = { urlCode, sub, type: "click" };
     if (Object.keys(dateFilter).length > 0) {
       query.timestamp = dateFilter;
     }
@@ -74,13 +74,13 @@ export const getClicks = async (
           browser: undefined,
           os: undefined,
           referrer: undefined,
-          _id: (click._id as any).toString(),
+          _id: click._id.toString(),
         }));
         break;
       case "pro":
         filtered = clicks.map((click) => ({
           ...click,
-          _id: (click._id as any).toString(),
+          _id: click._id.toString(),
         }));
         break;
       default:
@@ -89,6 +89,7 @@ export const getClicks = async (
     }
     return filtered;
   } catch (error) {
+    console.log(error);
     return [];
   }
 };
@@ -96,7 +97,7 @@ export const getClicks = async (
 export const getScans = async (
   qrCodeId: string,
   startDate: Date | undefined,
-  endDate: Date | undefined
+  endDate: Date | undefined,
 ) => {
   try {
     const session = await auth();
@@ -109,14 +110,18 @@ export const getScans = async (
     }
     const sub = user?.sub;
     await connectDB();
-    const dateFilter: any = {};
+    const dateFilter: Record<string, unknown> = {};
     if (startDate) {
       dateFilter.$gte = startDate;
     }
     if (endDate) {
       dateFilter.$lte = endDate;
     }
-    const query: any = { urlCode: qrCodeId, sub, type: "scan" };
+    const query: Record<string, unknown> = {
+      urlCode: qrCodeId,
+      sub,
+      type: "scan",
+    };
     if (Object.keys(dateFilter).length > 0) {
       query.timestamp = dateFilter;
     }
@@ -134,13 +139,13 @@ export const getScans = async (
           browser: undefined,
           os: undefined,
           referrer: undefined,
-          _id: (click._id as any).toString(),
+          _id: click._id.toString(),
         }));
         break;
       case "pro":
         filtered = clicks.map((click) => ({
           ...click,
-          _id: (click._id as any).toString(),
+          _id: click._id.toString(),
         }));
         break;
       default:
@@ -149,6 +154,7 @@ export const getScans = async (
     }
     return filtered;
   } catch (error) {
+    console.log(error);
     return [];
   }
 };
@@ -195,16 +201,16 @@ export const getActiveLinks = async () => {
     }
     const sub = user?.sub;
     await connectDB();
-    const total = await UrlV3.countDocuments({sub,isQrCode:false});
+    const total = await UrlV3.countDocuments({ sub, isQrCode: false });
     if (!total) {
       return { success: false, total: 0 };
     }
     return { success: true, total };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    return { success: false, total:0 };
+    return { success: false, total: 0 };
   }
-}
+};
 
 export const getActiveCodes = async () => {
   try {
@@ -219,13 +225,13 @@ export const getActiveCodes = async () => {
     }
     const sub = user?.sub;
     await connectDB();
-    const total = await QRCodeV2.countDocuments({sub});
+    const total = await QRCodeV2.countDocuments({ sub });
     if (!total) {
       return { success: false, total: 0 };
     }
     return { success: true, total };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
-    return { success: false, total:0 };
+    return { success: false, total: 0 };
   }
-}
+};
