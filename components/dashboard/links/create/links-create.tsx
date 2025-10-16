@@ -45,7 +45,7 @@ const linkFormSchema = z.object({
         .max(52, "Back-half can't be longer than 52 characters")
         .regex(
           /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)"
+          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
         ),
       z.literal(""),
     ])
@@ -115,7 +115,7 @@ export const LinksCreate = () => {
           session.user?.plan.subscription ?? "free",
           session.user?.links_this_month ?? 0,
           false,
-          "text-xs"
+          "text-xs",
         )}
       </div>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -156,7 +156,7 @@ export const LinksCreate = () => {
                 <Input
                   disabled
                   className="w-full"
-                  value={process.env.NEXT_PUBLIC_APP_URL?.split("//")[1]}
+                  value={window.location.origin}
                 />
               </div>
               <div className="h-9 text-sm flex items-center justify-center">
@@ -273,7 +273,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 0 && "border-2 border-primary"
+                      presetChosen == 0 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#000]"></div>
@@ -296,7 +296,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 1 && "border-2 border-primary"
+                      presetChosen == 1 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#DE3121]"></div>
@@ -319,7 +319,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 2 && "border-2 border-primary"
+                      presetChosen == 2 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#EF8000]"></div>
@@ -342,7 +342,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 3 && "border-2 border-primary"
+                      presetChosen == 3 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#198639]"></div>
@@ -365,7 +365,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 4 && "border-2 border-primary"
+                      presetChosen == 4 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#229CE0]"></div>
@@ -388,7 +388,7 @@ export const LinksCreate = () => {
                     }}
                     className={cn(
                       "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                      presetChosen == 5 && "border-2 border-primary"
+                      presetChosen == 5 && "border-2 border-primary",
                     )}
                   >
                     <div className="w-full h-full rounded-full bg-[#6B52D1]"></div>
@@ -499,7 +499,7 @@ export const LinksCreate = () => {
                   if (qrCodeResponse.success && qrCodeResponse.data) {
                     const updateResponse = await attachQRToShortn(
                       firstLinkResponse.data.shortUrl,
-                      qrCodeResponse.data.qrCodeId
+                      qrCodeResponse.data.qrCodeId,
                     );
                     if (!updateResponse.success) {
                       linkForm.setError("destination", {
@@ -511,7 +511,7 @@ export const LinksCreate = () => {
                     }
                     if (updateResponse.success) {
                       router.push(
-                        `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
+                        `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`,
                       );
                     }
                   }
@@ -565,7 +565,7 @@ export const LinksCreate = () => {
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
                   router.push(
-                    `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`
+                    `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`,
                   );
                   return;
                 }

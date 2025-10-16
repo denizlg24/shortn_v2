@@ -75,7 +75,7 @@ const qrCodeFormSchema = z.object({
         .max(52, "Back-half can't be longer than 52 characters")
         .regex(
           /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)"
+          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
         ),
       z.literal(""),
     ])
@@ -157,7 +157,7 @@ export const QRCodeCreate = ({
             className={cn(
               "md:text-base text-sm text-muted-foreground flex flex-row gap-1 items-center justify-start",
               state == "configure" && "text-primary font-bold",
-              state == "customize" && "hover:cursor-pointer"
+              state == "customize" && "hover:cursor-pointer",
             )}
           >
             {state == "configure" ? (
@@ -170,14 +170,14 @@ export const QRCodeCreate = ({
           <div
             className={cn(
               "bg-muted-foreground/50 w-6 h-0.25",
-              state == "customize" && "text-primary"
+              state == "customize" && "text-primary",
             )}
           ></div>
           <div
             className={cn(
               "md:text-base text-sm text-muted-foreground flex flex-row gap-1 items-center justify-start",
               state == "customize" && "text-primary font-bold",
-              state == "configure" && "hover:cursor-not-allowed"
+              state == "configure" && "hover:cursor-not-allowed",
             )}
           >
             <Circle className="h-4 w-auto aspect-square" />
@@ -194,7 +194,7 @@ export const QRCodeCreate = ({
                 session.user?.plan.subscription ?? "free",
                 session.user?.qr_codes_this_month ?? 0,
                 true,
-                "text-xs"
+                "text-xs",
               )}
             </div>
             <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -274,9 +274,7 @@ export const QRCodeCreate = ({
                         <Input
                           disabled
                           className="w-full"
-                          value={
-                            process.env.NEXT_PUBLIC_APP_URL?.split("//")[1]
-                          }
+                          value={window.location.origin}
                         />
                       </div>
                       <div className="h-9 text-sm flex items-center justify-center">
@@ -349,7 +347,7 @@ export const QRCodeCreate = ({
                   onClick={qrCodeForm.handleSubmit(() => {
                     setOptions((prev) => ({
                       ...prev,
-                      data: `${process.env.NEXT_PUBLIC_APP_URL}/qr-code-preview`,
+                      data: `${window.location.origin}/qr-code-preview`,
                     }));
                     setState("customize");
                   })}
@@ -380,7 +378,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "square" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -400,7 +398,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -420,7 +418,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "dots" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -440,7 +438,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "classy" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -463,7 +461,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "classy-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -486,7 +484,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square! h-auto xs:p-2! p-1! rounded!",
                     options.dotsOptions?.type == "extra-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -515,7 +513,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "square" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -538,7 +536,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -561,7 +559,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "dots" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -584,7 +582,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "classy" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -607,7 +605,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "classy-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -630,7 +628,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersSquareOptions?.type == "extra-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -656,7 +654,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "square" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -679,7 +677,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -702,7 +700,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "dots" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -725,7 +723,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "classy" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -748,7 +746,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "classy-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -771,7 +769,7 @@ export const QRCodeCreate = ({
                   className={cn(
                     "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                     options.cornersDotOptions?.type == "extra-rounded" &&
-                      "border-2 border-primary"
+                      "border-2 border-primary",
                   )}
                 >
                   <Image
@@ -806,7 +804,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 0 && "border-2 border-primary"
+                    presetChosen == 0 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#000]"></div>
@@ -829,7 +827,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 1 && "border-2 border-primary"
+                    presetChosen == 1 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#DE3121]"></div>
@@ -852,7 +850,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 2 && "border-2 border-primary"
+                    presetChosen == 2 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#EF8000]"></div>
@@ -875,7 +873,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 3 && "border-2 border-primary"
+                    presetChosen == 3 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#198639]"></div>
@@ -898,7 +896,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 4 && "border-2 border-primary"
+                    presetChosen == 4 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#229CE0]"></div>
@@ -921,7 +919,7 @@ export const QRCodeCreate = ({
                   }}
                   className={cn(
                     "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                    presetChosen == 5 && "border-2 border-primary"
+                    presetChosen == 5 && "border-2 border-primary",
                   )}
                 >
                   <div className="w-full h-full rounded-full bg-[#6B52D1]"></div>
@@ -1061,7 +1059,7 @@ export const QRCodeCreate = ({
                       if (qrCodeResponse.success && qrCodeResponse.data) {
                         const updateResponse = await attachQRToShortn(
                           firstLinkResponse.data.shortUrl,
-                          qrCodeResponse.data.qrCodeId
+                          qrCodeResponse.data.qrCodeId,
                         );
                         if (!updateResponse.success) {
                           qrCodeForm.setError("destination", {
@@ -1075,7 +1073,7 @@ export const QRCodeCreate = ({
                         }
                         if (updateResponse.success) {
                           router.push(
-                            `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                            `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`,
                           );
                           return;
                         }
@@ -1119,7 +1117,7 @@ export const QRCodeCreate = ({
                     }
                     if (qrCodeResponse.success && qrCodeResponse.data) {
                       router.push(
-                        `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`
+                        `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`,
                       );
                       return;
                     }

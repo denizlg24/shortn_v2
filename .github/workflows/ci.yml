@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      MONGODB_KEY: ${{secrets.MONGODB_KEY}}
+      AUTH_SECRET: ${{secrets.AUTH_SECRET}}
+      AUTH_GITHUB_ID: ${{secrets.AUTH_GITHUB_ID}}
+      AUTH_GITHUB_SECRET: ${{secrets.AUTH_GITHUB_SECRET}}
+      AUTH_GOOGLE_ID: ${{secrets.AUTH_GOOGLE_ID}}
+      AUTH_GOOGLE_SECRET: ${{secrets.AUTH_GOOGLE_SECRET}}
+      STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY}}
+      FREE_PLAN_ID: ${{secrets.FREE_PLAN_ID}}
+      BASIC_PLAN_ID: ${{secrets.BASIC_PLAN_ID}}
+      PLUS_PLAN_ID: ${{secrets.PLUS_PLAN_ID}}
+      PRO_PLAN_ID: ${{secrets.PRO_PLAN_ID}}
+      WEBMAIL_USER: ${{secrets. WEBMAIL_USER}}
+      WEBMAIL_PASS: ${{secrets.WEBMAIL_PASS}}
+      PINATA_JWT: ${{secrets.PINATA_JWT}}
+      PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY}}
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+       
+      - name: Run lint
+        run: pnpm lint
+
+      - name: Run build
+        run: pnpm build
