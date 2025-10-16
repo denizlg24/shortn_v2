@@ -11,21 +11,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MONGODB_KEY: ${{secrets.MONGODB_KEY ||'dependabot'}}
-      AUTH_SECRET: ${{secrets.AUTH_SECRET || 'dependabot'}}
-      AUTH_GITHUB_ID: ${{secrets.AUTH_GITHUB_ID || 'dependabot'}}
-      AUTH_GITHUB_SECRET: ${{secrets.AUTH_GITHUB_SECRET || 'dependabot'}}
-      AUTH_GOOGLE_ID: ${{secrets.AUTH_GOOGLE_ID || 'dependabot'}}
-      AUTH_GOOGLE_SECRET: ${{secrets.AUTH_GOOGLE_SECRET || 'dependabot'}}
-      STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY || 'dependabot'}}
-      FREE_PLAN_ID: ${{secrets.FREE_PLAN_ID || 'dependabot'}}
-      BASIC_PLAN_ID: ${{secrets.BASIC_PLAN_ID || 'dependabot'}}
-      PLUS_PLAN_ID: ${{secrets.PLUS_PLAN_ID || 'dependabot'}}
-      PRO_PLAN_ID: ${{secrets.PRO_PLAN_ID || 'dependabot'}}
-      WEBMAIL_USER: ${{secrets. WEBMAIL_USER || 'dependabot'}}
-      WEBMAIL_PASS: ${{secrets.WEBMAIL_PASS || 'dependabot'}}
-      PINATA_JWT: ${{secrets.PINATA_JWT || 'dependabot'}}
-      PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY || 'dependabot'}}
+      MONGODB_KEY: ${{secrets.MONGODB_KEY  || 'dependabot'}}
+      AUTH_SECRET: ${{secrets.AUTH_SECRET  || 'dependabot'}}
+      AUTH_GITHUB_ID: ${{secrets.AUTH_GITHUB_ID  || 'dependabot'}}
+      AUTH_GITHUB_SECRET: ${{secrets.AUTH_GITHUB_SECRET  || 'dependabot'}}
+      AUTH_GOOGLE_ID: ${{secrets.AUTH_GOOGLE_ID  || 'dependabot'}}
+      AUTH_GOOGLE_SECRET: ${{secrets.AUTH_GOOGLE_SECRET  || 'dependabot'}}
+      STRIPE_SECRET_KEY: ${{secrets.STRIPE_SECRET_KEY  || 'dependabot'}}
+      FREE_PLAN_ID: ${{secrets.FREE_PLAN_ID  || 'dependabot'}}
+      BASIC_PLAN_ID: ${{secrets.BASIC_PLAN_ID  || 'dependabot'}}
+      PLUS_PLAN_ID: ${{secrets.PLUS_PLAN_ID  || 'dependabot'}}
+      PRO_PLAN_ID: ${{secrets.PRO_PLAN_ID  || 'dependabot'}}
+      WEBMAIL_USER: ${{secrets. WEBMAIL_USER  || 'dependabot'}}
+      WEBMAIL_PASS: ${{secrets.WEBMAIL_PASS  || 'dependabot'}}
+      PINATA_JWT: ${{secrets.PINATA_JWT  || 'dependabot'}}
+      PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY  || 'dependabot'}}
+
 
     steps:
       - name: Checkout repository
