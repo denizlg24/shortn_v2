@@ -87,6 +87,7 @@
     "nodemailer": "^6.10.1",
     "pinata": "^2.4.9",
     "postcode-validator": "^3.10.5",
+    "prettier": "^3.6.2",
     "qr-code-styling": "^1.9.2",
     "qr-code-styling-node": "^1.5.0",
     "qrcode": "^1.5.4",
