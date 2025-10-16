@@ -1,0 +1,30 @@
+name: Auto Create Branch from Label
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  create-branch:
+    if: github.event.label.name == 'in-progress'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sanitize branch name
+        id: sanitize
+        run: |
+          TITLE="${{ github.event.issue.title }}"
+          CLEANED=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | tr -cd '[:alnum:]-')
+          echo "branch_name=feature/$CLEANED" >> $GITHUB_OUTPUT
+
+      - name: Create branch
+        uses: peter-evans/create-branch@v5
+        with:
+          branch: ${{ steps.sanitize.outputs.branch_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on issue
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: |
+            🚀 Created branch **${{ steps.sanitize.outputs.branch_name }}** automatically for this issue.
