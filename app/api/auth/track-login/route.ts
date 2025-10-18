@@ -1,11 +1,13 @@
 import { loginAttempt } from "@/app/actions/userActions";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const loginData = { ...body, ip: ipAddress(req), geo: geolocation(req) };
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0]?.trim() || undefined;
+    const loginData = { ...body, ip, geo: geolocation(req) };
     const result = await loginAttempt(loginData);
     if (result.success) {
       return NextResponse.json(result);
