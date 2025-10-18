@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
       body: JSON.stringify({
         sub: user.sub,
         ip: ipAddress(request),
-        geo: geolocation(request),
+        location: geolocation(request),
         success: true,
         type: "login",
       }),
