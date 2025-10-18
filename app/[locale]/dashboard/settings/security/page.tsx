@@ -1,16 +1,19 @@
+import { getLoginRecords, getUser } from "@/app/actions/userActions";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
 import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { notFound } from "next/navigation";
 
-export default function Home({
+export default async function Home({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = use<{
-    locale: string;
-  }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
-  return <SecurityCard />;
+  const { user } = await getUser();
+  if (!user) {
+    notFound();
+  }
+  const { loginRecords } = await getLoginRecords({ limit: 4, sub: user.sub });
+  return <SecurityCard loginRecords={loginRecords} />;
 }

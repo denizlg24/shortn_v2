@@ -12,9 +12,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { TLoginRecord } from "@/models/auth/LoginActivity";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
 import { EyeOff, Eye, Loader2 } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -34,7 +37,11 @@ const updatePasswordFormSchema = z
     path: ["confirmPassword"],
   });
 
-export const SecurityCard = () => {
+export const SecurityCard = ({
+  loginRecords,
+}: {
+  loginRecords: TLoginRecord[];
+}) => {
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
     resolver: zodResolver(updatePasswordFormSchema),
     defaultValues: {
@@ -71,7 +78,7 @@ export const SecurityCard = () => {
       toast.error("User not found. Please log in again.");
     } else if (message === "server-error") {
       toast.error(
-        "There was a problem updating your password. Try again later."
+        "There was a problem updating your password. Try again later.",
       );
     }
     setChangesLoading(false);
@@ -202,6 +209,52 @@ export const SecurityCard = () => {
           </div>
         </form>
       </Form>
+      <Separator className="my-4" />
+      <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
+        Access History
+      </h1>
+      <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
+        You&apos;re viewing recent activity on your account.
+      </h2>
+      <Separator className="my-4" />
+      <div className="w-full max-w-xl flex flex-col gap-4 items-start">
+        {loginRecords.length == 0 && (
+          <p className="font-semibold text-left text-sm">
+            No login records yet.
+          </p>
+        )}
+        {loginRecords.map((record) => {
+          return (
+            <React.Fragment key={record.at.getTime()}>
+              <div className="w-full flex flex-row items-start justify-between">
+                <div className="flex flex-col gap-1 items-start text-left">
+                  <p className="flex flex-row items-center justify-start gap-1 font-semibold text-sm">
+                    <span
+                      className={cn(
+                        "w-2 h-2 rounded-full",
+                        record.succeeded ? "bg-green-700" : "bg-red-700",
+                      )}
+                    ></span>
+                    {record.type}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {record.location == ", "
+                      ? "Unknown location"
+                      : record.location}
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 items-end text-right w-fit">
+                  <p className="text-sm text-muted-foreground">
+                    {format(record.at, "MMM d, yyyy h:mm a 'GMT'xxx")}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{record.ip}</p>
+                </div>
+              </div>
+              <Separator />
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 };

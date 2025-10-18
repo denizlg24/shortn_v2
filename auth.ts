@@ -62,228 +62,295 @@ declare module "next-auth/jwt" {
   }
 }
 
-export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth({
-  ...authConfig,
-  session: {
-    strategy: "jwt",
-  },
-  providers: [
-    GitHub({
-      name: "Github",
-      id: "github",
-      async profile(profile) {
-        await connectDB();
-        const githubSub = "github|" + profile.id;
-        const user = await User.findOne({ sub: githubSub });
-        if (!user) {
-          const rawUserData = profile;
-          const sub = `github|${rawUserData.id}`;
-          const { customerId } = await createFreePlan({
-            name: rawUserData.name || rawUserData.email || rawUserData.login,
-            email: rawUserData.email ?? undefined,
-          });
-          const newUser = new User({
-            sub,
-            displayName:
-              rawUserData.name ||
-              rawUserData.email ||
-              rawUserData.login ||
-              `GitHub ${rawUserData.id}`,
-            username: rawUserData.login,
-            stripeId: customerId,
-            email: rawUserData.email || "",
-            password: "Does Not Apply",
-            profilePicture: rawUserData.avatar_url,
-            emailVerified: true,
-            createdAt: new Date(),
-            plan: {
-              subscription: "free",
-              lastPaid: new Date(),
-            },
-            links_this_month: 0,
-            qr_codes_this_month: 0,
-          });
-          await newUser.save();
+export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
+  () => ({
+    ...authConfig,
+    session: {
+      strategy: "jwt",
+    },
+    providers: [
+      GitHub({
+        name: "Github",
+        id: "github",
+        async profile(profile) {
+          await connectDB();
+          const githubSub = "github|" + profile.id;
+          const user = await User.findOne({ sub: githubSub });
+          if (!user) {
+            const rawUserData = profile;
+            const sub = `github|${rawUserData.id}`;
+            const { customerId } = await createFreePlan({
+              name: rawUserData.name || rawUserData.email || rawUserData.login,
+              email: rawUserData.email ?? undefined,
+            });
+            const newUser = new User({
+              sub,
+              displayName:
+                rawUserData.name ||
+                rawUserData.email ||
+                rawUserData.login ||
+                `GitHub ${rawUserData.id}`,
+              username: rawUserData.login,
+              stripeId: customerId,
+              email: rawUserData.email || "",
+              password: "Does Not Apply",
+              profilePicture: rawUserData.avatar_url,
+              emailVerified: true,
+              createdAt: new Date(),
+              plan: {
+                subscription: "free",
+                lastPaid: new Date(),
+              },
+              links_this_month: 0,
+              qr_codes_this_month: 0,
+            });
+            await newUser.save();
+            fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sub: sub,
+                success: true,
+                type: "account-created-github",
+              }),
+            }).catch(() => null);
+            return {
+              sub,
+              displayName:
+                rawUserData.name ||
+                rawUserData.email ||
+                rawUserData.login ||
+                `GitHub ${rawUserData.id}`,
+              username: rawUserData.login,
+              stripeId: customerId,
+              email: rawUserData.email || "",
+              password: "Does Not Apply",
+              profilePicture: rawUserData.avatar_url,
+              emailVerified: true,
+              createdAt: new Date(),
+              plan: {
+                subscription: "free",
+                lastPaid: new Date(),
+              },
+              links_this_month: 0,
+              qr_codes_this_month: 0,
+              phone_number: "",
+              tax_id: "",
+            };
+          }
+          const { phone_number, tax_id } = await getStripeExtraInfo(
+            user.stripeId,
+          );
+          fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sub: user.sub,
+              success: true,
+              type: "login-github",
+            }),
+          }).catch(() => null);
           return {
-            sub,
-            displayName:
-              rawUserData.name ||
-              rawUserData.email ||
-              rawUserData.login ||
-              `GitHub ${rawUserData.id}`,
-            username: rawUserData.login,
-            stripeId: customerId,
-            email: rawUserData.email || "",
-            password: "Does Not Apply",
-            profilePicture: rawUserData.avatar_url,
-            emailVerified: true,
-            createdAt: new Date(),
+            id: user.id as string,
+            sub: user.sub,
+            email: user.email,
+            displayName: user.displayName,
+            profilePicture: user.profilePicture,
+            stripeId: user.stripeId,
+            username: user.username,
+            emailVerified: user.emailVerified,
+            createdAt: user.createdAt,
             plan: {
-              subscription: "free",
-              lastPaid: new Date(),
+              subscription: user.plan.subscription,
+              lastPaid: user.plan.lastPaid,
             },
-            links_this_month: 0,
-            qr_codes_this_month: 0,
-            phone_number: "",
-            tax_id: "",
+            links_this_month: user.links_this_month,
+            qr_codes_this_month: user.qr_codes_this_month,
+            phone_number,
+            tax_id,
           };
-        }
-        const { phone_number, tax_id } = await getStripeExtraInfo(
-          user.stripeId,
-        );
-        return {
-          id: user.id as string,
-          sub: user.sub,
-          email: user.email,
-          displayName: user.displayName,
-          profilePicture: user.profilePicture,
-          stripeId: user.stripeId,
-          username: user.username,
-          emailVerified: user.emailVerified,
-          createdAt: user.createdAt,
-          plan: {
-            subscription: user.plan.subscription,
-            lastPaid: user.plan.lastPaid,
-          },
-          links_this_month: user.links_this_month,
-          qr_codes_this_month: user.qr_codes_this_month,
-          phone_number,
-          tax_id,
-        };
-      },
-    }),
-    Google({
-      name: "Google",
-      id: "google",
-      async profile(profile: GoogleProfile) {
-        await connectDB();
-        const googleSub = "google|" + profile.sub;
-        const user = await User.findOne({ sub: googleSub });
-        if (!user) {
-          const rawUserData = profile;
-          const sub = `google|${rawUserData.sub}`;
-          const { customerId } = await createFreePlan({
-            name: rawUserData.name,
-            email: rawUserData.email ?? undefined,
-          });
-          const newUser = new User({
-            sub,
-            displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
-            username: rawUserData.email.split("@")[0],
-            stripeId: customerId,
-            email: rawUserData.email,
-            password: "Does Not Apply",
-            profilePicture: rawUserData.picture,
-            emailVerified: true,
-            createdAt: new Date(),
-            plan: {
-              subscription: "free",
-              lastPaid: new Date(),
-            },
-            links_this_month: 0,
-            qr_codes_this_month: 0,
-          });
-          await newUser.save();
+        },
+      }),
+      Google({
+        name: "Google",
+        id: "google",
+        async profile(profile: GoogleProfile) {
+          await connectDB();
+          const googleSub = "google|" + profile.sub;
+          const user = await User.findOne({ sub: googleSub });
+          if (!user) {
+            const rawUserData = profile;
+            const sub = `google|${rawUserData.sub}`;
+            const { customerId } = await createFreePlan({
+              name: rawUserData.name,
+              email: rawUserData.email ?? undefined,
+            });
+            const newUser = new User({
+              sub,
+              displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
+              username: rawUserData.email.split("@")[0],
+              stripeId: customerId,
+              email: rawUserData.email,
+              password: "Does Not Apply",
+              profilePicture: rawUserData.picture,
+              emailVerified: true,
+              createdAt: new Date(),
+              plan: {
+                subscription: "free",
+                lastPaid: new Date(),
+              },
+              links_this_month: 0,
+              qr_codes_this_month: 0,
+            });
+            await newUser.save();
+            fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sub: sub,
+                success: true,
+                type: "account-created-google",
+              }),
+            }).catch(() => null);
+            return {
+              sub,
+              displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
+              username: rawUserData.email.split("@")[0],
+              stripeId: customerId,
+              email: rawUserData.email,
+              password: "Does Not Apply",
+              profilePicture: rawUserData.picture,
+              emailVerified: true,
+              createdAt: new Date(),
+              plan: {
+                subscription: "free",
+                lastPaid: new Date(),
+              },
+              links_this_month: 0,
+              qr_codes_this_month: 0,
+              phone_number: "",
+              tax_id: "",
+            };
+          }
+          const { phone_number, tax_id } = await getStripeExtraInfo(
+            user.stripeId,
+          );
+          fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sub: user.sub,
+              success: true,
+              type: "login-google",
+            }),
+          }).catch(() => null);
           return {
-            sub,
-            displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
-            username: rawUserData.email.split("@")[0],
-            stripeId: customerId,
-            email: rawUserData.email,
-            password: "Does Not Apply",
-            profilePicture: rawUserData.picture,
-            emailVerified: true,
-            createdAt: new Date(),
+            id: user.id as string,
+            sub: user.sub,
+            email: user.email,
+            displayName: user.displayName,
+            profilePicture: user.profilePicture,
+            stripeId: user.stripeId,
+            username: user.username,
+            emailVerified: user.emailVerified,
+            createdAt: user.createdAt,
             plan: {
-              subscription: "free",
-              lastPaid: new Date(),
+              subscription: user.plan.subscription,
+              lastPaid: user.plan.lastPaid,
             },
-            links_this_month: 0,
-            qr_codes_this_month: 0,
-            phone_number: "",
-            tax_id: "",
+            links_this_month: user.links_this_month,
+            qr_codes_this_month: user.qr_codes_this_month,
+            phone_number,
+            tax_id,
           };
-        }
-        const { phone_number, tax_id } = await getStripeExtraInfo(
-          user.stripeId,
-        );
-        return {
-          id: user.id as string,
-          sub: user.sub,
-          email: user.email,
-          displayName: user.displayName,
-          profilePicture: user.profilePicture,
-          stripeId: user.stripeId,
-          username: user.username,
-          emailVerified: user.emailVerified,
-          createdAt: user.createdAt,
-          plan: {
-            subscription: user.plan.subscription,
-            lastPaid: user.plan.lastPaid,
-          },
-          links_this_month: user.links_this_month,
-          qr_codes_this_month: user.qr_codes_this_month,
-          phone_number,
-          tax_id,
-        };
-      },
-    }),
-    credentials({
-      name: "Credentials",
-      id: "credentials",
-      credentials: {
-        email: { label: "EmailOrUsername", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        await connectDB();
-        if (!credentials?.email || !credentials?.password) {
-          throw new CredentialsSignin("email-password-missing");
-        }
-        const usernameFind = await User.findOne({
-          username: credentials.email,
-          sub: { $regex: /^authS\|/ },
-        });
-        const emailFind = await User.findOne({
-          email: credentials.email,
-          sub: { $regex: /^authS\|/ },
-        });
-        const account = emailFind || usernameFind;
-        if (!account) throw new CredentialsSignin("no-account");
+        },
+      }),
+      credentials({
+        name: "Credentials",
+        id: "credentials",
+        credentials: {
+          email: { label: "EmailOrUsername", type: "text" },
+          password: { label: "Password", type: "password" },
+        },
+        async authorize(credentials) {
+          await connectDB();
+          if (!credentials?.email || !credentials?.password) {
+            throw new CredentialsSignin("email-password-missing");
+          }
+          const usernameFind = await User.findOne({
+            username: credentials.email,
+            sub: { $regex: /^authS\|/ },
+          });
+          const emailFind = await User.findOne({
+            email: credentials.email,
+            sub: { $regex: /^authS\|/ },
+          });
+          const account = emailFind || usernameFind;
+          if (!account) throw new CredentialsSignin("no-account");
 
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          account.password,
-        );
-        if (!isValid) throw new CredentialsSignin("wrong-password");
-        const user = account.toObject();
-        if (!user.emailVerified) {
-          throw new CredentialsSignin("not-verified");
-        }
-        const { phone_number, tax_id } = await getStripeExtraInfo(
-          user.stripeId,
-        );
-        return {
-          id: user.id as string,
-          sub: user.sub,
-          email: user.email,
-          displayName: user.displayName,
-          profilePicture: user.profilePicture,
-          stripeId: user.stripeId,
-          username: user.username,
-          emailVerified: user.emailVerified,
-          createdAt: user.createdAt,
-          plan: {
-            subscription: user.plan.subscription,
-            lastPaid: user.plan.lastPaid,
-          },
-          links_this_month: user.links_this_month,
-          qr_codes_this_month: user.qr_codes_this_month,
-          phone_number,
-          tax_id,
-        };
-      },
-    }),
-  ],
-  debug: true,
-});
+          const isValid = await bcrypt.compare(
+            credentials.password as string,
+            account.password,
+          );
+          if (!isValid) {
+            fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sub: account.sub,
+                success: false,
+                type: "wrong-password-attempt",
+              }),
+            }).catch(() => null);
+            throw new CredentialsSignin("wrong-password");
+          }
+          const user = account.toObject();
+          if (!user.emailVerified) {
+            fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                sub: user.sub,
+                success: false,
+                type: "email-not-verified-attempt",
+              }),
+            }).catch(() => null);
+            throw new CredentialsSignin("not-verified");
+          }
+          const { phone_number, tax_id } = await getStripeExtraInfo(
+            user.stripeId,
+          );
+          fetch(`${process.env.NEXT_PUBLIC_DOMAIN}/api/auth/track-login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sub: user.sub,
+              success: true,
+              type: "login",
+            }),
+          }).catch(() => null);
+          return {
+            id: user.id as string,
+            sub: user.sub,
+            email: user.email,
+            displayName: user.displayName,
+            profilePicture: user.profilePicture,
+            stripeId: user.stripeId,
+            username: user.username,
+            emailVerified: user.emailVerified,
+            createdAt: user.createdAt,
+            plan: {
+              subscription: user.plan.subscription,
+              lastPaid: user.plan.lastPaid,
+            },
+            links_this_month: user.links_this_month,
+            qr_codes_this_month: user.qr_codes_this_month,
+            phone_number,
+            tax_id,
+          };
+        },
+      }),
+    ],
+    debug: true,
+  }),
+);
