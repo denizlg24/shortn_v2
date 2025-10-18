@@ -105,32 +105,6 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
               qr_codes_this_month: 0,
             });
             await newUser.save();
-            try {
-              console.log(
-                await fetch(
-                  `${
-                    process.env.VERCEL_URL
-                      ? `https://${process.env.VERCEL_URL}`
-                      : "http://localhost:3000"
-                  }/api/auth/track-login`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      sub: sub,
-                      success: true,
-                      type: "account-created-github",
-                    }),
-                  },
-                ).catch((err) => {
-                  console.log(err);
-                  return null;
-                }),
-              );
-            } catch (err) {
-              console.log(err);
-            }
-
             return {
               sub,
               displayName:
@@ -158,32 +132,6 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
           const { phone_number, tax_id } = await getStripeExtraInfo(
             user.stripeId,
           );
-          try {
-            console.log(
-              await fetch(
-                `${
-                  process.env.VERCEL_URL
-                    ? `https://${process.env.VERCEL_URL}`
-                    : "http://localhost:3000"
-                }/api/auth/track-login`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    sub: user.sub,
-                    success: true,
-                    type: "login-github",
-                  }),
-                },
-              ).catch((err) => {
-                console.log(err);
-                return null;
-              }),
-            );
-          } catch (err) {
-            console.log(err);
-          }
-
           return {
             id: user.id as string,
             sub: user.sub,
@@ -237,32 +185,6 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
               qr_codes_this_month: 0,
             });
             await newUser.save();
-            try {
-              console.log(
-                await fetch(
-                  `${
-                    process.env.VERCEL_URL
-                      ? `https://${process.env.VERCEL_URL}`
-                      : "http://localhost:3000"
-                  }/api/auth/track-login`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      sub: sub,
-                      success: true,
-                      type: "account-created-google",
-                    }),
-                  },
-                ).catch((err) => {
-                  console.log(err);
-                  return null;
-                }),
-              );
-            } catch (err) {
-              console.log(err);
-            }
-
             return {
               sub,
               displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
@@ -286,32 +208,6 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
           const { phone_number, tax_id } = await getStripeExtraInfo(
             user.stripeId,
           );
-          try {
-            console.log(
-              await fetch(
-                `${
-                  process.env.VERCEL_URL
-                    ? `https://${process.env.VERCEL_URL}`
-                    : "http://localhost:3000"
-                }/api/auth/track-login`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    sub: user.sub,
-                    success: true,
-                    type: "login-google",
-                  }),
-                },
-              ).catch((err) => {
-                console.log(err);
-                return null;
-              }),
-            );
-          } catch (err) {
-            console.log(err);
-          }
-
           return {
             id: user.id as string,
             sub: user.sub,
@@ -361,92 +257,15 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
             account.password,
           );
           if (!isValid) {
-            try {
-              console.log(
-                await fetch(
-                  `${
-                    process.env.VERCEL_URL
-                      ? `https://${process.env.VERCEL_URL}`
-                      : "http://localhost:3000"
-                  }/api/auth/track-login`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      sub: account.sub,
-                      success: false,
-                      type: "wrong-password-attempt",
-                    }),
-                  },
-                ).catch((err) => {
-                  console.log(err);
-                  return null;
-                }),
-              );
-            } catch (err) {
-              console.log(err);
-            }
-
             throw new CredentialsSignin("wrong-password");
           }
           const user = account.toObject();
           if (!user.emailVerified) {
-            try {
-              console.log(
-                await fetch(
-                  `${
-                    process.env.VERCEL_URL
-                      ? `https://${process.env.VERCEL_URL}`
-                      : "http://localhost:3000"
-                  }/api/auth/track-login`,
-                  {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      sub: user.sub,
-                      success: false,
-                      type: "email-not-verified-attempt",
-                    }),
-                  },
-                ).catch((err) => {
-                  console.log(err);
-                  return null;
-                }),
-              );
-            } catch (err) {
-              console.log(err);
-            }
-
             throw new CredentialsSignin("not-verified");
           }
           const { phone_number, tax_id } = await getStripeExtraInfo(
             user.stripeId,
           );
-          try {
-            console.log(
-              await fetch(
-                `${
-                  process.env.VERCEL_URL
-                    ? `https://${process.env.VERCEL_URL}`
-                    : "http://localhost:3000"
-                }/api/auth/track-login`,
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    sub: user.sub,
-                    success: true,
-                    type: "login",
-                  }),
-                },
-              ).catch((err) => {
-                console.log(err);
-                return null;
-              }),
-            );
-          } catch (err) {
-            console.log(err);
-          }
           return {
             id: user.id as string,
             sub: user.sub,

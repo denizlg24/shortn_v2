@@ -69,6 +69,23 @@ export async function middleware(request: NextRequest) {
   }
 
   const isLoggedIn = !!user;
+  if (!isLoggedIn) {
+    request.cookies.delete("login_tracked");
+  }
+  const loginTracked = request.cookies.get("login_tracked") || !isLoggedIn;
+  if (isLoggedIn && !loginTracked) {
+    fetch(`${request.nextUrl.origin}/api/auth/track-login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sub: user.sub,
+        ip: ipAddress(request),
+        geo: geolocation(request),
+        success: true,
+        type: "login",
+      }),
+    }).catch(() => null);
+  }
   const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
   const isDashboard = request.nextUrl.pathname.startsWith(
     `/${locale}/dashboard`,
@@ -78,22 +95,57 @@ export async function middleware(request: NextRequest) {
   const isUrlNotFound = request.nextUrl.pathname === `/${locale}/url-not-found`;
 
   if (isDashboard && !isLoggedIn) {
-    return NextResponse.redirect(new URL(`/${locale}/login`, request.nextUrl));
+    const response = NextResponse.redirect(
+      new URL(`/${locale}/login`, request.nextUrl),
+    );
+    if (!loginTracked) {
+      response.cookies.set("login_tracked", "true", {
+        path: "/",
+        httpOnly: true,
+        secure: !!process.env.VERCEL_URL,
+      });
+    }
+    return response;
   }
 
   if ((isLogin || isRegister) && isLoggedIn) {
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       new URL(`/${locale}/dashboard`, request.nextUrl),
     );
+    if (!loginTracked) {
+      response.cookies.set("login_tracked", "true", {
+        path: "/",
+        httpOnly: true,
+        secure: !!process.env.VERCEL_URL,
+      });
+    }
+    return response;
   }
 
   if (!isDashboard && !isUrlNotFound && isLoggedIn) {
-    return NextResponse.redirect(
+    const response = NextResponse.redirect(
       new URL(`/${locale}/dashboard`, request.nextUrl),
     );
+    if (!loginTracked) {
+      response.cookies.set("login_tracked", "true", {
+        path: "/",
+        httpOnly: true,
+        secure: !!process.env.VERCEL_URL,
+      });
+      return response;
+    }
+    return response;
   }
 
-  return intlMiddleware(request);
+  const response = intlMiddleware(request);
+  if (!loginTracked) {
+    response.cookies.set("login_tracked", "true", {
+      path: "/",
+      httpOnly: true,
+      secure: !!process.env.VERCEL_URL,
+    });
+  }
+  return response;
 }
 
 export const config = {

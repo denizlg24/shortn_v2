@@ -433,7 +433,10 @@ export async function getLoginRecords({
 }) {
   try {
     await connectDB();
-    const loginRecords = await LoginRecord.find({ sub }).limit(limit).lean();
+    const loginRecords = await LoginRecord.find({ sub })
+      .limit(limit)
+      .sort({ at: -1 })
+      .lean();
     return {
       success: true,
       loginRecords: loginRecords.map((record) => ({
