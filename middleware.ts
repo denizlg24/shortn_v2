@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   const user = await getToken({
     req: request,
     secret: env.AUTH_SECRET,
-    secureCookie: process.env.AUTH_URL?.startsWith("https"),
+    secureCookie: !!process.env.VERCEL_URL,
   });
   if (
     !isLocale(slugCandidate) &&
