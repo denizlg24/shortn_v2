@@ -120,7 +120,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                   type: "account-created-github",
                 }),
               },
-            ).catch(() => null);
+            ).catch((err) => {
+              console.log(err);
+              return null;
+            });
             return {
               sub,
               displayName:
@@ -163,7 +166,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                 type: "login-github",
               }),
             },
-          ).catch(() => null);
+          ).catch((err) => {
+            console.log(err);
+            return null;
+          });
           return {
             id: user.id as string,
             sub: user.sub,
@@ -232,7 +238,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                   type: "account-created-google",
                 }),
               },
-            ).catch(() => null);
+            ).catch((err) => {
+              console.log(err);
+              return null;
+            });
             return {
               sub,
               displayName: rawUserData.name ?? `Google ${rawUserData.sub}`,
@@ -271,7 +280,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                 type: "login-google",
               }),
             },
-          ).catch(() => null);
+          ).catch((err) => {
+            console.log(err);
+            return null;
+          });
           return {
             id: user.id as string,
             sub: user.sub,
@@ -321,13 +333,6 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
             account.password,
           );
           if (!isValid) {
-            console.log(
-              `${
-                process.env.VERCEL_URL
-                  ? `https://${process.env.VERCEL_URL}`
-                  : "http://localhost:3000"
-              }/api/auth/track-login`,
-            );
             fetch(
               `${
                 process.env.VERCEL_URL
@@ -343,7 +348,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                   type: "wrong-password-attempt",
                 }),
               },
-            ).catch(() => null);
+            ).catch((err) => {
+              console.log(err);
+              return null;
+            });
             throw new CredentialsSignin("wrong-password");
           }
           const user = account.toObject();
@@ -363,7 +371,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                   type: "email-not-verified-attempt",
                 }),
               },
-            ).catch(() => null);
+            ).catch((err) => {
+              console.log(err);
+              return null;
+            });
             throw new CredentialsSignin("not-verified");
           }
           const { phone_number, tax_id } = await getStripeExtraInfo(
@@ -384,7 +395,10 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
                 type: "login",
               }),
             },
-          ).catch(() => null);
+          ).catch((err) => {
+            console.log(err);
+            return null;
+          });
           return {
             id: user.id as string,
             sub: user.sub,
