@@ -214,6 +214,8 @@ export async function sendRecoveryEmail(email: string, locale: string) {
 
 import { VerificationToken } from "@/models/auth/Token";
 import { headers } from "next/headers";
+import { LoginRecord } from "@/models/auth/LoginActivity";
+import { Geo } from "@vercel/functions";
 
 export async function sendVerificationEmail(email: string, locale: string) {
   await connectDB();
@@ -388,5 +390,62 @@ export async function updatePassword({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
     return { success: false, message: "server-error" };
+  }
+}
+
+export async function loginAttempt({
+  sub,
+  success,
+  location,
+  ip,
+  type,
+}: {
+  sub: string;
+  success: boolean;
+  location: Geo | undefined;
+  ip: string;
+  type: string;
+}) {
+  try {
+    await connectDB();
+    const newLoginRecord = await LoginRecord.create({
+      sub,
+      succeeded: success,
+      ip,
+      location: [location?.city ?? "", location?.country ?? ""].join(", "),
+      type,
+    });
+    if (newLoginRecord) {
+      return { success: true };
+    }
+    return { success: false };
+  } catch (error) {
+    return { success: false, message: error };
+  }
+}
+
+export async function getLoginRecords({
+  limit,
+  sub,
+}: {
+  limit: number;
+  sub: string;
+}) {
+  try {
+    await connectDB();
+    const loginRecords = await LoginRecord.find({ sub })
+      .sort({ at: -1 })
+      .limit(limit)
+      .lean();
+    return {
+      success: true,
+      loginRecords: loginRecords.map((record) => ({
+        ...record,
+        _id: record._id.toString(),
+      })),
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, loginRecords: [] };
   }
 }
