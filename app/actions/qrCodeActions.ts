@@ -83,8 +83,12 @@ export async function createQrCode({
     const urlCode = nanoid(6);
     const qrShortCode = nanoid(6);
     const headersList = await headers();
-    const domain = headersList.get("host");
-    const shortUrl = `${domain || "http://localhost:3000"}/${urlCode}`;
+    const host = headersList.get("host");
+    const protocol =
+      headersList.get("x-forwarded-proto") ||
+      (process.env.NODE_ENV === "production" ? "https" : "http");
+
+    const shortUrl = `${protocol}://${host ?? "localhost:3000"}/${urlCode}`;
 
     let resolvedTitle = title?.trim();
 

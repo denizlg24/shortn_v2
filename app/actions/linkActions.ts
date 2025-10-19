@@ -62,10 +62,12 @@ export async function createShortn({
     const sub = user?.sub;
     await connectDB();
     const headersList = await headers();
-    const domain = headersList.get("host");
-
+    const host = headersList.get("host");
+    const protocol =
+      headersList.get("x-forwarded-proto") ||
+      (process.env.NODE_ENV === "production" ? "https" : "http");
     const urlCode = customCode || nanoid(6);
-    const shortUrl = `${domain || "http://localhost:3000"}/${urlCode}`;
+    const shortUrl = `${protocol}://${host ?? "localhost:3000"}/${urlCode}`;
 
     if (customCode) {
       const existing = await UrlV3.findOne({ urlCode: customCode });

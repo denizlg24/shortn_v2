@@ -954,6 +954,29 @@ export const QRCodeCreate = ({
                 }}
               />
             </div>
+            <div className="w-full flex flex-col gap-2 items-start">
+              <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
+                Add a logo
+              </h1>
+              <p className="lg:text-base text-sm font-semibold">
+                Choose a picture to place in the middle of your QR Code
+              </p>
+              <div className="w-full flex flex-col gap-1 items-start max-w-sm">
+                <Input
+                  disabled={
+                    !session.user ||
+                    (session.user.plan.subscription != "pro" &&
+                      session.user.plan.subscription != "plus")
+                  }
+                  type="file"
+                  className="w-full"
+                />
+                <p className="text-muted-foreground font-light text-xs">
+                  PNG, JPG, or SVG. Max 2 MB. Transparent PNG recommended for
+                  best results.
+                </p>
+              </div>
+            </div>
             <div className="flex flex-row items-center justify-between mt-4">
               <Button
                 onClick={() => {
