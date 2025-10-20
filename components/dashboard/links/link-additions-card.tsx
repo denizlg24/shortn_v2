@@ -14,6 +14,8 @@ import {
   NotepadText,
   Palette,
 } from "lucide-react";
+import QRCodeStyling from "qr-code-styling";
+import { useState } from "react";
 
 export const LinkAdditionsCard = ({
   qrCode,
@@ -22,14 +24,9 @@ export const LinkAdditionsCard = ({
   qrCode: IQRCode | undefined;
   url: IUrl;
 }) => {
-  const handleDownload = (base64: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = base64;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
+    undefined,
+  );
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex xs:flex-row xs:items-start items-center flex-col gap-8">
@@ -40,6 +37,7 @@ export const LinkAdditionsCard = ({
         <div className="w-full flex md:flex-row flex-col justify-start gap-4 md:items-start items-center">
           <div className="p-2 rounded border w-full max-w-36 h-auto aspect-square">
             <StyledQRCode
+              setStyledCode={setStyledCode}
               options={
                 qrCode
                   ? qrCode.options
@@ -90,10 +88,10 @@ export const LinkAdditionsCard = ({
                     </Button>
                     <Button
                       onClick={() => {
-                        handleDownload(
-                          qrCode.qrCodeBase64,
-                          `${qrCode.qrCodeId}.png`
-                        );
+                        styledCode?.download({
+                          name: `${qrCode.qrCodeId}`,
+                          extension: "png",
+                        });
                       }}
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
