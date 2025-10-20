@@ -129,8 +129,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0
       devicons-react:
-        specifier: ^1.4.1
-        version: 1.4.1(react@19.1.1)
+        specifier: ^1.5.0
+        version: 1.5.0(react@19.1.1)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.1)
@@ -184,7 +184,7 @@ importers:
         version: 15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       next-auth:
         specifier: ^5.0.0-beta.29
-        version: 5.0.0-beta.29(next@15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(nodemailer@6.10.1)(react@19.1.1)
+        version: 5.0.0-beta.29(next@15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(nodemailer@7.0.7)(react@19.1.1)
       next-intl:
         specifier: ^4.3.1
         version: 4.3.4(next@15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(react@19.1.1)(typescript@5.8.3)
@@ -2357,8 +2357,8 @@ packages:
   '@types/node-fetch@2.6.13':
     resolution: {integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==}
 
-  '@types/node@20.19.21':
-    resolution: {integrity: sha512-CsGG2P3I5y48RPMfprQGfy4JPRZ6csfC3ltBZSRItG3ngggmNY/qs2uZKp4p9VbrpqNNSMzUZNFZKzgOGnd/VA==}
+  '@types/node@20.19.22':
+    resolution: {integrity: sha512-hRnu+5qggKDSyWHlnmThnUqg62l29Aj/6vcYgUaSFL9oc7DVjeWEQN3PRgdSc6F8d9QRMWkf36CLMch1Do/+RQ==}
 
   '@types/node@20.19.9':
     resolution: {integrity: sha512-cuVNgarYWZqxRJDQHEB58GEONhOK79QVR/qYx4S7kcUObQvUwvFnYxJuuHUKm2aieN9X3yZB4LZsuYNU1Qphsw==}
@@ -3169,8 +3169,8 @@ packages:
   detect-node-es@1.1.0:
     resolution: {integrity: sha512-ypdmJU/TbBby2Dxibuv7ZLW3Bs1QEmM7nHjEANfohJLvE0XVujisn1qPJcZxg+qDucsr+bP6fLD1rPS3AhJ7EQ==}
 
-  devicons-react@1.4.1:
-    resolution: {integrity: sha512-mQl0EtroOZp29VAfLD4clsSszpKgj4XFAro4y+W5vdLsO7HY/Bwjs+h9xacebJ+wRGU1xbta31k5yGi0XTUrYg==}
+  devicons-react@1.5.0:
+    resolution: {integrity: sha512-8DYsWpgdbwI7ENDyC6Z9eqV72H01zUIAeRRo+UxBAq4clpPWcFhtqDrWSm0i5GUqbn/iNyiIfT1K69y0XLsscg==}
     peerDependencies:
       react: '*'
 
@@ -7949,7 +7949,7 @@ snapshots:
       '@types/node': 20.19.9
       form-data: 4.0.4
 
-  '@types/node@20.19.21':
+  '@types/node@20.19.22':
     dependencies:
       undici-types: 6.21.0
 
@@ -8789,7 +8789,7 @@ snapshots:
 
   detect-node-es@1.1.0: {}
 
-  devicons-react@1.4.1(react@19.1.1):
+  devicons-react@1.5.0(react@19.1.1):
     dependencies:
       react: 19.1.1
 
@@ -10013,7 +10013,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.19.21
+      '@types/node': 20.19.22
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
@@ -10373,9 +10373,9 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  next-auth@5.0.0-beta.29(next@15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(nodemailer@6.10.1)(react@19.1.1):
+  next-auth@5.0.0-beta.29(next@15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(nodemailer@7.0.7)(react@19.1.1):
     dependencies:
-      '@auth/core': 0.40.0(nodemailer@6.10.1)
+      '@auth/core': 0.40.0(nodemailer@7.0.7)
       next: 15.5.5(@babel/core@7.28.4)(@opentelemetry/api@1.9.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       react: 19.1.1
     optionalDependencies:
