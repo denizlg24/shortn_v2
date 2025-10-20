@@ -22,7 +22,6 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
-import Image from "next/image";
 import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
@@ -57,6 +56,8 @@ import { createShortn } from "@/app/actions/linkActions";
 import { attachShortnToQR, deleteQRCode } from "@/app/actions/qrCodeActions";
 import { toast } from "sonner";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
+import { StyledQRCode } from "@/components/ui/styled-qr-code";
+import QRCodeStyling from "qr-code-styling";
 
 export const QRCodeCard = ({
   qrCode,
@@ -92,6 +93,10 @@ export const QRCodeCard = ({
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+
+  const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!session.user) {
@@ -134,15 +139,6 @@ export const QRCodeCard = ({
     setExactTagMatch(_shouldShowAddTag);
   }, [tagOptions, notFound, input]);
 
-  const handleDownload = (base64: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = base64;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const router = useRouter();
 
   if (!session.user) {
@@ -152,12 +148,16 @@ export const QRCodeCard = ({
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow flex flex-col">
       <div className="w-full flex md:flex-row flex-col items-center gap-4 justify-start">
-        <div className="lg:min-w-24 md:min-w-20 max-w-24 h-auto aspect-square">
-          <Image
-            src={currentQrCode.qrCodeBase64}
-            alt="qrcode"
-            width={1080}
-            height={1080}
+        <div className="lg:min-w-24 md:min-w-20 w-full max-w-24 h-auto aspect-square">
+          <StyledQRCode
+            options={qrCode.options}
+            className="w-full h-auto aspect-square object-contain"
+          />
+        </div>
+        <div className="fixed -top-[9999px] -left-[9999px] -z-99 pointer-events-none opacity-0 w-[1000px] h-[1000px]">
+          <StyledQRCode
+            setStyledCode={setStyledCode}
+            options={qrCode.options}
             className="w-full h-auto aspect-square object-contain"
           />
         </div>
@@ -264,19 +264,19 @@ export const QRCodeCard = ({
                                     return;
                                   case "custom-restricted":
                                     setError(
-                                      "Custom back-halves are restricted to pro accounts."
+                                      "Custom back-halves are restricted to pro accounts.",
                                     );
                                     setCreating(false);
                                     return;
                                   case "plan-limit":
                                     setError(
-                                      "You have reached your plan's link limit."
+                                      "You have reached your plan's link limit.",
                                     );
                                     setCreating(false);
                                     return;
                                   default:
                                     setError(
-                                      "There was a problem creating your link."
+                                      "There was a problem creating your link.",
                                     );
                                     setCreating(false);
                                     return;
@@ -285,10 +285,10 @@ export const QRCodeCard = ({
                               if (response.success && response.data) {
                                 await attachShortnToQR(
                                   response.data.shortUrl,
-                                  qrCode.qrCodeId
+                                  qrCode.qrCodeId,
                                 );
                                 router.push(
-                                  `/dashboard/links/${response.data.shortUrl}/details`
+                                  `/dashboard/links/${response.data.shortUrl}/details`,
                                 );
                               }
                             }}
@@ -312,11 +312,11 @@ export const QRCodeCard = ({
                       const response = await deleteQRCode(qrCode.qrCodeId);
                       if (response.success) {
                         toast.success(
-                          `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                          `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
                         );
                       } else {
                         toast.error(
-                          "There was a problem deleting your QR Code."
+                          "There was a problem deleting your QR Code.",
                         );
                       }
                       router.refresh();
@@ -352,10 +352,10 @@ export const QRCodeCard = ({
               </Button>
               <Button
                 onClick={() => {
-                  handleDownload(
-                    currentQrCode.qrCodeBase64,
-                    `${currentQrCode.qrCodeId}.png`
-                  );
+                  styledCode?.download({
+                    name: `${currentQrCode.qrCodeId}`,
+                    extension: "png",
+                  });
                 }}
                 variant={"outline"}
                 className="p-2! aspect-square!"
@@ -372,7 +372,7 @@ export const QRCodeCard = ({
               </Button>
             </div>
           </div>
-          <div className="lg:text-base text-sm truncate font-semibold">
+          <div className="lg:text-base text-sm truncate font-semibold lg:-mt-4">
             Website
           </div>
           <div className="w-full flex flex-row justify-start items-center gap-1">
@@ -446,7 +446,7 @@ export const QRCodeCard = ({
                         }}
                         className={cn(
                           "h-4 p-1! text-sm rounded-none! hover:cursor-pointer border border-transparent hover:border-primary",
-                          tags.some((t) => t == tag.id) && "border-primary"
+                          tags.some((t) => t == tag.id) && "border-primary",
                         )}
                       >
                         {tag.tagName}
@@ -490,19 +490,19 @@ export const QRCodeCard = ({
                                 value={tag.tagName}
                                 onSelect={async () => {
                                   const added = currentQrCode.tags?.some(
-                                    (_tag) => _tag.id == tag.id
+                                    (_tag) => _tag.id == tag.id,
                                   );
                                   if (added) {
                                     const { success } =
                                       await removeTagFromQRCode(
                                         currentQrCode.qrCodeId,
-                                        tag.id
+                                        tag.id,
                                       );
                                     if (success) {
                                       const newQR = currentQrCode;
                                       newQR.tags =
                                         newQR.tags?.filter(
-                                          (_t) => _t.id != tag.id
+                                          (_t) => _t.id != tag.id,
                                         ) || [];
                                       setCurrentQrCode(newQR);
                                       tagOpenChange(false);
@@ -510,7 +510,7 @@ export const QRCodeCard = ({
                                   } else {
                                     const { success } = await addTagToQRCode(
                                       currentQrCode.qrCodeId,
-                                      tag.id
+                                      tag.id,
                                     );
                                     if (success) {
                                       currentQrCode.tags?.push(tag);
@@ -524,10 +524,10 @@ export const QRCodeCard = ({
                                   className={cn(
                                     "ml-auto",
                                     currentQrCode.tags?.some(
-                                      (_tag) => _tag.tagName == tag.tagName
+                                      (_tag) => _tag.tagName == tag.tagName,
                                     )
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                               </CommandItem>
@@ -541,7 +541,7 @@ export const QRCodeCard = ({
                                   const { success, tag } =
                                     await createAndAddTagToQRCode(
                                       input,
-                                      currentQrCode.qrCodeId
+                                      currentQrCode.qrCodeId,
                                     );
                                   setInput("");
                                   if (success && tag) {
@@ -677,19 +677,19 @@ export const QRCodeCard = ({
                                   return;
                                 case "custom-restricted":
                                   setError(
-                                    "Custom back-halves are restricted to pro accounts."
+                                    "Custom back-halves are restricted to pro accounts.",
                                   );
                                   setCreating(false);
                                   return;
                                 case "plan-limit":
                                   setError(
-                                    "You have reached your plan's link limit."
+                                    "You have reached your plan's link limit.",
                                   );
                                   setCreating(false);
                                   return;
                                 default:
                                   setError(
-                                    "There was a problem creating your link."
+                                    "There was a problem creating your link.",
                                   );
                                   setCreating(false);
                                   return;
@@ -698,10 +698,10 @@ export const QRCodeCard = ({
                             if (response.success && response.data) {
                               await attachShortnToQR(
                                 response.data.shortUrl,
-                                qrCode.qrCodeId
+                                qrCode.qrCodeId,
                               );
                               router.push(
-                                `/dashboard/links/${response.data.shortUrl}/details`
+                                `/dashboard/links/${response.data.shortUrl}/details`,
                               );
                             }
                           }}
@@ -725,7 +725,7 @@ export const QRCodeCard = ({
                     const response = await deleteQRCode(qrCode.qrCodeId);
                     if (response.success) {
                       toast.success(
-                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
                       );
                     } else {
                       toast.error("There was a problem deleting your QR Code.");
@@ -763,10 +763,10 @@ export const QRCodeCard = ({
             </Button>
             <Button
               onClick={() => {
-                handleDownload(
-                  currentQrCode.qrCodeBase64,
-                  `${currentQrCode.qrCodeId}.png`
-                );
+                styledCode?.download({
+                  name: `${currentQrCode.qrCodeId}`,
+                  extension: "png",
+                });
               }}
               variant={"outline"}
               className="p-1.5! h-fit! aspect-square!"
@@ -884,19 +884,19 @@ export const QRCodeCard = ({
                               return;
                             case "custom-restricted":
                               setError(
-                                "Custom back-halves are restricted to pro accounts."
+                                "Custom back-halves are restricted to pro accounts.",
                               );
                               setCreating(false);
                               return;
                             case "plan-limit":
                               setError(
-                                "You have reached your plan's link limit."
+                                "You have reached your plan's link limit.",
                               );
                               setCreating(false);
                               return;
                             default:
                               setError(
-                                "There was a problem creating your link."
+                                "There was a problem creating your link.",
                               );
                               setCreating(false);
                               return;
@@ -905,10 +905,10 @@ export const QRCodeCard = ({
                         if (response.success && response.data) {
                           await attachShortnToQR(
                             response.data.shortUrl,
-                            qrCode.qrCodeId
+                            qrCode.qrCodeId,
                           );
                           router.push(
-                            `/dashboard/links/${response.data.shortUrl}/details`
+                            `/dashboard/links/${response.data.shortUrl}/details`,
                           );
                         }
                       }}
@@ -931,7 +931,7 @@ export const QRCodeCard = ({
                 const response = await deleteQRCode(qrCode.qrCodeId);
                 if (response.success) {
                   toast.success(
-                    `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                    `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
                   );
                 } else {
                   toast.error("There was a problem deleting your QR Code.");
@@ -969,10 +969,10 @@ export const QRCodeCard = ({
         </Button>
         <Button
           onClick={() => {
-            handleDownload(
-              currentQrCode.qrCodeBase64,
-              `${currentQrCode.qrCodeId}.png`
-            );
+            styledCode?.download({
+              name: `${currentQrCode.qrCodeId}`,
+              extension: "png",
+            });
           }}
           variant={"outline"}
           className="p-1.5! h-fit! aspect-square!"

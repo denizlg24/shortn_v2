@@ -13,6 +13,7 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { headers } from "next/headers";
+import { deletePicture } from "./deletePicture";
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
@@ -22,13 +23,12 @@ import { headers } from "next/headers";
 export async function generateQRCodeBase64(
   options: Partial<Options>,
 ): Promise<string> {
-  const qrCode = new QRCodeStyling(options);
-
-  const buffer = await qrCode.getRawData("png");
+  const qrCode = new QRCodeStyling({ ...options, jsdom: JSDOM, nodeCanvas });
+  const buffer = await qrCode.getRawData("svg");
   if (!buffer) {
     return "";
   }
-  return `data:image/png;base64,${buffer.toString("base64")}`;
+  return `data:image/svg+xml;base64,${buffer.toString("base64")}`;
 }
 
 interface CreateUrlInput {
@@ -149,38 +149,6 @@ export async function createQrCode({
       title: resolvedTitle,
     });
 
-    const defaultOptions: Partial<Options> = {
-      width: 300,
-      height: 300,
-      type: "svg",
-      jsdom: JSDOM,
-      nodeCanvas,
-      data: newUrl.shortUrl,
-      dotsOptions: {
-        color: "#1e90ff",
-        type: "square",
-      },
-      backgroundOptions: {
-        color: "#ffffff",
-      },
-      image: "",
-      imageOptions: {
-        crossOrigin: "anonymous",
-        margin: 5,
-      },
-    };
-
-    const finalOptions = options
-      ? {
-          ...options,
-          data: newUrl.shortUrl,
-          jsdom: JSDOM,
-          nodeCanvas,
-        }
-      : defaultOptions;
-
-    const base64 = await generateQRCodeBase64(finalOptions);
-
     const finalTags: ITag[] = [];
 
     if (tags) {
@@ -200,8 +168,26 @@ export async function createQrCode({
       longUrl,
       title: resolvedTitle,
       tags: finalTags,
-      qrCodeBase64: base64,
-      options: finalOptions,
+      options: options
+        ? { ...options, data: newUrl.shortUrl }
+        : {
+            width: 300,
+            height: 300,
+            type: "svg",
+            data: newUrl.shortUrl,
+            dotsOptions: {
+              color: "#1e90ff",
+              type: "square",
+            },
+            backgroundOptions: {
+              color: "#ffffff",
+            },
+            image: "",
+            imageOptions: {
+              crossOrigin: "anonymous",
+              margin: 5,
+            },
+          },
     });
 
     const updatedUser = await User.findOneAndUpdate(
@@ -250,19 +236,10 @@ export const updateQRCodeOptions = async (
 
     const sub = user.sub;
     await connectDB();
-    const finalOptions = {
-      ...options,
-      jsdom: JSDOM,
-      nodeCanvas,
-    };
-    const base64 = await generateQRCodeBase64(finalOptions);
-    await QRCodeV2.findOneAndUpdate(
-      { sub, qrCodeId: codeId },
-      { options, qrCodeBase64: base64 },
-    );
+    await QRCodeV2.updateOne({ sub, qrCodeId: codeId }, { options });
     return { success: true };
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    console.log(error);
     return { success: false };
   }
 };
@@ -361,6 +338,9 @@ export const deleteQRCode = async (qrCodeId: string) => {
     await Clicks.deleteMany({ urlCode: qrCodeId, type: "scan" });
     if (!foundQR) {
       return { success: true, deleted: qrCodeId };
+    }
+    if (foundQR.options.image) {
+      await deletePicture(foundQR.options.image);
     }
     await UrlV3.findOneAndDelete({
       sub,

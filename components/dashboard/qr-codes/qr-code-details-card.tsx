@@ -48,10 +48,11 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { getLinksLeft } from "../home/quick-create";
 import { toast } from "sonner";
+import { StyledQRCode } from "@/components/ui/styled-qr-code";
+import QRCodeStyling from "qr-code-styling";
 
 export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
   const session = useUser();
@@ -62,15 +63,9 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
-
-  const handleDownload = (base64: string, filename: string) => {
-    const link = document.createElement("a");
-    link.href = base64;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     if (!session.user) {
@@ -123,7 +118,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
   }
 
   return (
-    <div className="lg:p-6 sm:p-4 p-3 pt-6 rounded bg-background shadow w-full flex sm:flex-row flex-col-reverse items-start gap-4 justify-between">
+    <div className="lg:p-6 sm:p-4 p-3 pt-6 rounded bg-background shadow w-full flex sm:flex-row flex-col-reverse items-start gap-4 justify-between overflow-x-hidden">
       <div className="w-full grow sm:max-w-[calc(100%-112px-8px-8px)] flex flex-col gap-0">
         <div className="w-full flex flex-row items-start sm:justify-between gap-2 justify-center">
           <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
@@ -176,7 +171,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             {getLinksLeft(
                               session.user.plan.subscription,
                               session.user.qr_codes_this_month,
-                              true
+                              true,
                             )}
                           </div>
                         </DialogDescription>
@@ -214,19 +209,19 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                                   return;
                                 case "custom-restricted":
                                   setError(
-                                    "Custom back-halves are restricted to pro accounts."
+                                    "Custom back-halves are restricted to pro accounts.",
                                   );
                                   setCreating(false);
                                   return;
                                 case "plan-limit":
                                   setError(
-                                    "You have reached your plan's link limit."
+                                    "You have reached your plan's link limit.",
                                   );
                                   setCreating(false);
                                   return;
                                 default:
                                   setError(
-                                    "There was a problem creating your link."
+                                    "There was a problem creating your link.",
                                   );
                                   setCreating(false);
                                   return;
@@ -235,10 +230,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             if (response.success && response.data) {
                               await attachShortnToQR(
                                 response.data.shortUrl,
-                                qrCode.qrCodeId
+                                qrCode.qrCodeId,
                               );
                               router.push(
-                                `/dashboard/links/${response.data.shortUrl}/details`
+                                `/dashboard/links/${response.data.shortUrl}/details`,
                               );
                             }
                           }}
@@ -267,7 +262,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                     const response = await deleteQRCode(qrCode.qrCodeId);
                     if (response.success) {
                       toast.success(
-                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
                       );
                     } else {
                       toast.error("There was a problem deleting your QR Code.");
@@ -297,7 +292,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
             </Button>
             <Button
               onClick={() => {
-                handleDownload(qrCode.qrCodeBase64, `${qrCode.qrCodeId}.png`);
+                styledCode?.download({
+                  name: `${qrCode.qrCodeId}`,
+                  extension: "png",
+                });
               }}
               variant={"outline"}
               className="p-2! aspect-square!"
@@ -352,7 +350,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                           {getLinksLeft(
                             session.user.plan.subscription,
                             session.user.qr_codes_this_month,
-                            true
+                            true,
                           )}
                         </div>
                       </DialogDescription>
@@ -390,19 +388,19 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                                 return;
                               case "custom-restricted":
                                 setError(
-                                  "Custom back-halves are restricted to pro accounts."
+                                  "Custom back-halves are restricted to pro accounts.",
                                 );
                                 setCreating(false);
                                 return;
                               case "plan-limit":
                                 setError(
-                                  "You have reached your plan's link limit."
+                                  "You have reached your plan's link limit.",
                                 );
                                 setCreating(false);
                                 return;
                               default:
                                 setError(
-                                  "There was a problem creating your link."
+                                  "There was a problem creating your link.",
                                 );
                                 setCreating(false);
                                 return;
@@ -411,10 +409,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                           if (response.success && response.data) {
                             await attachShortnToQR(
                               response.data.shortUrl,
-                              qrCode.qrCodeId
+                              qrCode.qrCodeId,
                             );
                             router.push(
-                              `/dashboard/links/${response.data.shortUrl}/details`
+                              `/dashboard/links/${response.data.shortUrl}/details`,
                             );
                           }
                         }}
@@ -438,7 +436,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                   const response = await deleteQRCode(qrCode.qrCodeId);
                   if (response.success) {
                     toast.success(
-                      `QR Code ${qrCode.qrCodeId} was successfully deleted.`
+                      `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
                     );
                   } else {
                     toast.error("There was a problem deleting your QR Code.");
@@ -466,7 +464,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
           </Button>
           <Button
             onClick={() => {
-              handleDownload(qrCode.qrCodeBase64, `${qrCode.qrCodeId}.png`);
+              styledCode?.download({
+                name: `${qrCode.qrCodeId}`,
+                extension: "png",
+              });
             }}
             variant={"outline"}
             className="p-2! aspect-square!"
@@ -548,24 +549,24 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               value={tag.tagName}
                               onSelect={async () => {
                                 const added = qrCode.tags?.some(
-                                  (_tag) => _tag.id == tag.id
+                                  (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   const { success } = await removeTagFromQRCode(
                                     qrCode.qrCodeId,
-                                    tag.id
+                                    tag.id,
                                   );
                                   if (success) {
                                     qrCode.tags =
                                       qrCode.tags?.filter(
-                                        (_t) => _t.id != tag.id
+                                        (_t) => _t.id != tag.id,
                                       ) || [];
                                     tagOpenChange(false);
                                   }
                                 } else {
                                   const { success } = await addTagToQRCode(
                                     qrCode.qrCodeId,
-                                    tag.id
+                                    tag.id,
                                   );
                                   if (success) {
                                     qrCode.tags?.push(tag);
@@ -579,10 +580,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                                 className={cn(
                                   "ml-auto",
                                   qrCode.tags?.some(
-                                    (_tag) => _tag.tagName == tag.tagName
+                                    (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -596,7 +597,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                                 const { success, tag } =
                                   await createAndAddTagToUrl(
                                     input,
-                                    qrCode.qrCodeId
+                                    qrCode.qrCodeId,
                                   );
                                 setInput("");
                                 if (success && tag) {
@@ -630,11 +631,15 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
         </div>
       </div>
       <div className="w-full sm:mx-0 mx-auto shrink-0 max-w-28 h-auto aspect-square! p-2 border">
-        <Image
-          src={qrCode.qrCodeBase64}
-          alt="QR Code"
-          width={1080}
-          height={1080}
+        <StyledQRCode
+          options={qrCode.options}
+          className="w-full h-auto aspect-square object-contain"
+        />
+      </div>
+      <div className="fixed -top-[9999px] -left-[9999px] -z-99 pointer-events-none opacity-0 w-[1000px] h-[1000px]">
+        <StyledQRCode
+          setStyledCode={setStyledCode}
+          options={qrCode.options}
           className="w-full h-auto aspect-square object-contain"
         />
       </div>

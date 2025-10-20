@@ -1,7 +1,7 @@
 "use client";
 
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Options } from "qr-code-styling";
 import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,6 +17,7 @@ import {
   Infinity,
   Loader2,
   LockIcon,
+  Trash2Icon,
 } from "lucide-react";
 import {
   Form,
@@ -60,6 +61,9 @@ import DOT4 from "@/public/QR-CODES-PREVIEW/DOT-4.png";
 import DOT5 from "@/public/QR-CODES-PREVIEW/DOT-5.png";
 import DOT6 from "@/public/QR-CODES-PREVIEW/DOT-6.png";
 import Image from "next/image";
+import { toast } from "sonner";
+import { uploadImage } from "@/app/actions/uploadImage";
+import { deletePicture } from "@/app/actions/deletePicture";
 
 const qrCodeFormSchema = z.object({
   destination: z
@@ -143,6 +147,50 @@ export const QRCodeCreate = ({
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const logoRef = useRef<HTMLInputElement | null>(null);
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ["image/jpeg", "image/png", "image/svg"];
+      const maxSizeInBytes = 5 * 1024 * 1024;
+
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+        if (logoRef && logoRef.current) {
+          logoRef.current.value = "";
+        }
+        return;
+      }
+
+      if (file.size > maxSizeInBytes) {
+        toast.error("File is too large. Must be under 5MB.");
+        if (logoRef && logoRef.current) {
+          logoRef.current.value = "";
+        }
+        return;
+      }
+      setUploading(true);
+      const { success, url } = await uploadImage(file);
+      if (success && url) {
+        if (options.image) {
+          await deletePicture(options.image);
+        }
+        setOptions((prev) => ({
+          ...prev,
+          image: url as string,
+          imageOptions: {
+            crossOrigin: "anonymous",
+            margin: 2,
+            imageSize: 0.6,
+          },
+        }));
+      }
+      setUploading(false);
+    }
+  };
 
   return (
     <div className="w-full flex flex-row items-start justify-between gap-4 col-span-full">
@@ -955,24 +1003,84 @@ export const QRCodeCreate = ({
               />
             </div>
             <div className="w-full flex flex-col gap-2 items-start">
-              <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-                Add a logo
-              </h1>
+              {session.user?.plan.subscription != "pro" &&
+              session.user?.plan.subscription != "plus" ? (
+                <HoverCard>
+                  <HoverCardTrigger
+                    className="px-1 rounded-none! h-fit flex flex-row items-baseline
+                  gap-1! hover:cursor-help lg:text-2xl md:text-xl sm:text-lg text-base font-bold"
+                  >
+                    Add a logo
+                    <LockIcon className="w-4! h-4!" />
+                  </HoverCardTrigger>
+                  <HoverCardContent align="end" asChild>
+                    <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                      <p className="text-sm font-bold">Unlock adding logos</p>
+                      <p>
+                        <Link
+                          className="underline hover:cursor-pointer"
+                          href={`/dashboard/subscription`}
+                        >
+                          Upgrade
+                        </Link>{" "}
+                        to be able to add logos to your QR Codes.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              ) : (
+                <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
+                  Add a logo
+                </h1>
+              )}
+
               <p className="lg:text-base text-sm font-semibold">
                 Choose a picture to place in the middle of your QR Code
               </p>
-              <div className="w-full flex flex-col gap-1 items-start max-w-sm">
-                <Input
-                  disabled={
-                    !session.user ||
-                    (session.user.plan.subscription != "pro" &&
-                      session.user.plan.subscription != "plus")
-                  }
-                  type="file"
-                  className="w-full"
-                />
+              <div className="w-full flex flex-col gap-1 items-start sm:max-w-sm">
+                <div className="w-full flex flex-row items-center gap-1 sm:max-w-sm">
+                  <Input
+                    ref={logoRef}
+                    disabled={
+                      !session.user ||
+                      (session.user.plan.subscription != "pro" &&
+                        session.user.plan.subscription != "plus") ||
+                      uploading
+                    }
+                    onChange={handleChange}
+                    type="file"
+                    className="grow"
+                  />
+                  {uploading && (
+                    <Button variant={"secondary"} disabled>
+                      <Loader2 className="animate-spin" />
+                      Uploading
+                    </Button>
+                  )}
+                  {options.image && (
+                    <Button
+                      onClick={() => {
+                        if (options.image) {
+                          deletePicture(options.image);
+                          setOptions((prev) => ({
+                            ...prev,
+                            image: undefined,
+                          }));
+                          if (logoRef && logoRef.current) {
+                            logoRef.current.value = "";
+                          }
+                        }
+                      }}
+                      variant={"secondary"}
+                    >
+                      <Trash2Icon />
+                      Remove logo
+                    </Button>
+                  )}
+                </div>
+
                 <p className="text-muted-foreground font-light text-xs">
-                  PNG, JPG, or SVG. Max 2 MB. Transparent PNG recommended for
+                  PNG, JPG, or SVG. Max 5 MB. Transparent PNG recommended for
                   best results.
                 </p>
               </div>
@@ -980,6 +1088,9 @@ export const QRCodeCreate = ({
             <div className="flex flex-row items-center justify-between mt-4">
               <Button
                 onClick={() => {
+                  if (options.image) {
+                    deletePicture(options.image);
+                  }
                   router.push(`/dashboard`);
                 }}
                 variant={"secondary"}
