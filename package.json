@@ -113,7 +113,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@types/jsdom": "^21.1.7",
-    "@types/node": "^20",
+    "@types/node": "^24",
     "@types/nodemailer": "^6.4.17",
     "@types/qrcode": "^1.5.5",
     "@types/react": "^19",
