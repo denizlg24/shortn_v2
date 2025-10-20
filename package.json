@@ -55,7 +55,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/whatwg-url": "^13.0.0",
-    "@vercel/functions": "^2.2.3",
+    "@vercel/functions": "^3.1.4",
     "bcryptjs": "^3.0.2",
     "canvas": "^3.1.2",
     "class-variance-authority": "^0.7.1",
