@@ -105,8 +105,8 @@ importers:
         specifier: ^13.0.0
         version: 13.0.0
       '@vercel/functions':
-        specifier: ^2.2.3
-        version: 2.2.6
+        specifier: ^3.1.4
+        version: 3.1.4
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
@@ -2570,18 +2570,18 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@vercel/functions@2.2.6':
-    resolution: {integrity: sha512-8XOcBYvXiDLSNlchIl/kMItLI1lrK0iBSc12uG87Tr5oKsFQf/rRHxmJWQOs0OiuzqD2ekDy9PcQLA3ZFOiDqg==}
-    engines: {node: '>= 18'}
+  '@vercel/functions@3.1.4':
+    resolution: {integrity: sha512-1dEfZkb7qxsA+ilo+1uBUCEgr7e90vHcimpDYkUB84DM051wQ5amJDk9x+cnaI29paZb5XukXwGl8yk3Udb/DQ==}
+    engines: {node: '>= 20'}
     peerDependencies:
       '@aws-sdk/credential-provider-web-identity': '*'
     peerDependenciesMeta:
       '@aws-sdk/credential-provider-web-identity':
         optional: true
 
-  '@vercel/oidc@2.0.0':
-    resolution: {integrity: sha512-U0hncpXof7gC9xtmSrjz6vrDqdwJXi8z/zSc9FyS80AoXKfCZtpkBz9gtL3x30Agmpxpwe35P1W2dP9Epa/RGA==}
-    engines: {node: '>= 18'}
+  '@vercel/oidc@3.0.3':
+    resolution: {integrity: sha512-yNEQvPcVrK9sIe637+I0jD6leluPxzwJKx/Haw6F4H77CdDsszUn5V3o96LPziXkSNE2B83+Z3mjqGKBK/R6Gg==}
+    engines: {node: '>= 20'}
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -8165,11 +8165,11 @@ snapshots:
   '@unrs/resolver-binding-win32-x64-msvc@1.11.1':
     optional: true
 
-  '@vercel/functions@2.2.6':
+  '@vercel/functions@3.1.4':
     dependencies:
-      '@vercel/oidc': 2.0.0
+      '@vercel/oidc': 3.0.3
 
-  '@vercel/oidc@2.0.0': {}
+  '@vercel/oidc@3.0.3': {}
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
