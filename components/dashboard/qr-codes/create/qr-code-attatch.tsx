@@ -5,13 +5,13 @@ import { createQrCode } from "@/app/actions/qrCodeActions";
 import { Button } from "@/components/ui/button";
 import InputColor from "@/components/ui/color-input";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
-import { Loader2, LucideLink } from "lucide-react";
+import { Loader2, LockIcon, LucideLink, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
 import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
@@ -35,6 +35,15 @@ import DOT5 from "@/public/QR-CODES-PREVIEW/DOT-5.png";
 import DOT6 from "@/public/QR-CODES-PREVIEW/DOT-6.png";
 import Image from "next/image";
 import { getLinksLeft } from "../../home/quick-create";
+import { deletePicture } from "@/app/actions/deletePicture";
+import { Input } from "@/components/ui/input";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { toast } from "sonner";
+import { uploadImage } from "@/app/actions/uploadImage";
 export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
   const session = useUser();
 
@@ -67,6 +76,50 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 
   const [creating, setCreating] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const logoRef = useRef<HTMLInputElement | null>(null);
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validTypes = ["image/jpeg", "image/png", "image/svg"];
+      const maxSizeInBytes = 5 * 1024 * 1024;
+
+      if (!validTypes.includes(file.type)) {
+        toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+        if (logoRef && logoRef.current) {
+          logoRef.current.value = "";
+        }
+        return;
+      }
+
+      if (file.size > maxSizeInBytes) {
+        toast.error("File is too large. Must be under 5MB.");
+        if (logoRef && logoRef.current) {
+          logoRef.current.value = "";
+        }
+        return;
+      }
+      setUploading(true);
+      const { success, url } = await uploadImage(file);
+      if (success && url) {
+        if (options.image) {
+          await deletePicture(options.image);
+        }
+        setOptions((prev) => ({
+          ...prev,
+          image: url as string,
+          imageOptions: {
+            crossOrigin: "anonymous",
+            margin: 2,
+            imageSize: 0.6,
+          },
+        }));
+      }
+      setUploading(false);
+    }
+  };
 
   const [error, setError] = useState("");
 
@@ -87,7 +140,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
             session.user?.plan.subscription ?? "free",
             session.user?.qr_codes_this_month ?? 0,
             true,
-            "text-xs"
+            "text-xs",
           )}
         </div>
         <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -108,7 +161,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "square" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -128,7 +181,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -148,7 +201,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "dots" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -168,7 +221,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "classy" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -191,7 +244,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.dotsOptions?.type == "classy-rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -201,28 +254,28 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 />
               </Button>
               <Button
-                  variant={"outline"}
-                  onClick={() => {
-                    setOptions((prev) => ({
-                      ...prev,
-                      dotsOptions: {
-                        ...prev.dotsOptions,
-                        type: "extra-rounded",
-                      },
-                    }));
-                  }}
-                  className={cn(
-                    "col-span-1 w-full aspect-square! h-auto xs:p-2! p-1! rounded!",
-                    options.dotsOptions?.type == "extra-rounded" &&
-                      "border-2 border-primary"
-                  )}
-                >
-                  <Image
-                    src={BASE6}
-                    alt="border-preview"
-                    className="w-full h-auto aspect-square! object-contain"
-                  />
-                </Button>
+                variant={"outline"}
+                onClick={() => {
+                  setOptions((prev) => ({
+                    ...prev,
+                    dotsOptions: {
+                      ...prev.dotsOptions,
+                      type: "extra-rounded",
+                    },
+                  }));
+                }}
+                className={cn(
+                  "col-span-1 w-full aspect-square! h-auto xs:p-2! p-1! rounded!",
+                  options.dotsOptions?.type == "extra-rounded" &&
+                    "border-2 border-primary",
+                )}
+              >
+                <Image
+                  src={BASE6}
+                  alt="border-preview"
+                  className="w-full h-auto aspect-square! object-contain"
+                />
+              </Button>
             </div>
           </div>
           <div className="w-full flex flex-col gap-2 items-start">
@@ -243,7 +296,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "square" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -266,7 +319,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -289,7 +342,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "dots" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -312,7 +365,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "classy" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -335,7 +388,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "classy-rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -358,7 +411,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersSquareOptions?.type == "extra-rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -384,7 +437,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "square" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -407,7 +460,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -430,7 +483,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "dots" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -453,7 +506,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "classy" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -476,7 +529,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "classy-rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -499,7 +552,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 className={cn(
                   "col-span-1 w-full aspect-square h-auto xs:p-2! p-1! rounded!",
                   options.cornersDotOptions?.type == "extra-rounded" &&
-                    "border-2 border-primary"
+                    "border-2 border-primary",
                 )}
               >
                 <Image
@@ -534,7 +587,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 0 && "border-2 border-primary"
+                  presetChosen == 0 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#000]"></div>
@@ -557,7 +610,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 1 && "border-2 border-primary"
+                  presetChosen == 1 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#DE3121]"></div>
@@ -580,7 +633,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 2 && "border-2 border-primary"
+                  presetChosen == 2 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#EF8000]"></div>
@@ -603,7 +656,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 3 && "border-2 border-primary"
+                  presetChosen == 3 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#198639]"></div>
@@ -626,7 +679,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 4 && "border-2 border-primary"
+                  presetChosen == 4 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#229CE0]"></div>
@@ -649,7 +702,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 }}
                 className={cn(
                   "col-span-1 w-10 h-10 p-0.5! py-0.5! rounded-full!",
-                  presetChosen == 5 && "border-2 border-primary"
+                  presetChosen == 5 && "border-2 border-primary",
                 )}
               >
                 <div className="w-full h-full rounded-full bg-[#6B52D1]"></div>
@@ -684,13 +737,106 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
               }}
             />
           </div>
+          <div className="w-full flex flex-col gap-2 items-start">
+            {session.user?.plan.subscription != "pro" &&
+            session.user?.plan.subscription != "plus" ? (
+              <HoverCard>
+                <HoverCardTrigger
+                  className="px-1 rounded-none! h-fit flex flex-row items-baseline
+                  gap-1! hover:cursor-help lg:text-2xl md:text-xl sm:text-lg text-base font-bold"
+                >
+                  Add a logo
+                  <LockIcon className="w-4! h-4!" />
+                </HoverCardTrigger>
+                <HoverCardContent align="end" asChild>
+                  <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                    <p className="text-sm font-bold">Unlock adding logos</p>
+                    <p>
+                      <Link
+                        className="underline hover:cursor-pointer"
+                        href={`/dashboard/subscription`}
+                      >
+                        Upgrade
+                      </Link>{" "}
+                      to be able to add logos to your QR Codes.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            ) : (
+              <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
+                Add a logo
+              </h1>
+            )}
+
+            <p className="lg:text-base text-sm font-semibold">
+              Choose a picture to place in the middle of your QR Code
+            </p>
+            <div className="w-full flex flex-col gap-1 items-start sm:max-w-sm">
+              <div className="w-full flex flex-row items-center gap-1 sm:max-w-sm">
+                <Input
+                  ref={logoRef}
+                  disabled={
+                    !session.user ||
+                    (session.user.plan.subscription != "pro" &&
+                      session.user.plan.subscription != "plus") ||
+                    uploading
+                  }
+                  onChange={handleChange}
+                  type="file"
+                  className="grow"
+                />
+                {uploading && (
+                  <Button variant={"secondary"} disabled>
+                    <Loader2 className="animate-spin" />
+                    Uploading
+                  </Button>
+                )}
+                {options.image && (
+                  <Button
+                    onClick={() => {
+                      if (options.image) {
+                        deletePicture(options.image);
+                        setOptions((prev) => ({
+                          ...prev,
+                          image: undefined,
+                        }));
+                        if (logoRef && logoRef.current) {
+                          logoRef.current.value = "";
+                        }
+                      }
+                    }}
+                    variant={"secondary"}
+                  >
+                    <Trash2Icon />
+                    Remove logo
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-muted-foreground font-light text-xs">
+                PNG, JPG, or SVG. Max 5 MB. Transparent PNG recommended for best
+                results.
+              </p>
+            </div>
+          </div>
           {error && (
             <p className="xs:text-sm text-xs font-bold text-destructive -mb-6 mt-2">
               {error}
             </p>
           )}
           <div className="flex flex-row items-center justify-between mt-4">
-            <Button variant={"secondary"}>Cancel</Button>
+            <Button
+              onClick={() => {
+                if (options.image) {
+                  deletePicture(options.image);
+                }
+                router.push(`/dashboard/links/${linkToAttach.urlCode}/details`);
+              }}
+              variant={"secondary"}
+            >
+              Cancel
+            </Button>
             <Button
               onClick={async () => {
                 setCreating(true);
@@ -720,7 +866,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 if (qrCodeResponse.success && qrCodeResponse.data) {
                   const updateResponse = await attachQRToShortn(
                     linkToAttach.urlCode,
-                    qrCodeResponse.data.qrCodeId
+                    qrCodeResponse.data.qrCodeId,
                   );
                   if (!updateResponse.success) {
                     setError("There was a problem creating your QR Code.");
@@ -729,7 +875,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                   }
                   if (updateResponse.success) {
                     router.push(
-                      `/dashboard/links/${linkToAttach.urlCode}/details`
+                      `/dashboard/links/${linkToAttach.urlCode}/details`,
                     );
                     return;
                   }

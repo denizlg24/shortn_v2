@@ -2,13 +2,15 @@
 
 import { cn } from "@/lib/utils";
 import QRCodeStyling, { Options } from "qr-code-styling";
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, Dispatch, SetStateAction } from "react";
 
 export const StyledQRCode = ({
   options,
+  setStyledCode,
   className,
 }: {
   options: Partial<Options>;
+  setStyledCode?: Dispatch<SetStateAction<QRCodeStyling | undefined>>;
   className?: string;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,9 @@ export const StyledQRCode = ({
       });
 
       qr.append(containerRef.current);
+      if (setStyledCode) {
+        setStyledCode(qr);
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {}
 
@@ -35,7 +40,7 @@ export const StyledQRCode = ({
       // eslint-disable-next-line react-hooks/exhaustive-deps
       if (containerRef.current) containerRef.current!.innerHTML = "";
     };
-  }, [options]);
+  }, [options, setStyledCode]);
 
   return (
     <div
