@@ -7,7 +7,6 @@ import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
 import { setRequestLocale } from "next-intl/server";
-
 interface IFilters {
   tags: string[];
   attachedQR: "all" | "on" | "off";
@@ -20,7 +19,7 @@ interface IFilters {
 }
 
 const getFilteredQRCodes = async (
-  filters: IFilters
+  filters: IFilters,
 ): Promise<{ qrcodes: IQRCode[]; total: number }> => {
   const session = await auth();
   const user = session?.user;
@@ -144,7 +143,7 @@ export default async function Home({
   function parseToUTC(dateStr: string): Date {
     const parsed = parse(dateStr, "MM-dd-yyyy", new Date());
     return new Date(
-      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
+      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()),
     );
   }
 
