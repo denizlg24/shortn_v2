@@ -14,8 +14,8 @@ import {
   NotepadText,
   Palette,
 } from "lucide-react";
-import QRCodeStyling from "qr-code-styling";
-import { useState } from "react";
+import QRCodeStyling, { Options } from "qr-code-styling";
+import { useMemo, useState } from "react";
 
 export const LinkAdditionsCard = ({
   qrCode,
@@ -28,6 +28,25 @@ export const LinkAdditionsCard = ({
     undefined,
   );
 
+  const qrOptions: Partial<Options> = useMemo(() => {
+    return qrCode
+      ? qrCode.options
+      : {
+          type: "svg",
+          data: "https://shortn.at",
+          dotsOptions: {
+            color: "#d3d3d3",
+            type: "rounded",
+          },
+          backgroundOptions: {
+            color: "#ffffff",
+          },
+          imageOptions: {
+            crossOrigin: "anonymous",
+          },
+        };
+  }, [qrCode]);
+
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex xs:flex-row xs:items-start items-center flex-col gap-8">
       <div className="flex-1 w-full flex flex-col items-start gap-4">
@@ -38,24 +57,7 @@ export const LinkAdditionsCard = ({
           <div className="p-2 rounded border w-full max-w-36 h-auto aspect-square">
             <StyledQRCode
               setStyledCode={setStyledCode}
-              options={
-                qrCode
-                  ? qrCode.options
-                  : {
-                      type: "svg",
-                      data: "https://shortn.at",
-                      dotsOptions: {
-                        color: "#d3d3d3",
-                        type: "rounded",
-                      },
-                      backgroundOptions: {
-                        color: "#ffffff",
-                      },
-                      imageOptions: {
-                        crossOrigin: "anonymous",
-                      },
-                    }
-              }
+              options={qrOptions}
               className="w-full h-auto aspect-square relative!"
             />
           </div>

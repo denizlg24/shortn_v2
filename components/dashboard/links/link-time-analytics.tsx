@@ -13,7 +13,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, Lock, X } from "lucide-react";
+import { ChevronDownIcon, Download, Lock, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
@@ -37,17 +37,20 @@ import { QRCodeTimeBarChart } from "../qr-codes/charts/qr-code-time-bar-chart";
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/utils/UserContext";
+import { toast } from "sonner";
+import { generateCSVFromClicks } from "@/app/actions/linkActions";
 
 export const getEngagementOverTimeData = (
   entries: ClickEntry[],
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ) => {
   const defaultEnd = endOfDay(new Date());
   const defaultStart = new Date(
     new Date().getFullYear(),
     new Date().getMonth() - 2,
-    1
+    1,
   );
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
@@ -90,10 +93,10 @@ export const LinkTimeAnalytics = ({
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
-  const { getClicks } = useClicks();
+  const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
-
+  const session = useUser();
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -108,7 +111,7 @@ export const LinkTimeAnalytics = ({
 
       case "Last month": {
         const from = startOfDay(
-          new Date(now.getFullYear(), now.getMonth() - 1, 1)
+          new Date(now.getFullYear(), now.getMonth() - 1, 1),
         );
         const to = endOfDay(new Date(now.getFullYear(), now.getMonth(), 0));
         return { from, to };
@@ -151,7 +154,7 @@ export const LinkTimeAnalytics = ({
 
   function formatHumanDateRange(
     range: DateRange | undefined,
-    createdAt: Date
+    createdAt: Date,
   ): string {
     if (!range?.from || !range?.to) return "for this month";
 
@@ -190,7 +193,7 @@ export const LinkTimeAnalytics = ({
         dateRange?.from ? dateRange.from.toDateString() : undefined,
         dateRange?.to ? dateRange.to.toDateString() : undefined,
         setClicks,
-        setLoading
+        setLoading,
       );
     }
   }, [dateRange, unlocked, getClicks]);
@@ -243,219 +246,221 @@ export const LinkTimeAnalytics = ({
             .
           </CardDescription>
           <div className="w-full flex flex-row items-center gap-2 flex-wrap">
-          <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                id="date"
-                className="w-full max-w-48 justify-between font-normal md:flex hidden"
+            <Popover open={open} onOpenChange={setOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  id="date"
+                  className="w-full max-w-48 justify-between font-normal md:flex hidden"
+                >
+                  {dateRange
+                    ? `${
+                        dateRange.from
+                          ? format(dateRange.from, "dd/MM/yyyy")
+                          : ""
+                      }${
+                        dateRange.to
+                          ? `-${format(dateRange.to, "dd/MM/yyyy")}`
+                          : ""
+                      }`
+                    : "Select a period"}
+                  <ChevronDownIcon />
+                </Button>
+              </PopoverTrigger>
+              <ScrollPopoverContent
+                className="w-auto md:max-w-[488px] max-w-[300px] overflow-hidden p-0 md:flex hidden flex-col gap-0"
+                align="start"
               >
-                {dateRange
-                  ? `${
-                      dateRange.from ? format(dateRange.from, "dd/MM/yyyy") : ""
-                    }${
-                      dateRange.to
-                        ? `-${format(dateRange.to, "dd/MM/yyyy")}`
-                        : ""
-                    }`
-                  : "Select a period"}
-                <ChevronDownIcon />
-              </Button>
-            </PopoverTrigger>
-            <ScrollPopoverContent
-              className="w-auto md:max-w-[488px] max-w-[300px] overflow-hidden p-0 md:flex hidden flex-col gap-0"
-              align="start"
-            >
-              <Calendar
-                mode="range"
-                numberOfMonths={2}
-                showOutsideDays={false}
-                fixedWeeks
-                selected={dateRange}
-                disabled={(date) => {
-                  return date > new Date();
-                }}
-                onSelect={(range) => {
-                  if (range?.from && range?.to && range.to != range.from) {
-                    setDateRange(range);
-                    setOpen(false);
-                  } else {
-                    if (range?.from) {
-                      setDateRange((prev) => {
-                        return { ...prev, from: range.from };
-                      });
-                    } else if (range?.to) {
-                      setDateRange((prev) => {
-                        return { from: prev?.from, to: range.from };
-                      });
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  showOutsideDays={false}
+                  fixedWeeks
+                  selected={dateRange}
+                  disabled={(date) => {
+                    return date > new Date();
+                  }}
+                  onSelect={(range) => {
+                    if (range?.from && range?.to && range.to != range.from) {
+                      setDateRange(range);
                       setOpen(false);
+                    } else {
+                      if (range?.from) {
+                        setDateRange((prev) => {
+                          return { ...prev, from: range.from };
+                        });
+                      } else if (range?.to) {
+                        setDateRange((prev) => {
+                          return { from: prev?.from, to: range.from };
+                        });
+                        setOpen(false);
+                      }
                     }
-                  }
-                }}
-              />
-              <Separator className="mb-2" />
-              <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
-                {[
-                  "This month",
-                  "Last month",
-                  "Last 3 months",
-                  "Last 6 months",
-                  "Last 9 months",
-                  "Last year",
-                  "All time",
-                ].map((opt) => (
-                  <Button
-                    key={opt}
-                    variant="secondary"
-                    className="text-xs p-2 h-fit grow"
-                    onClick={() => setDateRange(getDateRange(opt, createdAt))}
-                  >
-                    {opt}
-                  </Button>
-                ))}
-              </div>
-            </ScrollPopoverContent>
-          </Popover>
-          <Dialog open={mobileStartOpened} onOpenChange={mobileStartOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                id="date"
-                className="grow flex-1 max-w-48 justify-between font-normal md:hidden flex px-2"
-              >
-                {dateRange?.from
-                  ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                  : "Select a start date"}
-                <ChevronDownIcon />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
-              <DialogHeader className="px-4">
-                <DialogTitle>Select start date</DialogTitle>
-                <DialogDescription>
-                  Select the date from which to start displaying scan data.
-                </DialogDescription>
-              </DialogHeader>
-              <Calendar
-                mode="single"
-                showOutsideDays={false}
-                numberOfMonths={1}
-                selected={dateRange?.from}
-                captionLayout="label"
-                className="mx-auto"
-                onSelect={(date) => {
-                  if (!date) {
-                    setDateRange(undefined);
-                  }
-                  setDateRange((prev) => {
-                    return { ...prev, from: date };
-                  });
-                  mobileStartOpen(false);
-                }}
-              />
-              <Separator className="mb-2" />
-              <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                {[
-                  "This month",
-                  "Last month",
-                  "Last 3 months",
-                  "Last 6 months",
-                  "Last 9 months",
-                  "Last year",
-                  "All time",
-                ].map((opt) => (
-                  <Button
-                    key={opt}
-                    variant="secondary"
-                    className="text-xs p-2 h-fit grow"
-                    onClick={() => setDateRange(getDateRange(opt, createdAt))}
-                  >
-                    {opt}
-                  </Button>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
-          {dateRange?.from && (
-            <>
-              <p className="md:hidden">-</p>
-              <Dialog open={mobileEndOpened} onOpenChange={mobileEndOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    id="date"
-                    className="grow flex-1 justify-between font-normal md:hidden flex px-2"
-                  >
-                    {dateRange?.to
-                      ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                      : "End"}
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
-                  <DialogHeader className="px-4">
-                    <DialogTitle>Select end date</DialogTitle>
-                    <DialogDescription>
-                      Select the date from which to stop displaying scan data.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <Calendar
-                    mode="single"
-                    showOutsideDays={false}
-                    numberOfMonths={1}
-                    selected={dateRange?.from}
-                    captionLayout="label"
-                    className="mx-auto"
-                    onSelect={(date) => {
-                      setDateRange((prev) => {
-                        if (prev?.from) {
-                          return { ...prev, to: date };
-                        }
-                        return prev;
-                      });
-                      mobileEndOpen(false);
-                    }}
-                  />
-                  <Separator className="mb-2" />
-                  <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                    {[
-                      "This month",
-                      "Last month",
-                      "Last 3 months",
-                      "Last 6 months",
-                      "Last 9 months",
-                      "Last year",
-                      "All time",
-                    ].map((opt) => (
-                      <Button
-                        key={opt}
-                        variant="secondary"
-                        className="text-xs p-2 h-fit grow"
-                        onClick={() =>
-                          setDateRange(getDateRange(opt, createdAt))
-                        }
-                      >
-                        {opt}
-                      </Button>
-                    ))}
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </>
-          )}
+                  }}
+                />
+                <Separator className="mb-2" />
+                <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
+                  {[
+                    "This month",
+                    "Last month",
+                    "Last 3 months",
+                    "Last 6 months",
+                    "Last 9 months",
+                    "Last year",
+                    "All time",
+                  ].map((opt) => (
+                    <Button
+                      key={opt}
+                      variant="secondary"
+                      className="text-xs p-2 h-fit grow"
+                      onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                    >
+                      {opt}
+                    </Button>
+                  ))}
+                </div>
+              </ScrollPopoverContent>
+            </Popover>
+            <Dialog open={mobileStartOpened} onOpenChange={mobileStartOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  id="date"
+                  className="grow flex-1 max-w-48 justify-between font-normal md:hidden flex px-2"
+                >
+                  {dateRange?.from
+                    ? `${format(dateRange.from, "dd/MM/yyyy")}`
+                    : "Select a start date"}
+                  <ChevronDownIcon />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
+                <DialogHeader className="px-4">
+                  <DialogTitle>Select start date</DialogTitle>
+                  <DialogDescription>
+                    Select the date from which to start displaying scan data.
+                  </DialogDescription>
+                </DialogHeader>
+                <Calendar
+                  mode="single"
+                  showOutsideDays={false}
+                  numberOfMonths={1}
+                  selected={dateRange?.from}
+                  captionLayout="label"
+                  className="mx-auto"
+                  onSelect={(date) => {
+                    if (!date) {
+                      setDateRange(undefined);
+                    }
+                    setDateRange((prev) => {
+                      return { ...prev, from: date };
+                    });
+                    mobileStartOpen(false);
+                  }}
+                />
+                <Separator className="mb-2" />
+                <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
+                  {[
+                    "This month",
+                    "Last month",
+                    "Last 3 months",
+                    "Last 6 months",
+                    "Last 9 months",
+                    "Last year",
+                    "All time",
+                  ].map((opt) => (
+                    <Button
+                      key={opt}
+                      variant="secondary"
+                      className="text-xs p-2 h-fit grow"
+                      onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                    >
+                      {opt}
+                    </Button>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
+            {dateRange?.from && (
+              <>
+                <p className="md:hidden">-</p>
+                <Dialog open={mobileEndOpened} onOpenChange={mobileEndOpen}>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      id="date"
+                      className="grow flex-1 justify-between font-normal md:hidden flex px-2"
+                    >
+                      {dateRange?.to
+                        ? `${format(dateRange.to, "dd/MM/yyyy")}`
+                        : "End"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
+                    <DialogHeader className="px-4">
+                      <DialogTitle>Select end date</DialogTitle>
+                      <DialogDescription>
+                        Select the date from which to stop displaying scan data.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <Calendar
+                      mode="single"
+                      showOutsideDays={false}
+                      numberOfMonths={1}
+                      selected={dateRange?.from}
+                      captionLayout="label"
+                      className="mx-auto"
+                      onSelect={(date) => {
+                        setDateRange((prev) => {
+                          if (prev?.from) {
+                            return { ...prev, to: date };
+                          }
+                          return prev;
+                        });
+                        mobileEndOpen(false);
+                      }}
+                    />
+                    <Separator className="mb-2" />
+                    <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
+                      {[
+                        "This month",
+                        "Last month",
+                        "Last 3 months",
+                        "Last 6 months",
+                        "Last 9 months",
+                        "Last year",
+                        "All time",
+                      ].map((opt) => (
+                        <Button
+                          key={opt}
+                          variant="secondary"
+                          className="text-xs p-2 h-fit grow"
+                          onClick={() =>
+                            setDateRange(getDateRange(opt, createdAt))
+                          }
+                        >
+                          {opt}
+                        </Button>
+                      ))}
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </>
+            )}
 
-          {dateRange && (
-            <Button
-              onClick={() => {
-                setOpen(false);
-                setDateRange(undefined);
-              }}
-              variant={"ghost"}
-            >
-              <X />
-              Clear Period
-            </Button>
-          )}
-        </div>
+            {dateRange && (
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  setDateRange(undefined);
+                }}
+                variant={"ghost"}
+              >
+                <X />
+                Clear Period
+              </Button>
+            )}
+          </div>
         </div>
         <div className="w-full flex flex-col gap-2">
           <Skeleton className="w-full h-[300px]" />
@@ -467,12 +472,14 @@ export const LinkTimeAnalytics = ({
   const groupedData = getEngagementOverTimeData(
     clicks,
     dateRange?.from,
-    dateRange?.to
+    dateRange?.to,
   );
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Engagements over Time</CardTitle>
+        <CardTitle className="w-full flex flex-row items-center justify-between">
+          <>Engagements over Time</>
+        </CardTitle>
         <CardDescription>
           Showing engagement data {formatHumanDateRange(dateRange, createdAt)}.
         </CardDescription>
@@ -694,6 +701,48 @@ export const LinkTimeAnalytics = ({
       <div className="w-full flex flex-col gap-2">
         <QRCodeTimeBarChart chartData={groupedData} />
       </div>
+      {session?.user?.plan.subscription == "pro" ? (
+        <Button
+          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
+          onClick={async () => {
+            toast.promise<{ success: boolean; url: string }>(
+              async () => {
+                const response = await generateCSVFromClicks({
+                  clicks: groupedData,
+                  filename: `${urlCode}-date-data-${format(Date.now(), "dd-MM-yyyy")}`,
+                });
+                return response;
+              },
+              {
+                loading: "Preparing your download...",
+                success: (response) => {
+                  if (response.success) {
+                    const a = document.createElement("a");
+                    a.href = response.url;
+                    a.download = `${urlCode}-clicks.csv`;
+                    a.click();
+                    return `Your download is ready and should start now.`;
+                  }
+                  return "There was an error creating your download.";
+                },
+                error: "There was an error creating your download.",
+              },
+            );
+          }}
+          variant={"secondary"}
+        >
+          Download Clicks <Download />
+        </Button>
+      ) : (
+        <Button
+          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
+          asChild
+        >
+          <Link href={"/dashboard/subscription"}>
+            Upgrade to download data. <Lock className="w-3! h-3!" />
+          </Link>
+        </Button>
+      )}
     </div>
   );
 };

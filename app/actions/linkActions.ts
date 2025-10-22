@@ -13,6 +13,9 @@ import QRCodeV2 from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
+import { parse } from "json2csv";
+import fs from "fs";
+import path from "path";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -451,5 +454,74 @@ export async function recordClickFromMiddleware(clickData: {
   } catch (error) {
     console.log(error);
     return { success: false };
+  }
+}
+
+export async function generateCSV({
+  code,
+  type,
+  filename,
+}: {
+  code: string;
+  type: "click" | "scan";
+  filename: string;
+}) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return { success: false, url: "" };
+    }
+
+    await connectDB();
+    const clicks = await Clicks.find({ type, urlCode: code })
+      .select("-_id -__v -sub -urlCode -type -ip")
+      .lean();
+    if (!clicks) {
+      return { success: false, url: "" };
+    }
+    const csv = parse(clicks);
+
+    const filePath = path.join("/tmp", `${filename}.csv`);
+
+    fs.writeFileSync(filePath, csv);
+    return {
+      success: true,
+      url: `/api/clicks/download-csv?file=${encodeURIComponent(filePath)}`,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, url: "" };
+  }
+}
+
+export async function generateCSVFromClicks({
+  clicks,
+  filename,
+}: {
+  clicks: unknown[];
+  filename: string;
+}) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return { success: false, url: "" };
+    }
+
+    const csv = parse(clicks);
+
+    const filePath = path.join("/tmp", `${filename}.csv`);
+
+    fs.writeFileSync(filePath, csv);
+    return {
+      success: true,
+      url: `/api/clicks/download-csv?file=${encodeURIComponent(filePath)}`,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, url: "" };
   }
 }
