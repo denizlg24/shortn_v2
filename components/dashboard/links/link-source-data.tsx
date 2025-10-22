@@ -114,7 +114,6 @@ export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
               async () => {
                 const response = await generateCSVFromClicks({
                   clicks: data,
-                  filename: `${urlCode}-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`,
                 });
                 return response;
               },
@@ -124,7 +123,7 @@ export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
                   if (response.success) {
                     const a = document.createElement("a");
                     a.href = response.url;
-                    a.download = `${urlCode}-clicks.csv`;
+                    a.download = `${urlCode}-referrer-data-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                     a.click();
                     return `Your download is ready and should start now.`;
                   }

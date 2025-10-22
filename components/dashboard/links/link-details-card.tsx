@@ -306,7 +306,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                         const response = await generateCSV({
                           code: currentLink.urlCode,
                           type: "click",
-                          filename: `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}`,
                         });
                         return response;
                       },
@@ -316,7 +315,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                           if (response.success) {
                             const a = document.createElement("a");
                             a.href = response.url;
-                            a.download = `${currentLink.urlCode}-clicks.csv`;
+                            a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                             a.click();
                             return `Your download is ready and should start now.`;
                           }

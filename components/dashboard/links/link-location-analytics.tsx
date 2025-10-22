@@ -347,7 +347,6 @@ export const LinkLocationAnalytics = ({
                     [selected]: val.location,
                     clicks: val.clicks,
                   })),
-                  filename: `${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`,
                 });
                 return response;
               },
@@ -357,7 +356,7 @@ export const LinkLocationAnalytics = ({
                   if (response.success) {
                     const a = document.createElement("a");
                     a.href = response.url;
-                    a.download = `${urlCode}-clicks.csv`;
+                    a.download = `${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                     a.click();
                     return `Your download is ready and should start now.`;
                   }

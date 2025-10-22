@@ -14,8 +14,6 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
-import fs from "fs";
-import path from "path";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -460,11 +458,9 @@ export async function recordClickFromMiddleware(clickData: {
 export async function generateCSV({
   code,
   type,
-  filename,
 }: {
   code: string;
   type: "click" | "scan";
-  filename: string;
 }) {
   try {
     const session = await auth();
@@ -483,26 +479,16 @@ export async function generateCSV({
     }
     const csv = parse(clicks);
 
-    const filePath = path.join("/tmp", `${filename}.csv`);
+    const base64 = Buffer.from(csv).toString("base64");
 
-    fs.writeFileSync(filePath, csv);
-    return {
-      success: true,
-      url: `/api/clicks/download-csv?file=${encodeURIComponent(filePath)}`,
-    };
+    return { success: true, url: `data:text/csv;base64,${base64}` };
   } catch (error) {
     console.log(error);
     return { success: false, url: "" };
   }
 }
 
-export async function generateCSVFromClicks({
-  clicks,
-  filename,
-}: {
-  clicks: unknown[];
-  filename: string;
-}) {
+export async function generateCSVFromClicks({ clicks }: { clicks: unknown[] }) {
   try {
     const session = await auth();
     const user = session?.user;
@@ -513,13 +499,9 @@ export async function generateCSVFromClicks({
 
     const csv = parse(clicks);
 
-    const filePath = path.join("/tmp", `${filename}.csv`);
+    const base64 = Buffer.from(csv).toString("base64");
 
-    fs.writeFileSync(filePath, csv);
-    return {
-      success: true,
-      url: `/api/clicks/download-csv?file=${encodeURIComponent(filePath)}`,
-    };
+    return { success: true, url: `data:text/csv;base64,${base64}` };
   } catch (error) {
     console.log(error);
     return { success: false, url: "" };

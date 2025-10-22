@@ -658,7 +658,6 @@ export const LinkTimeByDateData = ({
               async () => {
                 const response = await generateCSVFromClicks({
                   clicks: groupedData,
-                  filename: `${urlCode}-time-date-data-${format(Date.now(), "dd-MM-yyyy")}`,
                 });
                 return response;
               },
@@ -668,7 +667,7 @@ export const LinkTimeByDateData = ({
                   if (response.success) {
                     const a = document.createElement("a");
                     a.href = response.url;
-                    a.download = `${urlCode}-clicks.csv`;
+                    a.download = `${urlCode}-time-date-data-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                     a.click();
                     return `Your download is ready and should start now.`;
                   }
