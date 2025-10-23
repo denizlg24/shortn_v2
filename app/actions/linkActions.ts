@@ -13,6 +13,7 @@ import QRCodeV2 from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
+import { parse } from "json2csv";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -451,5 +452,58 @@ export async function recordClickFromMiddleware(clickData: {
   } catch (error) {
     console.log(error);
     return { success: false };
+  }
+}
+
+export async function generateCSV({
+  code,
+  type,
+}: {
+  code: string;
+  type: "click" | "scan";
+}) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return { success: false, url: "" };
+    }
+
+    await connectDB();
+    const clicks = await Clicks.find({ type, urlCode: code })
+      .select("-_id -__v -sub -urlCode -type -ip")
+      .lean();
+    if (!clicks) {
+      return { success: false, url: "" };
+    }
+    const csv = parse(clicks);
+
+    const base64 = Buffer.from(csv).toString("base64");
+
+    return { success: true, url: `data:text/csv;base64,${base64}` };
+  } catch (error) {
+    console.log(error);
+    return { success: false, url: "" };
+  }
+}
+
+export async function generateCSVFromClicks({ clicks }: { clicks: unknown[] }) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+
+    if (!user) {
+      return { success: false, url: "" };
+    }
+
+    const csv = parse(clicks);
+
+    const base64 = Buffer.from(csv).toString("base64");
+
+    return { success: true, url: `data:text/csv;base64,${base64}` };
+  } catch (error) {
+    console.log(error);
+    return { success: false, url: "" };
   }
 }

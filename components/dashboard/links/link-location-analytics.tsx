@@ -30,9 +30,11 @@ import en from "i18n-iso-countries/langs/en.json";
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import { DownloadButtonCSV } from "./download-csv-button";
 
 export function getDataTitle(
-  selected: "country" | "city" | "device" | "browser" | "os"
+  selected: "country" | "city" | "device" | "browser" | "os",
 ) {
   switch (selected) {
     case "country":
@@ -57,7 +59,7 @@ export const LinkLocationAnalytics = ({
     "country" | "city" | "device" | "browser" | "os"
   >("country");
   countries.registerLocale(en);
-  const { getClicks } = useClicks();
+  const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
   useEffect(() => {
@@ -116,7 +118,7 @@ export const LinkLocationAnalytics = ({
             value={selected}
             onValueChange={(e) => {
               setSelected(
-                e as "country" | "city" | "device" | "browser" | "os"
+                e as "country" | "city" | "device" | "browser" | "os",
               );
             }}
           >
@@ -217,12 +219,16 @@ export const LinkLocationAnalytics = ({
     country: click.country ? countries.getName(click.country, "en") : undefined,
   })) as ClickEntry[];
 
+  console.log(transformed);
+
   const data = aggregateClicksByLocation(transformed, selected);
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Advanced data</CardTitle>
+        <CardTitle className="w-full flex flex-row items-center justify-between">
+          <>Advanced Data</>
+        </CardTitle>
         <CardDescription>
           Showing advanced data of short link&apos;s clicks
         </CardDescription>
@@ -325,6 +331,15 @@ export const LinkLocationAnalytics = ({
           columns={locationColumns(getDataTitle(selected), "Click")}
         />
       </div>
+      {clicks.length > 0 && (
+        <DownloadButtonCSV
+          filename={`${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          data={data.map((val) => ({
+            [selected]: val.location,
+            clicks: val.clicks,
+          }))}
+        />
+      )}
     </div>
   );
 };
