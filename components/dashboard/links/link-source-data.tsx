@@ -105,7 +105,10 @@ export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`}
-          data={data}
+          data={data.map((val) => ({
+            "Referrer (Where click is coming from)": val.referrer,
+            Clicks: val.clicks,
+          }))}
         />
       )}
     </div>
