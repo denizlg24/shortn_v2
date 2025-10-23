@@ -659,7 +659,15 @@ export const LinkStackedSourceData = ({
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-stacked-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`}
-          data={groupedData}
+          data={groupedData.map((val) => {
+            const date = val.date;
+            const newVal: { date?: string } = val;
+            delete newVal["date"];
+            return {
+              Date: date,
+              ...newVal,
+            };
+          })}
         />
       )}
     </div>

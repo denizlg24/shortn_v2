@@ -335,8 +335,11 @@ export const LinkLocationAnalytics = ({
         <DownloadButtonCSV
           filename={`${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
           data={data.map((val) => ({
-            [selected]: val.location,
-            clicks: val.clicks,
+            [String(selected).charAt(0).toUpperCase() +
+            String(selected).slice(1)]:
+              String(val.location).charAt(0).toUpperCase() +
+              String(val.location).slice(1),
+            Clicks: val.clicks,
           }))}
         />
       )}

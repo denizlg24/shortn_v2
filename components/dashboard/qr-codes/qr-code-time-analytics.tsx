@@ -645,12 +645,15 @@ export const QRCodeTimeAnalytics = ({
         </div>
       </div>
       <div className="w-full flex flex-col gap-2">
-        <QRCodeTimeBarChart chartData={groupedData} />
+        <QRCodeTimeBarChart chartData={groupedData} type="scan" />
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-scan-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
-          data={groupedData}
+          data={groupedData.map((val) => ({
+            Date: val.date,
+            Scans: val.scans,
+          }))}
         />
       )}
     </div>
