@@ -696,12 +696,15 @@ export const LinkTimeAnalytics = ({
         </div>
       </div>
       <div className="w-full flex flex-col gap-2">
-        <QRCodeTimeBarChart chartData={groupedData} />
+        <QRCodeTimeBarChart chartData={groupedData} type="click" />
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
-          data={groupedData}
+          data={groupedData.map((val) => ({
+            Date: val.date,
+            Clicks: val.scans,
+          }))}
         />
       )}
     </div>

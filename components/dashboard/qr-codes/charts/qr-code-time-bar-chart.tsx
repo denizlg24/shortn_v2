@@ -9,19 +9,19 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 export const description = "An interactive bar chart";
-
-const chartConfig = {
-  scans: {
-    label: "Scans",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig;
-
 export function QRCodeTimeBarChart({
   chartData,
+  type,
 }: {
+  type: "click" | "scan";
   chartData: { date: string; scans: number }[];
 }) {
+  const chartConfig = {
+    scans: {
+      label: type == "click" ? "Clicks" : "Scans",
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
   return (
     <CardContent className="p-0">
       <ChartContainer
