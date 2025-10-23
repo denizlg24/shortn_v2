@@ -30,6 +30,8 @@ import { getDataTitle } from "../links/link-location-analytics";
 import { ClickEntry } from "@/models/url/Click";
 import { useScans } from "@/utils/ScanDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DownloadButtonCSV } from "../links/download-csv-button";
+import { format } from "date-fns";
 
 export const QRCodeLocationAnalytics = ({
   unlocked,
@@ -40,7 +42,7 @@ export const QRCodeLocationAnalytics = ({
     "country" | "city" | "device" | "browser" | "os"
   >("country");
   countries.registerLocale(en);
-  const { getScans } = useScans();
+  const { getScans, urlCode } = useScans();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
 
@@ -217,6 +219,15 @@ export const QRCodeLocationAnalytics = ({
           columns={locationColumns(getDataTitle(selected), "Scans")}
         />
       </div>
+      {clicks.length > 0 && (
+        <DownloadButtonCSV
+          filename={`${urlCode}-scan-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          data={data.map((val) => ({
+            [selected]: val.location,
+            clicks: val.clicks,
+          }))}
+        />
+      )}
     </div>
   );
 };

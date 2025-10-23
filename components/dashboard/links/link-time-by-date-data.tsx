@@ -7,7 +7,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Button } from "@/components/ui/button";
-import { ChevronDownIcon, Download, Lock, X } from "lucide-react";
+import { ChevronDownIcon, Lock, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
@@ -33,9 +33,7 @@ import {
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { generateCSVFromClicks } from "@/app/actions/linkActions";
-import { toast } from "sonner";
-import { useUser } from "@/utils/UserContext";
+import { DownloadButtonCSV } from "./download-csv-button";
 
 export const LinkTimeByDateData = ({
   unlocked,
@@ -51,7 +49,6 @@ export const LinkTimeByDateData = ({
   const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
-  const session = useUser();
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -650,46 +647,11 @@ export const LinkTimeByDateData = ({
       <div className="w-full flex flex-col gap-2">
         <TimeOfDayStackedBarChart chartData={groupedData} />
       </div>
-      {session?.user?.plan.subscription == "pro" ? (
-        <Button
-          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
-          onClick={async () => {
-            toast.promise<{ success: boolean; url: string }>(
-              async () => {
-                const response = await generateCSVFromClicks({
-                  clicks: groupedData,
-                });
-                return response;
-              },
-              {
-                loading: "Preparing your download...",
-                success: (response) => {
-                  if (response.success) {
-                    const a = document.createElement("a");
-                    a.href = response.url;
-                    a.download = `${urlCode}-time-date-data-${format(Date.now(), "dd-MM-yyyy")}.csv`;
-                    a.click();
-                    return `Your download is ready and should start now.`;
-                  }
-                  return "There was an error creating your download.";
-                },
-                error: "There was an error creating your download.",
-              },
-            );
-          }}
-          variant={"secondary"}
-        >
-          Download Clicks <Download />
-        </Button>
-      ) : (
-        <Button
-          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
-          asChild
-        >
-          <Link href={"/dashboard/subscription"}>
-            Upgrade to download data. <Lock className="w-3! h-3!" />
-          </Link>
-        </Button>
+      {clicks.length > 0 && (
+        <DownloadButtonCSV
+          filename={`${urlCode}-time-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          data={groupedData}
+        />
       )}
     </div>
   );

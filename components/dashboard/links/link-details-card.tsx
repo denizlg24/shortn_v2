@@ -636,6 +636,65 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             >
               <Trash2 /> Delete
             </Button>
+            {session.user.plan.subscription != "pro" ? (
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
+                  >
+                    <FileChartColumn /> Export full click data{" "}
+                    <LockIcon className="ml-auto" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent asChild>
+                  <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                    <p className="text-sm font-bold">Unlock CSV data.</p>
+                    <p>
+                      <Link
+                        className="underline hover:cursor-pointer"
+                        href={`/dashboard/subscription`}
+                      >
+                        Upgrade
+                      </Link>{" "}
+                      to export all-time click data.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            ) : (
+              <Button
+                onClick={async () => {
+                  toast.promise<{ success: boolean; url: string }>(
+                    async () => {
+                      const response = await generateCSV({
+                        code: currentLink.urlCode,
+                        type: "click",
+                      });
+                      return response;
+                    },
+                    {
+                      loading: "Preparing your download...",
+                      success: (response) => {
+                        if (response.success) {
+                          const a = document.createElement("a");
+                          a.href = response.url;
+                          a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                          a.click();
+                          return `Your download is ready and should start now.`;
+                        }
+                        return "There was an error creating your download.";
+                      },
+                      error: "There was an error creating your download.",
+                    },
+                  );
+                }}
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
+              >
+                <FileChartColumn /> Export full click data
+              </Button>
+            )}
           </ScrollPopoverContent>
         </Popover>
       </div>

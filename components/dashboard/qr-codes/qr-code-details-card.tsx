@@ -1,5 +1,5 @@
 "use client";
-import { createShortn } from "@/app/actions/linkActions";
+import { createShortn, generateCSV } from "@/app/actions/linkActions";
 import { attachShortnToQR, deleteQRCode } from "@/app/actions/qrCodeActions";
 import {
   addTagToQRCode,
@@ -41,8 +41,10 @@ import {
   Download,
   Edit2,
   Ellipsis,
+  FileChartColumn,
   LinkIcon,
   Loader2,
+  LockIcon,
   Palette,
   PlusCircle,
   Tags,
@@ -53,6 +55,11 @@ import { getLinksLeft } from "../home/quick-create";
 import { toast } from "sonner";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import QRCodeStyling from "qr-code-styling";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
   const session = useUser();
@@ -274,6 +281,65 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                 >
                   <Trash2 /> Delete
                 </Button>
+                {session.user.plan.subscription != "pro" ? (
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
+                      >
+                        <FileChartColumn /> Export full scan data
+                        <LockIcon className="ml-auto" />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent asChild>
+                      <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                        <p className="text-sm font-bold">Unlock CSV data.</p>
+                        <p>
+                          <Link
+                            className="underline hover:cursor-pointer"
+                            href={`/dashboard/subscription`}
+                          >
+                            Upgrade
+                          </Link>{" "}
+                          to export all-time scan data.
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                ) : (
+                  <Button
+                    onClick={async () => {
+                      toast.promise<{ success: boolean; url: string }>(
+                        async () => {
+                          const response = await generateCSV({
+                            code: qrCode.qrCodeId,
+                            type: "scan",
+                          });
+                          return response;
+                        },
+                        {
+                          loading: "Preparing your download...",
+                          success: (response) => {
+                            if (response.success) {
+                              const a = document.createElement("a");
+                              a.href = response.url;
+                              a.download = `${qrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                              a.click();
+                              return `Your download is ready and should start now.`;
+                            }
+                            return "There was an error creating your download.";
+                          },
+                          error: "There was an error creating your download.",
+                        },
+                      );
+                    }}
+                    variant={"outline"}
+                    className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
+                  >
+                    <FileChartColumn /> Export full scan data
+                  </Button>
+                )}
               </ScrollPopoverContent>
             </Popover>
             <Button asChild variant={"outline"} className="p-2! aspect-square!">
@@ -448,6 +514,65 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
               >
                 <Trash2 /> Delete
               </Button>
+              {session.user.plan.subscription != "pro" ? (
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
+                    >
+                      <FileChartColumn /> Export full scan data
+                      <LockIcon className="ml-auto" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent asChild>
+                    <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                      <p className="text-sm font-bold">Unlock CSV data.</p>
+                      <p>
+                        <Link
+                          className="underline hover:cursor-pointer"
+                          href={`/dashboard/subscription`}
+                        >
+                          Upgrade
+                        </Link>{" "}
+                        to export all-time scan data.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    toast.promise<{ success: boolean; url: string }>(
+                      async () => {
+                        const response = await generateCSV({
+                          code: qrCode.qrCodeId,
+                          type: "scan",
+                        });
+                        return response;
+                      },
+                      {
+                        loading: "Preparing your download...",
+                        success: (response) => {
+                          if (response.success) {
+                            const a = document.createElement("a");
+                            a.href = response.url;
+                            a.download = `${qrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                            a.click();
+                            return `Your download is ready and should start now.`;
+                          }
+                          return "There was an error creating your download.";
+                        },
+                        error: "There was an error creating your download.",
+                      },
+                    );
+                  }}
+                  variant={"outline"}
+                  className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
+                >
+                  <FileChartColumn /> Export full scan data
+                </Button>
+              )}
             </ScrollPopoverContent>
           </Popover>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">

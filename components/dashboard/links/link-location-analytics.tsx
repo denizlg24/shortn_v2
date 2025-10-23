@@ -6,7 +6,6 @@ import {
 
 import {
   AppWindowMac,
-  Download,
   Earth,
   Globe,
   Lock,
@@ -31,11 +30,8 @@ import en from "i18n-iso-countries/langs/en.json";
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { generateCSVFromClicks } from "@/app/actions/linkActions";
-import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
+import { DownloadButtonCSV } from "./download-csv-button";
 
 export function getDataTitle(
   selected: "country" | "city" | "device" | "browser" | "os",
@@ -66,7 +62,6 @@ export const LinkLocationAnalytics = ({
   const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
-  const session = useUser();
   useEffect(() => {
     if (unlocked != "none")
       getClicks(undefined, undefined, setClicks, setLoading);
@@ -336,49 +331,14 @@ export const LinkLocationAnalytics = ({
           columns={locationColumns(getDataTitle(selected), "Click")}
         />
       </div>
-      {session?.user?.plan.subscription == "pro" ? (
-        <Button
-          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
-          onClick={async () => {
-            toast.promise<{ success: boolean; url: string }>(
-              async () => {
-                const response = await generateCSVFromClicks({
-                  clicks: data.map((val) => ({
-                    [selected]: val.location,
-                    clicks: val.clicks,
-                  })),
-                });
-                return response;
-              },
-              {
-                loading: "Preparing your download...",
-                success: (response) => {
-                  if (response.success) {
-                    const a = document.createElement("a");
-                    a.href = response.url;
-                    a.download = `${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}.csv`;
-                    a.click();
-                    return `Your download is ready and should start now.`;
-                  }
-                  return "There was an error creating your download.";
-                },
-                error: "There was an error creating your download.",
-              },
-            );
-          }}
-          variant={"secondary"}
-        >
-          Download Clicks <Download />
-        </Button>
-      ) : (
-        <Button
-          className="min-[420px]:text-sm text-xs min-[420px]:px-4 px-1  max-[420px]:h-fit! max-[420px]:py-0.5"
-          asChild
-        >
-          <Link href={"/dashboard/subscription"}>
-            Upgrade to download data. <Lock className="w-3! h-3!" />
-          </Link>
-        </Button>
+      {clicks.length > 0 && (
+        <DownloadButtonCSV
+          filename={`${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          data={data.map((val) => ({
+            [selected]: val.location,
+            clicks: val.clicks,
+          }))}
+        />
       )}
     </div>
   );
