@@ -7,13 +7,14 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export function aggregateClicksByLocation(
   entries: ClickEntry[],
-  level: "country" | "city" | "device" | "browser" | "os" = "country"
+  level: "country" | "city" | "device" | "browser" | "os" = "country",
 ) {
   const total = entries.length;
   const counts: Record<string, number> = {};
 
   for (const entry of entries) {
     let key: string;
+    console.log(entry);
 
     switch (level) {
       case "city":
@@ -54,7 +55,7 @@ export interface LocationStats {
 
 export const locationColumns = (
   title: string,
-  clicks: string
+  clicks: string,
 ): ColumnDef<LocationStats>[] => [
   {
     id: "location",

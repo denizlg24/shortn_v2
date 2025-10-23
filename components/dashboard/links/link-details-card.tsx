@@ -1,5 +1,5 @@
 "use client";
-import { deleteShortn } from "@/app/actions/linkActions";
+import { deleteShortn, generateCSV } from "@/app/actions/linkActions";
 import {
   addTagToLink,
   createAndAddTagToUrl,
@@ -21,6 +21,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
@@ -41,6 +46,8 @@ import {
   CopyCheck,
   Edit2,
   Ellipsis,
+  FileChartColumn,
+  LockIcon,
   PlusCircle,
   Share2,
   Tags,
@@ -253,7 +260,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                   const response = await deleteShortn(currentLink.urlCode);
                   if (response.success) {
                     toast.success(
-                      `Link ${currentLink.urlCode} was successfully deleted.`
+                      `Link ${currentLink.urlCode} was successfully deleted.`,
                     );
                   } else {
                     toast.error("There was a problem deleting your link.");
@@ -265,6 +272,65 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
               >
                 <Trash2 /> Delete
               </Button>
+              {session.user.plan.subscription != "pro" ? (
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button
+                      variant={"outline"}
+                      className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
+                    >
+                      <FileChartColumn /> Export full click data{" "}
+                      <LockIcon className="ml-auto" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent asChild>
+                    <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                      <p className="text-sm font-bold">Unlock CSV data.</p>
+                      <p>
+                        <Link
+                          className="underline hover:cursor-pointer"
+                          href={`/dashboard/subscription`}
+                        >
+                          Upgrade
+                        </Link>{" "}
+                        to export all-time click data.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              ) : (
+                <Button
+                  onClick={async () => {
+                    toast.promise<{ success: boolean; url: string }>(
+                      async () => {
+                        const response = await generateCSV({
+                          code: currentLink.urlCode,
+                          type: "click",
+                        });
+                        return response;
+                      },
+                      {
+                        loading: "Preparing your download...",
+                        success: (response) => {
+                          if (response.success) {
+                            const a = document.createElement("a");
+                            a.href = response.url;
+                            a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                            a.click();
+                            return `Your download is ready and should start now.`;
+                          }
+                          return "There was an error creating your download.";
+                        },
+                        error: "There was an error creating your download.",
+                      },
+                    );
+                  }}
+                  variant={"outline"}
+                  className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
+                >
+                  <FileChartColumn /> Export full click data
+                </Button>
+              )}
             </ScrollPopoverContent>
           </Popover>
         </div>
@@ -348,24 +414,24 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                             value={tag.tagName}
                             onSelect={async () => {
                               const added = currentLink.tags?.some(
-                                (_tag) => _tag.id == tag.id
+                                (_tag) => _tag.id == tag.id,
                               );
                               if (added) {
                                 const { success } = await removeTagFromLink(
                                   currentLink.urlCode,
-                                  tag.id
+                                  tag.id,
                                 );
                                 if (success) {
                                   currentLink.tags =
                                     currentLink.tags?.filter(
-                                      (_t) => _t.id != tag.id
+                                      (_t) => _t.id != tag.id,
                                     ) || [];
                                   tagOpenChange(false);
                                 }
                               } else {
                                 const { success } = await addTagToLink(
                                   currentLink.urlCode,
-                                  tag.id
+                                  tag.id,
                                 );
                                 if (success) {
                                   currentLink.tags?.push(tag);
@@ -379,10 +445,10 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                               className={cn(
                                 "ml-auto",
                                 currentLink.tags?.some(
-                                  (_tag) => _tag.tagName == tag.tagName
+                                  (_tag) => _tag.tagName == tag.tagName,
                                 )
                                   ? "opacity-100"
-                                  : "opacity-0"
+                                  : "opacity-0",
                               )}
                             />
                           </CommandItem>
@@ -396,7 +462,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                               const { success, tag } =
                                 await createAndAddTagToUrl(
                                   input,
-                                  currentLink.urlCode
+                                  currentLink.urlCode,
                                 );
                               setInput("");
                               if (success && tag) {
@@ -559,7 +625,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 const response = await deleteShortn(currentLink.urlCode);
                 if (response.success) {
                   toast.success(
-                    `Link ${currentLink.urlCode} was successfully deleted.`
+                    `Link ${currentLink.urlCode} was successfully deleted.`,
                   );
                 } else {
                   toast.error("There was a problem deleting your link.");
@@ -570,6 +636,65 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             >
               <Trash2 /> Delete
             </Button>
+            {session.user.plan.subscription != "pro" ? (
+              <HoverCard>
+                <HoverCardTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
+                  >
+                    <FileChartColumn /> Export full click data{" "}
+                    <LockIcon className="ml-auto" />
+                  </Button>
+                </HoverCardTrigger>
+                <HoverCardContent asChild>
+                  <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                    <p className="text-sm font-bold">Unlock CSV data.</p>
+                    <p>
+                      <Link
+                        className="underline hover:cursor-pointer"
+                        href={`/dashboard/subscription`}
+                      >
+                        Upgrade
+                      </Link>{" "}
+                      to export all-time click data.
+                    </p>
+                  </div>
+                </HoverCardContent>
+              </HoverCard>
+            ) : (
+              <Button
+                onClick={async () => {
+                  toast.promise<{ success: boolean; url: string }>(
+                    async () => {
+                      const response = await generateCSV({
+                        code: currentLink.urlCode,
+                        type: "click",
+                      });
+                      return response;
+                    },
+                    {
+                      loading: "Preparing your download...",
+                      success: (response) => {
+                        if (response.success) {
+                          const a = document.createElement("a");
+                          a.href = response.url;
+                          a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                          a.click();
+                          return `Your download is ready and should start now.`;
+                        }
+                        return "There was an error creating your download.";
+                      },
+                      error: "There was an error creating your download.",
+                    },
+                  );
+                }}
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
+              >
+                <FileChartColumn /> Export full click data
+              </Button>
+            )}
           </ScrollPopoverContent>
         </Popover>
       </div>

@@ -68,13 +68,12 @@ const features = {
     "Short Links": ["3", "25", "50", "Unlimited"],
     Redirects: ["-", "-", "10", "Unlimited"],
     "Custom Back-half": [0, 0, 0, 1],
-    "Link capacity": ["Unlimited", "Unlimited", "Unlimited", "Unlimited"],
   },
   "Shortn Codes": {
     "QR Codes": ["3", "25", "50", "Unlimited"],
     Redirects: ["-", "-", "10", "Unlimited"],
-    Frames: ["Advanced", "Advanced", "Advanced", "Advanced"],
-    "Color options": ["Advanced", "Advanced", "Advanced", "Advanced"],
+    Frames: ["Full", "Full", "Full", "Full"],
+    "Color options": ["Full", "Full", "Full", "Full"],
     "Custom Logo": [0, 0, 0, 1],
     "Download format": [
       "PNG, JPEG, SVG",
@@ -82,7 +81,6 @@ const features = {
       "PNG, JPEG, SVG",
       "PNG, JPEG, SVG",
     ],
-    "QR Code capacity": ["Unlimited", "Unlimited", "Unlimited", "Unlimited"],
   },
   Analytics: {
     "Click Count": [0, 1, 1, 1],
@@ -91,6 +89,7 @@ const features = {
     "City level location data": [0, 0, 1, 1],
     "Device, OS & Browser Data": [0, 0, 0, 1],
     "Referer data": [0, 0, 0, 1],
+    "Export to CSV file": [0, 0, 0, 1],
   },
 };
 
@@ -118,7 +117,7 @@ export default async function Home({
           </h1>
           <p className="mt-3 max-w-xl">
             Choose a plan that fits your needs. Upgrade at any time to unlock
-            advanced analytics.
+            Full analytics.
           </p>
         </div>
       </header>
@@ -177,7 +176,7 @@ export default async function Home({
                       : `${
                           getRelativeOrder(
                             user.plan.subscription as SubscriptionsType,
-                            plan.id as SubscriptionsType
+                            plan.id as SubscriptionsType,
                           ) > 0
                             ? `Upgrade to ${plan.name}`
                             : `Downgrade to ${plan.name}`
@@ -247,7 +246,7 @@ export default async function Home({
                     : `${
                         getRelativeOrder(
                           user.plan.subscription as SubscriptionsType,
-                          plan.id as SubscriptionsType
+                          plan.id as SubscriptionsType,
                         ) > 0
                           ? `Upgrade to ${plan.name}`
                           : `Downgrade to ${plan.name}`
@@ -257,14 +256,17 @@ export default async function Home({
             </div>
           );
         })}
-        {Object.keys(features).map((sectionKey,i) => {
+        {Object.keys(features).map((sectionKey, i) => {
           const section = sectionKey as SectionKey;
           const sectionData = features[section];
 
           return (
             <React.Fragment key={section}>
               {/* Section title */}
-              <div id={i == 0 ? "compare":""} className="col-span-full bg-muted p-3 border">
+              <div
+                id={i == 0 ? "compare" : ""}
+                className="col-span-full bg-muted p-3 border"
+              >
                 <h3 className="text-base font-bold text-primary text-left">
                   {section}
                 </h3>
@@ -272,7 +274,7 @@ export default async function Home({
 
               {Object.keys(sectionData).map((titleKey) => {
                 const title = titleKey as TitleKey<typeof section>;
-                const values = sectionData[title] as string[]|number[];
+                const values = sectionData[title] as string[] | number[];
 
                 return (
                   <React.Fragment key={title}>

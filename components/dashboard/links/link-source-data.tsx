@@ -16,14 +16,16 @@ import { useClicks } from "@/utils/ClickDataContext";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClickEntry } from "@/models/url/Click";
+import { format } from "date-fns";
+import { DownloadButtonCSV } from "./download-csv-button";
 
 export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
-  const { getClicks } = useClicks();
+  const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
   useEffect(() => {
     if (unlocked) getClicks(undefined, undefined, setClicks, setLoading);
-  }, [getClicks,unlocked]);
+  }, [getClicks, unlocked]);
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -83,7 +85,9 @@ export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Referrer Data</CardTitle>
+        <CardTitle className="w-full flex flex-row items-center justify-between">
+          <>Referrer Data</>
+        </CardTitle>
         <CardDescription>
           Showing referrer data of short link&apos;s clicks
         </CardDescription>
@@ -98,6 +102,12 @@ export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
           </p>
         )}
       </div>
+      {clicks.length > 0 && (
+        <DownloadButtonCSV
+          filename={`${urlCode}-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          data={data}
+        />
+      )}
     </div>
   );
 };
