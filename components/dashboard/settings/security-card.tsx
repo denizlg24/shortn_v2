@@ -3,6 +3,14 @@
 import { updatePassword } from "@/app/actions/userActions";
 import { Button } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   Form,
   FormControl,
   FormField,
@@ -17,11 +25,12 @@ import { TLoginRecord } from "@/models/auth/LoginActivity";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { EyeOff, Eye, Loader2 } from "lucide-react";
+import { EyeOff, Eye, Loader2, SquareArrowOutUpRight } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { FullLoginRecordsCard } from "./full-login-records-card";
 const updatePasswordFormSchema = z
   .object({
     old_password: z.string().min(1, "Required"),
@@ -40,8 +49,10 @@ const updatePasswordFormSchema = z
 
 export const SecurityCard = ({
   loginRecords,
+  fullLoginRecords,
 }: {
   loginRecords: TLoginRecord[];
+  fullLoginRecords: TLoginRecord[];
 }) => {
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
     resolver: zodResolver(updatePasswordFormSchema),
@@ -279,6 +290,25 @@ export const SecurityCard = ({
             </React.Fragment>
           );
         })}
+        {loginRecords.length < fullLoginRecords.length && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <p className="text-sm font-semibold text-left hover:cursor-pointer hover:underline flex flex-row items-baseline gap-1 justify-start">
+                See all {fullLoginRecords.length} activity logs.
+                <SquareArrowOutUpRight className="w-3 h-3 shrink-0 translate-y-0.5" />
+              </p>
+            </DialogTrigger>
+            <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-[800px] z-95">
+              <DialogHeader>
+                <DialogTitle>Account activity logs</DialogTitle>
+                <DialogDescription>
+                  Check detailed account activity logs, with filters.
+                </DialogDescription>
+              </DialogHeader>
+              <FullLoginRecordsCard records={fullLoginRecords} />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </div>
   );
