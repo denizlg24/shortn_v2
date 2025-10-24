@@ -424,19 +424,29 @@ export async function loginAttempt({
   }
 }
 
+export async function getLoginRecordsCount({ sub }: { sub: string }) {
+  try {
+    await connectDB();
+    const loginRecords = await LoginRecord.find({ sub }).countDocuments();
+    return loginRecords ?? 0;
+  } catch (error) {
+    console.log(error);
+    return 0;
+  }
+}
+
 export async function getLoginRecords({
   limit,
   sub,
 }: {
-  limit: number;
+  limit: number | undefined;
   sub: string;
 }) {
   try {
     await connectDB();
-    const loginRecords = await LoginRecord.find({ sub })
-      .sort({ at: -1 })
-      .limit(limit)
-      .lean();
+    const loginRecords = limit
+      ? await LoginRecord.find({ sub }).sort({ at: -1 }).limit(limit).lean()
+      : await LoginRecord.find({ sub }).sort({ at: -1 }).lean();
     return {
       success: true,
       loginRecords: loginRecords.map((record) => ({
