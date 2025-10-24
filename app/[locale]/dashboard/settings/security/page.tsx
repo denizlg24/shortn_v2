@@ -15,5 +15,14 @@ export default async function Home({
     notFound();
   }
   const { loginRecords } = await getLoginRecords({ limit: 4, sub: user.sub });
-  return <SecurityCard loginRecords={loginRecords} />;
+  const { loginRecords: fullLoginRecords } = await getLoginRecords({
+    sub: user.sub,
+    limit: undefined,
+  });
+  return (
+    <SecurityCard
+      loginRecords={loginRecords}
+      fullLoginRecords={fullLoginRecords}
+    />
+  );
 }
