@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { TLoginRecord } from "@/models/auth/LoginActivity";
+import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { EyeOff, Eye, Loader2 } from "lucide-react";
@@ -54,8 +55,11 @@ export const SecurityCard = ({
   const [showCurrentPassword, toggleShowCurrentPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
   const [changesLoading, setChangesLoading] = useState(false);
-
+  const session = useUser();
   async function onSubmit(values: z.infer<typeof updatePasswordFormSchema>) {
+    if (!session.user) {
+      return;
+    }
     setChangesLoading(true);
     const { success, message } = await updatePassword({
       old: values.old_password,
@@ -63,8 +67,19 @@ export const SecurityCard = ({
     });
 
     if (success) {
+      const accountActivity = {
+        sub: session.user.sub,
+        type: "password-changed",
+        success: true,
+      };
+      fetch("/api/auth/track-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountActivity),
+      });
       toast.success("Your password has been updated!");
       form.reset();
+      setChangesLoading(false);
       return;
     }
 
@@ -81,6 +96,16 @@ export const SecurityCard = ({
         "There was a problem updating your password. Try again later.",
       );
     }
+    const accountActivity = {
+      sub: session.user.sub,
+      type: "password-change-attempt",
+      success: false,
+    };
+    fetch("/api/auth/track-activity", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(accountActivity),
+    });
     setChangesLoading(false);
   }
 

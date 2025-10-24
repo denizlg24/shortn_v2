@@ -58,7 +58,7 @@ const updateBillingSchema = z
       },
       {
         message: "Must be a valid tax number",
-      }
+      },
     ),
   })
   .refine(
@@ -69,7 +69,7 @@ const updateBillingSchema = z
     {
       message: "Invalid postal code for the selected country.",
       path: ["postal_code"],
-    }
+    },
   );
 
 export const BillingCard = ({
@@ -78,25 +78,25 @@ export const BillingCard = ({
   initialVerification,
   initialPaymentMethods,
   charges,
-  hasMoreCharges
+  hasMoreCharges,
 }: {
   initialUser: {
     tax_id: string | undefined;
     phone_number: string | undefined;
     stripeId: string;
-    plan:{
-      subscription:string,
-      lastPaid:Date
-    }
+    plan: {
+      subscription: string;
+      lastPaid: Date;
+    };
   };
   initialAddress: Stripe.Address | undefined;
   initialVerification: Stripe.TaxId.Verification | undefined;
-  initialPaymentMethods:Stripe.PaymentMethod[],
-  charges:Stripe.Charge[],
-  hasMoreCharges:boolean
+  initialPaymentMethods: Stripe.PaymentMethod[];
+  charges: Stripe.Charge[];
+  hasMoreCharges: boolean;
 }) => {
   console.log(hasMoreCharges);
-  const { refresh, loading } = useUser();
+  const { refresh, loading, user: sessionUser } = useUser();
   const [changesLoading, setChangesLoading] = useState(false);
   const [user, setUser] = useState(initialUser);
   const [address, setAddress] = useState(initialAddress);
@@ -114,7 +114,7 @@ export const BillingCard = ({
   });
 
   async function onSubmit(values: z.infer<typeof updateBillingSchema>) {
-    if (!user) {
+    if (!user || !sessionUser) {
       return;
     }
     setChangesLoading(true);
@@ -123,15 +123,27 @@ export const BillingCard = ({
       field: "tax-id",
       updater: (
         stripeId: string,
-        value: string
+        value: string,
       ) => Promise<{ success: boolean; message: string | null }>,
-      errorMessages: { invalid: string; server: string }
+      errorMessages: { invalid: string; server: string },
     ): Promise<boolean> => {
       if (!updateBillingForm.getFieldState(field).isDirty) return false;
 
       const { success, message } = await updater(user.stripeId, values[field]);
 
-      if (success) return true;
+      if (success) {
+        const accountActivity = {
+          sub: sessionUser.sub,
+          type: "tax-id-changed",
+          success: true,
+        };
+        fetch("/api/auth/track-activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(accountActivity),
+        });
+        return true;
+      }
 
       updateBillingForm.setError(field, {
         type: "manual",
@@ -167,6 +179,16 @@ export const BillingCard = ({
       });
 
     if (addrSuccess) {
+      const accountActivity = {
+        sub: sessionUser.sub,
+        type: "address-changed",
+        success: true,
+      };
+      fetch("/api/auth/track-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountActivity),
+      });
       updated["address"] = true;
     } else {
       // Attach error to postal_code (main culprit), but you could spread to all
@@ -208,7 +230,9 @@ export const BillingCard = ({
 
   ///PAYMENT METHODS
 
-  const[paymentMethods] = useState<Stripe.PaymentMethod[]>(initialPaymentMethods);
+  const [paymentMethods] = useState<Stripe.PaymentMethod[]>(
+    initialPaymentMethods,
+  );
 
   useEffect(() => {
     updateBillingForm.reset(
@@ -225,7 +249,7 @@ export const BillingCard = ({
         keepDirty: false,
         keepTouched: false,
         keepDirtyValues: false,
-      }
+      },
     );
   }, [user, address, updateBillingForm]);
 
@@ -267,9 +291,9 @@ export const BillingCard = ({
         </div>
         <Separator className="my-4" />
         <div className="w-full grid grid-col-2 max-w-xl gap-x-4 gap-y-6">
-          <Skeleton className="h-[131px]"/>
-          <Skeleton className="h-[131px]"/>
-          <Skeleton className="col-span-full h-[131px]"/>
+          <Skeleton className="h-[131px]" />
+          <Skeleton className="h-[131px]" />
+          <Skeleton className="col-span-full h-[131px]" />
         </div>
       </div>
     );
@@ -441,15 +465,33 @@ export const BillingCard = ({
             <h1 className="sm:text-lg text-base font-bold">Payment Methods</h1>
           </div>
           <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
-            {paymentMethods.length > 0 ? <></>: <p className="text-center w-full font-semibold text-xs my-auto">No payment methods yet.</p>}
+            {paymentMethods.length > 0 ? (
+              <></>
+            ) : (
+              <p className="text-center w-full font-semibold text-xs my-auto">
+                No payment methods yet.
+              </p>
+            )}
           </div>
         </Card>
         <Card className="p-0! gap-0!">
           <div className="p-3! rounded-t-xl border bg-muted">
-            <h1 className="sm:text-lg text-base font-bold">Next renewal date</h1>
+            <h1 className="sm:text-lg text-base font-bold">
+              Next renewal date
+            </h1>
           </div>
           <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
-            <p className="text-xs font-normal my-auto text-center">Your <span className="capitalize font-semibold">{user.plan.subscription}</span> plan is set to renew on <span className="font-semibold">{format(addMonths(user.plan.lastPaid,1),"dd/MM/yyyy")}</span>.</p>
+            <p className="text-xs font-normal my-auto text-center">
+              Your{" "}
+              <span className="capitalize font-semibold">
+                {user.plan.subscription}
+              </span>{" "}
+              plan is set to renew on{" "}
+              <span className="font-semibold">
+                {format(addMonths(user.plan.lastPaid, 1), "dd/MM/yyyy")}
+              </span>
+              .
+            </p>
           </div>
         </Card>
         <Card className="p-0! gap-0! col-span-full">
@@ -457,7 +499,13 @@ export const BillingCard = ({
             <h1 className="sm:text-lg text-base font-bold">Payment History</h1>
           </div>
           <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
-            {charges.length > 0 ? <></>: <p className="text-center w-full font-semibold text-xs my-auto">You haven&apos;t made any payments yet.</p>}
+            {charges.length > 0 ? (
+              <></>
+            ) : (
+              <p className="text-center w-full font-semibold text-xs my-auto">
+                You haven&apos;t made any payments yet.
+              </p>
+            )}
           </div>
         </Card>
       </div>

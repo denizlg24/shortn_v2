@@ -403,7 +403,7 @@ export async function loginAttempt({
   sub: string;
   success: boolean;
   location: Geo | undefined;
-  ip: string;
+  ip: string | undefined;
   type: string;
 }) {
   try {

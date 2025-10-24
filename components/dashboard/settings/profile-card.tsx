@@ -78,7 +78,7 @@ const updateProfileFormSchema = z.object({
     .max(32, "Username must be at most 32 characters")
     .regex(
       /^[a-zA-Z0-9_]+$/,
-      "Only letters, numbers, and underscores are allowed"
+      "Only letters, numbers, and underscores are allowed",
     ),
   /*"tax-id": z.string().refine(
     (val) => {
@@ -96,7 +96,7 @@ const updateProfileFormSchema = z.object({
       if (t) return isValidPhoneNumber(t);
       return true;
     },
-    { message: "Invalid phone number" }
+    { message: "Invalid phone number" },
   ),
 });
 
@@ -188,6 +188,16 @@ export const ProfileCard = ({
             ...prev,
             profilePicture: url as string,
           }));
+          const accountActivity = {
+            sub: user.sub,
+            type: "picture-changed",
+            success: true,
+          };
+          fetch("/api/auth/track-activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(accountActivity),
+          });
           await refresh();
         } else {
           toast.success("There was a problem updating profile picture.");
@@ -221,6 +231,16 @@ export const ProfileCard = ({
     setUpdatingEmail(true);
     const { success, message } = await updateEmail(values.email);
     if (success) {
+      const accountActivity = {
+        sub: user.sub,
+        type: "email-changed",
+        success: true,
+      };
+      fetch("/api/auth/track-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountActivity),
+      });
       await sendVerificationEmail(values.email, locale);
       await signOutUser(`/${locale}/verification-sent/${values.email}`);
     } else if (message) {
@@ -249,14 +269,24 @@ export const ProfileCard = ({
       field: "phone",
       updater: (
         stripeId: string,
-        value: string
+        value: string,
       ) => Promise<{ success: boolean; message: string | null }>,
-      errorMessages: { invalid: string; server: string }
+      errorMessages: { invalid: string; server: string },
     ) => {
       if (!form.getFieldState(field).isDirty) return false;
 
       const { success, message } = await updater(user.stripeId, values[field]);
       if (success) {
+        const accountActivity = {
+          sub: user.sub,
+          type: "phone-changed",
+          success: true,
+        };
+        fetch("/api/auth/track-activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(accountActivity),
+        });
         return true;
       }
 
@@ -296,7 +326,7 @@ export const ProfileCard = ({
     if (form.getFieldState("username").isDirty) {
       const { success, message } = await updateUserField(
         "username",
-        values.username
+        values.username,
       );
       if (success) {
         updateFields["username"] = values.username;
@@ -308,15 +338,15 @@ export const ProfileCard = ({
             message === "server-error"
               ? "There was a problem updating your username."
               : message == "duplicate"
-              ? "That username is already taken."
-              : "Your username is not valid.",
+                ? "That username is already taken."
+                : "Your username is not valid.",
         });
       }
     }
     if (form.getFieldState("fullName").isDirty) {
       const { success, message } = await updateUserField(
         "displayName",
-        values.fullName
+        values.fullName,
       );
       if (success) {
         updateFields["displayName"] = values.fullName;
@@ -333,6 +363,16 @@ export const ProfileCard = ({
     }
 
     if (updated.some((a) => a == 1)) {
+      const accountActivity = {
+        sub: user.sub,
+        type: "profile-changed",
+        success: true,
+      };
+      fetch("/api/auth/track-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountActivity),
+      });
       toast.success("Your profile has been updated!");
       await refresh();
       setUser((prev) => ({
@@ -349,7 +389,7 @@ export const ProfileCard = ({
       keepErrors: true,
       keepDirty: false,
       keepTouched: false,
-      keepDirtyValues:false,
+      keepDirtyValues: false,
     });
   }, [form, user]);
 
@@ -450,7 +490,7 @@ export const ProfileCard = ({
                       setRemoving(true);
                       const { success } = await deleteProfilePicture(
                         user.sub,
-                        user.profilePicture
+                        user.profilePicture,
                       );
                       if (success) {
                         toast.success("Successfully removed profile picture.");
