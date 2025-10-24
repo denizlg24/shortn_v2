@@ -288,7 +288,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                         variant={"outline"}
                         className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                       >
-                        <FileChartColumn /> Export full scan data
+                        <FileChartColumn /> Export raw scan data
                         <LockIcon className="ml-auto" />
                       </Button>
                     </HoverCardTrigger>
@@ -337,7 +337,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                   >
-                    <FileChartColumn /> Export full scan data
+                    <FileChartColumn /> Export raw scan data
                   </Button>
                 )}
               </ScrollPopoverContent>
@@ -521,7 +521,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                     >
-                      <FileChartColumn /> Export full scan data
+                      <FileChartColumn /> Export raw scan data
                       <LockIcon className="ml-auto" />
                     </Button>
                   </HoverCardTrigger>
@@ -570,7 +570,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                 >
-                  <FileChartColumn /> Export full scan data
+                  <FileChartColumn /> Export raw scan data
                 </Button>
               )}
             </ScrollPopoverContent>

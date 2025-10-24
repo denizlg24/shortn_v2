@@ -279,7 +279,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                     >
-                      <FileChartColumn /> Export full click data{" "}
+                      <FileChartColumn /> Export raw click data{" "}
                       <LockIcon className="ml-auto" />
                     </Button>
                   </HoverCardTrigger>
@@ -328,7 +328,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                 >
-                  <FileChartColumn /> Export full click data
+                  <FileChartColumn /> Export raw click data
                 </Button>
               )}
             </ScrollPopoverContent>
@@ -643,7 +643,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                   >
-                    <FileChartColumn /> Export full click data{" "}
+                    <FileChartColumn /> Export raw click data{" "}
                     <LockIcon className="ml-auto" />
                   </Button>
                 </HoverCardTrigger>
@@ -692,7 +692,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
               >
-                <FileChartColumn /> Export full click data
+                <FileChartColumn /> Export raw click data
               </Button>
             )}
           </ScrollPopoverContent>
