@@ -459,25 +459,7 @@ export const BillingCard = ({
         </form>
       </Form>
       <Separator className="my-4" />
-      <div className="grid xs:grid-cols-2 w-full max-w-xl gap-x-4 gap-y-6">
-        <Card className="p-0! gap-0!">
-          <div className="p-3! rounded-t-xl border bg-muted">
-            <h1 className="sm:text-lg text-base font-bold">Payment Methods</h1>
-          </div>
-          <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
-            {paymentMethods.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {paymentMethods.map((pm) => (
-                  <PaymentMethodItem key={pm.id} pm={pm} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center w-full font-semibold text-xs my-auto">
-                No payment methods yet.
-              </p>
-            )}
-          </div>
-        </Card>
+      <div className="grid w-full max-w-xl gap-x-4 gap-y-6">
         <Card className="p-0! gap-0!">
           <div className="p-3! rounded-t-xl border bg-muted">
             <h1 className="sm:text-lg text-base font-bold">
@@ -496,6 +478,24 @@ export const BillingCard = ({
               </span>
               .
             </p>
+          </div>
+        </Card>
+        <Card className="p-0! gap-0!">
+          <div className="p-3! rounded-t-xl border bg-muted">
+            <h1 className="sm:text-lg text-base font-bold">Payment Methods</h1>
+          </div>
+          <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
+            {paymentMethods.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                {paymentMethods.map((pm) => (
+                  <PaymentMethodItem key={pm.id} pm={pm} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center w-full font-semibold text-xs my-auto">
+                No payment methods yet.
+              </p>
+            )}
           </div>
         </Card>
         <Card className="p-0! gap-0! col-span-full">

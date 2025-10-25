@@ -36,13 +36,15 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!, {
   betas: ["custom_checkout_tax_id_1"],
 });
 
-export const SubscribeForm = ({
+export const UpgradeForm = ({
   tier,
+  upgradeLevel,
   user,
   address,
   className,
 }: {
   user: User;
+  upgradeLevel: number;
   address: Stripe.Address | undefined;
   tier: "pro" | "plus" | "basic";
   className?: string;
@@ -50,10 +52,10 @@ export const SubscribeForm = ({
   const [clientSecret, setClientSecret] = useState<string | null>(null);
 
   const createSession = useCallback(async () => {
-    const res = await fetch("/api/stripe/create-subscription-session", {
+    const res = await fetch("/api/stripe/create-upgrade-session", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tier }),
+      body: JSON.stringify({ tier, upgradeLevel }),
     });
     const data = await res.json();
     if (data.success) {
@@ -61,7 +63,7 @@ export const SubscribeForm = ({
         prev === data.clientSecret ? prev : data.clientSecret,
       );
     }
-  }, [tier]);
+  }, [tier, upgradeLevel]);
 
   useEffect(() => {
     let cancelled = false;
@@ -525,7 +527,7 @@ const PlanCard = ({
       <Separator className="w-full" />
       <CardContent className="flex flex-col gap-2 p-0!">
         <p className="text-base font-semibold capitalize">
-          Monthly <span className="font-bold underline">{tier}</span> Plan
+          Upgrade to <span className="font-bold underline">{tier}</span> Plan
         </p>
         <ul className="space-y-2">
           {plan.highlights.map((h) => (
@@ -629,34 +631,9 @@ const PlanCard = ({
           {!discount && (
             <p className="text-xs text-muted-foreground italic">
               *You&apos;ll be charged{" "}
-              {checkoutState.checkout.total.total.amount} monthly until you
-              cancel your subscription.
-            </p>
-          )}
-          {discount && !discount.recurring && (
-            <p className="text-xs text-muted-foreground italic">
-              *You&apos;ll be charged{" "}
               {checkoutState.checkout.total.total.amount} now and then{" "}
-              {checkoutState.checkout.total.subtotal.amount} + TAX monthly until
-              you cancel your subscription
-            </p>
-          )}
-          {discount?.recurring?.type == "repeating" && (
-            <p className="text-xs text-muted-foreground italic">
-              *You&apos;ll be charged{" "}
-              {checkoutState.checkout.total.total.amount}{" "}
-              {discount.recurring.durationInMonths == 1
-                ? `now and then ${checkoutState.checkout.total.subtotal.amount} + TAX monthly until
-            you cancel your subscription.`
-                : `for the next ${discount.recurring.durationInMonths} months and then ${checkoutState.checkout.total.subtotal.amount} + TAX monthly until
-            you cancel your subscription.`}
-            </p>
-          )}
-          {discount?.recurring?.type == "forever" && (
-            <p className="text-xs text-muted-foreground italic">
-              *You&apos;ll be charged{" "}
-              {checkoutState.checkout.total.total.amount} monthly until you
-              cancel your subscription.
+              {tier == "plus" ? "€15" : "€25"} plus TAX monthly until you cancel
+              your subscription.
             </p>
           )}
         </CardFooter>
