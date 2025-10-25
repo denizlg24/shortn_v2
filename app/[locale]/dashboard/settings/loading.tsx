@@ -12,29 +12,29 @@ export default function Loading() {
       </h2>
       <Separator className="my-4" />
       <div className="flex flex-row items-stretch justify-start gap-4 w-full">
-        <Skeleton className="h-auto! w-full! min-w-12! max-w-24! aspect-square rounded-lg! bg-muted-foreground!" />
+        <Skeleton className="h-auto! w-full! min-w-12! max-w-24! aspect-square rounded-lg! bg-muted-foreground/35!" />
         <div className="w-full grow h-full flex flex-col justify-between py-1">
-          <Skeleton className="w-16 col-span-1 h-4 rounded bg-muted-foreground!" />
+          <Skeleton className="w-16 col-span-1 h-4 rounded bg-muted-foreground/35!" />
           <div className="flex flex-col gap-1 items-start w-full">
             <div className="flex flex-row items-center justify-start gap-2 w-full">
-              <Skeleton className="w-28 h-6 bg-muted-foreground!" />
+              <Skeleton className="w-28 h-6 bg-muted-foreground/35!" />
             </div>
-            <Skeleton className="w-36 col-span-1 h-4 rounded bg-muted-foreground!" />
+            <Skeleton className="w-36 col-span-1 h-4 rounded bg-muted-foreground/35!" />
           </div>
         </div>
       </div>
       <div className="grid sm:grid-cols-2 grid-cols-1 max-w-xl gap-x-8 gap-y-4 w-full my-4 items-start">
         <div className="flex flex-col gap-1 w-full col-span-1">
-          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
+          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground/35!" />
+          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground/35!" />
         </div>
         <div className="flex flex-col gap-1 w-full col-span-1">
-          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
+          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground/35!" />
+          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground/35!" />
         </div>
         <div className="flex flex-col gap-1 w-full col-span-1">
-          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
+          <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground/35!" />
+          <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground/35!" />
         </div>
       </div>
     </div>

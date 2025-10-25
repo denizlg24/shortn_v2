@@ -168,7 +168,7 @@ export default async function Home({
                     href={
                       plan.id == user.plan.subscription
                         ? "/dashboard/settings/plan"
-                        : `/dashboard/subscription/payment?tier=${plan.id}`
+                        : `/dashboard/subscription/subscribe?tier=${plan.id}`
                     }
                   >
                     {plan.id == user.plan.subscription
@@ -238,7 +238,7 @@ export default async function Home({
                   href={
                     plan.id == user.plan.subscription
                       ? "/dashboard/settings/plan"
-                      : `/dashboard/subscription/payment?tier=${plan.id}`
+                      : `/dashboard/subscription/subscribe?tier=${plan.id}`
                   }
                 >
                   {plan.id == user.plan.subscription

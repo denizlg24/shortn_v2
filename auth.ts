@@ -129,9 +129,11 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
               tax_id: "",
             };
           }
-          const { phone_number, tax_id } = await getStripeExtraInfo(
+          const { phone_number, tax_ids } = await getStripeExtraInfo(
             user.stripeId,
           );
+          const tax_id =
+            (tax_ids?.data?.length ?? 0) == 1 ? tax_ids!.data[0].value : "";
           return {
             id: user.id as string,
             sub: user.sub,
@@ -205,9 +207,11 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
               tax_id: "",
             };
           }
-          const { phone_number, tax_id } = await getStripeExtraInfo(
+          const { phone_number, tax_ids } = await getStripeExtraInfo(
             user.stripeId,
           );
+          const tax_id =
+            (tax_ids?.data?.length ?? 0) == 1 ? tax_ids!.data[0].value : "";
           return {
             id: user.id as string,
             sub: user.sub,
@@ -263,9 +267,11 @@ export const { auth, signIn, signOut, handlers, unstable_update } = NextAuth(
           if (!user.emailVerified) {
             throw new CredentialsSignin("not-verified");
           }
-          const { phone_number, tax_id } = await getStripeExtraInfo(
+          const { phone_number, tax_ids } = await getStripeExtraInfo(
             user.stripeId,
           );
+          const tax_id =
+            (tax_ids?.data?.length ?? 0) == 1 ? tax_ids!.data[0].value : "";
           return {
             id: user.id as string,
             sub: user.sub,

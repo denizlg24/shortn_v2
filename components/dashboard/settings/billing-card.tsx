@@ -459,14 +459,18 @@ export const BillingCard = ({
         </form>
       </Form>
       <Separator className="my-4" />
-      <div className="grid grid-cols-2 w-full max-w-xl gap-x-4 gap-y-6">
+      <div className="grid xs:grid-cols-2 w-full max-w-xl gap-x-4 gap-y-6">
         <Card className="p-0! gap-0!">
           <div className="p-3! rounded-t-xl border bg-muted">
             <h1 className="sm:text-lg text-base font-bold">Payment Methods</h1>
           </div>
           <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
             {paymentMethods.length > 0 ? (
-              <></>
+              <div className="flex flex-col gap-2">
+                {paymentMethods.map((pm) => (
+                  <PaymentMethodItem key={pm.id} pm={pm} />
+                ))}
+              </div>
             ) : (
               <p className="text-center w-full font-semibold text-xs my-auto">
                 No payment methods yet.
@@ -500,7 +504,11 @@ export const BillingCard = ({
           </div>
           <div className="p-3 bg-background flex flex-col gap-2 w-full rounded-b-xl min-h-[75px]">
             {charges.length > 0 ? (
-              <></>
+              <div className="flex flex-col gap-2">
+                {charges.map((ch) => (
+                  <ChargeItem key={ch.id} ch={ch} />
+                ))}
+              </div>
             ) : (
               <p className="text-center w-full font-semibold text-xs my-auto">
                 You haven&apos;t made any payments yet.
@@ -508,6 +516,131 @@ export const BillingCard = ({
             )}
           </div>
         </Card>
+      </div>
+    </div>
+  );
+};
+
+const ChargeItem = ({ ch }: { ch: Stripe.Charge }) => {
+  const created = new Date((ch.created ?? 0) * 1000);
+  const amount = (ch.amount / 100).toFixed(2);
+  const currency = (ch.currency || "usd").toUpperCase();
+  const status = ch.status ?? "unknown";
+  //const receiptUrl = ch.receipt_url ?? undefined;
+
+  const pmType = ch.payment_method_details?.type;
+  const brand = ch.payment_method_details?.card?.brand;
+  const last4 = ch.payment_method_details?.card?.last4;
+  const sourceLabel =
+    pmType === "card"
+      ? `${brand ? brand.charAt(0).toUpperCase() + brand.slice(1) : "Card"}${last4 ? " •••• " + last4 : ""}`
+      : pmType
+        ? pmType.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+        : (ch.payment_method ?? "Payment");
+
+  const statusColor =
+    status === "succeeded"
+      ? "text-green-600"
+      : status === "pending"
+        ? "text-amber-600"
+        : status === "failed"
+          ? "text-red-600"
+          : "text-muted-foreground";
+
+  return (
+    <div className="w-full border rounded-lg p-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold">
+            {amount} {currency}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {format(created, "dd/MM/yyyy HH:mm")}
+          </span>
+        </div>
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="flex flex-col">
+          <span className={`text-xs ${statusColor}`}>
+            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {ch.paid === false ? " (Unpaid)" : ""}
+          </span>
+          {sourceLabel && (
+            <span className="text-xs text-muted-foreground">{sourceLabel}</span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PaymentMethodItem = ({ pm }: { pm: Stripe.PaymentMethod }) => {
+  const type = pm.type;
+
+  const getBrandLabel = () => {
+    if (type === "card") {
+      const brand = pm.card?.brand ?? "card";
+      return brand.charAt(0).toUpperCase() + brand.slice(1);
+    }
+    if (type === "us_bank_account") return "US Bank";
+    if (type === "sepa_debit") return "SEPA Debit";
+    if (type === "bacs_debit") return "BACS Debit";
+    if (type === "acss_debit") return "ACSS Debit";
+    if (type === "au_becs_debit") return "AU BECS";
+    if (type === "bancontact") return "Bancontact";
+    if (type === "ideal") return "iDEAL";
+    if (type === "sofort") return "Sofort";
+    if (type === "giropay") return "Giropay";
+    if (type === "p24") return "Przelewy24";
+    if (type === "affirm") return "Affirm";
+    if (type === "afterpay_clearpay") return "Afterpay";
+    if (type === "klarna") return "Klarna";
+    if (type === "paypal") return "PayPal";
+    if (type === "cashapp") return "Cash App";
+    if (type === "link") return "Link";
+    return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  };
+
+  const getLast4 = () => {
+    if (type === "card")
+      return pm.card?.last4 ? `•••• ${pm.card.last4}` : undefined;
+    if (type === "us_bank_account")
+      return pm.us_bank_account?.last4
+        ? `•••• ${pm.us_bank_account.last4}`
+        : undefined;
+    if (type === "sepa_debit")
+      return pm.sepa_debit?.last4 ? `•••• ${pm.sepa_debit.last4}` : undefined;
+    return undefined;
+  };
+
+  const getExp = () => {
+    if (type === "card" && pm.card?.exp_month && pm.card?.exp_year) {
+      return `${pm.card.exp_month.toString().padStart(2, "0")}/${(pm.card.exp_year % 100).toString().padStart(2, "0")}`;
+    }
+    return undefined;
+  };
+
+  const badge = getBrandLabel();
+  const last4 = getLast4();
+  const exp = getExp();
+
+  return (
+    <div className="w-full border rounded-lg p-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-6 rounded bg-muted flex items-center justify-center text-xs font-semibold uppercase">
+          {type === "card"
+            ? (pm.card?.brand ?? "Card").slice(0, 4)
+            : type.slice(0, 4)}
+        </div>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold">{badge}</span>
+          <span className="text-xs text-muted-foreground">
+            {last4 ?? pm.id}
+          </span>
+        </div>
+      </div>
+      <div className="text-xs text-muted-foreground">
+        {exp && <span>Exp {exp}</span>}
       </div>
     </div>
   );

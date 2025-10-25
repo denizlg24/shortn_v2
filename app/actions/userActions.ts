@@ -99,12 +99,16 @@ export async function getUser() {
           if (u?.stripeId) {
             return getStripeExtraInfo(u.stripeId);
           }
-          return { phone_number: "", tax_id: "" };
+          return { phone_number: "", tax_ids: undefined };
         })(),
       ]);
       if (!user) {
         return { success: false, user: null };
       }
+      const tax_id =
+        (stripeExtra?.tax_ids?.data?.length ?? 0) == 1
+          ? stripeExtra.tax_ids!.data[0].value
+          : "";
       return {
         success: true,
         user: {
@@ -124,7 +128,7 @@ export async function getUser() {
           links_this_month: user.links_this_month,
           qr_codes_this_month: user.qr_codes_this_month || 0,
           phone_number: stripeExtra.phone_number,
-          tax_id: stripeExtra.tax_id,
+          tax_id,
         },
       };
     }
