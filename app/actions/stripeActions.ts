@@ -6,7 +6,7 @@ import { auth } from "@/auth";
 import { countries } from "jsvat";
 import { mapJsvatToStripe } from "@/lib/utils";
 import { getUser } from "@/app/actions/userActions";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { User } from "@/models/auth/User";
 import { connectDB } from "@/lib/mongodb";
 
@@ -342,6 +342,87 @@ export async function createSubscriptionSession({
       },
       saved_payment_method_options: {
         payment_method_save: "enabled",
+      },
+      tax_id_collection: {
+        enabled: true,
+      },
+      phone_number_collection: {
+        enabled: true,
+      },
+      line_items: [
+        {
+          price: price,
+          quantity: 1,
+        },
+      ],
+    });
+    if (checkout_session.client_secret)
+      return { success: true, clientSecret: checkout_session.client_secret };
+    return { success: false, message: "stripe-error" };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function createUpgradeSession({
+  tier,
+}: {
+  tier: SubscriptionsType;
+}): Promise<
+  { success: true; clientSecret: string } | { success: false; message: string }
+> {
+  try {
+    const session = await getUser();
+    if (!session.user) {
+      return { success: false, message: "unauthenticated" };
+    }
+    const userPlan = await getUserPlan();
+    if (!userPlan.success) {
+      return { success: false, message: "unauthenticated" };
+    }
+    switch (tier) {
+      case "basic":
+      case "plus":
+      case "pro":
+        break;
+      default:
+        return { success: false, message: "wrong-tier" };
+    }
+    const upgradeLevel = getRelativeOrder(
+      userPlan.plan as SubscriptionsType,
+      tier,
+    );
+    if (upgradeLevel == -1 || upgradeLevel == 0) {
+      return { success: false, message: "unauthenticated" };
+    }
+    const price =
+      upgradeLevel == 1
+        ? env.LEVEL_ONE_UPGRADE_ID
+        : upgradeLevel == 2
+          ? env.LEVEL_TWO_UPGRADE_ID
+          : undefined;
+    if (!price) {
+      return { success: false, message: "unauthenticated" };
+    }
+
+    const checkout_session = await stripe.checkout.sessions.create({
+      customer: session.user.stripeId,
+      ui_mode: "custom",
+      automatic_tax: { enabled: true },
+      mode: "payment",
+      allow_promotion_codes: true,
+      currency: "EUR",
+      customer_update: {
+        address: "auto",
+        name: "auto",
+        shipping: "auto",
+      },
+      saved_payment_method_options: {
+        payment_method_save: "enabled",
+      },
+      tax_id_collection: {
+        enabled: true,
       },
       phone_number_collection: {
         enabled: true,
