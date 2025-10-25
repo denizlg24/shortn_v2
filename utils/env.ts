@@ -15,6 +15,8 @@ const envSchema = z.object({
   PINATA_JWT: z.string().nonempty(),
   PINATA_GATEWAY: z.string().nonempty(),
   STRIPE_WEBHOOK_SECRET: z.string().nonempty(),
+  LEVEL_ONE_UPGRADE_ID: z.string().nonempty(),
+  LEVEL_TWO_UPGRADE_ID: z.string().nonempty(),
 });
 
 export default envSchema.parse(process.env);
