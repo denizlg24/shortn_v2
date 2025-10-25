@@ -1,6 +1,5 @@
 "use client";
 
-import { getUser } from "@/app/actions/userActions";
 import { User } from "next-auth";
 import { createContext, useContext, useState, ReactNode } from "react";
 
@@ -24,10 +23,15 @@ export const UserProvider = ({
 
   const fetchUser = async () => {
     setLoading(true);
-    const { success, user: _user } = await getUser();
-    setUser(_user);
+    const res = await fetch("/api/auth/user", { cache: "no-store" });
+    if (!res.ok) {
+      setUser(null);
+      return false;
+    }
+    const data = await res.json();
+    setUser(data.user ?? null);
     setLoading(false);
-    return success;
+    return true;
   };
 
   return (
