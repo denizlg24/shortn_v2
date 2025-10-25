@@ -26,7 +26,7 @@ jobs:
       WEBMAIL_PASS: ${{secrets.WEBMAIL_PASS  || 'dependabot'}}
       PINATA_JWT: ${{secrets.PINATA_JWT  || 'dependabot'}}
       PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY  || 'dependabot'}}
-
+      STRIPE_WEBHOOK_SECRET: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}}
 
     steps:
       - name: Checkout repository
