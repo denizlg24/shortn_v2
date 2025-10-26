@@ -6,6 +6,7 @@ import { SubscribeForm } from "./subscribe-form";
 import { getUser } from "@/app/actions/userActions";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { UpgradeForm } from "./upgrade-form";
+import { DowngradeForm } from "./downgrade-form";
 
 export default async function Home({
   params,
@@ -51,6 +52,16 @@ export default async function Home({
   );
   if (relativeOrder == 0) {
     redirect({ href: "/dashboard/settings/plan", locale });
+  }
+  if (relativeOrder < 0) {
+    return (
+      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
+        <DowngradeForm
+          tier={tier as SubscriptionsType}
+          currentPlan={response.plan}
+        />
+      </main>
+    );
   }
   if (relativeOrder > 0) {
     return (

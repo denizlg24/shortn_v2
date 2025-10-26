@@ -135,7 +135,7 @@ const getPlanFromSubscription = ({
   return itemId;
 };
 
-const update_sub = async ({
+export const update_sub = async ({
   newPlan,
   customerId,
 }: {
@@ -152,7 +152,7 @@ const update_sub = async ({
         ? subscriptions.data[0]
         : undefined;
     if (!subscription) {
-      return { success: true, plan: "free" };
+      return true;
     }
     const subItem = getPlanFromSubscription({ subscription });
     await stripe.subscriptions.update(subscription.id, {

@@ -9,6 +9,8 @@ import { getUser } from "@/app/actions/userActions";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { User } from "@/models/auth/User";
 import { connectDB } from "@/lib/mongodb";
+import { update_sub } from "../api/stripe/webhook/route";
+import jwt from "jsonwebtoken";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
@@ -94,6 +96,83 @@ export async function updatePhone(stripeId: string, phone: string) {
     if (error instanceof Stripe.errors.StripeInvalidRequestError) {
       return { success: false, message: "invalid-phone" };
     }
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function downgradeSubscription({
+  downgrade,
+}: {
+  downgrade: SubscriptionsType;
+}) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const planResponse = await getUserPlan();
+    if (!planResponse.success) {
+      return { success: false, message: "no-user" };
+    }
+
+    const token = jwt.sign({ plan: downgrade }, env.AUTH_SECRET, {
+      expiresIn: "5m",
+    });
+    switch (planResponse.plan) {
+      case "free":
+        return { success: true };
+      case "basic":
+        switch (downgrade) {
+          case "plus":
+          case "pro":
+          case "basic":
+            return { success: false };
+          case "free":
+            return {
+              success: await update_sub({
+                newPlan: "free",
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+      case "plus":
+        switch (downgrade) {
+          case "plus":
+          case "pro":
+            return { success: false };
+          case "free":
+          case "basic":
+            return {
+              success: await update_sub({
+                newPlan: downgrade,
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+      case "pro":
+        switch (downgrade) {
+          case "pro":
+            return { success: false };
+          case "free":
+          case "basic":
+          case "plus":
+            return {
+              success: await update_sub({
+                newPlan: downgrade,
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+    }
+  } catch (error) {
+    console.log(error);
     return { success: false, message: "server-error" };
   }
 }

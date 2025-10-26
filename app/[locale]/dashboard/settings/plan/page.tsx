@@ -22,8 +22,7 @@ const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
       <div
         style={{ width: `${Math.min((curr / max) * 100, 100).toFixed(2)}%` }}
         className="h-2 rounded-full bg-gradient-to-r from-0% from-green-600 to-90% to-green-700 flex items-center justify-center text-xs font-semibold text-white"
-      >
-      </div>
+      ></div>
     </div>
   );
 };
@@ -59,6 +58,11 @@ export default async function Home({
               {user.plan.subscription != "pro" && (
                 <Button className="h-fit!">
                   <Link href={`/dashboard/subscription`}>Upgrade</Link>
+                </Button>
+              )}
+              {user.plan.subscription == "pro" && (
+                <Button className="h-fit!">
+                  <Link href={`/dashboard/subscription`}>Change Plan</Link>
                 </Button>
               )}
             </CardHeader>
@@ -156,104 +160,104 @@ export default async function Home({
                 <TabsTrigger value="qrs">QR Codes</TabsTrigger>
               </TabsList>
               <TabsContent value="shortn">
-                {(user.plan.subscription as SubscriptionsType) == "pro" ? (
-                  <div></div>
-                ) : (
-                  <div className="w-full flex flex-col gap-4">
-                    <div className="flex flex-col w-full gap-2">
-                      <p className="text-sm font-semibold gap-1">
-                        Your short link usage for the month of{" "}
-                        {format(new Date(), "MMMM")}{" "}
-                        <span
-                          className={cn(
-                            "text-xs font-medium",
-                            allowed_links[
+                <div className="w-full flex flex-col gap-4">
+                  <div className="flex flex-col w-full gap-2">
+                    <p className="text-sm font-semibold gap-1">
+                      Your short link usage for the month of{" "}
+                      {format(new Date(), "MMMM")}{" "}
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          (user.plan.subscription == "pro"
+                            ? 1000
+                            : allowed_links[
+                                user.plan.subscription as SubscriptionsType
+                              ]) < user.links_this_month
+                            ? "text-red-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        (
+                        <span className="font-semibold">
+                          {user.links_this_month}
+                        </span>
+                        /
+                        {user.plan.subscription == "pro"
+                          ? "Unlimited"
+                          : allowed_links[
                               user.plan.subscription as SubscriptionsType
-                            ] < user.links_this_month
-                              ? "text-red-600"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          (
-                          <span className="font-semibold">
-                            {user.links_this_month}
-                          </span>
-                          /
-                          {
-                            allowed_links[
+                            ]}
+                        )
+                      </span>
+                    </p>
+                    <UsageBar
+                      max={
+                        user.plan.subscription == "pro"
+                          ? 1000
+                          : allowed_links[
                               user.plan.subscription as SubscriptionsType
                             ]
-                          }
-                          )
-                        </span>
-                      </p>
-                      <UsageBar
-                        max={
-                          allowed_links[
-                            user.plan.subscription as SubscriptionsType
-                          ]
-                        }
-                        curr={user.links_this_month}
-                      />
-                      <p className="text-xs font-medium text-left">
-                        <span className="font-semibold">
-                          Total active links:{" "}
-                        </span>
-                        {(await getActiveLinks()).total}
-                      </p>
-                    </div>
+                      }
+                      curr={user.links_this_month}
+                    />
+                    <p className="text-xs font-medium text-left">
+                      <span className="font-semibold">
+                        Total active links:{" "}
+                      </span>
+                      {(await getActiveLinks()).total}
+                    </p>
                   </div>
-                )}
+                </div>
               </TabsContent>
               <TabsContent value="qrs">
-                {(user.plan.subscription as SubscriptionsType) == "pro" ? (
-                  <div></div>
-                ) : (
-                  <div className="w-full flex flex-col gap-4">
-                    <div className="flex flex-col w-full gap-2">
-                      <p className="text-sm font-semibold gap-1">
-                        Your QR Code usage for the month of{" "}
-                        {format(new Date(), "MMMM")}{" "}
-                        <span
-                          className={cn(
-                            "text-xs font-medium",
-                            allowed_qr_codes[
+                <div className="w-full flex flex-col gap-4">
+                  <div className="flex flex-col w-full gap-2">
+                    <p className="text-sm font-semibold gap-1">
+                      Your QR Code usage for the month of{" "}
+                      {format(new Date(), "MMMM")}{" "}
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          (user.plan.subscription == "pro"
+                            ? 1000
+                            : allowed_qr_codes[
+                                user.plan.subscription as SubscriptionsType
+                              ]) < user.qr_codes_this_month
+                            ? "text-red-600"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        (
+                        <span className="font-semibold">
+                          {user.qr_codes_this_month}
+                        </span>
+                        /
+                        {user.plan.subscription == "pro"
+                          ? "Unlimited"
+                          : allowed_links[
                               user.plan.subscription as SubscriptionsType
-                            ] < user.qr_codes_this_month
-                              ? "text-red-600"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          (
-                          <span className="font-semibold">
-                            {user.qr_codes_this_month}
-                          </span>
-                          /
-                          {
-                            allowed_qr_codes[
+                            ]}
+                        )
+                      </span>
+                    </p>
+                    <UsageBar
+                      max={
+                        user.plan.subscription == "pro"
+                          ? 1000
+                          : allowed_qr_codes[
                               user.plan.subscription as SubscriptionsType
                             ]
-                          }
-                          )
-                        </span>
-                      </p>
-                      <UsageBar
-                        max={
-                          allowed_qr_codes[
-                            user.plan.subscription as SubscriptionsType
-                          ]
-                        }
-                        curr={user.qr_codes_this_month}
-                      />
-                      <p className="text-xs font-medium text-left">
-                        <span className="font-semibold">
-                          Total active codes:{" "}
-                        </span>
-                        {(await getActiveCodes()).total}
-                      </p>
-                    </div>
+                      }
+                      curr={user.qr_codes_this_month}
+                    />
+                    <p className="text-xs font-medium text-left">
+                      <span className="font-semibold">
+                        Total active codes:{" "}
+                      </span>
+                      {(await getActiveCodes()).total}
+                    </p>
                   </div>
-                )}
+                </div>
               </TabsContent>
             </Tabs>
           </Card>
