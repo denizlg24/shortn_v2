@@ -9,11 +9,71 @@ import { getUser } from "@/app/actions/userActions";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { User } from "@/models/auth/User";
 import { connectDB } from "@/lib/mongodb";
-import { update_sub } from "../api/stripe/webhook/route";
 import jwt from "jsonwebtoken";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-
+export const update_sub = async ({
+  newPlan,
+  customerId,
+}: {
+  newPlan: SubscriptionsType;
+  customerId: string;
+}) => {
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+    });
+    const subscription =
+      (subscriptions.data?.length ?? 0) == 1
+        ? subscriptions.data[0]
+        : undefined;
+    if (!subscription) {
+      return true;
+    }
+    const getPlanFromSubscription = ({
+      subscription,
+    }: {
+      subscription: Stripe.Subscription;
+    }) => {
+      const item =
+        (subscription.items?.data?.length ?? 0) == 1
+          ? subscription.items.data[0]
+          : undefined;
+      if (!item) {
+        return undefined;
+      }
+      const itemId = item.id;
+      return itemId;
+    };
+    const subItem = getPlanFromSubscription({ subscription });
+    if (!subItem) {
+      return false;
+    }
+    await stripe.subscriptions.update(subscription.id, {
+      items: [
+        { id: subItem, deleted: true },
+        {
+          price:
+            newPlan === "free"
+              ? env.FREE_PLAN_ID
+              : newPlan === "basic"
+                ? env.BASIC_PLAN_ID
+                : newPlan === "plus"
+                  ? env.PLUS_PLAN_ID
+                  : env.PRO_PLAN_ID,
+          quantity: 1,
+        },
+      ],
+      proration_behavior: "none",
+      billing_cycle_anchor: "unchanged",
+    });
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 export async function getStripeTax({ tax_id }: { tax_id: string }) {
   try {
     const user = await getUser();
