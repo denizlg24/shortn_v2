@@ -70,7 +70,6 @@ export function UpgradedCard({
 
           <Button
             onClick={() => handleNavigate("/dashboard/settings/plan")}
-            asChild
             className="mt-4 w-full max-w-full!"
           >
             Manage plan <ArrowRight />
