@@ -16,7 +16,47 @@ export interface IUrl extends Document {
     total: number;
     lastClick: Date | null;
   };
+  utmLinks?: {
+    _id?: unknown;
+    source?: string;
+    medium?: string;
+    campaign?: {
+      _id: unknown;
+      title: string;
+    };
+    term?: string;
+    content?: string;
+  }[];
   recordClick: () => Promise<IUrl>;
+}
+
+export interface TUrl {
+  _id?: unknown;
+  sub?: string;
+  urlCode: string;
+  customCode: boolean;
+  longUrl: string;
+  shortUrl: string;
+  qrCodeId?: string;
+  isQrCode: boolean;
+  title?: string;
+  date: Date;
+  tags?: { id: string; tagName: string; sub: string; _id: unknown }[];
+  clicks: {
+    total: number;
+    lastClick: Date | null;
+  };
+  utmLinks?: {
+    _id?: unknown;
+    source?: string;
+    medium?: string;
+    campaign?: {
+      _id: unknown;
+      title: string;
+    };
+    term?: string;
+    content?: string;
+  }[];
 }
 
 const UrlSchema = new Schema<IUrl>({
@@ -30,6 +70,21 @@ const UrlSchema = new Schema<IUrl>({
   title: String,
   date: { type: Date, default: Date.now },
   tags: { type: [tagSchema], default: [], index: true },
+  utmLinks: {
+    type: [
+      {
+        source: { type: String },
+        medium: { type: String },
+        campaign: {
+          _id: { type: mongoose.Schema.Types.ObjectId, ref: "Campaigns" },
+          title: { type: String },
+        },
+        term: { type: String },
+        content: { type: String },
+      },
+    ],
+    default: [],
+  },
   clicks: {
     total: { type: Number, default: 0 },
     lastClick: { type: Date, default: null },

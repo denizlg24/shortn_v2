@@ -23,7 +23,7 @@ export const description = "A stacked bar chart with a legend";
 export function groupClicksByDateAndReferrer(
   clicks: ClickEntry[],
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): StackedBarData[] {
   const defaultEnd = endOfDay(new Date());
   const defaultStart = startOfDay(subDays(defaultEnd, 31));
@@ -34,7 +34,6 @@ export function groupClicksByDateAndReferrer(
   const counts: Record<string, Record<string, number>> = {};
   const allReferrers = new Set<string>();
 
-  // Group clicks by date and referrer
   for (const click of clicks) {
     if (
       !isWithinInterval(new Date(click.timestamp), {
@@ -65,10 +64,8 @@ export function groupClicksByDateAndReferrer(
     counts[dateKey][ref] = (counts[dateKey][ref] ?? 0) + 1;
   }
 
-  // Generate all dates in the interval
   const allDates = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
 
-  // Build final array with missing dates/referrers filled with 0
   return allDates.map((date) => {
     const key = format(date, "yyyy-MM-dd");
     const refData = counts[key] ?? {};
@@ -91,8 +88,8 @@ function generateChartConfig(data: StackedBarData[]) {
         key === "direct"
           ? "direct"
           : key.length > 20
-          ? key.slice(0, 17) + "…"
-          : key;
+            ? key.slice(0, 17) + "…"
+            : key;
 
       return [
         key,
@@ -101,7 +98,7 @@ function generateChartConfig(data: StackedBarData[]) {
           color: `var(--chart-${(i % 5) + 1})`,
         },
       ];
-    })
+    }),
   ) satisfies ChartConfig;
 }
 
@@ -122,7 +119,7 @@ export function ReferrerStackedBarChart({
         if (k !== "date") acc.add(k);
       });
       return acc;
-    }, new Set<string>())
+    }, new Set<string>()),
   );
   const chartConfig = generateChartConfig(chartData);
   return (

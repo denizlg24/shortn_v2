@@ -42,7 +42,7 @@ import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
@@ -73,7 +73,7 @@ export const LinkCard = ({
   removeTag,
   tags,
 }: {
-  link: IUrl;
+  link: TUrl;
   addTag: (tagId: string) => void;
   removeTag: (tagId: string) => void;
   tags: string[];
@@ -266,7 +266,7 @@ export const LinkCard = ({
                   const response = await deleteShortn(currentLink.urlCode);
                   if (response.success) {
                     toast.success(
-                      `Link ${currentLink.urlCode} was successfully deleted.`
+                      `Link ${currentLink.urlCode} was successfully deleted.`,
                     );
                   } else {
                     toast.error("There was a problem deleting your link.");
@@ -394,7 +394,7 @@ export const LinkCard = ({
                     }}
                     className={cn(
                       "h-4 p-1! text-sm rounded-none! hover:cursor-pointer border border-transparent hover:border-primary",
-                      tags.some((t) => t == tag.id) && "border-primary"
+                      tags.some((t) => t == tag.id) && "border-primary",
                     )}
                   >
                     {tag.tagName}
@@ -435,18 +435,18 @@ export const LinkCard = ({
                             value={tag.tagName}
                             onSelect={async () => {
                               const added = currentLink.tags?.some(
-                                (_tag) => _tag.id == tag.id
+                                (_tag) => _tag.id == tag.id,
                               );
                               if (added) {
                                 const { success } = await removeTagFromLink(
                                   currentLink.urlCode,
-                                  tag.id
+                                  tag.id,
                                 );
                                 if (success) {
                                   const newLink = currentLink;
                                   newLink.tags =
                                     newLink.tags?.filter(
-                                      (_t) => _t.id != tag.id
+                                      (_t) => _t.id != tag.id,
                                     ) || [];
                                   setCurrentLink(newLink);
                                   tagOpenChange(false);
@@ -454,7 +454,7 @@ export const LinkCard = ({
                               } else {
                                 const { success } = await addTagToLink(
                                   currentLink.urlCode,
-                                  tag.id
+                                  tag.id,
                                 );
                                 if (success) {
                                   currentLink.tags?.push(tag);
@@ -468,10 +468,10 @@ export const LinkCard = ({
                               className={cn(
                                 "ml-auto",
                                 currentLink.tags?.some(
-                                  (_tag) => _tag.tagName == tag.tagName
+                                  (_tag) => _tag.tagName == tag.tagName,
                                 )
                                   ? "opacity-100"
-                                  : "opacity-0"
+                                  : "opacity-0",
                               )}
                             />
                           </CommandItem>
@@ -485,7 +485,7 @@ export const LinkCard = ({
                               const { success, tag } =
                                 await createAndAddTagToUrl(
                                   input,
-                                  currentLink.urlCode
+                                  currentLink.urlCode,
                                 );
                               setInput("");
                               if (success && tag) {
@@ -696,7 +696,7 @@ export const LinkCard = ({
                 const response = await deleteShortn(currentLink.urlCode);
                 if (response.success) {
                   toast.success(
-                    `Link ${currentLink.urlCode} was successfully deleted.`
+                    `Link ${currentLink.urlCode} was successfully deleted.`,
                   );
                 } else {
                   toast.error("There was a problem deleting your link.");

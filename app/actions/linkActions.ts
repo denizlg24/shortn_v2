@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { connectDB } from "@/lib/mongodb";
 import { User } from "@/models/auth/User";
-import UrlV3 from "@/models/url/UrlV3";
+import UrlV3, { TUrl } from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
 import { isbot } from "isbot";
@@ -14,6 +14,8 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
+import { getUser } from "./userActions";
+import { Campaigns } from "@/models/url/Campaigns";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -220,6 +222,18 @@ export const getShortn = async (urlCode: string) => {
       ...url,
       _id: url._id.toString(),
       tags: url.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
+      utmLinks: url.utmLinks?.map((l) => ({
+        ...l,
+        _id: l._id?.toString() ?? "",
+        ...(l.campaign
+          ? {
+              campaign: {
+                _id: l.campaign._id.toString(),
+                title: l.campaign.title,
+              },
+            }
+          : {}),
+      })),
     };
     return { success: true, url: filtered };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -505,5 +519,138 @@ export async function generateCSVFromClicks({ clicks }: { clicks: unknown[] }) {
   } catch (error) {
     console.log(error);
     return { success: false, url: "" };
+  }
+}
+
+export async function updateUTM({
+  urlCode,
+  utm,
+}: {
+  urlCode: string;
+  utm: {
+    source?: string;
+    medium?: string;
+    campaign?: {
+      title: string;
+    };
+    term?: string;
+    content?: string;
+  }[];
+}): Promise<
+  { success: true; newUrl: TUrl } | { success: false; message: string }
+> {
+  try {
+    const session = await getUser();
+    if (!session.user) {
+      return { success: false, message: "no-user" };
+    }
+    const sub = session.user.sub;
+    if (session.user.plan.subscription != "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const foundUrl = await UrlV3.findOne({ sub, urlCode });
+    if (!foundUrl) {
+      return { success: false, message: "url-not-found" };
+    }
+
+    const currentUtm = foundUrl.utmLinks;
+
+    if ((currentUtm ?? []).length > utm.length) {
+      const removed = (currentUtm ?? []).filter(
+        (curr) =>
+          curr.campaign?._id &&
+          !utm.some((ut) => curr.campaign?.title === ut.campaign?.title),
+      );
+
+      for (const element of removed) {
+        const finished = await Campaigns.findOneAndUpdate(
+          { _id: element.campaign?._id },
+          { $pull: { links: foundUrl._id } },
+          { new: true },
+        );
+        if (finished?.links.length == 0) {
+          await Campaigns.deleteOne({ _id: element.campaign?._id });
+        }
+      }
+    }
+
+    const finalUtm = await Promise.all(
+      utm.map(async (utmSection) => {
+        if (utmSection.campaign?.title) {
+          if (utmSection.campaign.title.trim()) {
+            const foundCampaign = await Campaigns.findOne({
+              sub,
+              title: utmSection.campaign.title,
+            });
+            if (foundCampaign) {
+              await Campaigns.updateOne(
+                { _id: foundCampaign._id },
+                { $addToSet: { links: foundUrl._id } },
+              );
+              return {
+                source: utmSection.source,
+                medium: utmSection.medium,
+                campaign: {
+                  _id: foundCampaign._id,
+                  title: utmSection.campaign.title.trim(),
+                },
+                term: utmSection.term,
+                content: utmSection.content,
+              };
+            }
+
+            const newCampaign = await Campaigns.create({
+              title: utmSection.campaign.title,
+              sub,
+              links: [foundUrl._id],
+            });
+            return {
+              source: utmSection.source,
+              medium: utmSection.medium,
+              campaign: {
+                _id: newCampaign._id,
+                title: utmSection.campaign.title.trim(),
+              },
+              term: utmSection.term,
+              content: utmSection.content,
+            };
+          }
+        }
+        return {
+          source: utmSection.source,
+          medium: utmSection.medium,
+          campaign: { title: "" },
+          term: utmSection.term,
+          content: utmSection.content,
+        };
+      }),
+    );
+
+    const newUrl = await UrlV3.findOneAndUpdate(
+      { sub, urlCode },
+      { utmLinks: finalUtm },
+      { new: true },
+    ).lean();
+    return {
+      success: true,
+      newUrl: {
+        ...newUrl,
+        _id: newUrl?._id.toString(),
+        utmLinks: finalUtm.map((utmSection) => ({
+          ...utmSection,
+          ...(utmSection.campaign
+            ? {
+                campaign: {
+                  title: utmSection.campaign.title,
+                  _id: (utmSection.campaign._id as string).toString(),
+                },
+              }
+            : {}),
+        })),
+      } as TUrl,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
   }
 }

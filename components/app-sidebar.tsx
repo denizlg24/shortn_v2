@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import {
   ChevronLeft,
+  Folder,
   Home,
   LinkIcon,
   NotepadText,
@@ -77,7 +78,7 @@ export const AppSidebar = () => {
           >
             <ChevronLeft
               className={cn(
-                state == "collapsed" && "rotate-180 transition-transform"
+                state == "collapsed" && "rotate-180 transition-transform",
               )}
             />
             <span className="sr-only">Toggle Sidebar</span>
@@ -162,7 +163,7 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        pathname == "/dashboard" && "bg-muted"
+                        pathname == "/dashboard" && "bg-muted",
                       )}
                       asChild
                     >
@@ -179,7 +180,7 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        pathname.startsWith("/dashboard/links") && "bg-muted"
+                        pathname.startsWith("/dashboard/links") && "bg-muted",
                       )}
                       asChild
                     >
@@ -198,7 +199,8 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        pathname.startsWith("/dashboard/qr-codes") && "bg-muted"
+                        pathname.startsWith("/dashboard/qr-codes") &&
+                          "bg-muted",
                       )}
                       asChild
                     >
@@ -217,7 +219,7 @@ export const AppSidebar = () => {
                     <SidebarMenuButton
                       className={cn(
                         "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
-                        pathname.startsWith("/dashboard/pages") && "bg-muted"
+                        pathname.startsWith("/dashboard/pages") && "bg-muted",
                       )}
                       asChild
                     >
@@ -228,6 +230,26 @@ export const AppSidebar = () => {
                         <NotepadText className="w-5! h-5!" />
                         {state != "collapsed" && (
                           <span className="">Pages</span>
+                        )}
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      className={cn(
+                        "group-data-[collapsible=icon]:p-2.5! relative group-data-[collapsible=icon]:w-10! h-10! group-data-[collapsible=icon]:h-10!",
+                        pathname.startsWith("/dashboard/campaigns") &&
+                          "bg-muted",
+                      )}
+                      asChild
+                    >
+                      <Link href={`/dashboard/campaigns`}>
+                        {pathname.startsWith("/dashboard/campaigns") && (
+                          <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
+                        )}
+                        <Folder className="w-5! h-5!" />
+                        {state != "collapsed" && (
+                          <span className="">Campaigns</span>
                         )}
                       </Link>
                     </SidebarMenuButton>

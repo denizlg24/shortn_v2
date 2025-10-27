@@ -13,6 +13,7 @@ import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
 import { LinkTimeByDateData } from "./link-time-by-date-data";
 import { ClickDataProvider } from "@/utils/ClickDataContext";
+import { LinkUtmParams } from "./link-utm-params";
 
 export const LinkDetails = ({
   url,
@@ -20,7 +21,7 @@ export const LinkDetails = ({
 }: {
   url: IUrl;
   qr: IQRCode | undefined;
-  }) => {
+}) => {
   const session = useUser();
 
   return (
@@ -34,6 +35,10 @@ export const LinkDetails = ({
             </Link>
           </Button>
           <LinkDetailsCard currentLink={url} />
+          <LinkUtmParams
+            currentLink={url}
+            unlocked={session.user.plan.subscription == "pro"}
+          />
           <LinkAdditionsCard qrCode={qr} url={url} />
           <LinkTimeAnalytics
             unlocked={
@@ -54,8 +59,8 @@ export const LinkDetails = ({
               session.user.plan.subscription == "pro"
                 ? "all"
                 : session.user.plan.subscription == "plus"
-                ? "location"
-                : "none"
+                  ? "location"
+                  : "none"
             }
           />
           <div className="w-full grid lg:grid-cols-2 grid-cols-1 gap-4">
@@ -64,7 +69,6 @@ export const LinkDetails = ({
             />
             <LinkStackedSourceData
               unlocked={session.user.plan.subscription == "pro"}
-
               createdAt={url.date}
             />
           </div>
