@@ -9,9 +9,71 @@ import { getUser } from "@/app/actions/userActions";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { User } from "@/models/auth/User";
 import { connectDB } from "@/lib/mongodb";
+import jwt from "jsonwebtoken";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
-
+export const update_sub = async ({
+  newPlan,
+  customerId,
+}: {
+  newPlan: SubscriptionsType;
+  customerId: string;
+}) => {
+  try {
+    const subscriptions = await stripe.subscriptions.list({
+      customer: customerId,
+      limit: 1,
+    });
+    const subscription =
+      (subscriptions.data?.length ?? 0) == 1
+        ? subscriptions.data[0]
+        : undefined;
+    if (!subscription) {
+      return true;
+    }
+    const getPlanFromSubscription = ({
+      subscription,
+    }: {
+      subscription: Stripe.Subscription;
+    }) => {
+      const item =
+        (subscription.items?.data?.length ?? 0) == 1
+          ? subscription.items.data[0]
+          : undefined;
+      if (!item) {
+        return undefined;
+      }
+      const itemId = item.id;
+      return itemId;
+    };
+    const subItem = getPlanFromSubscription({ subscription });
+    if (!subItem) {
+      return false;
+    }
+    await stripe.subscriptions.update(subscription.id, {
+      items: [
+        { id: subItem, deleted: true },
+        {
+          price:
+            newPlan === "free"
+              ? env.FREE_PLAN_ID
+              : newPlan === "basic"
+                ? env.BASIC_PLAN_ID
+                : newPlan === "plus"
+                  ? env.PLUS_PLAN_ID
+                  : env.PRO_PLAN_ID,
+          quantity: 1,
+        },
+      ],
+      proration_behavior: "none",
+      billing_cycle_anchor: "unchanged",
+    });
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+};
 export async function getStripeTax({ tax_id }: { tax_id: string }) {
   try {
     const user = await getUser();
@@ -94,6 +156,83 @@ export async function updatePhone(stripeId: string, phone: string) {
     if (error instanceof Stripe.errors.StripeInvalidRequestError) {
       return { success: false, message: "invalid-phone" };
     }
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function downgradeSubscription({
+  downgrade,
+}: {
+  downgrade: SubscriptionsType;
+}) {
+  try {
+    const session = await auth();
+    const user = session?.user;
+    if (!user) {
+      return {
+        success: false,
+        message: "no-user",
+      };
+    }
+    const planResponse = await getUserPlan();
+    if (!planResponse.success) {
+      return { success: false, message: "no-user" };
+    }
+
+    const token = jwt.sign({ plan: downgrade }, env.AUTH_SECRET, {
+      expiresIn: "5m",
+    });
+    switch (planResponse.plan) {
+      case "free":
+        return { success: true };
+      case "basic":
+        switch (downgrade) {
+          case "plus":
+          case "pro":
+          case "basic":
+            return { success: false };
+          case "free":
+            return {
+              success: await update_sub({
+                newPlan: "free",
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+      case "plus":
+        switch (downgrade) {
+          case "plus":
+          case "pro":
+            return { success: false };
+          case "free":
+          case "basic":
+            return {
+              success: await update_sub({
+                newPlan: downgrade,
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+      case "pro":
+        switch (downgrade) {
+          case "pro":
+            return { success: false };
+          case "free":
+          case "basic":
+          case "plus":
+            return {
+              success: await update_sub({
+                newPlan: downgrade,
+                customerId: user.stripeId,
+              }),
+              token,
+            };
+        }
+    }
+  } catch (error) {
+    console.log(error);
     return { success: false, message: "server-error" };
   }
 }

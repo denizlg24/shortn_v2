@@ -311,7 +311,13 @@ const CustomCheckoutForm = ({
       });
       if (response.type == "success") {
         await refresh();
-        router.push("/dashboard/settings/plan");
+        const tokenRes = await fetch("/api/stripe/subscription-token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: tier, type: "subscribe" }),
+        });
+        const { token } = await tokenRes.json();
+        router.push(`/dashboard/subscription/upgraded?token=${token}`);
       } else {
         console.log(response.error.message);
         setError(response.error.message);
