@@ -28,7 +28,7 @@ export const getShortn = async (urlCode: string) => {
       utmLinks: url.utmLinks?.map((l) => ({
         ...l,
         _id: l._id?.toString() ?? "",
-        ...(l.campaign
+        ...(l.campaign?.title
           ? {
               campaign: {
                 _id: l.campaign._id.toString(),

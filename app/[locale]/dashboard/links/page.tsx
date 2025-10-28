@@ -131,7 +131,7 @@ const getFilteredLinks = async (
     utmLinks: link.utmLinks?.map((utm) => ({
       ...utm,
       _id: (utm._id as string).toString(),
-      ...(utm.campaign
+      ...(utm.campaign?.title
         ? {
             campaign: {
               title: utm.campaign.title,
