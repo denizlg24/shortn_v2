@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getUser } from "@/app/actions/userActions";
 import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { QRCodesContainer } from "@/components/dashboard/qr-codes/qr-codes-container";
 import { QRCodesFilterBar } from "@/components/dashboard/qr-codes/qr-codes-filter-bar";
@@ -21,7 +21,7 @@ interface IFilters {
 const getFilteredQRCodes = async (
   filters: IFilters,
 ): Promise<{ qrcodes: IQRCode[]; total: number }> => {
-  const session = await auth();
+  const session = await getUser();
   const user = session?.user;
 
   if (!user) {

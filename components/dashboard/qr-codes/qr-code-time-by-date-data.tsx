@@ -655,7 +655,7 @@ export const QRCodeTimeByDateData = ({
           filename={`${urlCode}-scan-time-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
           data={groupedData.map((val) => {
             const date = val.date;
-            const newVal: { date?: string } = val;
+            const newVal: { date?: string } = { ...val };
             delete newVal["date"];
             return {
               Date: date,

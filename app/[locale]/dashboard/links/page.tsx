@@ -1,10 +1,10 @@
-import { auth } from "@/auth";
+import { getUser } from "@/app/actions/userActions";
 import { LinkContainer } from "@/components/dashboard/links/link-container";
 import { LinkFilterBar } from "@/components/dashboard/links/link-filter-bar";
 import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { connectDB } from "@/lib/mongodb";
-import { ITag } from "@/models/url/Tag";
-import UrlV3, { IUrl } from "@/models/url/UrlV3";
+import { TagT } from "@/models/url/Tag";
+import UrlV3, { IUrl, TUrl } from "@/models/url/UrlV3";
 import { addDays, parse } from "date-fns";
 import { setRequestLocale } from "next-intl/server";
 
@@ -21,9 +21,9 @@ interface IFilters {
 }
 
 const getFilteredLinks = async (
-  filters: IFilters
-): Promise<{ links: IUrl[]; total: number }> => {
-  const session = await auth();
+  filters: IFilters,
+): Promise<{ links: TUrl[]; total: number }> => {
+  const session = await getUser();
   const user = session?.user;
 
   if (!user) {
@@ -125,13 +125,24 @@ const getFilteredLinks = async (
 
   const total = totalResult[0]?.total || 0;
 
-  const linksSanitized = links.map((link) => ({
+  const linksSanitized = links.map((link: IUrl) => ({
     ...link,
-    _id: link._id.toString(),
-    tags: link.tags?.map((tag: ITag) => ({
+    _id: (link._id as string).toString(),
+    utmLinks: link.utmLinks?.map((utm) => ({
+      ...utm,
+      _id: (utm._id as string).toString(),
+      ...(utm.campaign
+        ? {
+            campaign: {
+              title: utm.campaign.title,
+              _id: (utm.campaign._id as string).toString(),
+            },
+          }
+        : {}),
+    })),
+    tags: link.tags?.map((tag: TagT & { _id: unknown }) => ({
       ...tag,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      _id: (tag._id as any).toString(),
+      _id: (tag._id as string).toString(),
     })),
   }));
 
@@ -151,7 +162,7 @@ export default async function Home({
   function parseToUTC(dateStr: string): Date {
     const parsed = parse(dateStr, "MM-dd-yyyy", new Date());
     return new Date(
-      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate())
+      Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()),
     );
   }
 

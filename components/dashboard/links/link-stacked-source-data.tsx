@@ -428,6 +428,8 @@ export const LinkStackedSourceData = ({
     dateRange?.to,
   );
 
+  console.log(groupedData);
+
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
       <div className="w-full flex flex-col gap-1 items-start">
@@ -661,7 +663,7 @@ export const LinkStackedSourceData = ({
           filename={`${urlCode}-stacked-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`}
           data={groupedData.map((val) => {
             const date = val.date;
-            const newVal: { date?: string } = val;
+            const newVal: { date?: string } = { ...val };
             delete newVal["date"];
             return {
               Date: date,

@@ -6,6 +6,7 @@ import { Popover, PopoverTrigger } from "./popover";
 import { Button } from "./button";
 import {
   ChevronDown,
+  Folder,
   HelpCircle,
   HomeIcon,
   LinkIcon,
@@ -159,7 +160,7 @@ export const DashboardHeaderClient = () => {
                 <Link
                   className={cn(
                     "border-r-2 rounded-none! border-r-transparent",
-                    pathname == "/dashboard" && "border-r-primary bg-accent"
+                    pathname == "/dashboard" && "border-r-primary bg-accent",
                   )}
                   href={`/dashboard`}
                 >
@@ -180,7 +181,7 @@ export const DashboardHeaderClient = () => {
                   className={cn(
                     "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/links") &&
-                      "border-r-primary bg-accent"
+                      "border-r-primary bg-accent",
                   )}
                   href={`/dashboard/links`}
                 >
@@ -201,7 +202,7 @@ export const DashboardHeaderClient = () => {
                   className={cn(
                     "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/qr-codes") &&
-                      "border-r-primary bg-accent"
+                      "border-r-primary bg-accent",
                   )}
                   href={`/dashboard/qr-codes`}
                 >
@@ -222,12 +223,33 @@ export const DashboardHeaderClient = () => {
                   className={cn(
                     "border-r-2 rounded-none! border-r-transparent",
                     pathname.startsWith("/dashboard/pages") &&
-                      "border-r-primary bg-accent"
+                      "border-r-primary bg-accent",
                   )}
                   href={`/dashboard/pages`}
                 >
                   <NotepadText />
                   Pages
+                </Link>
+              </Button>
+              <Button
+                onClick={() => {
+                  createNewOpenChange(false);
+                  setHamburguerOpen(false);
+                }}
+                asChild
+                variant={"link"}
+                className="justify-start rounded"
+              >
+                <Link
+                  className={cn(
+                    "border-r-2 rounded-none! border-r-transparent",
+                    pathname.startsWith("/dashboard/campaigns") &&
+                      "border-r-primary bg-accent",
+                  )}
+                  href={`/dashboard/campaigns`}
+                >
+                  <Folder />
+                  Campaigns
                 </Link>
               </Button>
             </div>
