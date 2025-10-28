@@ -9,6 +9,7 @@ import { IUrl } from "@/models/url/UrlV3";
 import { Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { DeleteCampaignButton } from "./delete-campaign-button";
 
 export default async function Home({
   params,
@@ -69,23 +70,28 @@ export default async function Home({
     );
   }
   await connectDB();
-  const campaign = await Campaigns.findOne({ sub: user.sub, _id: id })
-    .populate<IUrl>({ path: "links", model: "UrlV3" })
-    .lean();
-  if (!campaign) {
-    notFound();
-  }
   const filters = {
     page: parseInt(searchP.page || "1", 10),
     limit: parseInt(searchP.limit || "10", 3),
   };
+  const skip = (filters.page - 1) * filters.limit;
+  const campaign = await Campaigns.findOne({ sub: user.sub, _id: id })
+    .populate<IUrl>({
+      path: "links",
+      options: { limit: filters.limit, skip },
+    })
+    .lean();
+  if (!campaign) {
+    notFound();
+  }
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
         <div className="col-span-full w-full flex flex-col gap-4">
           <div className="lg:p-4 sm:p-3 p-2 rounded bg-background shadow w-full flex flex-col gap-4">
-            <div className="w-full flex flex-row items-center justify-between gap-2">
-              <div className="w-full max-w-[70%] truncate flex flex-col  justify-start gap-1">
+            <div className="w-full flex xs:flex-row flex-col items-center xs:justify-between gap-2">
+              <div className="w-full xs:max-w-[70%] max-w-full truncate flex xs:flex-col flex-row xs:items-start items-center xs:justify-start justify-between gap-1">
                 <h1 className="font-bold lg:text-xl md:text-lg text-base hover:underline underline-offset-4 truncate">
                   {campaign.title}
                 </h1>
@@ -93,11 +99,16 @@ export default async function Home({
                   {campaign.links.length} links
                 </p>
               </div>
+              <DeleteCampaignButton
+                title={campaign.title ?? ""}
+                className="xs:w-fit! w-full"
+              />
             </div>
             <div className="flex flex-col gap-2 items-start">
               <h2 className="font-bold text-base">Grouped Links</h2>
               <div className="bg-muted w-full p-2">
                 <LinkContainer
+                  hideEndTag
                   links={(
                     campaign.links.slice(
                       (filters.page - 1) * filters.limit,
@@ -113,7 +124,7 @@ export default async function Home({
                     utmLinks: link.utmLinks?.map((link) => ({
                       ...link,
                       _id: (link._id as string).toString(),
-                      ...(link.campaign
+                      ...(link.campaign?.title
                         ? {
                             campaign: {
                               title: link.campaign.title,

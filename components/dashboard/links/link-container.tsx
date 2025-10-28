@@ -4,6 +4,7 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
 import { TUrl } from "@/models/url/UrlV3";
 import { LinkCard } from "./link-card";
+import { cn } from "@/lib/utils";
 
 export const LinkContainer = ({
   links,
@@ -11,12 +12,14 @@ export const LinkContainer = ({
   tags,
   page,
   limit,
+  hideEndTag,
 }: {
   links: TUrl[];
   total: number;
   tags: string[];
   page: number;
   limit: number;
+  hideEndTag?: boolean;
 }) => {
   const router = useRouter();
 
@@ -63,7 +66,12 @@ export const LinkContainer = ({
   };
 
   return (
-    <div className="w-full col-span-full flex flex-col gap-4 pb-6">
+    <div
+      className={cn(
+        "w-full col-span-full flex flex-col gap-4",
+        hideEndTag ? "pb-0!" : "pb-6!",
+      )}
+    >
       {links.length > 0 ? (
         <>
           {links.map((link) => (
@@ -75,16 +83,21 @@ export const LinkContainer = ({
               link={link}
             />
           ))}
-          {page >= Math.ceil(total / limit) && (
-            <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
-              <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
-              <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You&apos;ve reached the end of your links
-              </p>
-              <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
-            </div>
-          )}
+          {page >= Math.ceil(total / limit) &&
+            (hideEndTag ? (
+              <></>
+            ) : (
+              <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
+                <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+                <p className="text-muted-foreground grow font-semibold w-full text-center">
+                  You&apos;ve reached the end of your links
+                </p>
+                <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
+              </div>
+            ))}
         </>
+      ) : hideEndTag ? (
+        <></>
       ) : (
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>

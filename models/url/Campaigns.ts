@@ -1,5 +1,8 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import { IUrl } from "./UrlV3";
+import UrlV3, { IUrl } from "./UrlV3";
+import { ok } from "assert";
+
+ok(UrlV3);
 
 export interface ICampaign extends Document {
   title: string;
