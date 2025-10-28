@@ -225,7 +225,7 @@ export const getShortn = async (urlCode: string) => {
       utmLinks: url.utmLinks?.map((l) => ({
         ...l,
         _id: l._id?.toString() ?? "",
-        ...(l.campaign
+        ...(l.campaign?.title
           ? {
               campaign: {
                 _id: l.campaign._id.toString(),
@@ -291,6 +291,21 @@ export const deleteShortn = async (urlCode: string) => {
         { sub, qrCodeId: foundURL.qrCodeId },
         { attachedUrl: "" },
       );
+    }
+    if (foundURL.utmLinks) {
+      const campaigns = foundURL.utmLinks
+        .filter((section) => section.campaign != undefined)
+        .map((section) => section.campaign?._id);
+      for (const id of campaigns) {
+        const finished = await Campaigns.findOneAndUpdate(
+          { _id: id },
+          { $pull: { links: foundURL._id } },
+          { new: true },
+        );
+        if (finished?.links.length == 0) {
+          await Campaigns.deleteOne({ _id: id });
+        }
+      }
     }
     return { success: true, deleted: urlCode };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -638,7 +653,7 @@ export async function updateUTM({
         _id: newUrl?._id.toString(),
         utmLinks: finalUtm.map((utmSection) => ({
           ...utmSection,
-          ...(utmSection.campaign
+          ...(utmSection.campaign?.title
             ? {
                 campaign: {
                   title: utmSection.campaign.title,
@@ -649,6 +664,43 @@ export async function updateUTM({
         })),
       } as TUrl,
     };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function deleteCampaign({
+  campaignTitle,
+}: {
+  campaignTitle: string;
+}) {
+  try {
+    const session = await getUser();
+    if (!session.user) {
+      return { success: false, message: "no-user" };
+    }
+    const sub = session.user.sub;
+    const deletedCampaign = await Campaigns.findOneAndDelete({
+      sub,
+      title: campaignTitle,
+    });
+    if (!deletedCampaign) {
+      return { success: true };
+    }
+    for (const linkId of deletedCampaign.links) {
+      await UrlV3.updateOne(
+        { sub, _id: linkId },
+        {
+          $pull: {
+            utmLinks: {
+              "campaign.title": campaignTitle,
+            },
+          },
+        },
+      );
+    }
+    return { success: true };
   } catch (error) {
     console.log(error);
     return { success: false, message: "server-error" };
