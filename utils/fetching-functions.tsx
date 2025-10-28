@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getUser } from "@/app/actions/userActions";
 import { connectDB } from "@/lib/mongodb";
 import Clicks, { ClickEntry } from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
@@ -6,7 +6,7 @@ import UrlV3 from "@/models/url/UrlV3";
 
 export const getShortn = async (urlCode: string) => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
 
     if (!user) {
@@ -25,6 +25,18 @@ export const getShortn = async (urlCode: string) => {
       ...url,
       _id: url._id.toString(),
       tags: url.tags?.map((tag) => ({ ...tag, _id: tag._id.toString() })),
+      utmLinks: url.utmLinks?.map((l) => ({
+        ...l,
+        _id: l._id?.toString() ?? "",
+        ...(l.campaign
+          ? {
+              campaign: {
+                _id: l.campaign._id.toString(),
+                title: l.campaign.title,
+              },
+            }
+          : {}),
+      })),
     };
     return { success: true, url: filtered };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +51,7 @@ export const getClicks = async (
   endDate: Date | undefined,
 ) => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
     if (!user) {
       return {
@@ -100,7 +112,7 @@ export const getScans = async (
   endDate: Date | undefined,
 ) => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
     if (!user) {
       return {
@@ -161,7 +173,7 @@ export const getScans = async (
 
 export const getQRCode = async (codeID: string) => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
 
     if (!user) {
@@ -190,7 +202,7 @@ export const getQRCode = async (codeID: string) => {
 
 export const getActiveLinks = async () => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
 
     if (!user) {
@@ -214,7 +226,7 @@ export const getActiveLinks = async () => {
 
 export const getActiveCodes = async () => {
   try {
-    const session = await auth();
+    const session = await getUser();
     const user = session?.user;
 
     if (!user) {

@@ -2,7 +2,7 @@
 
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { LinkCard } from "./link-card";
 
 export const LinkContainer = ({
@@ -12,7 +12,7 @@ export const LinkContainer = ({
   page,
   limit,
 }: {
-  links: IUrl[];
+  links: TUrl[];
   total: number;
   tags: string[];
   page: number;

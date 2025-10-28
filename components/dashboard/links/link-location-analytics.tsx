@@ -219,8 +219,6 @@ export const LinkLocationAnalytics = ({
     country: click.country ? countries.getName(click.country, "en") : undefined,
   })) as ClickEntry[];
 
-  console.log(transformed);
-
   const data = aggregateClicksByLocation(transformed, selected);
 
   return (
