@@ -1,3 +1,4 @@
+"use client";
 import {
   HoverCard,
   HoverCardContent,
@@ -15,7 +16,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { DataTable } from "../tables/location-table/data-table";
 import {
@@ -52,20 +53,18 @@ export function getDataTitle(
 
 export const LinkLocationAnalytics = ({
   unlocked,
+  initialClicks,
 }: {
   unlocked: "none" | "location" | "all";
+  initialClicks: ClickEntry[];
 }) => {
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
   >("country");
   countries.registerLocale(en);
-  const { getClicks, urlCode } = useClicks();
-  const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
-  useEffect(() => {
-    if (unlocked != "none")
-      getClicks(undefined, undefined, setClicks, setLoading);
-  }, [getClicks, unlocked]);
+  const { urlCode } = useClicks();
+  const [loading] = useState(false);
+  const [clicks] = useState<ClickEntry[]>(initialClicks);
   if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">

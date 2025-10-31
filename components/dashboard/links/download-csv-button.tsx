@@ -3,6 +3,7 @@
 import { generateCSVFromClicks } from "@/app/actions/linkActions";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/utils/UserContext";
 import { Download, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -10,14 +11,20 @@ import { toast } from "sonner";
 export const DownloadButtonCSV = ({
   filename,
   data,
+  className,
+  title,
+  lockedTitle,
 }: {
   filename: string;
   data: unknown[];
+  className?: string;
+  lockedTitle?: string;
+  title?: string;
 }) => {
   const session = useUser();
   return session?.user?.plan.subscription == "pro" ? (
     <Button
-      className="min-[420px]:text-sm text-xs"
+      className={cn("min-[420px]:text-sm text-xs", className)}
       onClick={async () => {
         toast.promise<{ success: boolean; url: string }>(
           async () => {
@@ -44,12 +51,13 @@ export const DownloadButtonCSV = ({
       }}
       variant={"secondary"}
     >
-      Export to CSV file <Download />
+      {title ?? "Export to CSV file"} <Download />
     </Button>
   ) : (
     <Button className="min-[420px]:text-sm text-xs" asChild>
       <Link href={"/dashboard/subscription"}>
-        Upgrade to download data as a CSV file. <Lock className="w-3! h-3!" />
+        {lockedTitle ?? "Upgrade to download data as a CSV file."}{" "}
+        <Lock className="w-3! h-3!" />
       </Link>
     </Button>
   );
