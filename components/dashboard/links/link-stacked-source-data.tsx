@@ -16,7 +16,7 @@ import {
   groupClicksByDateAndReferrer,
   ReferrerStackedBarChart,
 } from "./charts/referrer-stacked-bar-chart";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -38,17 +38,19 @@ import { DownloadButtonCSV } from "./download-csv-button";
 export const LinkStackedSourceData = ({
   unlocked,
   createdAt,
+  initialClicks,
 }: {
   unlocked: boolean;
   createdAt: Date;
+  initialClicks: ClickEntry[];
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks, urlCode } = useClicks();
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
+  const [loading, setLoading] = useState(false);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -139,8 +141,14 @@ export const LinkStackedSourceData = ({
     return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
   }
 
+  const isInitialRender = useRef(true);
+
   useEffect(() => {
     if (unlocked) {
+      if (isInitialRender.current) {
+        isInitialRender.current = false;
+        return;
+      }
       getClicks(
         dateRange?.from ? dateRange.from.toDateString() : undefined,
         dateRange?.to ? dateRange.to.toDateString() : undefined,
@@ -148,7 +156,7 @@ export const LinkStackedSourceData = ({
         setLoading,
       );
     }
-  }, [dateRange, getClicks, unlocked]);
+  }, [dateRange, unlocked, getClicks]);
 
   if (!unlocked) {
     return (
@@ -427,8 +435,6 @@ export const LinkStackedSourceData = ({
     dateRange?.from,
     dateRange?.to,
   );
-
-  console.log(groupedData);
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">

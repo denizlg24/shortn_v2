@@ -54,10 +54,7 @@ export const getClicks = async (
     const session = await getUser();
     const user = session?.user;
     if (!user) {
-      return {
-        success: false,
-        message: "no-user",
-      };
+      return [];
     }
     const sub = user?.sub;
     await connectDB();
