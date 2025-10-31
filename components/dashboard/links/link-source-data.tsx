@@ -1,3 +1,4 @@
+"use client";
 import {
   HoverCard,
   HoverCardContent,
@@ -13,19 +14,23 @@ import {
   ReferrerDonutChart,
 } from "./charts/referrer-donut-chart";
 import { useClicks } from "@/utils/ClickDataContext";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ClickEntry } from "@/models/url/Click";
 import { format } from "date-fns";
 import { DownloadButtonCSV } from "./download-csv-button";
 
-export const LinkSourceData = ({ unlocked }: { unlocked: boolean }) => {
-  const { getClicks, urlCode } = useClicks();
-  const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
-  useEffect(() => {
-    if (unlocked) getClicks(undefined, undefined, setClicks, setLoading);
-  }, [getClicks, unlocked]);
+export const LinkSourceData = ({
+  unlocked,
+  initialClicks,
+}: {
+  unlocked: boolean;
+  initialClicks: ClickEntry[];
+}) => {
+  const { urlCode } = useClicks();
+  const [loading] = useState(false);
+  const [clicks] = useState<ClickEntry[]>(initialClicks);
+
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">

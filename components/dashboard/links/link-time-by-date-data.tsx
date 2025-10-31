@@ -12,7 +12,7 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { CardDescription, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -38,17 +38,19 @@ import { DownloadButtonCSV } from "./download-csv-button";
 export const LinkTimeByDateData = ({
   unlocked,
   createdAt,
+  initialClicks,
 }: {
   unlocked: boolean;
   createdAt: Date;
+  initialClicks: ClickEntry[];
 }) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks, urlCode } = useClicks();
-  const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -138,9 +140,22 @@ export const LinkTimeByDateData = ({
 
     return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
   }
+  const isInitialRender = useRef(true);
+
   useEffect(() => {
-    if (unlocked) getClicks(undefined, undefined, setClicks, setLoading);
-  }, [getClicks, unlocked]);
+    if (unlocked) {
+      if (isInitialRender.current) {
+        isInitialRender.current = false;
+        return;
+      }
+      getClicks(
+        dateRange?.from ? dateRange.from.toDateString() : undefined,
+        dateRange?.to ? dateRange.to.toDateString() : undefined,
+        setClicks,
+        setLoading,
+      );
+    }
+  }, [dateRange, unlocked, getClicks]);
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">

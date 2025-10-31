@@ -10,6 +10,8 @@ import { Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
+import { DownloadButtonCSV } from "@/components/dashboard/links/download-csv-button";
+import Clicks from "@/models/url/Click";
 
 export default async function Home({
   params,
@@ -85,6 +87,12 @@ export default async function Home({
     notFound();
   }
 
+  const clicks = await Clicks.find({
+    urlCode: { $in: campaign.links.map((link) => (link as IUrl).urlCode) },
+    "queryParams.utm_campaign": { $exists: true, $eq: campaign.title },
+  })
+    .select("-_id -__v -sub -urlCode -type -ip -queryParams")
+    .lean();
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
@@ -105,7 +113,18 @@ export default async function Home({
               />
             </div>
             <div className="flex flex-col gap-2 items-start">
-              <h2 className="font-bold text-base">Grouped Links</h2>
+              <div className="w-full flex xs:flex-row flex-col gap-2 xs:items-center xs:justify-between items-start">
+                <h2 className="font-bold text-base">Grouped Links</h2>
+                {clicks.length > 0 && (
+                  <DownloadButtonCSV
+                    className="xs:w-fit! w-full"
+                    filename={`${campaign.title}-clicks.csv`}
+                    data={clicks}
+                    title={`Export ${clicks.length} clicks to CSV`}
+                  />
+                )}
+              </div>
+
               <div className="bg-muted w-full p-2">
                 <LinkContainer
                   hideEndTag

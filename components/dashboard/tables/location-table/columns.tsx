@@ -14,7 +14,6 @@ export function aggregateClicksByLocation(
 
   for (const entry of entries) {
     let key: string;
-    console.log(entry);
 
     switch (level) {
       case "city":
