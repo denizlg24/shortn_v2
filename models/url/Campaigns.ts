@@ -20,6 +20,8 @@ const CampaignSchema = new Schema<ICampaign>(
   { timestamps: true },
 );
 
+CampaignSchema.index({ title: "text" });
+
 export const Campaigns: Model<ICampaign> =
   mongoose.models.Campaigns ||
   mongoose.model<ICampaign>("Campaigns", CampaignSchema);

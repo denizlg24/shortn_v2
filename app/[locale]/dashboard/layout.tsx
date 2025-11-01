@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
 import { getUser } from "@/app/actions/userActions";
 import { AbortControllerProvider } from "@/utils/AbortContext";
+import ScrollToTop from "@/utils/ScrollToTop";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -66,6 +67,7 @@ export default async function RootLayout({
         className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-14! pt-12!`}
       >
         <AbortControllerProvider>
+          <ScrollToTop />
           <UserProvider initialUser={user}>
             <NextIntlClientProvider>
               <SidebarProvider defaultOpen={defaultOpen}>

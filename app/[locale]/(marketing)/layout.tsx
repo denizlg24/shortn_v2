@@ -6,6 +6,7 @@ import "../../globals.css";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Toaster } from "@/components/ui/sonner";
+import ScrollToTop from "@/utils/ScrollToTop";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -51,6 +52,7 @@ export default async function RootLayout({
         className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-16! pt-12!`}
       >
         <NextIntlClientProvider>
+          <ScrollToTop />
           <Header />
           {children}
           <Toaster position="top-center" />
