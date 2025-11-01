@@ -606,7 +606,7 @@ export async function updateUTM({
                 source: utmSection.source,
                 medium: utmSection.medium,
                 campaign: {
-                  _id: foundCampaign._id,
+                  _id: (foundCampaign._id as string).toString(),
                   title: utmSection.campaign.title.trim(),
                 },
                 term: utmSection.term,
@@ -623,7 +623,7 @@ export async function updateUTM({
               source: utmSection.source,
               medium: utmSection.medium,
               campaign: {
-                _id: newCampaign._id,
+                _id: (newCampaign._id as string).toString(),
                 title: utmSection.campaign.title.trim(),
               },
               term: utmSection.term,
