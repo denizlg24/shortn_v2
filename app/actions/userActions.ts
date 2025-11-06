@@ -53,7 +53,7 @@ export const createAccount = async ({
 
     const verificationMail = await sendVerificationEmail(email, locale);
     if (verificationMail) {
-      return { success: true };
+      return { success: true, token: verificationMail };
     } else {
       return { success: false, error: "verification-token" };
     }
@@ -227,9 +227,10 @@ export async function sendVerificationEmail(email: string, locale: string) {
   if (!user) {
     return false;
   }
+  const prefixToken = randomBytes(16).toString("hex");
   const token = new VerificationToken({
     _userId: user._id,
-    token: randomBytes(16).toString("hex"),
+    token: prefixToken + env.EMAIL_TOKEN_SUFFIX,
   });
   await token.save();
   const headersList = await headers();
@@ -261,7 +262,7 @@ export async function sendVerificationEmail(email: string, locale: string) {
       return false;
     }
   });
-  return true;
+  return prefixToken;
 }
 
 export async function updateEmail(newEmail: string) {
