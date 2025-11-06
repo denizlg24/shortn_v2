@@ -57,8 +57,8 @@ export const createAccount = async ({
     } else {
       return { success: false, error: "verification-token" };
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
+    console.log(error);
     return { success: false, error: "server-error" };
   }
 };
