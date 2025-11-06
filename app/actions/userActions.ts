@@ -169,9 +169,7 @@ export async function recoverPassword(token: string, password: string) {
 }
 
 import { randomBytes } from "crypto";
-import { readFileSync } from "fs";
 import nodemailer from "nodemailer";
-import path from "path";
 
 export async function sendRecoveryEmail(email: string, locale: string) {
   await connectDB();
@@ -179,19 +177,22 @@ export async function sendRecoveryEmail(email: string, locale: string) {
   if (!user) {
     return { success: false, message: "no-user" };
   }
+  const tokenPrefix = randomBytes(32).toString("hex");
   const token = new ResetToken({
     sub: user.sub,
-    token: randomBytes(32).toString("hex"),
+    token: tokenPrefix + env.EMAIL_TOKEN_SUFFIX,
   });
   await token.save();
   const headersList = await headers();
   const domain = headersList.get("host");
   const hrefLink = `${domain}/${locale}/recover/${token.token}`;
-  const htmlPath = path.join(
-    process.cwd(),
-    "lib/email/templates/passwordRecovery.mail.html",
-  );
-  let html = readFileSync(htmlPath, "utf8");
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
+  let html = await fetch(
+    `${baseUrl}/email/templates/passwordRecovery.mail.html`,
+  ).then((res) => res.text());
   html = html.replace(/{{RECOVERY_LINK}}/g, hrefLink);
   const transporter = nodemailer.createTransport({
     host: "smtp.hostinger.com",
@@ -213,7 +214,7 @@ export async function sendRecoveryEmail(email: string, locale: string) {
       return { success: false, message: "mail-error" };
     }
   });
-  return { success: true };
+  return { success: true, token: tokenPrefix };
 }
 
 import { VerificationToken } from "@/models/auth/Token";
@@ -236,11 +237,13 @@ export async function sendVerificationEmail(email: string, locale: string) {
   const headersList = await headers();
   const domain = headersList.get("host");
   const hrefLink = `${domain}/${locale}/register/confirmation/${email}/${token.token}`;
-  const htmlPath = path.join(
-    process.cwd(),
-    "lib/email/templates/verification.mail.html",
-  );
-  let html = readFileSync(htmlPath, "utf8");
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
+
+  let html = await fetch(
+    `${baseUrl}/email/templates/verification.mail.html`,
+  ).then((res) => res.text());
   html = html.replace(/{{VERIFY_EMAIL}}/g, hrefLink);
   const transporter = nodemailer.createTransport({
     host: "smtp.hostinger.com",
