@@ -41,7 +41,7 @@ const registerFormSchema = z
       .max(32, "Username must be at most 32 characters")
       .regex(
         /^[a-zA-Z0-9_]+$/,
-        "Only letters, numbers, and underscores are allowed"
+        "Only letters, numbers, and underscores are allowed",
       ),
     password: z
       .string()
@@ -76,15 +76,16 @@ export const RegisterForm = () => {
 
   async function onSubmit(values: z.infer<typeof registerFormSchema>) {
     setLoading(1);
-    const { success, error } = await createAccount({
+    const { success, error, token } = await createAccount({
       displayName: values.fullName,
       username: values.username,
       email: values.email,
       password: values.password,
       locale,
     });
-    if (success) {
-      router.push(`/verification-sent/${values.email}`);
+    console.log({ success, error, token });
+    if (success && token) {
+      router.push(`/verification-sent/${token}`);
       return;
     } else {
       if (error) {
