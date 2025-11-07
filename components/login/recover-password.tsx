@@ -38,9 +38,12 @@ export const RecoverPassword = () => {
 
   async function onSubmit(values: z.infer<typeof resetFormSchema>) {
     setLoading(1);
-    const { success, message } = await sendRecoveryEmail(values.email, locale);
-    if (success) {
-      router.push(`/recover/sent/${values.email}`);
+    const { success, message, token } = await sendRecoveryEmail(
+      values.email,
+      locale,
+    );
+    if (success && token) {
+      router.push(`/recover/sent/${token}`);
       return;
     } else if (message) {
       if (message == "no-user") {

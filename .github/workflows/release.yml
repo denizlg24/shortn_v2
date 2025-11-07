@@ -32,4 +32,5 @@ jobs:
           PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY|| 'dependabot'}}
           STRIPE_WEBHOOK_SECRET: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}}
           LEVEL_ONE_UPGRADE_ID: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}},
-          LEVEL_TWO_UPGRADE_ID: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}}
+          LEVEL_TWO_UPGRADE_ID: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}},
+          EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}}
