@@ -61,7 +61,7 @@
     "@types/whatwg-url": "^13.0.0",
     "@vercel/functions": "^3.1.4",
     "bcryptjs": "^3.0.2",
-    "canvas": "^3.1.2",
+    "canvas": "^3.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
