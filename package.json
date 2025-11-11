@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --ext .ts,.tsx,.js,.jsx",
@@ -108,6 +108,7 @@
     "react-phone-number-input": "^3.4.12",
     "react-resizable-panels": "^3.0.3",
     "recharts": "^3.0.2",
+    "require-in-the-middle": "^8.0.1",
     "sonner": "^2.0.5",
     "stripe": "^19.3.0",
     "tailwind-merge": "^3.3.1",

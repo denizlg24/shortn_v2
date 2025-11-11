@@ -20,7 +20,7 @@ jobs:
           title: ${{ github.event.issue.title }}
         run: |
           TYPE="feature"
-          for label in $(echo "${{ github.event.issue.labels[*].name }}" | tr ',' '\n'); do
+          for label in $(echo "${{ github.event.issue.labels.*.name }}" | tr ',' '\n'); do
             case "$label" in
               feature|bugfix|chore|hotfix) TYPE=$label ;;
             esac
