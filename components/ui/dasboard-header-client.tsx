@@ -389,7 +389,7 @@ export const DashboardHeaderClient = () => {
                   <Button
                     onClick={() => {
                       setOpen(false);
-                      signOutUser();
+                      signOutUser("/");
                     }}
                     className="rounded-none justify-start"
                     variant="ghost"
