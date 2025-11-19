@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, MailCheck } from "lucide-react";
+import { Loader2, LogIn, MailCheck } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
@@ -10,7 +10,7 @@ import { useLocale } from "next-intl";
 export const VerificationSentComponent = ({ email }: { email: string }) => {
   const locale = useLocale();
   const [cooldown, setCooldown] = useState(0);
-
+  const [resending, setResending] = useState(false);
   useEffect(() => {
     if (cooldown === 0) return;
 
@@ -50,14 +50,30 @@ export const VerificationSentComponent = ({ email }: { email: string }) => {
         <Button
           type="button"
           onClick={async () => {
-            await sendVerificationEmail(decodeURIComponent(email), locale);
+            setResending(true);
+            const token = await sendVerificationEmail(
+              decodeURIComponent(email),
+              locale,
+            );
+            if (!token) {
+              console.log("Error sending verification email");
+            }
             setCooldown(300);
+            setResending(false);
           }}
-          disabled={cooldown > 0}
+          disabled={cooldown > 0 || resending}
           variant="link"
           className="p-0 h-fit text-sm"
         >
-          {cooldown > 0 ? `Resend in ${formatTime(cooldown)}` : "Resend."}
+          {resending ? (
+            <>
+              <Loader2 className="animate-spin" /> Sending...
+            </>
+          ) : cooldown > 0 ? (
+            `Resend in ${formatTime(cooldown)}`
+          ) : (
+            "Resend."
+          )}
         </Button>
       </div>
       <Button asChild className="w-full">

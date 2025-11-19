@@ -23,8 +23,8 @@ export const VerificationError = ({ email }: { email: string }) => {
       <Button
         onClick={async () => {
           setLoading(true);
-          await sendVerificationEmail(email, locale);
-          router.push(`/verification-sent/${email}`);
+          const token = await sendVerificationEmail(email, locale);
+          router.push(`/verification-sent/${token}`);
         }}
         disabled={loading}
         className="w-full"

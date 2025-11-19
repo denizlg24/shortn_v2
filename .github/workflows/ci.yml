@@ -29,7 +29,8 @@ jobs:
       STRIPE_WEBHOOK_SECRET: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}}
       LEVEL_ONE_UPGRADE_ID: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}},
       LEVEL_TWO_UPGRADE_ID: ${{secrets.STRIPE_WEBHOOK_SECRET || 'dependabot'}},
-      EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}}
+      EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}},
+      RESEND_API_KEY: ${{secrets.RESEND_API_KEY || 'dependabot'}},
       
     steps:
       - name: Checkout repository

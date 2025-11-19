@@ -18,6 +18,7 @@ const envSchema = z.object({
   LEVEL_ONE_UPGRADE_ID: z.string().nonempty(),
   LEVEL_TWO_UPGRADE_ID: z.string().nonempty(),
   EMAIL_TOKEN_SUFFIX: z.string().nonempty(),
+  RESEND_API_KEY: z.string().nonempty(),
 });
 
 export default envSchema.parse(process.env);
