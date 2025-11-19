@@ -8,6 +8,9 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  env: {
+    NEXT_PUBLIC_VERCEL_URL: process.env.VERCEL_URL,
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();
