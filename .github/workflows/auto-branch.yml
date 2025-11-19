@@ -13,21 +13,34 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4.1.1
-        
+      
       - name: Create issue branch
         env:
           number: ${{ github.event.issue.number }}
           title: ${{ github.event.issue.title }}
+          labels: ${{ toJSON(github.event.issue.labels.*.name) }}
         run: |
           TYPE="feature"
-          for label in $(echo "${{ github.event.issue.labels.*.name }}" | tr ',' '\n'); do
+          echo "Labels: $labels"
+          
+          # Parse JSON array of labels
+          for label in $(echo "$labels" | jq -r '.[]'); do
+            echo "Checking label: $label"
             case "$label" in
-              feature|bugfix|chore|hotfix) TYPE=$label ;;
+              feature|bugfix|chore|hotfix) 
+                TYPE=$label
+                echo "Found type: $TYPE"
+                break
+                ;;
             esac
           done
+          
+          echo "Using branch type: $TYPE"
           title_clean=${title// /-}
           title_clean=${title_clean//[^a-zA-Z0-9_-]/}
           branchname="$TYPE/$number-${title_clean,,}"
+          echo "Creating branch: $branchname"
+          
           git switch -c "$branchname"
           git config --global user.name 'github-actions'
           git config --global user.email \
