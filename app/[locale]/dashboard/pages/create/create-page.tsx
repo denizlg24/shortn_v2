@@ -35,7 +35,7 @@ const pageFormSchema = z.object({
 });
 
 export const CreatePage = () => {
-  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
+  const BASEURL = window.location.origin ?? "http://localhost:3000";
   const session = useUser();
   const [creating, setCreating] = useState(false);
   const pageForm = useForm<z.infer<typeof pageFormSchema>>({
