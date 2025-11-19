@@ -170,7 +170,6 @@ export async function recoverPassword(token: string, password: string) {
 }
 
 import { randomBytes } from "crypto";
-import nodemailer from "nodemailer";
 
 export async function sendRecoveryEmail(email: string, locale: string) {
   await connectDB();
@@ -187,34 +186,15 @@ export async function sendRecoveryEmail(email: string, locale: string) {
   const headersList = await headers();
   const domain = headersList.get("host");
   const hrefLink = `${domain}/${locale}/recover/${token.token}`;
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
-
-  let html = await fetch(
-    `${baseUrl}/email/templates/passwordRecovery.mail.html`,
-  ).then((res) => res.text());
-  html = html.replace(/{{RECOVERY_LINK}}/g, hrefLink);
-  const transporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 465,
-    secure: true, // upgrade later with STARTTLS
-    auth: {
-      user: env.WEBMAIL_USER,
-      pass: env.WEBMAIL_PASS,
-    },
-  });
-  const mailOptions = {
+  const response = await sendEmail({
     from: "no-reply@shortn.at",
     to: email,
     subject: "Shortn Account Recovery",
-    html,
-  };
-  transporter.sendMail(mailOptions, function (err) {
-    if (err) {
-      return { success: false, message: "mail-error" };
-    }
+    reactNode: ResetPasswordEmail({ resetLink: hrefLink }),
   });
+  if (!response) {
+    return { success: false, token: undefined };
+  }
   return { success: true, token: tokenPrefix };
 }
 
@@ -223,6 +203,7 @@ import { headers } from "next/headers";
 import { LoginRecord } from "@/models/auth/LoginActivity";
 import { Geo } from "@vercel/functions";
 import { sendEmail } from "./sendEmail";
+import { ResetPasswordEmail } from "@/components/emails/reset-password-react-email";
 
 export async function sendVerificationEmail(email: string, locale: string) {
   await connectDB();
