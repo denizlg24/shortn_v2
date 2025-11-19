@@ -7,7 +7,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -33,12 +32,9 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
           <Container className="p-5 mx-auto bg-[#eee]">
             <Section className="bg-white">
               <Section className="bg-[#252f3d] flex py-5 items-center justify-center">
-                <Img
-                  src={`${baseUrl}/logo.png`}
-                  width="45"
-                  height="45"
-                  alt="Shortn.at's Logo"
-                />
+                <Heading className="text-[#ffffff] text-[24px] font-bold">
+                  Shortn.at
+                </Heading>
               </Section>
               <Section className="py-[25px] px-[35px]">
                 <Heading className="text-[#333] text-[20px] font-bold mb-[15px]">

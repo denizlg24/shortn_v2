@@ -53,6 +53,7 @@ const linkFormSchema = z.object({
 });
 
 export const LinksCreate = () => {
+  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
   const session = useUser();
   const router = useRouter();
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
@@ -153,11 +154,7 @@ export const LinksCreate = () => {
             <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
               <div className="w-full grow flex flex-col items-start gap-2">
                 <p className="sm:text-sm text-xs font-semibold">Domain</p>
-                <Input
-                  disabled
-                  className="w-full"
-                  value={window.location.origin}
-                />
+                <Input disabled className="w-full" value={BASEURL} />
               </div>
               <div className="h-9 text-sm flex items-center justify-center">
                 <p>/</p>
@@ -410,7 +407,12 @@ export const LinksCreate = () => {
           </div>
         )}
         <div className="flex flex-row items-center justify-between mt-4">
-          <Button onClick={() => {}} variant={"secondary"}>
+          <Button
+            onClick={() => {
+              router.push("/dashboard");
+            }}
+            variant={"secondary"}
+          >
             Cancel
           </Button>
           <Button

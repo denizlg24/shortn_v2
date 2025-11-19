@@ -17,7 +17,7 @@ export interface IHeader extends Document {
 export interface IBioPage extends Document {
   userId: string;
   slug: string;
-  title?: string;
+  title: string;
   description?: string;
   avatarUrl?: string;
   theme?: {
@@ -93,6 +93,11 @@ const BioPageSchema: Schema = new Schema(
   },
   { timestamps: true },
 );
+
+BioPageSchema.index({
+  title: "text",
+  slug: "text",
+});
 
 export const BioPage: Model<IBioPage> =
   mongoose.models.BioPage || mongoose.model<IBioPage>("BioPage", BioPageSchema);

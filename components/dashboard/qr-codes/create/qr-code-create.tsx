@@ -93,6 +93,7 @@ export const QRCodeCreate = ({
   state: "configure" | "customize";
   setState: (arg0: "configure" | "customize") => void;
 }) => {
+  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
   const session = useUser();
 
   const allowedLinks = {
@@ -319,11 +320,7 @@ export const QRCodeCreate = ({
                         <p className="sm:text-sm text-xs font-semibold">
                           Domain
                         </p>
-                        <Input
-                          disabled
-                          className="w-full"
-                          value={window.location.origin}
-                        />
+                        <Input disabled className="w-full" value={BASEURL} />
                       </div>
                       <div className="h-9 text-sm flex items-center justify-center">
                         <p>/</p>
@@ -395,7 +392,7 @@ export const QRCodeCreate = ({
                   onClick={qrCodeForm.handleSubmit(() => {
                     setOptions((prev) => ({
                       ...prev,
-                      data: `${window.location.origin}/qr-code-preview`,
+                      data: `${BASEURL}/qr-code-preview`,
                     }));
                     setState("customize");
                   })}
