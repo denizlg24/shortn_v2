@@ -5,6 +5,7 @@ import { generateUniqueId } from "@/lib/utils";
 import { User } from "@/models/auth/User";
 import bcrypt, { compareSync } from "bcryptjs";
 import { createFreePlan } from "./stripeActions";
+import { VerifyReactEmail } from "@/components/emails/verify-react-email";
 
 export const createAccount = async ({
   email,
@@ -221,6 +222,7 @@ import { VerificationToken } from "@/models/auth/Token";
 import { headers } from "next/headers";
 import { LoginRecord } from "@/models/auth/LoginActivity";
 import { Geo } from "@vercel/functions";
+import { sendEmail } from "./sendEmail";
 
 export async function sendVerificationEmail(email: string, locale: string) {
   await connectDB();
@@ -237,34 +239,15 @@ export async function sendVerificationEmail(email: string, locale: string) {
   const headersList = await headers();
   const domain = headersList.get("host");
   const hrefLink = `${domain}/${locale}/register/confirmation/${email}/${token.token}`;
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "http://localhost:3000";
-
-  let html = await fetch(
-    `${baseUrl}/email/templates/verification.mail.html`,
-  ).then((res) => res.text());
-  html = html.replace(/{{VERIFY_EMAIL}}/g, hrefLink);
-  const transporter = nodemailer.createTransport({
-    host: "smtp.hostinger.com",
-    port: 465,
-    secure: true, // upgrade later with STARTTLS
-    auth: {
-      user: env.WEBMAIL_USER,
-      pass: env.WEBMAIL_PASS,
-    },
-  });
-  const mailOptions = {
+  const response = await sendEmail({
     from: "no-reply@shortn.at",
     to: email,
     subject: "Shortn Account Verification",
-    html,
-  };
-  transporter.sendMail(mailOptions, function (err) {
-    if (err) {
-      return false;
-    }
+    reactNode: VerifyReactEmail({ verificationLink: hrefLink }),
   });
+  if (!response) {
+    return false;
+  }
   return prefixToken;
 }
 

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { connectDB } from "@/lib/mongodb";
 import { ResetToken } from "@/models/auth/ResetToken";
 import { User } from "@/models/auth/User";
 import env from "@/utils/env";
@@ -14,6 +15,7 @@ export default async function Home({
 }) {
   const { locale, token } = await params;
   setRequestLocale(locale);
+  await connectDB();
   const foundResetToken = await ResetToken.findOne({
     token: `${token}${env.EMAIL_TOKEN_SUFFIX}`,
   }).lean();
