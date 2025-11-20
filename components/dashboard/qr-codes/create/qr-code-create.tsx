@@ -93,8 +93,7 @@ export const QRCodeCreate = ({
   state: "configure" | "customize";
   setState: (arg0: "configure" | "customize") => void;
 }) => {
-  const BASEURL =
-    proccess.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
+  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
   const session = useUser();
 
   const allowedLinks = {
