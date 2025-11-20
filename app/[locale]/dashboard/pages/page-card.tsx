@@ -40,7 +40,6 @@ export const PageCard = ({
     image?: string;
   };
 }) => {
-  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL || "http://localhost:3000";
   const [justCopied, setJustCopied] = useState(false);
   return (
     <div className="w-full md:p-6 sm:p-4 p-3 bg-background rounded-md border flex sm:flex-row flex-col gap-4 sm:items-stretch">

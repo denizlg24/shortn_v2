@@ -279,7 +279,6 @@ const CustomCheckoutForm = ({
   className?: string;
   address: Stripe.Address | undefined;
 }) => {
-  const BASEURL = process.env.NEXT_PUBLIC_VERCEL_URL ?? "http://localhost:3000";
   const checkoutState = useCheckout();
   const router = useRouter();
   const [needTax, setNeedTax] = useState(false);

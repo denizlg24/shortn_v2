@@ -18,10 +18,6 @@ interface ResetPasswordEmailProps {
   resetLink?: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "";
-
 export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
   return (
     <Html>
