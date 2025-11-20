@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,

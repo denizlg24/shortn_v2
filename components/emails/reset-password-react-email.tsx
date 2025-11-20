@@ -1,4 +1,5 @@
 import { tailwindConfig } from "@/lib/email.tailwind.config";
+import { BASEURL } from "@/lib/utils";
 import {
   Body,
   Button,
@@ -77,7 +78,7 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
               This message was sent by Shortn.at. © 2025 Shortn.at. All rights
               reserved. View our{" "}
               <Link
-                href={`${baseUrl}/privacy`}
+                href={`${BASEURL}/privacy`}
                 target="_blank"
                 className="text-[#2754C5] underline text-[14px]"
               >
@@ -85,7 +86,7 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
               </Link>{" "}
               and{" "}
               <Link
-                href={`${baseUrl}/terms`}
+                href={`${BASEURL}/terms`}
                 target="_blank"
                 className="text-[#2754C5] underline text-[14px]"
               >

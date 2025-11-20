@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { useEffect, useState, useCallback } from "react";
 import { loadStripe, StripeCheckoutTaxIdType } from "@stripe/stripe-js";
 import {

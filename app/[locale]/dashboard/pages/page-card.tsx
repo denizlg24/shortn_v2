@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { BASEURL } from "@/lib/utils";
 import { ImageIcon, LinkIcon, Palette, Share2, Trash2 } from "lucide-react";
 import {
   EmailIcon,
