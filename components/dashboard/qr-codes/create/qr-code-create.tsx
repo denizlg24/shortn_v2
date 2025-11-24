@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { cn } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
@@ -319,11 +319,7 @@ export const QRCodeCreate = ({
                         <p className="sm:text-sm text-xs font-semibold">
                           Domain
                         </p>
-                        <Input
-                          disabled
-                          className="w-full"
-                          value={window.location.origin}
-                        />
+                        <Input disabled className="w-full" value={BASEURL} />
                       </div>
                       <div className="h-9 text-sm flex items-center justify-center">
                         <p>/</p>
@@ -395,7 +391,7 @@ export const QRCodeCreate = ({
                   onClick={qrCodeForm.handleSubmit(() => {
                     setOptions((prev) => ({
                       ...prev,
-                      data: `${window.location.origin}/qr-code-preview`,
+                      data: `${BASEURL}/qr-code-preview`,
                     }));
                     setState("customize");
                   })}

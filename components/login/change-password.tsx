@@ -65,8 +65,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
           Update your password
         </h1>
         <h2 className="lg:text-lg md:text-base text-sm">
-          No problem, we&apos;ll send you a link to recover it easily through
-          your email.
+          Enter your new password below to reset it.
         </h2>
       </div>
       <Form {...form}>
