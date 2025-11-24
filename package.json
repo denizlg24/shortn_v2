@@ -82,7 +82,7 @@
     "jsonwebtoken": "^9.0.2",
     "jsvat": "^2.5.4",
     "libaddress-validator": "^0.1.5",
-    "lint-staged": "^16.2.4",
+    "lint-staged": "^16.2.7",
     "lucide-react": "^0.523.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
