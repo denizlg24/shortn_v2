@@ -54,7 +54,7 @@
     "@react-email/components": "^1.0.1",
     "@sentry/nextjs": "10",
     "@stripe/react-stripe-js": "^5.2.0",
-    "@stripe/stripe-js": "^8.1.0",
+    "@stripe/stripe-js": "^8.5.2",
     "@tanstack/react-table": "^8.21.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/json2csv": "^5.0.7",
