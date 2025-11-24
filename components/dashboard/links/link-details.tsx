@@ -78,7 +78,7 @@ export const LinkDetails = async ({
               initialClicks={clicks}
             />
           </div>
-          {url.utmLinks && (
+          {(url.utmLinks?.length ?? 0) > 0 && (
             <LinkUtmStats
               createdAt={url.date}
               unlocked={user.plan.subscription == "pro"}
