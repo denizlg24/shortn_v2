@@ -25,7 +25,9 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
   const first =
-    segments[0] ?? (request.cookies.get("NEXT_LOCALE")?.value || "en");
+    segments[0] !== ""
+      ? segments[0]
+      : request.cookies.get("NEXT_LOCALE")?.value || "en";
   const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
   if (!isLocale) {
     const slug = first;
