@@ -60,7 +60,7 @@
     "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/whatwg-url": "^13.0.0",
-    "@vercel/functions": "^3.1.4",
+    "@vercel/functions": "^3.3.3",
     "bcryptjs": "^3.0.2",
     "canvas": "^3.2.0",
     "class-variance-authority": "^0.7.1",
