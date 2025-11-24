@@ -1,4 +1,5 @@
 import { tailwindConfig } from "@/lib/email.tailwind.config";
+import { BASEURL } from "@/lib/utils";
 import {
   Body,
   Button,
@@ -7,7 +8,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -19,10 +19,6 @@ interface ResetPasswordEmailProps {
   resetLink?: string;
 }
 
-const baseUrl = process.env.VERCEL_URL
-  ? `https://${process.env.VERCEL_URL}`
-  : "";
-
 export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
   return (
     <Html>
@@ -33,12 +29,9 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
           <Container className="p-5 mx-auto bg-[#eee]">
             <Section className="bg-white">
               <Section className="bg-[#252f3d] flex py-5 items-center justify-center">
-                <Img
-                  src={`${baseUrl}/logo.png`}
-                  width="45"
-                  height="45"
-                  alt="Shortn.at's Logo"
-                />
+                <Heading className="text-[#ffffff] text-[24px] font-bold">
+                  Shortn.at
+                </Heading>
               </Section>
               <Section className="py-[25px] px-[35px]">
                 <Heading className="text-[#333] text-[20px] font-bold mb-[15px]">
@@ -85,7 +78,7 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
               This message was sent by Shortn.at. © 2025 Shortn.at. All rights
               reserved. View our{" "}
               <Link
-                href={`${baseUrl}/privacy`}
+                href={`${BASEURL}/privacy`}
                 target="_blank"
                 className="text-[#2754C5] underline text-[14px]"
               >
@@ -93,7 +86,7 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
               </Link>{" "}
               and{" "}
               <Link
-                href={`${baseUrl}/terms`}
+                href={`${BASEURL}/terms`}
                 target="_blank"
                 className="text-[#2754C5] underline text-[14px]"
               >

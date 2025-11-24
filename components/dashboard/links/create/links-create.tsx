@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Switch } from "@/components/ui/switch";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Infinity, Loader2, LockIcon } from "lucide-react";
@@ -153,11 +153,7 @@ export const LinksCreate = () => {
             <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
               <div className="w-full grow flex flex-col items-start gap-2">
                 <p className="sm:text-sm text-xs font-semibold">Domain</p>
-                <Input
-                  disabled
-                  className="w-full"
-                  value={window.location.origin}
-                />
+                <Input disabled className="w-full" value={BASEURL} />
               </div>
               <div className="h-9 text-sm flex items-center justify-center">
                 <p>/</p>
@@ -410,7 +406,12 @@ export const LinksCreate = () => {
           </div>
         )}
         <div className="flex flex-row items-center justify-between mt-4">
-          <Button onClick={() => {}} variant={"secondary"}>
+          <Button
+            onClick={() => {
+              router.push("/dashboard");
+            }}
+            variant={"secondary"}
+          >
             Cancel
           </Button>
           <Button

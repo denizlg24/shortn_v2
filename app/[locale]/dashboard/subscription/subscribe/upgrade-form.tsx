@@ -1,7 +1,7 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { useEffect, useState, useCallback } from "react";
 import { loadStripe, StripeCheckoutTaxIdType } from "@stripe/stripe-js";
 import {
@@ -305,7 +305,7 @@ const CustomCheckoutForm = ({
       setConfirming(true);
       const response = await checkoutState.checkout.confirm({
         redirect: "if_required",
-        returnUrl: `${window.location.origin}/dashboard/subscription/redirect`,
+        returnUrl: `${BASEURL}/dashboard/subscription/redirect`,
         phoneNumber: user.phone_number,
         savePaymentMethod: true,
       });
