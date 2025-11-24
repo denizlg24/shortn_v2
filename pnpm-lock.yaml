@@ -138,8 +138,8 @@ importers:
         specifier: ^1.1.1
         version: 1.1.1(@types/react-dom@19.1.7(@types/react@19.1.9))(@types/react@19.1.9)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       country-data-list:
-        specifier: ^1.5.4
-        version: 1.5.4
+        specifier: ^1.5.5
+        version: 1.5.5
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -3577,8 +3577,8 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  country-data-list@1.5.4:
-    resolution: {integrity: sha512-y2gzj84oFCRIqNd9YwQL4X54yu/feqWMja2Ed2CI44mhKlybwQZlkR7AVO8dGOD0xCBfVGsJ76BFV6KOCyFtOA==}
+  country-data-list@1.5.5:
+    resolution: {integrity: sha512-igoAbJvlD/foOq4+aB3t24Hndvb5y/DasXcrVOtJMZ0UFLgfYq/mPMcCcSjJAIykLcTWOHZehZgNUJyaKMz1iA==}
 
   country-flag-icons@1.5.19:
     resolution: {integrity: sha512-D/ZkRyj+ywJC6b2IrAN3/tpbReMUqmuRLlcKFoY/o0+EPQN9Ev/e8tV+D3+9scvu/tarxwLErNwS73C3yzxs/g==}
@@ -10256,7 +10256,7 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  country-data-list@1.5.4: {}
+  country-data-list@1.5.5: {}
 
   country-flag-icons@1.5.19: {}
 
