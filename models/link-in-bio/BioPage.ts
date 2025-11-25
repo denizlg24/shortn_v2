@@ -27,7 +27,11 @@ export interface IBioPage extends Document {
     buttonStyle?: "rounded" | "square" | "pill";
     header?: IHeader;
   };
-  links: { link: mongoose.Types.ObjectId | IUrl; image?: string }[];
+  links: {
+    link: mongoose.Types.ObjectId | IUrl;
+    image?: string;
+    title?: string;
+  }[];
   socials?: {
     instagram?: string;
     twitter?: string;
@@ -51,7 +55,7 @@ const HeaderSchema: Schema = new Schema({
     default: "circle",
   },
   headerBackgroundImage: { type: String },
-  headerBackgroundColor: { type: String, default: "#ffffff" },
+  headerBackgroundColor: { type: String, default: "#0f172b" },
   headerTitle: { type: String },
   headerSubtitle: { type: String },
 });
@@ -82,6 +86,7 @@ const BioPageSchema: Schema = new Schema(
           required: true,
         },
         image: { type: String },
+        title: { type: String },
       },
     ],
     socials: {
