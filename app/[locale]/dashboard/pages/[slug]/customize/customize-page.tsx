@@ -1,5 +1,5 @@
 "use client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
@@ -8,6 +8,10 @@ import {
 import { ChevronDown } from "lucide-react";
 import { BioPageDisplay } from "@/app/b/bio-page-display";
 import { useState } from "react";
+import InputColor from "@/components/ui/color-input";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 
 export const CustomizeBioPage = ({
   initialBio,
@@ -48,7 +52,7 @@ export const CustomizeBioPage = ({
     updatedAt: Date;
   };
 }) => {
-  const [bio] = useState(initialBio);
+  const [bio, updateBio] = useState(initialBio);
   //const hasChanges = bio != initialBio;
 
   return (
@@ -57,14 +61,68 @@ export const CustomizeBioPage = ({
         <h1 className="font-black lg:text-3xl md:text-2xl text-xl">
           Customize your page
         </h1>
-        <Card className="w-full"></Card>
+        <Card className="w-full flex flex-col gap-4 xs:p-3! p-2! rounded!">
+          <CardTitle>Theme</CardTitle>
+          <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+            <Tabs defaultValue="color">
+              <TabsList>
+                <TabsTrigger value="color">Solid Color</TabsTrigger>
+                <TabsTrigger value="image">Background Image</TabsTrigger>
+              </TabsList>
+              <TabsContent value="color">
+                <div className="w-full grid sm:grid-cols-2 grid-cols-1 gap-2">
+                  <InputColor
+                    className="mt-0! w-full"
+                    size="h-8"
+                    onBlur={() => {}}
+                    label="Background Color"
+                    value={bio.theme?.background || "#ffffff"}
+                    onChange={(v) => {
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: {
+                          ...prev.theme,
+                          background: v,
+                        },
+                      }));
+                    }}
+                  />
+                  <InputColor
+                    className="mt-0! w-full"
+                    size="h-8"
+                    onBlur={() => {}}
+                    label="Text Color"
+                    value={bio.theme?.textColor || "#000000"}
+                    onChange={(v) => {
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: {
+                          ...prev.theme,
+                          textColor: v,
+                        },
+                      }));
+                    }}
+                  />
+                </div>
+              </TabsContent>
+              <TabsContent value="image">
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2 w-full">
+                    <Label>Background Image</Label>
+                    <Input type="file" className="w-full" />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
 
       <div className="hidden lg:flex w-full max-w-[375px] shrink-0 flex-col items-center gap-4">
         <h1 className="font-semibold text-base text-yellow-800 bg-yellow-50 px-3 py-1 rounded border border-yellow-800">
           Live preview
         </h1>
-        <div className="w-full h-[550px] border rounded">
+        <div className="w-full h-[550px] border rounded mt-2">
           <BioPageDisplay bio={bio} />
         </div>
       </div>
