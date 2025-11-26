@@ -1,11 +1,11 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import Image from "next/image";
 const BioHeader = ({
   header,
 }: {
-  header?: {
+  header: {
     headerStyle: "centered" | "left-aligned" | "right-aligned";
     headerImageUrl?: string;
     headerImageStyle: "square" | "rounded" | "circle";
@@ -15,7 +15,7 @@ const BioHeader = ({
     headerSubtitle?: string;
   };
 }) => {
-  switch (header?.headerStyle) {
+  switch (header.headerStyle) {
     case "left-aligned":
       return (
         <header
@@ -30,7 +30,7 @@ const BioHeader = ({
           }}
         >
           {header.headerImageUrl && (
-            <img
+            <Image
               src={header.headerImageUrl}
               alt="Header Image"
               className={`mb-4 ${header.headerImageStyle === "circle" ? "rounded-full" : header.headerImageStyle === "rounded" ? "rounded-lg" : ""}`}
@@ -49,25 +49,25 @@ const BioHeader = ({
         <header
           className="w-full flex flex-col items-end p-4 border-b  h-[100px]"
           style={{
-            backgroundColor: header?.headerBackgroundColor || "#0f172b",
-            backgroundImage: header?.headerBackgroundImage
+            backgroundColor: header.headerBackgroundColor || "#0f172b",
+            backgroundImage: header.headerBackgroundImage
               ? `url(${header.headerBackgroundImage})`
               : undefined,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          {header?.headerImageUrl && (
-            <img
+          {header.headerImageUrl && (
+            <Image
               src={header.headerImageUrl}
               alt="Header Image"
               className={`mb-4 ${header.headerImageStyle === "circle" ? "rounded-full" : header.headerImageStyle === "rounded" ? "rounded-lg" : ""}`}
             />
           )}
-          {header?.headerTitle && (
+          {header.headerTitle && (
             <h1 className="text-3xl font-bold">{header.headerTitle}</h1>
           )}
-          {header?.headerSubtitle && (
+          {header.headerSubtitle && (
             <p className="text-lg">{header.headerSubtitle}</p>
           )}
         </header>
@@ -78,25 +78,25 @@ const BioHeader = ({
         <header
           className="w-full flex flex-col items-center p-4 border-b  h-[100px]"
           style={{
-            backgroundColor: header?.headerBackgroundColor || "#0f172b",
-            backgroundImage: header?.headerBackgroundImage
+            backgroundColor: header.headerBackgroundColor || "#0f172b",
+            backgroundImage: header.headerBackgroundImage
               ? `url(${header.headerBackgroundImage})`
               : undefined,
             backgroundSize: "cover",
             backgroundPosition: "center",
           }}
         >
-          {header?.headerImageUrl && (
-            <img
+          {header.headerImageUrl && (
+            <Image
               src={header.headerImageUrl}
               alt="Header Image"
               className={`mb-4 ${header.headerImageStyle === "circle" ? "rounded-full" : header.headerImageStyle === "rounded" ? "rounded-lg" : ""}`}
             />
           )}
-          {header?.headerTitle && (
+          {header.headerTitle && (
             <h1 className="text-3xl font-bold">{header.headerTitle}</h1>
           )}
-          {header?.headerSubtitle && (
+          {header.headerSubtitle && (
             <p className="text-lg">{header.headerSubtitle}</p>
           )}
         </header>
@@ -151,10 +151,14 @@ export const BioPageDisplay = ({
       }}
       className="w-full h-full flex flex-col gap-2"
     >
-      <BioHeader header={bio.theme?.header} />
+      {bio.theme?.header && <BioHeader header={bio.theme?.header} />}
       {bio.avatarUrl && (
         <Avatar className="mx-auto">
-          <AvatarImage src={bio.avatarUrl} alt={bio.title} />
+          <AvatarImage
+            className="object-cover"
+            src={bio.avatarUrl}
+            alt={bio.title}
+          />
           <AvatarFallback className="capitalize">
             {bio.title.substring(0, 2)}
           </AvatarFallback>
