@@ -19,6 +19,7 @@ import { uploadImage } from "@/app/actions/uploadImage";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { Spinner } from "@/components/ui/spinner";
 import { useHasObjectChanges } from "@/lib/use-has-changes";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 
 export const CustomizeBioPage = ({
   initialBio,
@@ -183,12 +184,20 @@ export const CustomizeBioPage = ({
             </CardContent>
             <CardTitle className="text-lg font-bold">About</CardTitle>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <div className="flex flex-col gap-1 items-start w-full">
-                <Label>Title</Label>
+              <Field
+                data-invalid={
+                  bio.title.trim().length === 0 || bio.title.length > 52
+                }
+                className="w-full "
+              >
+                <FieldLabel>Title</FieldLabel>
                 <Input
                   type="text"
                   className="w-full"
                   value={bio.title}
+                  aria-invalid={
+                    bio.title.trim().length === 0 || bio.title.length > 52
+                  }
                   onChange={(e) => {
                     updateBio((prev) => ({
                       ...prev,
@@ -196,13 +205,22 @@ export const CustomizeBioPage = ({
                     }));
                   }}
                 />
-              </div>
-              <div className="flex flex-col gap-1 items-start w-full">
-                <Label>Description</Label>
+                {(bio.title.trim().length === 0 || bio.title.length > 52) && (
+                  <FieldError>
+                    Title can&apos;t be empty or longer than 52 characters long.
+                  </FieldError>
+                )}
+              </Field>
+              <Field
+                data-invalid={(bio.description?.length ?? 0) > 256}
+                className="w-full "
+              >
+                <FieldLabel>Description</FieldLabel>
                 <Input
                   type="text"
                   className="w-full"
                   value={bio.description}
+                  aria-invalid={(bio.description?.length ?? 0) > 256}
                   onChange={(e) => {
                     updateBio((prev) => ({
                       ...prev,
@@ -210,7 +228,12 @@ export const CustomizeBioPage = ({
                     }));
                   }}
                 />
-              </div>
+                {(bio.description?.length ?? 0) > 256 && (
+                  <FieldError>
+                    Description can&apos;t be longer than 128 characters long.
+                  </FieldError>
+                )}
+              </Field>
             </CardContent>
           </Card>
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
