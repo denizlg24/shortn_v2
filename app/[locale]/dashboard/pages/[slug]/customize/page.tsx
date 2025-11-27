@@ -48,11 +48,13 @@ export default async function Home({
           title: bioPage.title ?? "",
           description: bioPage.description,
           avatarUrl: bioPage.avatarUrl,
+          avatarShape: bioPage.avatarShape,
           theme: {
             primaryColor: bioPage.theme?.primaryColor,
             background: bioPage.theme?.background,
             textColor: bioPage.theme?.textColor,
             buttonStyle: bioPage.theme?.buttonStyle,
+            font: bioPage.theme?.font,
             ...(bioPage.theme?.header
               ? {
                   header: {
@@ -73,6 +75,13 @@ export default async function Home({
             image: link.image,
             title: link.title,
           })),
+          socials: bioPage.socials
+            ? bioPage.socials.map((social) => ({
+                platform: social.platform ?? "",
+                url: social.url ?? "",
+              }))
+            : undefined,
+          socialColor: bioPage.socialColor,
           createdAt: bioPage.createdAt,
           updatedAt: bioPage.updatedAt,
         }}

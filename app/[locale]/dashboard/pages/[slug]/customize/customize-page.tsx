@@ -7,11 +7,11 @@ import {
 } from "@/components/ui/collapsible";
 import {
   ChevronDown,
+  ChevronLeft,
   GripVertical,
   ImageIcon,
-  Link,
+  LinkIcon,
   Trash2,
-  Youtube,
 } from "lucide-react";
 import { BioPageDisplay } from "@/app/b/bio-page-display";
 import { ReactNode, useRef, useState } from "react";
@@ -36,16 +36,18 @@ import {
   SortableItemHandle,
   SortableOverlay,
 } from "@/components/ui/sortable";
-import {
-  FacebookIcon,
-  GithubIcon,
-  InstagramIcon,
-  LinkedinIcon,
-  TwitterIcon,
-  WhatsappIcon,
-} from "next-share";
 import { cn } from "@/lib/utils";
-
+import {
+  FaInstagram,
+  FaGithub,
+  FaYoutube,
+  FaLinkedin,
+  FaWhatsapp,
+} from "react-icons/fa";
+import { FaXTwitter, FaFacebook } from "react-icons/fa6";
+import { Link, useRouter } from "@/i18n/navigation";
+import { updateBioPage } from "@/app/actions/bioPageActions";
+import { FontPicker } from "@/components/font-picker";
 const bioSchema = z.object({
   title: z
     .string()
@@ -56,30 +58,137 @@ const bioSchema = z.object({
     .string()
     .max(256, "Description must be 256 characters or less")
     .optional(),
+  socials: z
+    .array(
+      z
+        .object({
+          platform: z.string(),
+          url: z.string(),
+        })
+        .superRefine((data, ctx) => {
+          const { url, platform } = data;
+
+          // Allow empty URLs
+          if (!url || url.trim() === "") return;
+
+          try {
+            const urlObj = new URL(
+              url.startsWith("http") ? url : `https://${url}`,
+            );
+            let isValid = true;
+
+            let errorMessage = "";
+
+            switch (platform) {
+              case "instagram":
+                isValid = urlObj.hostname.includes("instagram.com");
+                errorMessage =
+                  "Please enter a valid Instagram URL (e.g., instagram.com/username)";
+                break;
+              case "twitter":
+                isValid =
+                  urlObj.hostname.includes("twitter.com") ||
+                  urlObj.hostname.includes("x.com");
+                errorMessage =
+                  "Please enter a valid Twitter/X URL (e.g., twitter.com/username or x.com/username)";
+                break;
+              case "github":
+                isValid = urlObj.hostname.includes("github.com");
+                errorMessage =
+                  "Please enter a valid GitHub URL (e.g., github.com/username)";
+                break;
+              case "facebook":
+                isValid =
+                  urlObj.hostname.includes("facebook.com") ||
+                  urlObj.hostname.includes("fb.com");
+                errorMessage =
+                  "Please enter a valid Facebook URL (e.g., facebook.com/username)";
+                break;
+              case "youtube":
+                isValid =
+                  urlObj.hostname.includes("youtube.com") ||
+                  urlObj.hostname.includes("youtu.be");
+                errorMessage =
+                  "Please enter a valid YouTube URL (e.g., youtube.com/@channel)";
+                break;
+              case "linkedin":
+                isValid = urlObj.hostname.includes("linkedin.com");
+                errorMessage =
+                  "Please enter a valid LinkedIn URL (e.g., linkedin.com/in/username)";
+                break;
+              case "whatsapp":
+                isValid =
+                  urlObj.hostname.includes("wa.me") ||
+                  urlObj.hostname.includes("whatsapp.com");
+                errorMessage =
+                  "Please enter a valid WhatsApp URL (e.g., wa.me/1234567890)";
+                break;
+              case "website":
+                isValid = true;
+                break;
+              default:
+                isValid = true;
+            }
+
+            if (!isValid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["url"],
+                message: errorMessage,
+              });
+            }
+          } catch {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["url"],
+              message: "Please enter a valid URL",
+            });
+          }
+        }),
+    )
+    .optional(),
 });
 
 export const GetSocialIcon = ({
   platform,
+  color,
 }: {
   platform?: string;
+  color?: string;
 }): ReactNode => {
   switch (platform) {
     case "instagram":
-      return <InstagramIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaInstagram color={color || "#FF0069"} className="w-5 h-5 shrink-0" />
+      );
     case "twitter":
-      return <TwitterIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaXTwitter color={color || "#000000"} className="w-5 h-5 shrink-0" />
+      );
     case "github":
-      return <GithubIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaGithub color={color || "#181717"} className="w-5 h-5 shrink-0" />
+      );
     case "facebook":
-      return <FacebookIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaFacebook color={color || "#0866FF"} className="w-5 h-5 shrink-0" />
+      );
     case "youtube":
-      return <Youtube className="w-6 h-6 shrink-0" />;
+      return (
+        <FaYoutube color={color || "#FF0000"} className="w-5 h-5 shrink-0" />
+      );
     case "linkedin":
-      return <LinkedinIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaLinkedin color={color || "#0866F"} className="w-5 h-5 shrink-0" />
+      );
     case "whatsapp":
-      return <WhatsappIcon className="w-6 h-6 shrink-0" />;
+      return (
+        <FaWhatsapp color={color || "#25D366"} className="w-5 h-5 shrink-0" />
+      );
     default:
-      return <Link className="w-6 h-6 shrink-0" />;
+      return (
+        <LinkIcon color={color || "#000000"} className="w-5 h-5 shrink-0" />
+      );
   }
 };
 
@@ -115,11 +224,13 @@ export const CustomizeBioPage = ({
     title: string;
     description?: string;
     avatarUrl?: string;
+    avatarShape?: "circle" | "square" | "rounded";
     theme?: {
       primaryColor?: string;
       background?: string;
       textColor?: string;
       buttonStyle?: "rounded" | "square" | "pill";
+      font?: string;
       header?: {
         headerStyle: "centered" | "left-aligned" | "right-aligned";
         headerBackgroundImage?: string;
@@ -132,6 +243,7 @@ export const CustomizeBioPage = ({
       title?: string;
     }[];
     socials?: { url: string; platform: string }[];
+    socialColor: string | "original";
     createdAt: Date;
     updatedAt: Date;
   };
@@ -147,6 +259,7 @@ export const CustomizeBioPage = ({
     Record<string, string>
   >({});
   const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   const uploadFile = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -193,16 +306,29 @@ export const CustomizeBioPage = ({
     try {
       bioSchema.parse(bio);
       setValidationErrors({});
+      const response = await updateBioPage({ bio });
+      if (!response.success) {
+        toast.error("Failed to save changes");
+        setSaving(false);
+        return;
+      }
       toast.success("Changes saved successfully");
+      router.refresh();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
         error.errors.forEach((err) => {
-          if (err.path[0]) {
+          if (err.path.length === 3 && err.path[0] === "socials") {
+            const platform = bio.socials?.[err.path[1] as number]?.platform;
+            if (platform) {
+              errors[platform] = err.message;
+            }
+          } else if (err.path[0]) {
             errors[err.path[0] as string] = err.message;
           }
         });
         setValidationErrors(errors);
+        toast.error("Please fix the validation errors");
       }
     } finally {
       setSaving(false);
@@ -214,6 +340,12 @@ export const CustomizeBioPage = ({
 
   return (
     <div className="w-full max-w-7xl flex flex-col gap-4">
+      <Button variant={"link"} asChild>
+        <Link className="font-semibold mr-auto p-0!" href={`/dashboard/pages`}>
+          <ChevronLeft />
+          Back to list
+        </Link>
+      </Button>
       <div className="flex sm:flex-row flex-col items-center justify-between gap-2">
         <h1 className="font-black lg:text-3xl md:text-2xl text-xl">
           Customize your page
@@ -261,41 +393,67 @@ export const CustomizeBioPage = ({
                     </AvatarFallback>
                   </Avatar>
                 </div>
-                <div className="flex flex-row gap-1 items-center">
-                  <Input
-                    ref={profilePictureRef}
-                    disabled={uploading !== ""}
-                    onChange={(e) => {
-                      uploadFile(e, (url) => {
-                        updateBio((prev) => ({
-                          ...prev,
-                          avatarUrl: url,
-                        }));
-                      });
-                    }}
-                    type="file"
-                    className="w-full"
-                  />
-                  {bio.avatarUrl && (
-                    <Button
+                <div className="flex flex-col gap-2 items-start sm:pt-4">
+                  <div className="flex flex-row gap-1 items-center mt-auto">
+                    <Input
+                      ref={profilePictureRef}
                       disabled={uploading !== ""}
-                      onClick={() => {
-                        removeFile(bio.avatarUrl as string, () => {
+                      onChange={(e) => {
+                        uploadFile(e, (url) => {
                           updateBio((prev) => ({
                             ...prev,
-                            avatarUrl: undefined,
+                            avatarUrl: url,
                           }));
-                          if (profilePictureRef.current) {
-                            profilePictureRef.current.value = "";
-                          }
                         });
                       }}
-                      size={"icon"}
-                      variant="destructive"
-                    >
-                      {uploading === "" ? <Trash2 /> : <Spinner />}
-                    </Button>
-                  )}
+                      type="file"
+                      className="w-full"
+                    />
+                    {bio.avatarUrl && (
+                      <Button
+                        disabled={uploading !== ""}
+                        onClick={() => {
+                          removeFile(bio.avatarUrl as string, () => {
+                            updateBio((prev) => ({
+                              ...prev,
+                              avatarUrl: undefined,
+                            }));
+                            if (profilePictureRef.current) {
+                              profilePictureRef.current.value = "";
+                            }
+                          });
+                        }}
+                        size={"icon"}
+                        variant="destructive"
+                      >
+                        {uploading === "" ? <Trash2 /> : <Spinner />}
+                      </Button>
+                    )}
+                  </div>
+                  <Label className="mt-2">Profile Image Shape</Label>
+                  <RadioGroup
+                    value={bio.avatarShape ?? "circle"}
+                    onValueChange={(v) => {
+                      updateBio((prev) => ({
+                        ...prev,
+                        avatarShape: v as (typeof prev)["avatarShape"],
+                      }));
+                    }}
+                    className="flex flex-row items-center gap-2"
+                  >
+                    <div className="flex grow items-center gap-3">
+                      <RadioGroupItem value="circle" id="r1" />
+                      <Label htmlFor="r1">Circle</Label>
+                    </div>
+                    <div className="flex grow items-center gap-3">
+                      <RadioGroupItem value="rounded" id="r2" />
+                      <Label htmlFor="r2">Rounded</Label>
+                    </div>
+                    <div className="flex grow items-center gap-3">
+                      <RadioGroupItem value="square" id="r3" />
+                      <Label htmlFor="r3">Square</Label>
+                    </div>
+                  </RadioGroup>
                 </div>
               </div>
             </CardContent>
@@ -420,7 +578,11 @@ export const CustomizeBioPage = ({
             </CardContent>
             {bio.theme?.header && (
               <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-                <Tabs defaultValue="color">
+                <Tabs
+                  defaultValue={
+                    bio.theme?.header.headerBackgroundImage ? "image" : "color"
+                  }
+                >
                   <div className="flex flex-row items-center justify-between">
                     <Label>Header</Label>
                     <TabsList>
@@ -453,15 +615,15 @@ export const CustomizeBioPage = ({
                     />
                   </TabsContent>
                   <TabsContent value="image">
-                    <div className="flex flex-col gap-4">
-                      <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-4 w-full">
+                      <div className="flex flex-col gap-2 w-full">
                         <Label>Background Image</Label>
                         <div className="flex flex-row items-center justify-start gap-1">
                           <Input
                             ref={headerBackgroundRef}
                             disabled={uploading !== ""}
                             type="file"
-                            className="w-fit!"
+                            className=""
                             onChange={(e) => {
                               uploadFile(e, (url) => {
                                 updateBio((prev) => ({
@@ -567,9 +729,26 @@ export const CustomizeBioPage = ({
                 />
               </div>
             </CardContent>
+            <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+              <Label className="text-lg font-bold">Typography</Label>
+              <div className="flex flex-col gap-2">
+                <Label>Font Family</Label>
+                <FontPicker
+                  value={bio.theme?.font}
+                  onChange={(fontFamily) => {
+                    updateBio((prev) => ({
+                      ...prev,
+                      theme: { ...prev.theme, font: fontFamily },
+                    }));
+                  }}
+                  className="w-full"
+                />
+              </div>
+            </CardContent>
           </Card>
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
             <CardTitle className="text-lg font-bold">Socials</CardTitle>
+            <Label className="">Select icons</Label>
             <CardContent className="p-0 flex flex-row items-center justify-start gap-2 flex-wrap w-full">
               <SocialButton
                 platform="instagram"
@@ -708,6 +887,10 @@ export const CustomizeBioPage = ({
                 }}
               />
             </CardContent>
+
+            {(bio.socials || []).length > 0 && (
+              <Label className="">Edit links</Label>
+            )}
             <Sortable
               value={bio.socials || []}
               onValueChange={(v) => {
@@ -720,7 +903,7 @@ export const CustomizeBioPage = ({
               orientation="vertical"
             >
               <SortableContent asChild>
-                <div className="p-0 flex flex-col gap-2 flex-wrap w-full">
+                <div className="p-0 flex flex-col gap-4 flex-wrap w-full">
                   {bio.socials?.map((social) => {
                     return (
                       <SortableItem
@@ -728,7 +911,12 @@ export const CustomizeBioPage = ({
                         value={social.platform}
                         asChild
                       >
-                        <div className="w-full flex flex-row items-center gap-1">
+                        <div
+                          className={cn(
+                            "w-full flex flex-row items-center gap-1",
+                            hasFieldError(social.platform) && "mb-4",
+                          )}
+                        >
                           <SortableItemHandle asChild>
                             <Button
                               variant="ghost"
@@ -741,7 +929,7 @@ export const CustomizeBioPage = ({
                           <GetSocialIcon platform={social.platform} />
                           <Field
                             data-invalid={hasFieldError(social.platform)}
-                            className="w-full ml-2"
+                            className="w-full ml-2 relative"
                           >
                             <Input
                               type="text"
@@ -768,12 +956,28 @@ export const CustomizeBioPage = ({
                               }}
                             />
                             {hasFieldError(social.platform) && (
-                              <FieldError>
+                              <FieldError className="absolute top-full left-0 mt-1">
                                 {getFieldError(social.platform)}
                               </FieldError>
                             )}
                           </Field>
-                          <Button variant={"destructive"} size={"icon"}>
+                          <Button
+                            onClick={() => {
+                              updateBio((prev) => ({
+                                ...prev,
+                                socials:
+                                  (prev.socials?.filter(
+                                    (s) => s.platform !== social.platform,
+                                  )?.length ?? 0) > 0
+                                    ? prev.socials?.filter(
+                                        (s) => s.platform !== social.platform,
+                                      )
+                                    : undefined,
+                              }));
+                            }}
+                            variant={"destructive"}
+                            size={"icon"}
+                          >
                             <Trash2 />
                           </Button>
                         </div>
@@ -786,10 +990,85 @@ export const CustomizeBioPage = ({
                 <div className="size-full rounded-none bg-primary/10" />
               </SortableOverlay>
             </Sortable>
+            {(bio.socials || []).length > 0 && (
+              <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+                <Tabs
+                  onValueChange={(v) => {
+                    if (v == "original") {
+                      updateBio((prev) => ({
+                        ...prev,
+                        socialColor: "original",
+                      }));
+                    } else {
+                      updateBio((prev) => ({
+                        ...prev,
+                        socialColor: "#0f172b",
+                      }));
+                    }
+                  }}
+                  defaultValue={
+                    bio.socialColor === "original" ||
+                    bio.socialColor === "#000000" ||
+                    bio.socialColor === "#ffffff"
+                      ? "original"
+                      : "color"
+                  }
+                >
+                  <div className="flex flex-row items-center justify-between">
+                    <Label>Icon color</Label>
+                    <TabsList>
+                      <TabsTrigger value="original">Original</TabsTrigger>
+                      <TabsTrigger value="color">Custom Color</TabsTrigger>
+                    </TabsList>
+                  </div>
+
+                  <TabsContent value="color">
+                    <InputColor
+                      className="-mt-2! w-full"
+                      size="h-8"
+                      onBlur={() => {}}
+                      label=""
+                      value={bio.socialColor || "#000000"}
+                      onChange={(v) => {
+                        updateBio((prev) => ({
+                          ...prev,
+                          socialColor: v,
+                        }));
+                      }}
+                    />
+                  </TabsContent>
+                  <TabsContent value="original">
+                    <RadioGroup
+                      value={bio.socialColor}
+                      onValueChange={(v) => {
+                        updateBio((prev) => ({
+                          ...prev,
+                          socialColor: v,
+                        }));
+                      }}
+                      className="w-full flex flex-row gap-4 items-start flex-wrap"
+                    >
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="original" id="r1" />
+                        <Label htmlFor="r1">Original</Label>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="#000000" id="r2" />
+                        <Label htmlFor="r2">Black</Label>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <RadioGroupItem value="#ffffff" id="r3" />
+                        <Label htmlFor="r3">White</Label>
+                      </div>
+                    </RadioGroup>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            )}
           </Card>
         </div>
 
-        <div className="hidden lg:flex w-full max-w-[375px] shrink-0 flex-col items-center gap-4">
+        <div className="hidden lg:flex sticky top-20 w-full max-w-[375px] shrink-0 flex-col items-center gap-4">
           <div className="w-full h-[550px] border rounded-2xl shadow overflow-hidden">
             <BioPageDisplay bio={bio} />
           </div>

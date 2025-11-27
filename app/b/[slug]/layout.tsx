@@ -49,7 +49,7 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`antialiased w-full min-h-screen px-4`}>{children}</body>
+      <body className={`antialiased w-full min-h-screen`}>{children}</body>
     </html>
   );
 }

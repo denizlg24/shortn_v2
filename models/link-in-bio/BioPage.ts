@@ -16,11 +16,13 @@ export interface IBioPage extends Document {
   title: string;
   description?: string;
   avatarUrl?: string;
+  avatarShape?: "circle" | "square" | "rounded";
   theme?: {
     primaryColor?: string;
     background?: string;
     textColor?: string;
     buttonStyle?: "rounded" | "square" | "pill";
+    font?: string;
     header?: IHeader;
   };
   links: {
@@ -32,6 +34,7 @@ export interface IBioPage extends Document {
     url?: string;
     platform?: string;
   }[];
+  socialColor: string | "original";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -53,6 +56,11 @@ const BioPageSchema: Schema = new Schema(
     title: { type: String },
     description: { type: String },
     avatarUrl: { type: String },
+    avatarShape: {
+      type: String,
+      enum: ["circle", "square", "rounded"],
+      default: "circle",
+    },
     theme: {
       primaryColor: { type: String },
       background: { type: String },
@@ -62,6 +70,7 @@ const BioPageSchema: Schema = new Schema(
         enum: ["rounded", "square", "pill"],
         default: "rounded",
       },
+      font: { type: String },
       header: { type: HeaderSchema },
     },
     links: [
@@ -81,6 +90,7 @@ const BioPageSchema: Schema = new Schema(
         platform: { type: String },
       },
     ],
+    socialColor: { type: String, default: "original" },
   },
   { timestamps: true },
 );

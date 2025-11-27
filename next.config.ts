@@ -11,6 +11,11 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_VERCEL_URL: process.env.VERCEL_URL,
   },
+  images: {
+    remotePatterns: [
+      new URL("https://sapphire-high-sailfish-380.mypinata.cloud/ipfs/**"),
+    ],
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();
