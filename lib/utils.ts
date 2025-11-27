@@ -142,3 +142,79 @@ const VERCEL_URL = process.env.VERCEL_URL ?? process.env.NEXT_PUBLIC_VERCEL_URL;
 export const BASEURL = VERCEL_URL
   ? `https://${VERCEL_URL}`
   : "http://localhost:3000";
+
+export function deepEqual<T>(a: T, b: T): boolean {
+  // Strict equality covers primitives and identical references
+  if (Object.is(a, b)) return true;
+
+  // If either is null or not an object, they differ
+  if (
+    typeof a !== "object" ||
+    typeof b !== "object" ||
+    a === null ||
+    b === null
+  ) {
+    return false;
+  }
+
+  // Arrays
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+
+    for (let i = 0; i < a.length; i++) {
+      if (!deepEqual(a[i], b[i])) return false;
+    }
+    return true;
+  }
+
+  // Helper to check if an object is "empty" (all values are undefined)
+  const isEmptyObject = (obj: unknown): boolean => {
+    if (typeof obj !== "object" || obj === null) return false;
+    const values = Object.values(obj);
+    return (
+      values.length > 0 &&
+      values.every(
+        (v) =>
+          v === undefined ||
+          (typeof v === "object" && v !== null && isEmptyObject(v)),
+      )
+    );
+  };
+
+  // Normalize undefined and empty objects
+  const normalizedA = a === undefined || isEmptyObject(a) ? undefined : a;
+  const normalizedB = b === undefined || isEmptyObject(b) ? undefined : b;
+
+  // If both normalize to undefined, they're equal
+  if (normalizedA === undefined && normalizedB === undefined) return true;
+  if (normalizedA === undefined || normalizedB === undefined) return false;
+
+  // Objects: compare keys
+  const keysA = Object.keys(normalizedA) as (keyof T)[];
+  const keysB = Object.keys(normalizedB) as (keyof T)[];
+
+  // Get all unique keys from both objects
+  const allKeys = new Set([...keysA, ...keysB]);
+
+  for (const key of allKeys) {
+    const valueA = normalizedA[key];
+    const valueB = normalizedB[key];
+
+    // Treat missing keys as undefined
+    const normalizedValueA =
+      valueA === undefined ||
+      (typeof valueA === "object" && valueA !== null && isEmptyObject(valueA))
+        ? undefined
+        : valueA;
+    const normalizedValueB =
+      valueB === undefined ||
+      (typeof valueB === "object" && valueB !== null && isEmptyObject(valueB))
+        ? undefined
+        : valueB;
+
+    if (!deepEqual(normalizedValueA, normalizedValueB)) return false;
+  }
+
+  return true;
+}

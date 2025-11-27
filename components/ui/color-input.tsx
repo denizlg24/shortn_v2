@@ -32,7 +32,7 @@ export const colorSchema = z
   .string()
   .regex(
     /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/,
-    "Color must be a valid hex color (e.g., #FF0000 or #FF0000FF)"
+    "Color must be a valid hex color (e.g., #FF0000 or #FF0000FF)",
   )
   .transform((val) => val.toUpperCase());
 
@@ -45,6 +45,7 @@ interface ColorPickerProps {
   error?: string;
   className?: string;
   alpha?: boolean;
+  size?: string;
 }
 
 interface ColorValues {
@@ -64,6 +65,7 @@ export default function InputColor({
   error,
   className = "mt-6",
   alpha = false,
+  size,
 }: ColorPickerProps) {
   const [colorFormat, setColorFormat] = useState(alpha ? "HEXA" : "HEX");
   const [colorValues, setColorValues] = useState<ColorValues>(() => {
@@ -174,7 +176,7 @@ export default function InputColor({
   // Handle RGBA input change
   const handleRgbaChange = (
     component: "r" | "g" | "b" | "a",
-    value: string
+    value: string,
   ) => {
     if (!alpha || !colorValues.rgba) return;
 
@@ -222,7 +224,7 @@ export default function InputColor({
   // Handle HSLA input change
   const handleHslaChange = (
     component: "h" | "s" | "l" | "a",
-    value: string
+    value: string,
   ) => {
     if (!alpha || !colorValues.hsla) return;
 
@@ -300,7 +302,7 @@ export default function InputColor({
         colorValues.rgba.r,
         colorValues.rgba.g,
         colorValues.rgba.b,
-        colorValues.rgba.a
+        colorValues.rgba.a,
       );
     }
     return colorValues.hex;
@@ -309,11 +311,14 @@ export default function InputColor({
   return (
     <div className={cn(className)}>
       <Label className="mb-3">{label}</Label>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <Popover onOpenChange={handlePopoverChange}>
           <PopoverTrigger asChild>
             <Button
-              className="border-border h-12 w-12 border shadow-none relative overflow-hidden"
+              className={cn(
+                "border-border h-12 w-auto aspect-square! border shadow-none relative overflow-hidden",
+                size,
+              )}
               size={"icon"}
               style={{ backgroundColor: hexInputValue }}
             >
@@ -520,7 +525,10 @@ export default function InputColor({
             value={getCurrentHexValue()}
             onChange={(e) => handleHexChange(e.target.value)}
             onBlur={onBlur}
-            className={`h-12 uppercase ${error ? "border-destructive" : ""}`}
+            className={cn(
+              `h-12 uppercase ${error ? "border-destructive" : ""}`,
+              size,
+            )}
           />
           {isLoading && (
             <span className="absolute inset-y-0 right-0 flex items-center pr-4">

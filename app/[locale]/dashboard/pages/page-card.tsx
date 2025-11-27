@@ -49,6 +49,8 @@ export const PageCard = ({
           <Image
             src={page.image}
             alt={page.title}
+            width={1080}
+            height={1080}
             className="w-full h-auto aspect-square object-cover rounded-md"
           />
         ) : (

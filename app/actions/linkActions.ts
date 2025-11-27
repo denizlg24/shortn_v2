@@ -367,7 +367,9 @@ export const updateShortnData = async ({
     if (custom_code) {
       updateQuery.urlCode = custom_code;
       updateQuery.custom_code = true;
-      updateQuery.shortUrl = `${domain || "http://localhost:3000"}/${custom_code}`;
+      const protocol =
+        domain && domain.startsWith("localhost") ? "http://" : "https://";
+      updateQuery.shortUrl = `${protocol}${domain || "localhost:3000"}/${custom_code}`;
       updateCode = custom_code;
     }
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {

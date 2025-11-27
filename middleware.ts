@@ -5,68 +5,42 @@ import createMiddleware from "next-intl/middleware";
 import { getToken } from "next-auth/jwt";
 import env from "./utils/env";
 
-const locales = routing.locales as readonly string[];
-
-function isLocale(value: string): value is (typeof locales)[number] {
-  return locales.includes(value);
-}
-
 const intlMiddleware = createMiddleware(routing);
 
+const PUBLIC_PATHS = [
+  "api",
+  "_next",
+  "favicon.ico",
+  "robots.txt",
+  "sitemap.xml",
+  "b",
+];
+const LOCALES = routing.locales;
+
 export async function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-  const slugCandidate = pathname.split("/")[1];
+  const { pathname } = request.nextUrl;
+  const path = pathname.replace(/^\/+/, "");
+  const segments = path.split("/");
+  if (PUBLIC_PATHS.some((prefix) => path.startsWith(prefix))) {
+    return NextResponse.next();
+  }
+  const first =
+    segments[0] !== ""
+      ? segments[0]
+      : request.cookies.get("NEXT_LOCALE")?.value || "en";
+  const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
+  if (!isLocale) {
+    const slug = first;
+
+    return NextResponse.rewrite(
+      new URL(`/api/get-long-url/${slug}`, request.nextUrl),
+    );
+  }
   const user = await getToken({
     req: request,
     secret: env.AUTH_SECRET,
     secureCookie: !!process.env.VERCEL_URL,
   });
-  if (
-    !isLocale(slugCandidate) &&
-    slugCandidate !== "" &&
-    slugCandidate !== "url-not-found"
-  ) {
-    const clickData = {
-      slug: slugCandidate,
-      ip: ipAddress(request) || "",
-      userAgent: request.headers.get("user-agent") || "",
-      referrer: request.headers.get("referer") || "",
-      language: request.headers.get("accept-language")?.split(",")[0] || "",
-      geo: geolocation(request),
-      timezone: request.headers.get("x-vercel-ip-timezone"),
-      query: Object.fromEntries(request.nextUrl.searchParams.entries()),
-    };
-    try {
-      fetch(`${request.nextUrl.origin}/api/track-click`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(clickData),
-      }).catch(() => null);
-
-      const res = await fetch(
-        `${request.nextUrl.origin}/api/get-long-url/${slugCandidate}`,
-      );
-      const { longUrl } = await res.json();
-
-      if (longUrl) {
-        return NextResponse.redirect(longUrl, 301);
-      }
-      return NextResponse.redirect(
-        new URL(
-          `/${request.cookies.get("NEXT_LOCALE")?.value || "en"}/url-not-found`,
-          request.nextUrl,
-        ),
-      );
-    } catch (error) {
-      console.log(error);
-      return NextResponse.redirect(
-        new URL(
-          `/${request.cookies.get("NEXT_LOCALE")?.value || "en"}/url-not-found`,
-          request.nextUrl,
-        ),
-      );
-    }
-  }
 
   const isLoggedIn = !!user;
   if (!isLoggedIn) {
