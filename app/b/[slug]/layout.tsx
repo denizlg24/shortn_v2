@@ -32,13 +32,13 @@ export async function generateMetadata({
       title: bioPage.title,
       description: bioPage.description,
       url: `https://shortn.at/b/${slug}`,
-      images: [bioPage.theme?.header?.headerImageUrl ?? ""],
+      images: [bioPage.avatarUrl ?? ""],
     },
     twitter: {
       card: "summary_large_image",
       title: bioPage.title,
       description: bioPage.description,
-      images: [bioPage.theme?.header?.headerImageUrl ?? ""],
+      images: [bioPage.avatarUrl ?? ""],
     },
   };
 }

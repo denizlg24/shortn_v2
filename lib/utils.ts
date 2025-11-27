@@ -168,15 +168,52 @@ export function deepEqual<T>(a: T, b: T): boolean {
     return true;
   }
 
+  // Helper to check if an object is "empty" (all values are undefined)
+  const isEmptyObject = (obj: unknown): boolean => {
+    if (typeof obj !== "object" || obj === null) return false;
+    const values = Object.values(obj);
+    return (
+      values.length > 0 &&
+      values.every(
+        (v) =>
+          v === undefined ||
+          (typeof v === "object" && v !== null && isEmptyObject(v)),
+      )
+    );
+  };
+
+  // Normalize undefined and empty objects
+  const normalizedA = a === undefined || isEmptyObject(a) ? undefined : a;
+  const normalizedB = b === undefined || isEmptyObject(b) ? undefined : b;
+
+  // If both normalize to undefined, they're equal
+  if (normalizedA === undefined && normalizedB === undefined) return true;
+  if (normalizedA === undefined || normalizedB === undefined) return false;
+
   // Objects: compare keys
-  const keysA = Object.keys(a) as (keyof T)[];
-  const keysB = Object.keys(b) as (keyof T)[];
+  const keysA = Object.keys(normalizedA) as (keyof T)[];
+  const keysB = Object.keys(normalizedB) as (keyof T)[];
 
-  if (keysA.length !== keysB.length) return false;
+  // Get all unique keys from both objects
+  const allKeys = new Set([...keysA, ...keysB]);
 
-  for (const key of keysA) {
-    if (!keysB.includes(key)) return false;
-    if (!deepEqual(a[key], b[key])) return false;
+  for (const key of allKeys) {
+    const valueA = normalizedA[key];
+    const valueB = normalizedB[key];
+
+    // Treat missing keys as undefined
+    const normalizedValueA =
+      valueA === undefined ||
+      (typeof valueA === "object" && valueA !== null && isEmptyObject(valueA))
+        ? undefined
+        : valueA;
+    const normalizedValueB =
+      valueB === undefined ||
+      (typeof valueB === "object" && valueB !== null && isEmptyObject(valueB))
+        ? undefined
+        : valueB;
+
+    if (!deepEqual(normalizedValueA, normalizedValueB)) return false;
   }
 
   return true;

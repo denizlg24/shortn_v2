@@ -6,12 +6,8 @@ ok(UrlV3);
 
 export interface IHeader extends Document {
   headerStyle: "centered" | "left-aligned" | "right-aligned";
-  headerImageUrl?: string;
-  headerImageStyle: "square" | "rounded" | "circle";
   headerBackgroundImage?: string;
   headerBackgroundColor: string;
-  headerTitle?: string;
-  headerSubtitle?: string;
 }
 
 export interface IBioPage extends Document {
@@ -33,11 +29,9 @@ export interface IBioPage extends Document {
     title?: string;
   }[];
   socials?: {
-    instagram?: string;
-    twitter?: string;
-    github?: string;
-    linkedin?: string;
-  };
+    url?: string;
+    platform?: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,16 +42,8 @@ const HeaderSchema: Schema = new Schema({
     enum: ["centered", "left-aligned", "right-aligned"],
     default: "centered",
   },
-  headerImageUrl: { type: String },
-  headerImageStyle: {
-    type: String,
-    enum: ["square", "rounded", "circle"],
-    default: "circle",
-  },
   headerBackgroundImage: { type: String },
   headerBackgroundColor: { type: String, default: "#0f172b" },
-  headerTitle: { type: String },
-  headerSubtitle: { type: String },
 });
 
 const BioPageSchema: Schema = new Schema(
@@ -89,12 +75,12 @@ const BioPageSchema: Schema = new Schema(
         title: { type: String },
       },
     ],
-    socials: {
-      instagram: { type: String },
-      twitter: { type: String },
-      github: { type: String },
-      linkedin: { type: String },
-    },
+    socials: [
+      {
+        url: { type: String },
+        platform: { type: String },
+      },
+    ],
   },
   { timestamps: true },
 );

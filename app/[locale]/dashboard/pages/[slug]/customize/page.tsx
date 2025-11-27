@@ -57,14 +57,10 @@ export default async function Home({
               ? {
                   header: {
                     headerStyle: bioPage.theme?.header?.headerStyle,
-                    headerImageUrl: bioPage.theme?.header?.headerImageUrl,
-                    headerImageStyle: bioPage.theme?.header?.headerImageStyle,
                     headerBackgroundImage:
                       bioPage.theme?.header?.headerBackgroundImage,
                     headerBackgroundColor:
                       bioPage.theme?.header?.headerBackgroundColor,
-                    headerTitle: bioPage.theme?.header?.headerTitle,
-                    headerSubtitle: bioPage.theme?.header?.headerSubtitle,
                   },
                 }
               : {}),
