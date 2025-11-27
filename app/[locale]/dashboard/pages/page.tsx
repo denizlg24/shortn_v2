@@ -31,7 +31,7 @@ export default async function Home({
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader className="flex flex-row items-center gap-4">
-            <div className="p-2 rounded-md bg-gradient-to-tr from-yellow-100 to-yellow-50 text-yellow-700">
+            <div className="p-2 rounded-md bg-linear-to-tr from-yellow-100 to-yellow-50 text-yellow-700">
               <Star className="w-6 h-6" />
             </div>
             <div>

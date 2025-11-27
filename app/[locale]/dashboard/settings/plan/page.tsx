@@ -21,7 +21,7 @@ const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
     <div className="w-full p-0.5 rounded-full shadow bg-muted flex items-center">
       <div
         style={{ width: `${Math.min((curr / max) * 100, 100).toFixed(2)}%` }}
-        className="h-2 rounded-full bg-gradient-to-r from-0% from-green-600 to-90% to-green-700 flex items-center justify-center text-xs font-semibold text-white"
+        className="h-2 rounded-full bg-linear-to-r from-0% from-green-600 to-90% to-green-700 flex items-center justify-center text-xs font-semibold text-white"
       ></div>
     </div>
   );

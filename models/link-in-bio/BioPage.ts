@@ -6,12 +6,8 @@ ok(UrlV3);
 
 export interface IHeader extends Document {
   headerStyle: "centered" | "left-aligned" | "right-aligned";
-  headerImageUrl?: string;
-  headerImageStyle: "square" | "rounded" | "circle";
   headerBackgroundImage?: string;
   headerBackgroundColor: string;
-  headerTitle?: string;
-  headerSubtitle?: string;
 }
 
 export interface IBioPage extends Document {
@@ -20,20 +16,25 @@ export interface IBioPage extends Document {
   title: string;
   description?: string;
   avatarUrl?: string;
+  avatarShape?: "circle" | "square" | "rounded";
   theme?: {
     primaryColor?: string;
     background?: string;
     textColor?: string;
     buttonStyle?: "rounded" | "square" | "pill";
+    font?: string;
     header?: IHeader;
   };
-  links: { link: mongoose.Types.ObjectId | IUrl; image?: string }[];
+  links: {
+    link: mongoose.Types.ObjectId | IUrl;
+    image?: string;
+    title?: string;
+  }[];
   socials?: {
-    instagram?: string;
-    twitter?: string;
-    github?: string;
-    linkedin?: string;
-  };
+    url?: string;
+    platform?: string;
+  }[];
+  socialColor: string | "original";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -44,16 +45,8 @@ const HeaderSchema: Schema = new Schema({
     enum: ["centered", "left-aligned", "right-aligned"],
     default: "centered",
   },
-  headerImageUrl: { type: String },
-  headerImageStyle: {
-    type: String,
-    enum: ["square", "rounded", "circle"],
-    default: "circle",
-  },
   headerBackgroundImage: { type: String },
-  headerBackgroundColor: { type: String, default: "#ffffff" },
-  headerTitle: { type: String },
-  headerSubtitle: { type: String },
+  headerBackgroundColor: { type: String, default: "#0f172b" },
 });
 
 const BioPageSchema: Schema = new Schema(
@@ -63,6 +56,11 @@ const BioPageSchema: Schema = new Schema(
     title: { type: String },
     description: { type: String },
     avatarUrl: { type: String },
+    avatarShape: {
+      type: String,
+      enum: ["circle", "square", "rounded"],
+      default: "circle",
+    },
     theme: {
       primaryColor: { type: String },
       background: { type: String },
@@ -72,6 +70,7 @@ const BioPageSchema: Schema = new Schema(
         enum: ["rounded", "square", "pill"],
         default: "rounded",
       },
+      font: { type: String },
       header: { type: HeaderSchema },
     },
     links: [
@@ -82,14 +81,16 @@ const BioPageSchema: Schema = new Schema(
           required: true,
         },
         image: { type: String },
+        title: { type: String },
       },
     ],
-    socials: {
-      instagram: { type: String },
-      twitter: { type: String },
-      github: { type: String },
-      linkedin: { type: String },
-    },
+    socials: [
+      {
+        url: { type: String },
+        platform: { type: String },
+      },
+    ],
+    socialColor: { type: String, default: "original" },
   },
   { timestamps: true },
 );

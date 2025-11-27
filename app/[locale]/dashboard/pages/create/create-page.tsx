@@ -138,7 +138,7 @@ export const CreatePage = () => {
                 slug: data.slug,
               });
               if (success) {
-                router.push(`/dashboard/pages/${slug}`);
+                router.push(`/dashboard/pages/${slug}/customize`);
               } else {
                 switch (message) {
                   case "duplicate":
