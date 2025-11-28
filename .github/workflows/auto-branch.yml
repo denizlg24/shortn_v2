@@ -1,48 +1,103 @@
-name: Create branch on assignment
+name: Create Branch on Status Change
 
 on:
   issues:
     types:
-      - assigned
+      - labeled
 
 jobs:
-  createbranch:
-    runs-on: ubuntu-22.04
+  create_branch:
+    # 1. SAFETY GUARD: Only run if the specific signal label was just added
+    if: github.event.label.name == 'in-progress'
+    runs-on: ubuntu-latest
     permissions:
       contents: write
+      issues: read
+    
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4.1.1
-      
-      - name: Create issue branch
+        uses: actions/checkout@v4
+
+      - name: Create Branch based on Type
         env:
-          number: ${{ github.event.issue.number }}
-          title: ${{ github.event.issue.title }}
-          labels: ${{ toJSON(github.event.issue.labels.*.name) }}
+          NUMBER: ${{ github.event.issue.number }}
+          TITLE: ${{ github.event.issue.title }}
+          # Get all labels currently on the issue as a JSON array
+          LABELS_JSON: ${{ toJSON(github.event.issue.labels.*.name) }}
         run: |
+          echo "Triggered by label: ${{ github.event.label.name }}"
+          echo "All Labels: $LABELS_JSON"
+
+          # --- STEP 1: Determine Branch Type ---
+          # Default to feature if nothing else matches
           TYPE="feature"
-          echo "Labels: $labels"
           
-          # Parse JSON array of labels
-          for label in $(echo "$labels" | jq -r '.[]'); do
-            echo "Checking label: $label"
-            case "$label" in
-              feature|bugfix|chore|hotfix) 
-                TYPE=$label
-                echo "Found type: $TYPE"
+          # We use jq to parse the JSON array safely (handles spaces/special chars)
+          # We loop through every label present on the issue
+          echo "$LABELS_JSON" | jq -r '.[]' | while read -r raw_label; do
+            
+            # Convert label to lowercase for easy matching
+            lbl="${raw_label,,}"
+            
+            # IGNORE the trigger label so it doesn't become the branch type
+            if [[ "$lbl" == "in-progress" ]]; then
+              continue
+            fi
+
+            # Check for keywords
+            case "$lbl" in
+              *bug*|fix)
+                echo "bugfix" > type_detected.txt
+                break 
+                ;;
+              *hotfix*|critical|urgent)
+                echo "hotfix" > type_detected.txt
+                break
+                ;;
+              chore|docs|documentation|maintenance)
+                echo "chore" > type_detected.txt
+                break
+                ;;
+              feature|feat|enhancement)
+                echo "feature" > type_detected.txt
                 break
                 ;;
             esac
           done
+
+          # Check if the loop found something better than default
+          if [ -f type_detected.txt ]; then
+            TYPE=$(cat type_detected.txt)
+          fi
           
-          echo "Using branch type: $TYPE"
-          title_clean=${title// /-}
-          title_clean=${title_clean//[^a-zA-Z0-9_-]/}
-          branchname="$TYPE/$number-${title_clean,,}"
-          echo "Creating branch: $branchname"
+          echo "Selected Branch Type: $TYPE"
+
+          # --- STEP 2: Sanitize Title ---
+          # 1. Replace spaces with dashes
+          clean_title="${TITLE// /-}"
+          # 2. Remove any character that isn't alphanumeric, underscore, or dash
+          clean_title="${clean_title//[^a-zA-Z0-9_-]/}"
+          # 3. Lowercase everything
+          clean_title="${clean_title,,}"
+
+          BRANCH_NAME="$TYPE/$NUMBER-$clean_title"
+          echo "Target Branch Name: $BRANCH_NAME"
+
+          # --- STEP 3: Create Branch (Idempotent) ---
+          # Fetch to ensure we know about existing remote branches
+          git fetch origin 
+
+          # Check if branch exists remotely
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
+            echo "Branch $BRANCH_NAME already exists on remote. Skipping creation."
+            exit 0
+          fi
+
+          # Create and Push
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           
-          git switch -c "$branchname"
-          git config --global user.name 'github-actions'
-          git config --global user.email \
-              '41898282+github-actions[bot]@users.noreply.github.com'
-          git push -u origin "$branchname"
+          git switch -c "$BRANCH_NAME"
+          git push -u origin "$BRANCH_NAME"
+          
+          echo "Successfully created branch: $BRANCH_NAME"
