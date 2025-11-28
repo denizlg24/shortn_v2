@@ -1,0 +1,68 @@
+name: Sync Project Status to Labels
+
+on:
+  schedule:
+    # Run every 5 minutes
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual trigger for testing
+
+jobs:
+  sync-labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Project Status and Add Labels
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          # REPLACE THESE VARIABLES
+          ORG_NAME: "your-org-name"
+          PROJECT_NUMBER: 12 # Look at your Project URL: /projects/12
+          TARGET_STATUS: "In Progress"
+          TARGET_LABEL: "in-progress"
+        run: |
+          echo "Fetching items from Project #$PROJECT_NUMBER in $ORG_NAME..."
+          
+          # 1. Query Project V2 Items (Status & Issue Number)
+          # We fetch the first 100 items. 
+          gh api graphql -f org="$ORG_NAME" -F number=$PROJECT_NUMBER -f query='
+            query($org: String!, $number: Int!) {
+              organization(login: $org) {
+                projectV2(number: $number) {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      fieldValueByName(name: "Status") {
+                        ... on ProjectV2ItemFieldSingleSelectValue { name }
+                      }
+                      content {
+                        ... on Issue { 
+                          number 
+                          repository { nameOwner }
+                          labels(first: 20) { nodes { name } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' > project_data.json
+
+          # 2. Parse and Filter (Find items in "In Progress" MISSING the label)
+          # This massive one-liner uses jq to filter items that match status but lack the label
+          items_to_update=$(jq -r --arg status "$TARGET_STATUS" --arg label "$TARGET_LABEL" '
+            .data.organization.projectV2.items.nodes[] 
+            | select(.fieldValueByName.name == $status) 
+            | select(.content.number != null) 
+            | select([.content.labels.nodes[].name] | contains([$label]) | not)
+            | "\(.content.repository.nameOwner) \(.content.number)"
+          ' project_data.json)
+
+          if [ -z "$items_to_update" ]; then
+            echo "No items need updating."
+            exit 0
+          fi
+
+          # 3. Apply Labels
+          echo "$items_to_update" | while read -r repo_owner_name issue_number; do
+            echo "Adding label '$TARGET_LABEL' to $repo_owner_name #$issue_number"
+            gh issue edit "$issue_number" --repo "$repo_owner_name" --add-label "$TARGET_LABEL"
+          done
