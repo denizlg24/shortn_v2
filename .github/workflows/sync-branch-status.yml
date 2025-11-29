@@ -1,0 +1,48 @@
+name: Auto-Label In Progress Items
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  label-project-items:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.1
+        with:
+          gh-cli-version: 2.82.1   
+          
+      - name: Check Project and Label Issues
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          PROJECT_NUMBER: 2
+          USER_OWNER: denizlg24
+        run: |
+          echo "Fetching project items..."
+          # Fetch data
+          gh project item-list $PROJECT_NUMBER --owner $USER_OWNER --format json --limit 100 > project_items.json
+
+          # Calculate TARGET_URLS
+          # Note: I changed "In progress" to "In Progress" below based on standard GitHub defaults,
+          # but the debug output above will tell you which one to use.
+          TARGET_URLS=$(jq -r '
+            .items[] | 
+            select(.content.type == "Issue") |
+            select(.status == "In progress") |
+            .content.url
+          ' project_items.json)
+
+          echo "DEBUG: Found URLs: $TARGET_URLS"
+
+          if [ -z "$TARGET_URLS" ]; then
+            echo "No 'In Progress' items found."
+            exit 0
+          fi
+
+          for url in $TARGET_URLS; do
+            if [ "$url" == "null" ]; then continue; fi
+            echo "Ensuring 'in-progress' label on: $url"
+            gh issue edit "$url" --add-label "in-progress"
+          done
