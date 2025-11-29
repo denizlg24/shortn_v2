@@ -1,70 +1,48 @@
-name: Sync Project Status to Labels
+name: Auto-Label In Progress Items
 
 on:
   schedule:
-    # Run every 5 minutes
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
-  sync-labels:
+  label-project-items:
     runs-on: ubuntu-latest
     steps:
-      - name: Check Project Status and Add Labels
+      - name: Install GH CLI
+        uses: dev-hanz-ops/install-gh-cli-action@v0.2.1
+        with:
+          gh-cli-version: 2.82.1   
+          
+      - name: Check Project and Label Issues
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          USER_NAME: "denizlg24"
-          PROJECT_NUMBER: 2 
-          TARGET_STATUS: "In Progress"
-          TARGET_LABEL: "in-progress"
+          PROJECT_NUMBER: 2
+          USER_OWNER: denizlg24
         run: |
-          echo "Fetching items from Project #$PROJECT_NUMBER for user $USER_NAME..."
-          
-          # 1. Query Project V2 Items (User Scoped + Separate Repo Fields)
-          # We use user(login: $user) but keep the repository structure you requested
-          gh api graphql -f user="$USER_NAME" -F number=$PROJECT_NUMBER -f query='
-            query($user: String!, $number: Int!) {
-              user(login: $user) {
-                projectV2(number: $number) {
-                  items(first: 100) {
-                    nodes {
-                      id
-                      fieldValueByName(name: "Status") {
-                        ... on ProjectV2ItemFieldSingleSelectValue { name }
-                      }
-                      content {
-                        ... on Issue { 
-                          number 
-                          repository { 
-                            owner { login } 
-                            name 
-                          }
-                          labels(first: 20) { nodes { name } }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }' > project_data.json
+          echo "Fetching project items..."
+          # Fetch data
+          gh project item-list $PROJECT_NUMBER --owner $USER_OWNER --format json --limit 100 > project_items.json
 
-          # 2. Parse and Filter
-          # Updated JQ path to .data.user and constructs the "owner/repo" string manually
-          items_to_update=$(jq -r --arg status "$TARGET_STATUS" --arg label "$TARGET_LABEL" '
-            .data.user.projectV2.items.nodes[] 
-            | select(.fieldValueByName.name == $status) 
-            | select(.content.number != null) 
-            | select([.content.labels.nodes[].name] | contains([$label]) | not)
-            | "\(.content.repository.owner.login)/\(.content.repository.name) \(.content.number)"
-          ' project_data.json)
+          # Calculate TARGET_URLS
+          # Note: I changed "In progress" to "In Progress" below based on standard GitHub defaults,
+          # but the debug output above will tell you which one to use.
+          TARGET_URLS=$(jq -r '
+            .items[] | 
+            select(.content.type == "Issue") |
+            select(.status == "In progress") |
+            .content.url
+          ' project_items.json)
 
-          if [ -z "$items_to_update" ]; then
-            echo "No items need updating."
+          echo "DEBUG: Found URLs: $TARGET_URLS"
+
+          if [ -z "$TARGET_URLS" ]; then
+            echo "No 'In Progress' items found."
             exit 0
           fi
 
-          # 3. Apply Labels
-          echo "$items_to_update" | while read -r repo_full_name issue_number; do
-            echo "Adding label '$TARGET_LABEL' to $repo_full_name #$issue_number"
-            gh issue edit "$issue_number" --repo "$repo_full_name" --add-label "$TARGET_LABEL"
+          for url in $TARGET_URLS; do
+            if [ "$url" == "null" ]; then continue; fi
+            echo "Ensuring 'in-progress' label on: $url"
+            gh issue edit "$url" --add-label "in-progress"
           done

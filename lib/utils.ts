@@ -138,10 +138,23 @@ export function mapJsvatToStripe(code: string): string {
   return jsvatToStripeTaxId[code.toUpperCase()] || jsvatToStripeTaxId.DEFAULT;
 }
 
-const VERCEL_URL = process.env.VERCEL_URL ?? process.env.NEXT_PUBLIC_VERCEL_URL;
-export const BASEURL = VERCEL_URL
-  ? `https://${VERCEL_URL}`
-  : "http://localhost:3000";
+export function getBaseUrl() {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  return "http://localhost:3000";
+}
+
+export const BASEURL = getBaseUrl();
 
 export function deepEqual<T>(a: T, b: T): boolean {
   // Strict equality covers primitives and identical references
