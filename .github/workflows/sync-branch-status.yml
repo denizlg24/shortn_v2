@@ -14,8 +14,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
           # REPLACE THESE VARIABLES
-          ORG_NAME: "your-org-name"
-          PROJECT_NUMBER: 12 # Look at your Project URL: /projects/12
+          ORG_NAME: "denizlg24"
+          PROJECT_NUMBER: 2 # Look at your Project URL: /projects/2
           TARGET_STATUS: "In Progress"
           TARGET_LABEL: "in-progress"
         run: |
