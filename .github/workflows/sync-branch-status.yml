@@ -2,6 +2,7 @@ name: Sync Project Status to Labels
 
 on:
   schedule:
+    # Run every 5 minutes
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
@@ -12,15 +13,15 @@ jobs:
       - name: Check Project Status and Add Labels
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          USER_NAME: "denizlg24" 
-          PROJECT_NUMBER: 2
+          USER_NAME: "denizlg24"
+          PROJECT_NUMBER: 2 
           TARGET_STATUS: "In Progress"
           TARGET_LABEL: "in-progress"
         run: |
           echo "Fetching items from Project #$PROJECT_NUMBER for user $USER_NAME..."
           
-          # 1. Query Project V2 Items (User Scoped)
-          # NOTICE: We changed 'organization(login: $org)' to 'user(login: $user)'
+          # 1. Query Project V2 Items (User Scoped + Separate Repo Fields)
+          # We use user(login: $user) but keep the repository structure you requested
           gh api graphql -f user="$USER_NAME" -F number=$PROJECT_NUMBER -f query='
             query($user: String!, $number: Int!) {
               user(login: $user) {
@@ -34,7 +35,10 @@ jobs:
                       content {
                         ... on Issue { 
                           number 
-                          repository { nameOwner }
+                          repository { 
+                            owner { login } 
+                            name 
+                          }
                           labels(first: 20) { nodes { name } }
                         }
                       }
@@ -45,13 +49,13 @@ jobs:
             }' > project_data.json
 
           # 2. Parse and Filter
-          # NOTICE: Path changed from .data.organization to .data.user
+          # Updated JQ path to .data.user and constructs the "owner/repo" string manually
           items_to_update=$(jq -r --arg status "$TARGET_STATUS" --arg label "$TARGET_LABEL" '
             .data.user.projectV2.items.nodes[] 
             | select(.fieldValueByName.name == $status) 
             | select(.content.number != null) 
             | select([.content.labels.nodes[].name] | contains([$label]) | not)
-            | "\(.content.repository.nameOwner) \(.content.number)"
+            | "\(.content.repository.owner.login)/\(.content.repository.name) \(.content.number)"
           ' project_data.json)
 
           if [ -z "$items_to_update" ]; then
@@ -60,7 +64,7 @@ jobs:
           fi
 
           # 3. Apply Labels
-          echo "$items_to_update" | while read -r repo_owner_name issue_number; do
-            echo "Adding label '$TARGET_LABEL' to $repo_owner_name #$issue_number"
-            gh issue edit "$issue_number" --repo "$repo_owner_name" --add-label "$TARGET_LABEL"
+          echo "$items_to_update" | while read -r repo_full_name issue_number; do
+            echo "Adding label '$TARGET_LABEL' to $repo_full_name #$issue_number"
+            gh issue edit "$issue_number" --repo "$repo_full_name" --add-label "$TARGET_LABEL"
           done
