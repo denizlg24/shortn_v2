@@ -36,7 +36,7 @@ jobs:
                       content {
                         ... on Issue { 
                           number 
-                          repository { nameOwner }
+                          repository { owner { login } name }
                           labels(first: 20) { nodes { name } }
                         }
                       }
@@ -53,7 +53,7 @@ jobs:
             | select(.fieldValueByName.name == $status) 
             | select(.content.number != null) 
             | select([.content.labels.nodes[].name] | contains([$label]) | not)
-            | "\(.content.repository.nameOwner) \(.content.number)"
+            | "\(.content.repository.owner.login)/\(.content.repository.name) \(.content.number)"
           ' project_data.json)
 
           if [ -z "$items_to_update" ]; then
