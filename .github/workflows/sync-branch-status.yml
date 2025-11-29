@@ -2,9 +2,8 @@ name: Sync Project Status to Labels
 
 on:
   schedule:
-    # Run every 5 minutes
     - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual trigger for testing
+  workflow_dispatch:
 
 jobs:
   sync-labels:
@@ -13,19 +12,18 @@ jobs:
       - name: Check Project Status and Add Labels
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
-          # REPLACE THESE VARIABLES
-          ORG_NAME: "denizlg24"
-          PROJECT_NUMBER: 2 # Look at your Project URL: /projects/2
+          USER_NAME: "denizlg24" 
+          PROJECT_NUMBER: 2
           TARGET_STATUS: "In Progress"
           TARGET_LABEL: "in-progress"
         run: |
-          echo "Fetching items from Project #$PROJECT_NUMBER in $ORG_NAME..."
+          echo "Fetching items from Project #$PROJECT_NUMBER for user $USER_NAME..."
           
-          # 1. Query Project V2 Items (Status & Issue Number)
-          # We fetch the first 100 items. 
-          gh api graphql -f org="$ORG_NAME" -F number=$PROJECT_NUMBER -f query='
-            query($org: String!, $number: Int!) {
-              organization(login: $org) {
+          # 1. Query Project V2 Items (User Scoped)
+          # NOTICE: We changed 'organization(login: $org)' to 'user(login: $user)'
+          gh api graphql -f user="$USER_NAME" -F number=$PROJECT_NUMBER -f query='
+            query($user: String!, $number: Int!) {
+              user(login: $user) {
                 projectV2(number: $number) {
                   items(first: 100) {
                     nodes {
@@ -36,7 +34,7 @@ jobs:
                       content {
                         ... on Issue { 
                           number 
-                          repository { owner { login } name }
+                          repository { nameOwner }
                           labels(first: 20) { nodes { name } }
                         }
                       }
@@ -46,14 +44,14 @@ jobs:
               }
             }' > project_data.json
 
-          # 2. Parse and Filter (Find items in "In Progress" MISSING the label)
-          # This massive one-liner uses jq to filter items that match status but lack the label
+          # 2. Parse and Filter
+          # NOTICE: Path changed from .data.organization to .data.user
           items_to_update=$(jq -r --arg status "$TARGET_STATUS" --arg label "$TARGET_LABEL" '
-            .data.organization.projectV2.items.nodes[] 
+            .data.user.projectV2.items.nodes[] 
             | select(.fieldValueByName.name == $status) 
             | select(.content.number != null) 
             | select([.content.labels.nodes[].name] | contains([$label]) | not)
-            | "\(.content.repository.owner.login)/\(.content.repository.name) \(.content.number)"
+            | "\(.content.repository.nameOwner) \(.content.number)"
           ' project_data.json)
 
           if [ -z "$items_to_update" ]; then
