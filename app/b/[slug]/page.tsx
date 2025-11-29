@@ -25,7 +25,7 @@ export default async function Home({
   }[];
 
   return (
-    <main className="h-full w-full">
+    <main className="h-full w-full bg-transparent">
       <BioPageDisplay
         preview={false}
         bio={{
