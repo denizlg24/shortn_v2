@@ -1,6 +1,7 @@
 import "../../globals.css";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
+import { notFound } from "next/navigation";
 
 export async function generateStaticParams() {
   await connectDB();
@@ -44,12 +45,29 @@ export async function generateMetadata({
 }
 export default async function RootLayout({
   children,
+  params,
 }: {
   children: React.ReactNode;
+  params: Promise<{ slug: string }>;
 }) {
+  const { slug } = await params;
+
+  await connectDB();
+  const bioPage = await BioPage.findOne({ slug }).lean();
+
+  if (!bioPage) {
+    notFound();
+  }
+
+  const background = bioPage.theme?.background || "#ffffff";
   return (
     <html lang="en">
-      <body className={`antialiased w-full min-h-screen`}>{children}</body>
+      <body
+        style={{ background }}
+        className={`antialiased w-full min-h-screen`}
+      >
+        {children}
+      </body>
     </html>
   );
 }

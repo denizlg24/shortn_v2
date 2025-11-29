@@ -4,8 +4,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImageIcon } from "lucide-react";
 import { GetSocialIcon } from "../[locale]/dashboard/pages/[slug]/customize/customize-page";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { loadFont } from "@/lib/fonts";
+import { Spinner } from "@/components/ui/spinner";
 const BioHeader = ({
   header,
   preview,
@@ -199,20 +200,137 @@ export const BioPageDisplay = ({
   };
   preview?: boolean;
 }) => {
-  // Load the Google Font if one is specified
-  useEffect(() => {
-    if (bio.theme?.font && bio.theme.font !== "inherit") {
-      // Extract just the font family name (remove fallbacks like ", sans-serif")
-      const fontFamily = bio.theme.font
-        .split(",")[0]
-        .replace(/['"]/g, "")
-        .trim();
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadingProgress, setLoadingProgress] = useState(0);
 
-      loadFont(fontFamily).catch((error) => {
-        console.error(`Failed to load font "${fontFamily}":`, error);
+  useEffect(() => {
+    const loadAssets = async () => {
+      const assetsToLoad: Promise<void>[] = [];
+      let totalAssets = 0;
+      let loadedAssets = 0;
+
+      const incrementProgress = () => {
+        loadedAssets++;
+        setLoadingProgress((loadedAssets / totalAssets) * 100);
+      };
+
+      if (bio.theme?.font && bio.theme.font !== "inherit") {
+        totalAssets++;
+        const fontFamily = bio.theme.font
+          .split(",")[0]
+          .replace(/['"]/g, "")
+          .trim();
+
+        const fontPromise = loadFont(fontFamily)
+          .then(() => {
+            incrementProgress();
+          })
+          .catch((error) => {
+            console.error(`Failed to load font "${fontFamily}":`, error);
+            incrementProgress();
+          });
+
+        assetsToLoad.push(fontPromise);
+      }
+
+      if (bio.avatarUrl) {
+        totalAssets++;
+        const avatarUrl = bio.avatarUrl;
+        const avatarPromise = new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            incrementProgress();
+            resolve();
+          };
+          img.onerror = () => {
+            console.error(`Failed to load avatar image: ${avatarUrl}`);
+            incrementProgress();
+            resolve();
+          };
+          img.src = avatarUrl;
+        });
+        assetsToLoad.push(avatarPromise);
+      }
+
+      if (bio.theme?.header?.headerBackgroundImage) {
+        totalAssets++;
+        const headerBgUrl = bio.theme.header.headerBackgroundImage;
+        const headerBgPromise = new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            incrementProgress();
+            resolve();
+          };
+          img.onerror = () => {
+            console.error(`Failed to load header background: ${headerBgUrl}`);
+            incrementProgress();
+            resolve();
+          };
+          img.src = headerBgUrl;
+        });
+        assetsToLoad.push(headerBgPromise);
+      }
+
+      const linkImages = bio.links.filter((link) => link.image);
+      linkImages.forEach((link) => {
+        totalAssets++;
+        const linkImagePromise = new Promise<void>((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+            incrementProgress();
+            resolve();
+          };
+          img.onerror = () => {
+            console.error(`Failed to load link image: ${link.image}`);
+            incrementProgress();
+            resolve();
+          };
+          img.src = link.image!;
+        });
+        assetsToLoad.push(linkImagePromise);
       });
-    }
-  }, [bio.theme?.font]);
+
+      if (totalAssets === 0) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        await Promise.all(assetsToLoad);
+      } catch (error) {
+        console.error("Error loading assets:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAssets();
+  }, [
+    bio.theme?.font,
+    bio.avatarUrl,
+    bio.theme?.header?.headerBackgroundImage,
+    bio.links,
+  ]);
+
+  // Loading screen
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          background: bio.theme?.background || "#ffffff",
+          color: bio.theme?.textColor || "#000000",
+        }}
+        className="w-full h-screen flex flex-col items-center justify-center gap-4"
+      >
+        <div className="flex flex-col items-center gap-2">
+          <Spinner />
+          <p className="text-sm opacity-75">
+            Loading... {Math.round(loadingProgress)}%
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
