@@ -178,10 +178,17 @@ export const BioPageDisplay = ({
     avatarShape?: "circle" | "square" | "rounded";
     theme?: {
       primaryColor?: string;
+      buttonTextColor?: string;
       background?: string;
       textColor?: string;
       buttonStyle?: "rounded" | "square" | "pill";
       font?: string;
+      titleFontSize?: string;
+      titleFontWeight?: string;
+      descriptionFontSize?: string;
+      descriptionFontWeight?: string;
+      buttonFontSize?: string;
+      buttonFontWeight?: string;
       header?: {
         headerStyle: "centered" | "left-aligned" | "right-aligned";
         headerBackgroundImage?: string;
@@ -312,6 +319,8 @@ export const BioPageDisplay = ({
     bio.links,
   ]);
 
+  console.log(bio.links);
+
   // Loading screen
   if (isLoading) {
     return (
@@ -357,13 +366,23 @@ export const BioPageDisplay = ({
             "w-full flex flex-col gap-1 items-center text-center mt-6 px-4",
           )}
         >
-          <h1 className="mx-auto text-xl font-black text-center">
+          <h1
+            style={{
+              fontSize: bio.theme?.titleFontSize || "1.25rem",
+              fontWeight: bio.theme?.titleFontWeight || "900",
+            }}
+            className="mx-auto text-center"
+          >
             {bio.title}
           </h1>
           {bio.description && (
             <h2
-              style={{ color: bio.theme?.textColor || "#000000" }}
-              className="text-sm font-light opacity-75 text-center mx-auto truncate"
+              style={{
+                color: bio.theme?.textColor || "#000000",
+                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                fontWeight: bio.theme?.descriptionFontWeight || "300",
+              }}
+              className="opacity-75 text-center mx-auto truncate"
             >
               {bio.description}
             </h2>
@@ -377,13 +396,23 @@ export const BioPageDisplay = ({
             (bio.avatarUrl || preview) && "mt-12",
           )}
         >
-          <h1 className="mx-auto text-xl font-black text-center">
+          <h1
+            style={{
+              fontSize: bio.theme?.titleFontSize || "1.25rem",
+              fontWeight: bio.theme?.titleFontWeight || "900",
+            }}
+            className="mx-auto text-center"
+          >
             {bio.title}
           </h1>
           {bio.description && (
             <h2
-              style={{ color: bio.theme?.textColor || "#000000" }}
-              className="text-sm font-light opacity-75 text-center mx-auto truncate"
+              style={{
+                color: bio.theme?.textColor || "#000000",
+                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                fontWeight: bio.theme?.descriptionFontWeight || "300",
+              }}
+              className="opacity-75 text-center mx-auto truncate"
             >
               {bio.description}
             </h2>
@@ -397,11 +426,23 @@ export const BioPageDisplay = ({
             (bio.avatarUrl || preview) && "mt-12",
           )}
         >
-          <h1 className="text-xl font-black text-right">{bio.title}</h1>
+          <h1
+            style={{
+              fontSize: bio.theme?.titleFontSize || "1.25rem",
+              fontWeight: bio.theme?.titleFontWeight || "900",
+            }}
+            className="text-right"
+          >
+            {bio.title}
+          </h1>
           {bio.description && (
             <h2
-              style={{ color: bio.theme?.textColor || "#000000" }}
-              className="text-sm font-light opacity-75 text-right truncate w-full"
+              style={{
+                color: bio.theme?.textColor || "#000000",
+                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                fontWeight: bio.theme?.descriptionFontWeight || "300",
+              }}
+              className="opacity-75 text-right truncate w-full"
             >
               {bio.description}
             </h2>
@@ -415,11 +456,23 @@ export const BioPageDisplay = ({
             (bio.avatarUrl || preview) && "mt-12",
           )}
         >
-          <h1 className="text-xl font-black text-left">{bio.title}</h1>
+          <h1
+            style={{
+              fontSize: bio.theme?.titleFontSize || "1.25rem",
+              fontWeight: bio.theme?.titleFontWeight || "900",
+            }}
+            className="text-left"
+          >
+            {bio.title}
+          </h1>
           {bio.description && (
             <h2
-              style={{ color: bio.theme?.textColor || "#000000" }}
-              className="text-sm font-light opacity-75 text-left truncate w-full"
+              style={{
+                color: bio.theme?.textColor || "#000000",
+                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                fontWeight: bio.theme?.descriptionFontWeight || "300",
+              }}
+              className="opacity-75 text-left truncate w-full"
             >
               {bio.description}
             </h2>
@@ -436,6 +489,7 @@ export const BioPageDisplay = ({
             .filter((s) => !!s.url)
             .map((social) => (
               <a
+                target="_blank"
                 key={social.platform}
                 href={
                   social.url?.startsWith("http") ||
@@ -443,7 +497,6 @@ export const BioPageDisplay = ({
                     ? social.url
                     : `https://${social.url}`
                 }
-                target="_blank"
                 className="col-span-1 w-full h-auto aspect-square flex items-center justify-center hover:scale-105 transition-transform"
               >
                 <GetSocialIcon
@@ -456,6 +509,64 @@ export const BioPageDisplay = ({
             ))}
         </div>
       )}
+      <div
+        className={cn(
+          "w-full max-w-3xl mt-6 grid items-center grid-cols-1 gap-4 mx-auto px-2",
+          bio.theme?.buttonStyle == "square" &&
+            "xs:grid-cols-4 grid-cols-3 gap-2",
+        )}
+      >
+        {bio.links.map((link, index) =>
+          bio.theme?.buttonStyle == "square" ? (
+            <a
+              key={index}
+              href={link.link.shortUrl}
+              style={{
+                background: bio.theme.primaryColor || "#0f172b",
+                color: bio.theme.buttonTextColor || "#ffffff",
+                fontSize: bio.theme?.buttonFontSize || "0.875rem",
+                fontWeight: bio.theme?.buttonFontWeight || "500",
+              }}
+              className="flex items-center justify-center rounded-none hover:shadow hover:scale-[1.01] hover:cursor-pointer transition-transform break-all w-full h-auto aspect-square"
+            >
+              {link.image ? (
+                <img
+                  src={link.image}
+                  className="w-full h-auto aspect-square object-cover"
+                  alt={link.title || "link image"}
+                />
+              ) : (
+                <p className="w-full truncate text-center px-4">{link.title}</p>
+              )}
+            </a>
+          ) : (
+            <a
+              key={index}
+              href={link.link.shortUrl}
+              style={{
+                background: bio.theme?.primaryColor || "#0f172b",
+                color: bio.theme?.buttonTextColor || "#ffffff",
+                fontSize: bio.theme?.buttonFontSize || "0.875rem",
+                fontWeight: bio.theme?.buttonFontWeight || "500",
+              }}
+              className={cn(
+                "flex items-center justify-center h-8 hover:shadow hover:scale-[1.01] hover:cursor-pointer transition-transform w-full relative rounded-full px-6",
+                bio.theme?.buttonStyle == "rounded" && "rounded",
+              )}
+              target="_blank"
+            >
+              {link.image && (
+                <img
+                  src={link.image}
+                  className="w-6 h-6 aspect-square rounded-full shadow object-cover absolute left-2"
+                  alt={link.title || "link image"}
+                />
+              )}
+              <p className="w-full truncate text-center">{link.title}</p>
+            </a>
+          ),
+        )}
+      </div>
     </div>
   );
 };

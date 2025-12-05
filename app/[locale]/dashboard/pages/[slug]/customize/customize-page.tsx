@@ -48,6 +48,7 @@ import { FaXTwitter, FaFacebook } from "react-icons/fa6";
 import { Link, useRouter } from "@/i18n/navigation";
 import { updateBioPage } from "@/app/actions/bioPageActions";
 import { FontPicker } from "@/components/font-picker";
+import { ButtonGroup } from "@/components/ui/button-group";
 const bioSchema = z.object({
   title: z
     .string()
@@ -227,10 +228,17 @@ export const CustomizeBioPage = ({
     avatarShape?: "circle" | "square" | "rounded";
     theme?: {
       primaryColor?: string;
+      buttonTextColor?: string;
       background?: string;
       textColor?: string;
       buttonStyle?: "rounded" | "square" | "pill";
       font?: string;
+      titleFontSize?: string;
+      titleFontWeight?: string;
+      descriptionFontSize?: string;
+      descriptionFontWeight?: string;
+      buttonFontSize?: string;
+      buttonFontWeight?: string;
       header?: {
         headerStyle: "centered" | "left-aligned" | "right-aligned";
         headerBackgroundImage?: string;
@@ -263,7 +271,7 @@ export const CustomizeBioPage = ({
 
   const uploadFile = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    callback: (arg0: string) => void,
+    callback: (_arg0: string) => void,
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -340,12 +348,20 @@ export const CustomizeBioPage = ({
 
   return (
     <div className="w-full max-w-7xl flex flex-col gap-4">
-      <Button variant={"link"} asChild>
-        <Link className="font-semibold mr-auto p-0!" href={`/dashboard/pages`}>
-          <ChevronLeft />
-          Back to list
-        </Link>
-      </Button>
+      <div className="flex items-center justify-between gap-2">
+        <Button variant={"link"} asChild>
+          <Link className="font-semibold p-0!" href={`/dashboard/pages`}>
+            <ChevronLeft />
+            Back to list
+          </Link>
+        </Button>
+        <Button variant={"outline"} asChild>
+          <Link href={`/dashboard/pages/${bio.slug}`}>
+            <LinkIcon className="h-4 w-4 mr-2" />
+            Manage Links
+          </Link>
+        </Button>
+      </div>
       <div className="flex sm:flex-row flex-col items-center justify-between gap-2">
         <h1 className="font-black lg:text-3xl md:text-2xl text-xl">
           Customize your page
@@ -742,6 +758,450 @@ export const CustomizeBioPage = ({
                     }));
                   }}
                   className="w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Title Font Size</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontSize === "1rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontSize: "1rem" },
+                      }))
+                    }
+                  >
+                    Small
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.titleFontSize ||
+                      bio.theme?.titleFontSize === "1.25rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontSize: "1.25rem" },
+                      }))
+                    }
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontSize === "1.5rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontSize: "1.5rem" },
+                      }))
+                    }
+                  >
+                    Large
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontSize === "2rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontSize: "2rem" },
+                      }))
+                    }
+                  >
+                    XLarge
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Title Font Weight</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontWeight === "400"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontWeight: "400" },
+                      }))
+                    }
+                  >
+                    Normal
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontWeight === "600"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontWeight: "600" },
+                      }))
+                    }
+                  >
+                    Semibold
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.titleFontWeight === "700"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontWeight: "700" },
+                      }))
+                    }
+                  >
+                    Bold
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.titleFontWeight ||
+                      bio.theme?.titleFontWeight === "900"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, titleFontWeight: "900" },
+                      }))
+                    }
+                  >
+                    Black
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Description Font Size</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.descriptionFontSize === "0.75rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: {
+                          ...prev.theme,
+                          descriptionFontSize: "0.75rem",
+                        },
+                      }))
+                    }
+                  >
+                    Small
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.descriptionFontSize ||
+                      bio.theme?.descriptionFontSize === "0.875rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: {
+                          ...prev.theme,
+                          descriptionFontSize: "0.875rem",
+                        },
+                      }))
+                    }
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.descriptionFontSize === "1rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, descriptionFontSize: "1rem" },
+                      }))
+                    }
+                  >
+                    Large
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Description Font Weight</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.descriptionFontWeight ||
+                      bio.theme?.descriptionFontWeight === "300"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, descriptionFontWeight: "300" },
+                      }))
+                    }
+                  >
+                    Light
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.descriptionFontWeight === "400"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, descriptionFontWeight: "400" },
+                      }))
+                    }
+                  >
+                    Normal
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.descriptionFontWeight === "600"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, descriptionFontWeight: "600" },
+                      }))
+                    }
+                  >
+                    Semibold
+                  </Button>
+                </ButtonGroup>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="w-full flex flex-col gap-4 p-4! rounded!">
+            <CardTitle className="text-lg font-bold">Buttons</CardTitle>
+            <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+              <Label>Button Style</Label>
+              <RadioGroup
+                onValueChange={(v) => {
+                  updateBio((prev) => ({
+                    ...prev,
+                    theme: {
+                      ...prev.theme,
+                      buttonStyle: v as "rounded" | "square" | "pill",
+                    },
+                  }));
+                }}
+                className="w-full flex flex-row gap-1 items-start flex-wrap"
+                value={bio.theme?.buttonStyle || "rounded"}
+              >
+                <div className="flex grow items-center gap-3">
+                  <RadioGroupItem value="rounded" id="btn-rounded" />
+                  <Label htmlFor="btn-rounded">Rounded</Label>
+                </div>
+                <div className="flex grow items-center gap-3">
+                  <RadioGroupItem value="square" id="btn-square" />
+                  <Label htmlFor="btn-square">Square</Label>
+                </div>
+                <div className="flex grow items-center gap-3">
+                  <RadioGroupItem value="pill" id="btn-pill" />
+                  <Label htmlFor="btn-pill">Pill</Label>
+                </div>
+              </RadioGroup>
+            </CardContent>
+            <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+              <Label className="text-lg font-bold">Button Typography</Label>
+              <div className="flex flex-col gap-2">
+                <Label>Button Font Size</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.buttonFontSize === "0.75rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontSize: "0.75rem" },
+                      }))
+                    }
+                  >
+                    Small
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.buttonFontSize ||
+                      bio.theme?.buttonFontSize === "0.875rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontSize: "0.875rem" },
+                      }))
+                    }
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.buttonFontSize === "1rem"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontSize: "1rem" },
+                      }))
+                    }
+                  >
+                    Large
+                  </Button>
+                </ButtonGroup>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Button Font Weight</Label>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.buttonFontWeight === "400"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontWeight: "400" },
+                      }))
+                    }
+                  >
+                    Normal
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      !bio.theme?.buttonFontWeight ||
+                      bio.theme?.buttonFontWeight === "500"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontWeight: "500" },
+                      }))
+                    }
+                  >
+                    Medium
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.buttonFontWeight === "600"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontWeight: "600" },
+                      }))
+                    }
+                  >
+                    Semibold
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      bio.theme?.buttonFontWeight === "700"
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      updateBio((prev) => ({
+                        ...prev,
+                        theme: { ...prev.theme, buttonFontWeight: "700" },
+                      }))
+                    }
+                  >
+                    Bold
+                  </Button>
+                </ButtonGroup>
+              </div>
+            </CardContent>
+            <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
+              <Label className="text-lg font-bold">Button Colors</Label>
+              <div className="flex flex-row items-center gap-2 justify-start flex-wrap">
+                <InputColor
+                  className="mt-0! w-full"
+                  size="h-8"
+                  onBlur={() => {}}
+                  label="Button Background"
+                  value={bio.theme?.primaryColor || "#0f172b"}
+                  onChange={(v) => {
+                    updateBio((prev) => ({
+                      ...prev,
+                      theme: { ...prev.theme, primaryColor: v },
+                    }));
+                  }}
+                />
+                <InputColor
+                  className="mt-0! w-full"
+                  size="h-8"
+                  onBlur={() => {}}
+                  label="Button Text Color"
+                  value={bio.theme?.buttonTextColor || "#ffffff"}
+                  onChange={(v) => {
+                    updateBio((prev) => ({
+                      ...prev,
+                      theme: { ...prev.theme, buttonTextColor: v },
+                    }));
+                  }}
                 />
               </div>
             </CardContent>

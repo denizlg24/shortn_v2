@@ -27,17 +27,28 @@ export default async function Home({
   }
 
   await connectDB();
-  const bioPage = await BioPage.findOne({ userId: user.sub, slug })
-    .populate<IUrl>("links", "UrlV3")
+  const bioPage = await BioPage.findOne({ slug })
+    .populate({
+      path: "links.link",
+      model: "UrlV3",
+    })
     .lean();
+
   if (!bioPage) {
     notFound();
   }
-  const bioLinks = bioPage.links as {
-    link: IUrl;
-    image?: string;
-    title?: string;
-  }[];
+
+  const bioLinks = (
+    bioPage.links as {
+      link: IUrl;
+      image?: string;
+      title?: string;
+    }[]
+  ).sort((a, b) => {
+    const aDate = a.link.date ? new Date(a.link.date).getTime() : 0;
+    const bDate = b.link.date ? new Date(b.link.date).getTime() : 0;
+    return bDate - aDate;
+  });
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
@@ -52,9 +63,16 @@ export default async function Home({
           theme: {
             primaryColor: bioPage.theme?.primaryColor,
             background: bioPage.theme?.background,
+            buttonTextColor: bioPage.theme?.buttonTextColor,
             textColor: bioPage.theme?.textColor,
             buttonStyle: bioPage.theme?.buttonStyle,
             font: bioPage.theme?.font,
+            titleFontSize: bioPage.theme?.titleFontSize,
+            titleFontWeight: bioPage.theme?.titleFontWeight,
+            descriptionFontSize: bioPage.theme?.descriptionFontSize,
+            descriptionFontWeight: bioPage.theme?.descriptionFontWeight,
+            buttonFontSize: bioPage.theme?.buttonFontSize,
+            buttonFontWeight: bioPage.theme?.buttonFontWeight,
             ...(bioPage.theme?.header
               ? {
                   header: {
