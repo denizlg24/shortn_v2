@@ -26,7 +26,6 @@ import {
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-// Load locales you need
 import en from "i18n-iso-countries/langs/en.json";
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";

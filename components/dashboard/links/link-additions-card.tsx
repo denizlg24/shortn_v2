@@ -186,7 +186,6 @@ export const LinkAdditionsCard = ({
                 linkTitle={url.title || "Link"}
                 onSuccess={(slug) => {
                   setBioPage({ slug, avatar: undefined });
-                  // Fetch the updated avatar
                   fetchApi<{
                     slug: string;
                     avatar: string | undefined;

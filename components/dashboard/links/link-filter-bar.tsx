@@ -62,15 +62,14 @@ export const LinkFilterBar = () => {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // === Local state for filters ===
   const [query, setQuery] = useState(searchParams.get("query") || "");
 
   const [customLink, setCustomLink] = useState(
-    searchParams.get("customLink") || "all"
+    searchParams.get("customLink") || "all",
   );
 
   const [attachedQR, setAttachedQR] = useState(
-    searchParams.get("attachedQR") || "all"
+    searchParams.get("attachedQR") || "all",
   );
 
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -304,7 +303,7 @@ export const LinkFilterBar = () => {
                   {dateRange?.from && dateRange?.to
                     ? `${format(dateRange.from, "MMM dd")} – ${format(
                         dateRange.to,
-                        "MMM dd"
+                        "MMM dd",
                       )}`
                     : "Filter by created date"}
                 </p>
@@ -373,7 +372,7 @@ export const LinkFilterBar = () => {
                       if (tags.length > 0)
                         params.set(
                           "tags",
-                          JSON.stringify(tags.map((t) => t.id))
+                          JSON.stringify(tags.map((t) => t.id)),
                         );
 
                       params.set("page", "1");
@@ -464,7 +463,7 @@ export const LinkFilterBar = () => {
                         if (tags.length > 0)
                           params.set(
                             "tags",
-                            JSON.stringify(tags.map((t) => t.id))
+                            JSON.stringify(tags.map((t) => t.id)),
                           );
 
                         params.set("page", "1");
@@ -554,7 +553,7 @@ export const LinkFilterBar = () => {
                             if (tags.length > 0)
                               params.set(
                                 "tags",
-                                JSON.stringify(tags.map((t) => t.id))
+                                JSON.stringify(tags.map((t) => t.id)),
                               );
 
                             params.set("page", "1");
@@ -645,7 +644,7 @@ export const LinkFilterBar = () => {
                                     key={tag.id}
                                     className={cn(
                                       "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                     )}
                                   >
                                     {tag.tagName}
@@ -684,13 +683,13 @@ export const LinkFilterBar = () => {
                                 value={tag.tagName}
                                 onSelect={async () => {
                                   const added = tags?.some(
-                                    (_tag) => _tag.id == tag.id
+                                    (_tag) => _tag.id == tag.id,
                                   );
                                   if (added) {
                                     setTags((prev) => {
                                       const n = [...prev];
                                       const index = n.findIndex(
-                                        (t) => t.id == tag.id
+                                        (t) => t.id == tag.id,
                                       );
                                       n.splice(index, 1);
                                       return n;
@@ -709,7 +708,7 @@ export const LinkFilterBar = () => {
                                     "ml-auto",
                                     tags?.some((_tag) => _tag.id == tag.id)
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                               </CommandItem>
@@ -860,7 +859,7 @@ export const LinkFilterBar = () => {
                                     key={tag.id}
                                     className={cn(
                                       "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                      "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                     )}
                                   >
                                     {tag.tagName}
@@ -896,13 +895,13 @@ export const LinkFilterBar = () => {
                                 value={tag.tagName}
                                 onSelect={async () => {
                                   const added = tags?.some(
-                                    (_tag) => _tag.id == tag.id
+                                    (_tag) => _tag.id == tag.id,
                                   );
                                   if (added) {
                                     setTags((prev) => {
                                       const n = [...prev];
                                       const index = n.findIndex(
-                                        (t) => t.id == tag.id
+                                        (t) => t.id == tag.id,
                                       );
                                       n.splice(index, 1);
                                       return n;
@@ -921,7 +920,7 @@ export const LinkFilterBar = () => {
                                     "ml-auto",
                                     tags?.some((_tag) => _tag.id == tag.id)
                                       ? "opacity-100"
-                                      : "opacity-0"
+                                      : "opacity-0",
                                   )}
                                 />
                               </CommandItem>

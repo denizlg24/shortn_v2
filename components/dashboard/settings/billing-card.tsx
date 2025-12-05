@@ -158,7 +158,6 @@ export const BillingCard = ({
 
     const updated: Record<string, boolean> = {};
 
-    // --- Tax ID
     if (
       await updateField("tax-id", updateTaxId, {
         invalid: "Your tax ID is not valid.",
@@ -168,7 +167,6 @@ export const BillingCard = ({
       updated["tax-id"] = true;
     }
 
-    // --- Address
     const { success: addrSuccess, message: addrMessage } =
       await updateUserAddress(user.stripeId, {
         line1: values.line1,
@@ -191,7 +189,6 @@ export const BillingCard = ({
       });
       updated["address"] = true;
     } else {
-      // Attach error to postal_code (main culprit), but you could spread to all
       updateBillingForm.setError("line1", {
         type: "manual",
         message:
@@ -201,7 +198,6 @@ export const BillingCard = ({
       });
     }
 
-    // --- Handle success/failure
     if (Object.keys(updated).length > 0) {
       toast.success("Your profile has been updated!");
       await refresh();
@@ -227,8 +223,6 @@ export const BillingCard = ({
     }
     setChangesLoading(false);
   }
-
-  ///PAYMENT METHODS
 
   const [paymentMethods] = useState<Stripe.PaymentMethod[]>(
     initialPaymentMethods,

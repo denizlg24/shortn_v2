@@ -85,11 +85,8 @@ const getFilteredLinks = async (
       },
     });
   }
-
-  // Always apply the match stage after $search
   pipeline.push({ $match: matchStage });
 
-  // Sort
   let sortStage: Record<string, 1 | -1> = {};
   switch (filters.sortBy) {
     case "date_asc":
