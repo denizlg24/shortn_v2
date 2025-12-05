@@ -24,13 +24,13 @@ import {
   Calendar,
   CalendarPlus,
   Palette,
+  ChartColumnIncreasing,
 } from "lucide-react";
 import {
   Sortable,
   SortableContent,
   SortableItem,
   SortableItemHandle,
-  SortableOverlay,
 } from "@/components/ui/sortable";
 import {
   AlertDialog,
@@ -477,12 +477,21 @@ export const ManageLinksPage = ({
                               </div>
                             )}
                           </div>
-
-                          <div
-                            className="cursor-pointer p-2 hover:bg-destructive/10 rounded-md transition-colors"
-                            onClick={() => setLinkToDelete(link._id)}
-                          >
-                            <Trash2 className="h-5 w-5 text-destructive" />
+                          <div className="flex flex-col gap-2">
+                            <Button asChild variant={"secondary"} size={"icon"}>
+                              <Link
+                                href={`/dashboard/links/${link.shortUrl.split("/")[link.shortUrl.split("/").length - 1]}/details`}
+                              >
+                                <ChartColumnIncreasing className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <Button
+                              variant={"destructive"}
+                              size={"icon"}
+                              onClick={() => setLinkToDelete(link._id)}
+                            >
+                              <Trash2 />
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -491,11 +500,6 @@ export const ManageLinksPage = ({
                 );
               })}
             </SortableContent>
-            <SortableOverlay>
-              <div className="bg-background border-2 border-primary rounded-lg p-4">
-                <GripVertical className="h-5 w-5" />
-              </div>
-            </SortableOverlay>
           </Sortable>
         )}
       </div>

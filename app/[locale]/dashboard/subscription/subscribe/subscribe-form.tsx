@@ -117,6 +117,32 @@ export const SubscribeForm = ({
             variables: {
               colorPrimary: "#0f172b",
             },
+            rules: {
+              ".Input": {
+                padding: "8px 12px",
+                minHeight: "36px",
+                borderRadius: "calc(.625rem - 2px)",
+              },
+              ".Tab": {
+                padding: "10px 12px 8px 12px",
+                border: "none",
+              },
+              ".Tab:hover": {
+                border: "none",
+                boxShadow:
+                  "0px 1px 1px rgba(0, 0, 0, 0.03), 0px 3px 7px rgba(18, 42, 66, 0.04)",
+              },
+              ".Tab--selected, .Tab--selected:focus, .Tab--selected:hover": {
+                borderStyle: "solid",
+                borderWidth: "1.5px",
+                borderColor: "var(--colorPrimary)",
+                backgroundColor: "#fff",
+              },
+              ".Label": {
+                fontWeight: "500",
+                fontSize: "0.875em",
+              },
+            },
           },
         },
       }}
@@ -404,17 +430,13 @@ const CustomCheckoutForm = ({
           onClick={() => {
             confirmCheckout();
           }}
-          disabled={
-            confirming ||
-            checkoutState.checkout.tax.status != "ready" ||
-            !checkoutState.checkout.canConfirm
-          }
+          disabled={confirming || !checkoutState.checkout.tax}
         >
           {confirming ? (
             <>
               <Loader2 className="animate-spin" /> Confirming...
             </>
-          ) : checkoutState.checkout.tax.status == "ready" ? (
+          ) : checkoutState.checkout.tax.status ? (
             <>
               <span className="capitalize font-bold">
                 Upgrade to {tier} &mdash;
@@ -543,7 +565,7 @@ const PlanCard = ({
         </ul>
       </CardContent>
       <Separator className="w-full" />
-      {checkoutState.checkout.tax.status == "ready" ? (
+      {checkoutState.checkout.tax.status ? (
         <CardFooter className="w-full flex flex-col gap-2 p-0! items-start">
           <p className="text-base font-semibold capitalize">
             Pricing Breakdown

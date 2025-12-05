@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteBioPage } from "@/app/actions/bioPageActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +15,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { BASEURL } from "@/lib/utils";
 import {
   EllipsisIcon,
@@ -38,6 +39,7 @@ import {
 } from "next-share";
 import Image from "next/image";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export const PageCard = ({
   page,
@@ -51,6 +53,7 @@ export const PageCard = ({
   };
 }) => {
   const [justCopied, setJustCopied] = useState(false);
+  const router = useRouter();
   return (
     <div className="w-full md:p-6 sm:p-4 p-3 bg-background rounded-md border flex sm:flex-row flex-col gap-4 sm:items-stretch">
       <div className="w-full sm:max-w-[15%] max-w-[35%] sm:mx-0 mx-auto aspect-square h-auto sm:flex hidden items-center justify-center relative">
@@ -213,6 +216,19 @@ export const PageCard = ({
                     </DialogContent>
                   </Dialog>
                   <Button
+                    onClick={() => {
+                      toast.promise<{ success: boolean }>(
+                        () => deleteBioPage({ slug: page.slug }),
+                        {
+                          loading: "Loading...",
+                          success: () => {
+                            router.refresh();
+                            return "Your page has been deleted successfully.";
+                          },
+                          error: "Error",
+                        },
+                      );
+                    }}
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none!"
                   >
@@ -320,7 +336,22 @@ export const PageCard = ({
               </div>
             </DialogContent>
           </Dialog>
-          <Button variant={"outline"}>
+          <Button
+            onClick={() => {
+              toast.promise<{ success: boolean }>(
+                () => deleteBioPage({ slug: page.slug }),
+                {
+                  loading: "Loading...",
+                  success: () => {
+                    router.refresh();
+                    return "Your page has been deleted successfully.";
+                  },
+                  error: "Error",
+                },
+              );
+            }}
+            variant={"outline"}
+          >
             <Trash2 />
             Delete Page
           </Button>

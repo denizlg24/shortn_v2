@@ -7,6 +7,7 @@ import { getShortn } from "@/utils/fetching-functions";
 import mongoose from "mongoose";
 import UrlV3 from "@/models/url/UrlV3";
 import { revalidatePath } from "next/cache";
+import { deletePicture } from "./deletePicture";
 
 export async function createBioPage({
   title,
@@ -343,5 +344,42 @@ export async function getUserBioPages() {
   } catch (error) {
     console.log(error);
     return { success: false, message: "server-error", bioPages: [] };
+  }
+}
+
+export async function deleteBioPage({ slug }: { slug: string }) {
+  try {
+    const session = await getUser();
+    if (!session.success || !session.user) {
+      return { success: false, message: "no-user" };
+    }
+    if (session.user.plan.subscription != "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    await connectDB();
+    const deleted = await BioPage.findOneAndDelete({
+      userId: session.user.sub,
+      slug,
+    });
+    const imgsToDelete =
+      deleted?.links
+        .map((l) => l.image)
+        .filter((img): img is string => !!img) || [];
+    const headerImg = deleted?.theme?.header?.headerBackgroundImage;
+    if (headerImg) {
+      imgsToDelete.push(headerImg);
+    }
+    const avatarImg = deleted?.avatarUrl;
+    if (avatarImg) {
+      imgsToDelete.push(avatarImg);
+    }
+    for (const imgUrl of imgsToDelete) {
+      await deletePicture(imgUrl);
+    }
+    revalidatePath(`/b/${slug}`);
+    return { success: true };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
   }
 }
