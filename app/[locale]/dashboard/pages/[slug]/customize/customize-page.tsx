@@ -69,7 +69,6 @@ const bioSchema = z.object({
         .superRefine((data, ctx) => {
           const { url, platform } = data;
 
-          // Allow empty URLs
           if (!url || url.trim() === "") return;
 
           try {

@@ -11,7 +11,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      MONGODB_KEY: ${{secrets.MONGODB_KEY  || 'dependabot'}}
+      MONGODB_KEY: ${{secrets.MONGODB_KEY  || 'mongodb://dependabot'}}
       AUTH_SECRET: ${{secrets.AUTH_SECRET  || 'dependabot'}}
       AUTH_GITHUB_ID: ${{secrets.AUTH_GITHUB_ID  || 'dependabot'}}
       AUTH_GITHUB_SECRET: ${{secrets.AUTH_GITHUB_SECRET  || 'dependabot'}}

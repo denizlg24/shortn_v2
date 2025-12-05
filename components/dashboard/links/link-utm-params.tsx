@@ -544,7 +544,6 @@ export const LinkUtmParams = ({
           <div className="grid grid-cols-2 gap-4 mt-4">
             <Button
               onClick={async () => {
-                //actually save
                 const isValid = utm.every((section) => {
                   return (
                     section.source?.trim() ||
@@ -591,7 +590,6 @@ export const LinkUtmParams = ({
               className="w-full"
               disabled={utm == link.utmLinks || saving}
               onClick={() => {
-                //actually save
                 updateUtm(
                   link.utmLinks ?? [
                     {

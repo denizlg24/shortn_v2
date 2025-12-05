@@ -76,7 +76,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
 
-  //action
   const [justCopied, setJustCopied] = useState(false);
 
   useEffect(() => {
