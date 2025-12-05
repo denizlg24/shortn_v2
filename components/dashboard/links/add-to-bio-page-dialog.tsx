@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import z from "zod";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type BioPage = {
   _id: string;
@@ -88,7 +89,6 @@ export const AddToBioPageDialog = ({
   useEffect(() => {
     if (open) {
       loadBioPages();
-      // Reset form when dialog opens
       pageForm.reset();
     }
   }, [open, pageForm]);
@@ -105,7 +105,6 @@ export const AddToBioPageDialog = ({
   const handleCreateNew = async () => {
     setCreating(true);
 
-    // Validate form
     const valid = await pageForm.trigger();
     if (!valid) {
       setCreating(false);
@@ -120,7 +119,6 @@ export const AddToBioPageDialog = ({
     });
 
     if (result.success) {
-      // Add link to the newly created page
       const addResult = await addLinkToBioPage({
         slug: data.slug,
         linkId,
@@ -209,119 +207,124 @@ export const AddToBioPageDialog = ({
             one.
           </DialogDescription>
         </DialogHeader>
-
-        <div className="flex flex-col gap-4">
-          {/* Create New Section */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold">Create New Page</h3>
-            <Form {...pageForm}>
-              <form className="flex flex-col gap-3">
-                <FormField
-                  control={pageForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title (optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="My Bio Page" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={pageForm.control}
-                  name="slug"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Page URL *</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="my-page"
-                          {...field}
-                          onChange={(e) =>
-                            field.onChange(
-                              e.target.value.toLowerCase().replace(/\s+/g, "-"),
-                            )
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormRootError />
-                <Button
-                  type="button"
-                  onClick={handleCreateNew}
-                  disabled={creating}
-                >
-                  {creating ? (
-                    <>
-                      <Spinner className="h-4 w-4 mr-2" />
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create & Add Link
-                    </>
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </div>
-
-          <Separator />
-
-          {/* Existing Pages Section */}
-          <div className="flex flex-col gap-3">
-            <h3 className="text-sm font-semibold">Add to Existing Page</h3>
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Spinner className="h-6 w-6" />
-              </div>
-            ) : bioPages.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4">
-                No bio pages yet. Create one above!
-              </p>
-            ) : (
-              <ScrollArea className="h-[240px] rounded-md border p-2">
-                <div className="flex flex-col gap-2">
-                  {bioPages.map((page) => (
-                    <button
-                      key={page._id}
-                      onClick={() => handleAddToExisting(page.slug)}
-                      disabled={adding !== null}
-                      className={cn(
-                        "flex items-center gap-3 p-3 rounded-lg border hover:bg-accent transition-colors text-left",
-                        adding === page.slug && "opacity-50",
-                      )}
-                    >
-                      <Avatar className="h-10 w-10 rounded-md">
-                        <AvatarImage src={page.avatarUrl} alt={page.title} />
-                        <AvatarFallback className="rounded-md">
-                          <NotepadText className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{page.title}</p>
-                        <p className="text-sm text-muted-foreground truncate">
-                          /{page.slug}
-                        </p>
-                      </div>
-                      {adding === page.slug ? (
-                        <Spinner className="h-4 w-4 shrink-0" />
-                      ) : (
-                        <Check className="h-4 w-4 shrink-0 opacity-0" />
-                      )}
-                    </button>
-                  ))}
+        <Tabs defaultValue="add" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="add">Add to a page</TabsTrigger>
+            <TabsTrigger value="create">Create a new page</TabsTrigger>
+          </TabsList>
+          <Separator className="mt-1" />
+          <TabsContent value="add">
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-semibold">Add to Existing Page</h3>
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Spinner className="h-6 w-6" />
                 </div>
-              </ScrollArea>
-            )}
-          </div>
-        </div>
+              ) : bioPages.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No bio pages yet. Create one above!
+                </p>
+              ) : (
+                <ScrollArea className="h-60 rounded-md border bg-muted p-2">
+                  <div className="flex flex-col gap-2">
+                    {bioPages.map((page) => (
+                      <button
+                        key={page._id}
+                        onClick={() => handleAddToExisting(page.slug)}
+                        disabled={adding !== null}
+                        className={cn(
+                          "bg-background flex items-center gap-3 p-3 rounded-lg border hover:bg-background/50 transition-colors text-left",
+                          adding === page.slug && "opacity-50",
+                        )}
+                      >
+                        <Avatar className="h-10 w-10 rounded-md">
+                          <AvatarImage src={page.avatarUrl} alt={page.title} />
+                          <AvatarFallback className="rounded-md">
+                            <NotepadText className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{page.title}</p>
+                          <p className="text-sm text-muted-foreground truncate">
+                            /{page.slug}
+                          </p>
+                        </div>
+                        {adding === page.slug ? (
+                          <Spinner className="h-4 w-4 shrink-0" />
+                        ) : (
+                          <Check className="h-4 w-4 shrink-0 opacity-0" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              )}
+            </div>
+          </TabsContent>
+          <TabsContent value="create">
+            <div className="flex flex-col gap-3">
+              <h3 className="text-sm font-semibold">Create New Page</h3>
+              <Form {...pageForm}>
+                <form className="flex flex-col gap-3">
+                  <FormField
+                    control={pageForm.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Title (optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="My Bio Page" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={pageForm.control}
+                    name="slug"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Page URL *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="my-page"
+                            {...field}
+                            onChange={(e) =>
+                              field.onChange(
+                                e.target.value
+                                  .toLowerCase()
+                                  .replace(/\s+/g, "-"),
+                              )
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormRootError />
+                  <Button
+                    type="button"
+                    onClick={handleCreateNew}
+                    disabled={creating}
+                  >
+                    {creating ? (
+                      <>
+                        Creating...
+                        <Spinner className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        Create & Add Link
+                        <Plus className="h-4 w-4" />
+                      </>
+                    )}
+                  </Button>
+                </form>
+              </Form>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

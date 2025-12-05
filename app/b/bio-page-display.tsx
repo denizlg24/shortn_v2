@@ -321,7 +321,6 @@ export const BioPageDisplay = ({
 
   console.log(bio.links);
 
-  // Loading screen
   if (isLoading) {
     return (
       <div
@@ -482,7 +481,7 @@ export const BioPageDisplay = ({
       {bio.socials && bio.socials.length > 0 && (
         <div
           className={cn(
-            "w-full grid grid-cols-[repeat(auto-fit,_12.5%)] justify-center gap-0.55 max-w-2xs mx-auto",
+            "w-full grid grid-cols-[repeat(auto-fit,12.5%)] justify-center gap-0.55 max-w-2xs mx-auto",
           )}
         >
           {bio.socials
@@ -511,9 +510,8 @@ export const BioPageDisplay = ({
       )}
       <div
         className={cn(
-          "w-full max-w-3xl mt-6 grid items-center grid-cols-1 gap-4 mx-auto px-2",
-          bio.theme?.buttonStyle == "square" &&
-            "xs:grid-cols-4 grid-cols-3 gap-2",
+          "w-full max-w-2xl mt-6 grid items-center grid-cols-1 gap-4 mx-auto px-4",
+          bio.theme?.buttonStyle == "square" && "grid-cols-3 gap-2",
         )}
       >
         {bio.links.map((link, index) =>

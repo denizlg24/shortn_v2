@@ -85,6 +85,7 @@ export const ManageLinksPage = ({
     return !!editingLinks[linkId];
   };
 
+  const [changingFiles, setChangingFile] = useState(false);
   const handleTitleChange = (linkId: string, newTitle: string) => {
     setEditingLinks((prev) => ({
       ...prev,
@@ -145,7 +146,7 @@ export const ManageLinksPage = ({
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
+    setChangingFile(true);
     const validTypes = ["image/jpeg", "image/png", "image/svg+xml"];
     const maxSizeInBytes = 5 * 1024 * 1024;
 
@@ -154,6 +155,7 @@ export const ManageLinksPage = ({
       if (e.target) {
         e.target.value = "";
       }
+      setChangingFile(false);
       return;
     }
 
@@ -162,6 +164,7 @@ export const ManageLinksPage = ({
       if (e.target) {
         e.target.value = "";
       }
+      setChangingFile(false);
       return;
     }
 
@@ -188,9 +191,11 @@ export const ManageLinksPage = ({
     if (e.target) {
       e.target.value = "";
     }
+    setChangingFile(false);
   };
 
   const removeFile = async (linkId: string, imageUrl: string) => {
+    setChangingFile(true);
     const deletePromise = deletePicture(imageUrl);
 
     toast.promise(deletePromise, {
@@ -210,6 +215,7 @@ export const ManageLinksPage = ({
         },
       }));
     }
+    setChangingFile(false);
   };
 
   const handleRemoveLink = async (linkId: string) => {
@@ -352,6 +358,7 @@ export const ManageLinksPage = ({
                                       <AvatarImage
                                         src={currentImage}
                                         alt="Link image"
+                                        className=" object-cover"
                                       />
                                       <AvatarFallback>
                                         <ImageIcon className="h-8 w-8" />
@@ -370,25 +377,16 @@ export const ManageLinksPage = ({
                                   </>
                                 ) : (
                                   <>
-                                    <input
+                                    <Input
+                                      disabled={changingFiles}
                                       type="file"
                                       accept="image/jpeg,image/png,image/svg+xml"
-                                      className="hidden"
+                                      className="w-full"
                                       ref={(el) => {
                                         fileInputRefs.current[link._id] = el;
                                       }}
                                       onChange={(e) => uploadFile(e, link._id)}
                                     />
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() =>
-                                        fileInputRefs.current[link._id]?.click()
-                                      }
-                                    >
-                                      <ImageIcon className="h-4 w-4 mr-2" />
-                                      Upload
-                                    </Button>
                                   </>
                                 )}
                               </div>

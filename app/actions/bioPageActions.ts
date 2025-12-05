@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import { getShortn } from "@/utils/fetching-functions";
 import mongoose from "mongoose";
 import UrlV3 from "@/models/url/UrlV3";
+import { revalidatePath } from "next/cache";
 
 export async function createBioPage({
   title,
@@ -104,6 +105,7 @@ export async function updateBioPage({
     await connectDB();
     delete bio.links;
     await BioPage.findOneAndUpdate({ userId: bio.userId, slug: bio.slug }, bio);
+    revalidatePath(`/b/${bio.slug}`);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -141,7 +143,6 @@ export async function updateBioLink({
       updateFields["links.$.image"] = image;
     }
 
-    // Use updateOne with positional operator $ for atomic operation
     const result = await BioPage.updateOne(
       {
         userId: session.user.sub,
@@ -156,7 +157,7 @@ export async function updateBioLink({
     if (result.matchedCount === 0) {
       return { success: false, message: "link-not-found" };
     }
-
+    revalidatePath(`/b/${slug}`);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -182,7 +183,6 @@ export async function removeLinkFromBio({
 
     await connectDB();
 
-    // Use updateOne with $pull for atomic operation
     const result = await BioPage.updateOne(
       {
         userId: session.user.sub,
@@ -198,7 +198,7 @@ export async function removeLinkFromBio({
     if (result.matchedCount === 0) {
       return { success: false, message: "not-found" };
     }
-
+    revalidatePath(`/b/${slug}`);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -233,12 +233,10 @@ export async function reorderBioLinks({
       return { success: false, message: "not-found" };
     }
 
-    // Reorder links based on linkIds array
     const reorderedLinks = linkIds
       .map((id) => bioPage.links.find((l) => l.link.toString() === id))
       .filter((l) => l !== undefined);
 
-    // Use updateOne with $set for atomic operation
     await BioPage.updateOne(
       {
         userId: session.user.sub,
@@ -250,7 +248,7 @@ export async function reorderBioLinks({
         },
       },
     );
-
+    revalidatePath(`/b/${slug}`);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -276,7 +274,6 @@ export async function addLinkToBioPage({
 
     await connectDB();
 
-    // Check if bio page exists and link is not already added
     const bioPage = await BioPage.findOne({
       userId: session.user.sub,
       slug,
@@ -286,19 +283,16 @@ export async function addLinkToBioPage({
       return { success: false, message: "not-found" };
     }
 
-    // Check if link already exists
     const linkExists = bioPage.links.some((l) => l.link.toString() === linkId);
     if (linkExists) {
       return { success: false, message: "link-already-added" };
     }
 
-    // Fetch the link to get its title
     const link = await UrlV3.findById(linkId);
     if (!link) {
       return { success: false, message: "link-not-found" };
     }
 
-    // Use updateOne with $push for atomic operation
     await BioPage.updateOne(
       {
         userId: session.user.sub,
@@ -314,7 +308,7 @@ export async function addLinkToBioPage({
         },
       },
     );
-
+    revalidatePath(`/b/${slug}`);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -338,7 +332,6 @@ export async function getUserBioPages() {
       .select("slug title avatarUrl")
       .lean();
 
-    // Convert _id to string for client compatibility
     const serializedPages = bioPages.map((page) => ({
       _id: page._id.toString(),
       slug: page.slug,

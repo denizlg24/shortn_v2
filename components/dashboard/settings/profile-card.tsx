@@ -5,15 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  //  AlertCircle,
-  //  CheckCircle,
-  CheckCircle2,
-  //  ClockFading,
-  Loader2,
-  Trash2,
-  Upload,
-} from "lucide-react";
+import { CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -34,8 +26,6 @@ import pt from "react-phone-number-input/locale/pt";
 import es from "react-phone-number-input/locale/es";
 import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
-//import { getTaxVerification, updateTaxId } from "@/app/actions/stripeActions";
-//import { TaxIdInput } from "@/components/ui/tax-id-input";
 import { toast } from "sonner";
 import { updatePhone } from "@/app/actions/stripeActions";
 import {
@@ -52,13 +42,6 @@ import { deleteProfilePicture } from "@/app/actions/userActions";
 import { signOutUser } from "@/app/actions/signOut";
 import { updateEmail } from "@/app/actions/userActions";
 import { sendVerificationEmail } from "@/app/actions/userActions";
-//import { checkVAT, countries } from "jsvat";
-//import Stripe from "stripe";
-//import {
-//  HoverCard,
-//  HoverCardContent,
-//  HoverCardTrigger,
-//} from "@/components/ui/hover-card";
 
 const updateEmailFormSchema = z.object({
   email: z
@@ -212,7 +195,6 @@ export const ProfileCard = ({
     defaultValues: {
       fullName: user?.displayName || "",
       username: user?.username || "",
-      //"tax-id": user?.tax_id || "",
       phone: user?.phone_number || "",
     },
   });
@@ -595,7 +577,6 @@ export const ProfileCard = ({
                     form.reset({
                       fullName: user.displayName || "",
                       username: user.username || "",
-                      //"tax-id": user.tax_id || "",
                       phone: user.phone_number || "",
                     });
                   }}

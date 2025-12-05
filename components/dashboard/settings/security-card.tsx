@@ -94,7 +94,6 @@ export const SecurityCard = ({
       return;
     }
 
-    // attach errors to the correct field
     if (message === "password-incorrect") {
       form.setError("old_password", {
         type: "manual",
