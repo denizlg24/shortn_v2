@@ -34,7 +34,6 @@ import {
   SortableContent,
   SortableItem,
   SortableItemHandle,
-  SortableOverlay,
 } from "@/components/ui/sortable";
 import { cn } from "@/lib/utils";
 import {
@@ -1445,9 +1444,6 @@ export const CustomizeBioPage = ({
                   })}
                 </div>
               </SortableContent>
-              <SortableOverlay>
-                <div className="size-full rounded-none bg-primary/10" />
-              </SortableOverlay>
             </Sortable>
             {(bio.socials || []).length > 0 && (
               <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
