@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "@/i18n/navigation";
 import { BASEURL } from "@/lib/utils";
+import { IUrl } from "@/models/url/UrlV3";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockIcon } from "lucide-react";
@@ -35,7 +36,7 @@ const pageFormSchema = z.object({
     ),
 });
 
-export const CreatePage = () => {
+export const CreatePage = ({ url }: { url?: IUrl }) => {
   const session = useUser();
   const [creating, setCreating] = useState(false);
   const pageForm = useForm<z.infer<typeof pageFormSchema>>({
@@ -136,6 +137,7 @@ export const CreatePage = () => {
               const { success, slug, message } = await createBioPage({
                 title: data.title,
                 slug: data.slug,
+                urlCode: url?.urlCode,
               });
               if (success) {
                 router.push(`/dashboard/pages/${slug}/customize`);
