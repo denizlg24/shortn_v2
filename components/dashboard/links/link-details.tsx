@@ -40,7 +40,11 @@ export const LinkDetails = async ({
             currentLink={url}
             unlocked={user.plan.subscription == "pro"}
           />
-          <LinkAdditionsCard qrCode={qr} url={url} />
+          <LinkAdditionsCard
+            qrCode={qr}
+            url={url}
+            subscription={user.plan.subscription}
+          />
           <LinkTimeAnalytics
             unlocked={
               user.plan.subscription == "plus" ||

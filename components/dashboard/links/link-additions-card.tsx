@@ -5,28 +5,61 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link } from "@/i18n/navigation";
+import { fetchApi } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { IUrl } from "@/models/url/UrlV3";
 import {
   ChartNoAxesColumn,
   Download,
   Ellipsis,
+  ImagePlus,
+  LockIcon,
   NotepadText,
   Palette,
 } from "lucide-react";
+import Image from "next/image";
 import QRCodeStyling, { Options } from "qr-code-styling";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { AddToBioPageDialog } from "@/components/dashboard/links/add-to-bio-page-dialog";
 
 export const LinkAdditionsCard = ({
   qrCode,
   url,
+  subscription,
 }: {
   qrCode: IQRCode | undefined;
   url: IUrl;
+  subscription: string;
 }) => {
+  const isPro = subscription === "pro";
   const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
     undefined,
   );
+
+  const [bioPage, setBioPage] = useState<
+    { slug: string; avatar: string | undefined } | undefined
+  >(undefined);
+  useEffect(() => {
+    const fetchBioPageSlug = async () => {
+      try {
+        const response = await fetchApi<{
+          slug: string;
+          avatar: string | undefined;
+        }>(`pages/slug-by-url/${url.urlCode}`, {
+          method: "GET",
+        });
+        console.log("Bio page slug response:", response);
+        if (response.success && response.slug) {
+          setBioPage({ slug: response.slug, avatar: response.avatar });
+        } else {
+          setBioPage(undefined);
+        }
+      } catch (error) {
+        console.error("Failed to fetch bio page slug:", error);
+      }
+    };
+    fetchBioPageSlug();
+  }, [url.urlCode]);
 
   const qrOptions: Partial<Options> = useMemo(() => {
     return qrCode
@@ -123,13 +156,66 @@ export const LinkAdditionsCard = ({
         </h1>
         <div className="w-full flex md:flex-row flex-col justify-start gap-4 md:items-start items-center">
           <div className="p-2 rounded-full bg-muted border w-full max-w-36 h-auto aspect-square flex items-center justify-center">
-            <NotepadText className="w-8 h-8 text-muted-foreground" />
+            {bioPage ? (
+              bioPage.avatar ? (
+                <Image
+                  src={bioPage.avatar}
+                  alt="Avatar"
+                  width={128}
+                  height={128}
+                  className="w-full h-auto aspect-square rounded-full"
+                />
+              ) : (
+                <ImagePlus className="w-8 h-8 text-muted-foreground" />
+              )
+            ) : (
+              <NotepadText className="w-8 h-8 text-muted-foreground" />
+            )}
           </div>
           <div className="w-full flex flex-row items-center gap-2 md:justify-start justify-center">
-            <Button variant={"outline"}>
-              <NotepadText />
-              Add to a page
-            </Button>
+            {bioPage ? (
+              <Button variant={"outline"} asChild>
+                <Link href={`/dashboard/pages/${bioPage.slug}/customize`}>
+                  <ChartNoAxesColumn />
+                  View page
+                </Link>
+              </Button>
+            ) : isPro ? (
+              <AddToBioPageDialog
+                linkId={url._id as string}
+                linkTitle={url.title || "Link"}
+                onSuccess={(slug) => {
+                  setBioPage({ slug, avatar: undefined });
+                  // Fetch the updated avatar
+                  fetchApi<{
+                    slug: string;
+                    avatar: string | undefined;
+                  }>(`pages/slug-by-url/${url.urlCode}`, {
+                    method: "GET",
+                  }).then((response) => {
+                    if (response.success && response.slug) {
+                      setBioPage({
+                        slug: response.slug,
+                        avatar: response.avatar,
+                      });
+                    }
+                  });
+                }}
+                trigger={
+                  <Button variant={"outline"}>
+                    <NotepadText className="h-4 w-4 mr-2" />
+                    Add to a page
+                  </Button>
+                }
+              />
+            ) : (
+              <Button variant={"outline"} asChild>
+                <Link href="/dashboard/subscription">
+                  <LockIcon className="h-4 w-4 mr-2" />
+                  Upgrade to Pro
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       </div>

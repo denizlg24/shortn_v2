@@ -19,16 +19,24 @@ export interface IBioPage extends Document {
   avatarShape?: "circle" | "square" | "rounded";
   theme?: {
     primaryColor?: string;
+    buttonTextColor?: string;
     background?: string;
     textColor?: string;
     buttonStyle?: "rounded" | "square" | "pill";
     font?: string;
+    titleFontSize?: string;
+    titleFontWeight?: string;
+    descriptionFontSize?: string;
+    descriptionFontWeight?: string;
+    buttonFontSize?: string;
+    buttonFontWeight?: string;
     header?: IHeader;
   };
   links: {
     link: mongoose.Types.ObjectId | IUrl;
     image?: string;
     title?: string;
+    addedAt?: Date;
   }[];
   socials?: {
     url?: string;
@@ -63,6 +71,7 @@ const BioPageSchema: Schema = new Schema(
     },
     theme: {
       primaryColor: { type: String },
+      buttonTextColor: { type: String },
       background: { type: String },
       textColor: { type: String },
       buttonStyle: {
@@ -71,6 +80,12 @@ const BioPageSchema: Schema = new Schema(
         default: "rounded",
       },
       font: { type: String },
+      titleFontSize: { type: String },
+      titleFontWeight: { type: String },
+      descriptionFontSize: { type: String },
+      descriptionFontWeight: { type: String },
+      buttonFontSize: { type: String },
+      buttonFontWeight: { type: String },
       header: { type: HeaderSchema },
     },
     links: [
@@ -82,6 +97,7 @@ const BioPageSchema: Schema = new Schema(
         },
         image: { type: String },
         title: { type: String },
+        addedAt: { type: Date, default: Date.now },
       },
     ],
     socials: [

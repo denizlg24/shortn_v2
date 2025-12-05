@@ -13,16 +13,27 @@ export default async function Home({
 
   await connectDB();
   const bioPage = await BioPage.findOne({ slug })
-    .populate<IUrl>("links", "UrlV3")
+    .populate({
+      path: "links.link",
+      model: "UrlV3",
+    })
     .lean();
+
   if (!bioPage) {
     notFound();
   }
-  const bioLinks = bioPage.links as {
-    link: IUrl;
-    image?: string;
-    title?: string;
-  }[];
+
+  const bioLinks = (
+    bioPage.links as {
+      link: IUrl;
+      image?: string;
+      title?: string;
+    }[]
+  ).sort((a, b) => {
+    const aDate = a.link.date ? new Date(a.link.date).getTime() : 0;
+    const bDate = b.link.date ? new Date(b.link.date).getTime() : 0;
+    return bDate - aDate;
+  });
 
   return (
     <main className="h-full w-full bg-transparent">
@@ -37,6 +48,7 @@ export default async function Home({
           avatarShape: bioPage.avatarShape,
           theme: {
             primaryColor: bioPage.theme?.primaryColor,
+            buttonTextColor: bioPage.theme?.buttonTextColor,
             background: bioPage.theme?.background,
             textColor: bioPage.theme?.textColor,
             buttonStyle: bioPage.theme?.buttonStyle,

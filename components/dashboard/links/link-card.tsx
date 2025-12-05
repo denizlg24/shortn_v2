@@ -17,6 +17,7 @@ import {
   removeTagFromLink,
 } from "@/app/actions/tagActions";
 import { Button } from "@/components/ui/button";
+import { AddToBioPageDialog } from "@/components/dashboard/links/add-to-bio-page-dialog";
 import {
   Command,
   CommandGroup,
@@ -74,8 +75,8 @@ export const LinkCard = ({
   tags,
 }: {
   link: TUrl;
-  addTag: (tagId: string) => void;
-  removeTag: (tagId: string) => void;
+  addTag: (_tagId: string) => void;
+  removeTag: (_tagId: string) => void;
   tags: string[];
 }) => {
   const session = useUser();
@@ -89,6 +90,9 @@ export const LinkCard = ({
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
 
   const [justCopied, setJustCopied] = useState(false);
+  const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(undefined);
+  const [bioPageLoading, setBioPageLoading] = useState(true);
+  const isPro = session.user?.plan?.subscription === "pro";
 
   useEffect(() => {
     if (!session.user) {
@@ -130,6 +134,28 @@ export const LinkCard = ({
 
     setExactTagMatch(_shouldShowAddTag);
   }, [tagOptions, notFound, input]);
+
+  useEffect(() => {
+    if (!session.user) {
+      return;
+    }
+
+    setBioPageLoading(true);
+    fetchApi<{ slug: string; avatar?: string }>(
+      `pages/slug-by-url/${link.urlCode}`,
+    )
+      .then((res) => {
+        if (res.success && res.slug) {
+          setBioPageSlug(res.slug);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching bio page:", error);
+      })
+      .finally(() => {
+        setBioPageLoading(false);
+      });
+  }, [link.urlCode, session.user]);
 
   if (!session.user) {
     return null;
@@ -303,12 +329,49 @@ export const LinkCard = ({
                   {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
                 </Link>
               </Button>
-              <Button
-                variant={"outline"}
-                className="w-full border-none! rounded-none! justify-start! shadow-none! "
-              >
-                <NotepadText /> Add to a page
-              </Button>
+              {bioPageLoading ? (
+                <Button
+                  variant={"outline"}
+                  className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                  disabled
+                >
+                  <NotepadText /> Loading...
+                </Button>
+              ) : bioPageSlug ? (
+                <Button
+                  asChild
+                  variant={"outline"}
+                  className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                >
+                  <Link href={`/dashboard/pages/${bioPageSlug}/customize`}>
+                    <NotepadText /> View page
+                  </Link>
+                </Button>
+              ) : isPro ? (
+                <AddToBioPageDialog
+                  linkId={currentLink._id as string}
+                  linkTitle={currentLink.title || "Link"}
+                  onSuccess={(slug) => setBioPageSlug(slug)}
+                  trigger={
+                    <Button
+                      variant={"outline"}
+                      className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                    >
+                      <NotepadText /> Add to a page
+                    </Button>
+                  }
+                />
+              ) : (
+                <Button
+                  asChild
+                  variant={"outline"}
+                  className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                >
+                  <Link href={`/dashboard/subscription`}>
+                    <LockIcon className="h-4 w-4 mr-2" /> Upgrade to Pro
+                  </Link>
+                </Button>
+              )}
             </ScrollPopoverContent>
           </Popover>
         </div>
@@ -548,16 +611,61 @@ export const LinkCard = ({
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              <Button
-                variant={"outline"}
-                className="p-2! aspect-square! border-transparent shadow-none"
-              >
-                <NotepadText />
-              </Button>
+              {bioPageLoading ? (
+                <Button
+                  variant={"outline"}
+                  className="p-2! aspect-square! border-transparent shadow-none"
+                  disabled
+                >
+                  <NotepadText className="text-muted-foreground" />
+                </Button>
+              ) : bioPageSlug ? (
+                <Button
+                  variant={"outline"}
+                  asChild
+                  className="p-2! aspect-square! border-transparent shadow-none"
+                >
+                  <Link href={`/dashboard/pages/${bioPageSlug}/customize`}>
+                    <NotepadText />
+                  </Link>
+                </Button>
+              ) : isPro ? (
+                <AddToBioPageDialog
+                  linkId={currentLink._id as string}
+                  linkTitle={currentLink.title || "Link"}
+                  onSuccess={(slug) => setBioPageSlug(slug)}
+                  trigger={
+                    <Button
+                      variant={"outline"}
+                      className="p-2! aspect-square! border-transparent shadow-none"
+                    >
+                      <NotepadText className="text-muted-foreground" />
+                    </Button>
+                  }
+                />
+              ) : (
+                <Button
+                  variant={"outline"}
+                  asChild
+                  className="p-2! aspect-square! border-transparent shadow-none"
+                >
+                  <Link href={`/dashboard/subscription`}>
+                    <LockIcon />
+                  </Link>
+                </Button>
+              )}
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                <p className="text-sm font-bold">Add to a page</p>
+                <p className="text-sm font-bold">
+                  {bioPageLoading
+                    ? "Loading..."
+                    : bioPageSlug
+                      ? "View page"
+                      : isPro
+                        ? "Add to a page"
+                        : "Upgrade to Pro"}
+                </p>
               </div>
             </HoverCardContent>
           </HoverCard>
@@ -732,12 +840,49 @@ export const LinkCard = ({
                 {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
               </Link>
             </Button>
-            <Button
-              variant={"outline"}
-              className="w-full border-none! rounded-none! justify-start! shadow-none! "
-            >
-              <NotepadText /> Add to a page
-            </Button>
+            {bioPageLoading ? (
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                disabled
+              >
+                <NotepadText /> Loading...
+              </Button>
+            ) : bioPageSlug ? (
+              <Button
+                asChild
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+              >
+                <Link href={`/dashboard/pages/${bioPageSlug}/customize`}>
+                  <NotepadText /> View page
+                </Link>
+              </Button>
+            ) : isPro ? (
+              <AddToBioPageDialog
+                linkId={currentLink._id as string}
+                linkTitle={currentLink.title || "Link"}
+                onSuccess={(slug) => setBioPageSlug(slug)}
+                trigger={
+                  <Button
+                    variant={"outline"}
+                    className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                  >
+                    <NotepadText /> Add to a page
+                  </Button>
+                }
+              />
+            ) : (
+              <Button
+                variant={"outline"}
+                className="w-full border-none! rounded-none! justify-start! shadow-none! "
+                asChild
+              >
+                <Link href="/dashboard/subscription">
+                  <LockIcon className="h-4 w-4" /> Upgrade to Pro
+                </Link>
+              </Button>
+            )}
           </ScrollPopoverContent>
         </Popover>
       </div>
