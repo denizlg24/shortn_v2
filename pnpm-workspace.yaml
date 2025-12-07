@@ -1,6 +1,0 @@
-onlyBuiltDependencies:
-  - '@sentry/cli'
-  - '@tailwindcss/oxide'
-  - canvas
-  - sharp
-  - unrs-resolver

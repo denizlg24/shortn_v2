@@ -313,6 +313,7 @@ const CustomCheckoutForm = ({
   const [elementsReady, setElementsReady] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const { refresh } = useUser();
   if (checkoutState.type === "loading") {
     return (
@@ -328,11 +329,29 @@ const CustomCheckoutForm = ({
   const confirmCheckout = async () => {
     try {
       setError("");
+      setPhoneError(null);
       setConfirming(true);
+      const phoneNumber =
+        user.phone_number || checkoutState.checkout.phoneNumber;
+      if (!phoneNumber) {
+        setPhoneError("Please provide a valid phone number.");
+        setConfirming(false);
+        return;
+      }
+      if (!isValidPhoneNumber(phoneNumber)) {
+        setPhoneError("Please provide a valid phone number.");
+        setConfirming(false);
+        return;
+      }
+      if (!user.phone_number && !checkoutState.checkout.phoneNumber) {
+        setError("Please provide a valid phone number.");
+        setConfirming(false);
+        return;
+      }
       const response = await checkoutState.checkout.confirm({
         redirect: "if_required",
         returnUrl: `${BASEURL}/dashboard/subscription/redirect`,
-        phoneNumber: user.phone_number,
+        phoneNumber: phoneNumber,
         savePaymentMethod: true,
       });
       if (response.type == "success") {
@@ -385,7 +404,14 @@ const CustomCheckoutForm = ({
       />
       {elementsReady && <CheckoutEmailInput initialEmail={user.email} />}
       {elementsReady && (
-        <CheckoutPhoneInput initialPhoneNumber={user.phone_number} />
+        <>
+          <CheckoutPhoneInput initialPhoneNumber={user.phone_number} />
+          {phoneError && (
+            <p className="text-xs font-semibold text-destructive text-left">
+              {phoneError}
+            </p>
+          )}
+        </>
       )}
       {elementsReady && (
         <div className="w-full flex flex-row items-center justify-start gap-2">
@@ -403,9 +429,12 @@ const CustomCheckoutForm = ({
               checkoutState.checkout.updateTaxIdInfo({
                 taxId: {
                   value: e.value.taxId,
-                  type: e.value.taxIdType as StripeCheckoutTaxIdType,
+                  type: e.value.externalTaxIdType as StripeCheckoutTaxIdType,
                 },
-                businessName: e.value.businessName,
+                businessName:
+                  e.value.businessName ||
+                  checkoutState.checkout.billingAddress?.name ||
+                  user.displayName,
               });
             }
           }}
