@@ -92,7 +92,7 @@
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
     "nanoid": "^5.1.6",
-    "next": "^15.5.7",
+    "next": "^16.0.7",
     "next-auth": "^5.0.0-beta.30",
     "next-intl": "^4.3.12",
     "next-share": "^0.27.0",
