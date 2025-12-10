@@ -88,11 +88,14 @@ export const QRCodeCard = ({
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [tagOpen, tagOpenChange] = useState(false);
-  const [shouldShowAddTag, setExactTagMatch] = useState(true);
+
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
+  const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
+
+  const shouldShowAddTag =
+    input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
     undefined,
@@ -108,10 +111,8 @@ export const QRCodeCard = ({
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -119,25 +120,14 @@ export const QRCodeCard = ({
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || tagOptions.length === 0);
-
-    setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
 
   const router = useRouter();
 

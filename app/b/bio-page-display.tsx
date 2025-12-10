@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { loadFont } from "@/lib/fonts";
 import { Spinner } from "@/components/ui/spinner";
+import { default as NextImage } from "next/image";
 const BioHeader = ({
   header,
   preview,
@@ -528,7 +529,7 @@ export const BioPageDisplay = ({
               className="flex items-center justify-center rounded-none hover:shadow hover:scale-[1.01] hover:cursor-pointer transition-transform break-all w-full h-auto aspect-square"
             >
               {link.image ? (
-                <img
+                <NextImage
                   src={link.image}
                   className="w-full h-auto aspect-square object-cover"
                   alt={link.title || "link image"}
@@ -554,7 +555,9 @@ export const BioPageDisplay = ({
               target="_blank"
             >
               {link.image && (
-                <img
+                <NextImage
+                  width={128}
+                  height={128}
                   src={link.image}
                   className="w-6 h-6 aspect-square rounded-full shadow object-cover absolute left-2"
                   alt={link.title || "link image"}

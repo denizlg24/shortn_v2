@@ -74,7 +74,10 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [notFound, setNotFound] = useState(false);
   const [tagOpen, tagOpenChange] = useState(false);
-  const [shouldShowAddTag, setExactTagMatch] = useState(true);
+  const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
+
+  const shouldShowAddTag =
+    input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   const [justCopied, setJustCopied] = useState(false);
 
@@ -109,15 +112,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
 
     return () => clearTimeout(delayDebounce);
   }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || tagOptions.length === 0);
-
-    setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
 
   const router = useRouter();
 

@@ -62,7 +62,7 @@ const urlFormSchema = z.object({
         .max(52, "Back-half can't be longer than 52 characters")
         .regex(
           /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)"
+          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
         ),
       z.literal(""),
     ])
@@ -92,9 +92,10 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
 
   const [tags, setTags] = useState<ITag[]>((url.tags as ITag[]) || []);
 
-  const [notFound, setNotFound] = useState(false);
-  const [shouldShowAddTag, setExactTagMatch] = useState(true);
+  const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
+  const shouldShowAddTag =
+    input != "" && (!hasExactMatch || tagOptions.length === 0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -124,10 +125,8 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -135,25 +134,14 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || tagOptions.length === 0);
-
-    setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
 
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
@@ -296,7 +284,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                   key={tag.id}
                                   className={cn(
                                     "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                   )}
                                 >
                                   {tag.tagName}
@@ -333,13 +321,13 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                               value={tag.tagName}
                               onSelect={async () => {
                                 const added = tags?.some(
-                                  (_tag) => _tag.id == tag.id
+                                  (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
                                     const index = n.findIndex(
-                                      (t) => t.id == tag.id
+                                      (t) => t.id == tag.id,
                                     );
                                     n.splice(index, 1);
                                     return n;
@@ -357,10 +345,10 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 className={cn(
                                   "ml-auto",
                                   tags?.some(
-                                    (_tag) => _tag.tagName == tag.tagName
+                                    (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -436,7 +424,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                   key={tag.id}
                                   className={cn(
                                     "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                   )}
                                 >
                                   {tag.tagName}
@@ -471,13 +459,13 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                               value={tag.tagName}
                               onSelect={async () => {
                                 const added = tags?.some(
-                                  (_tag) => _tag.id == tag.id
+                                  (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
                                     const index = n.findIndex(
-                                      (t) => t.id == tag.id
+                                      (t) => t.id == tag.id,
                                     );
                                     n.splice(index, 1);
                                     return n;
@@ -495,10 +483,10 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 className={cn(
                                   "ml-auto",
                                   tags?.some(
-                                    (_tag) => _tag.tagName == tag.tagName
+                                    (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>

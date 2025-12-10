@@ -17,7 +17,7 @@ const PUBLIC_PATHS = [
 ];
 const LOCALES = routing.locales;
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const path = pathname.replace(/^\/+/, "");
   const segments = path.split("/");

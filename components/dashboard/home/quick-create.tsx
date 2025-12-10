@@ -34,7 +34,7 @@ export const getLinksLeft = (
   subscription: string,
   thisMonth: number,
   qr?: boolean,
-  className?: string
+  className?: string,
 ) => {
   const allowedLinks = {
     free: 3,
@@ -138,7 +138,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
           <div className="w-full flex flex-col gap-1 justify-between">
             {getLinksLeft(
               user?.plan.subscription ?? "free",
-              user?.links_this_month ?? 0
+              user?.links_this_month ?? 0,
             )}
             <Form {...urlForm}>
               <form
@@ -149,10 +149,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/links/${response.data.shortUrl}/details`
+                      `/dashboard/links/${response.data.shortUrl}/details`,
                     );
                   } else if (response.existingUrl) {
-                    const existingToast = toast(
+                    toast(
                       <div className="w-full flex flex-col gap-2">
                         <div className="flex flex-row items-center justify-start gap-2">
                           <XCircle className="text-destructive" />
@@ -164,7 +164,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                             custom back-half.{" "}
                             <Link
                               onClick={async () => {
-                                toast.dismiss(existingToast);
+                                toast.dismiss("duplicate-shortn-toast");
                               }}
                               href={`/dashboard/links/${response.existingUrl}/details`}
                               className="underline text-primary font-semibold"
@@ -173,7 +173,8 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                             </Link>
                           </p>
                         </div>
-                      </div>
+                      </div>,
+                      { id: "duplicate-shortn-toast" },
                     );
                     setLinkLoading(false);
                   } else if (response.message) {
@@ -241,7 +242,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
             {getLinksLeft(
               user?.plan.subscription ?? "free",
               user?.qr_codes_this_month ?? 0,
-              true
+              true,
             )}
             <Form {...qrCodeForm}>
               <form
@@ -252,7 +253,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`
+                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`,
                     );
                   } else if (response.message) {
                     switch (response.message) {

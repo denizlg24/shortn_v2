@@ -87,20 +87,19 @@ export const AddToBioPageDialog = ({
   });
 
   useEffect(() => {
+    const loadBioPages = async () => {
+      setLoading(true);
+      const result = await getUserBioPages();
+      if (result.success) {
+        setBioPages(result.bioPages as BioPage[]);
+      }
+      setLoading(false);
+    };
     if (open) {
       loadBioPages();
       pageForm.reset();
     }
   }, [open, pageForm]);
-
-  const loadBioPages = async () => {
-    setLoading(true);
-    const result = await getUserBioPages();
-    if (result.success) {
-      setBioPages(result.bioPages as BioPage[]);
-    }
-    setLoading(false);
-  };
 
   const handleCreateNew = async () => {
     setCreating(true);

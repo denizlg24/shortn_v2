@@ -100,11 +100,14 @@ export const LinkUtmParams = ({
   const [saving, setSaving] = useState(false);
   const [campaignOpen, campaignOpenChange] = useState(false);
   const [input, setInput] = useState("");
-  const [shouldShowAddCampaign, setExactCampaignMatch] = useState(true);
   const [campaignOptions, setCampaignOptions] = useState<ICampaign[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [collapsed, setCollapsed] = useState(-1);
   const session = useUser();
+  const hasExactMatch = campaignOptions.some(
+    (campaign) => campaign.title === input,
+  );
+  const shouldShowAddCampaign =
+    input != "" && (!hasExactMatch || campaignOptions.length === 0);
   useEffect(() => {
     if (!session.user) {
       return;
@@ -115,10 +118,8 @@ export const LinkUtmParams = ({
         fetchApi<{ campaigns: ICampaign[] }>("campaigns").then((res) => {
           if (res.success) {
             setCampaignOptions(res.campaigns);
-            setNotFound(false);
           } else {
             setCampaignOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -127,10 +128,8 @@ export const LinkUtmParams = ({
         (res) => {
           if (res.success) {
             setCampaignOptions(res.campaigns);
-            setNotFound(res.campaigns.length === 0);
           } else {
             setCampaignOptions([]);
-            setNotFound(true);
           }
         },
       );
@@ -138,17 +137,6 @@ export const LinkUtmParams = ({
 
     return () => clearTimeout(delayDebounce);
   }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = campaignOptions.some(
-      (campaign) => campaign.title === input,
-    );
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || campaignOptions.length === 0);
-
-    setExactCampaignMatch(_shouldShowAddTag);
-  }, [campaignOptions, notFound, input]);
 
   if (!unlocked) {
     return (

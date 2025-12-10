@@ -39,7 +39,7 @@ const subscription_created_handler = async (
       { stripeId: customerId },
       { plan: { subscription: plan, lastPaid: new Date() } },
     );
-    revalidateTag(`user-plan-${customerId}`);
+    revalidateTag(`user-plan-${customerId}`, "max");
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
     });
@@ -76,7 +76,7 @@ const subscription_deleted_handler = async (
       { stripeId: customerId },
       { plan: { subscription: "free", lastPaid: new Date() } },
     );
-    revalidateTag(`user-pan-${customerId}`);
+    revalidateTag(`user-pan-${customerId}`, "max");
     return true;
   }
   return false;
@@ -113,7 +113,7 @@ const subscription_updated_handler = async (
       { stripeId: customerId },
       { plan: { subscription: plan, lastPaid: new Date() } },
     );
-    revalidateTag(`user-pan-${customerId}`);
+    revalidateTag(`user-pan-${customerId}`, "max");
     return true;
   }
   return false;
@@ -159,6 +159,7 @@ const checkout_session_successful_handler = async ({
             case "plus":
               return await update_sub({ newPlan: "pro", customerId });
           }
+          break;
         case env.LEVEL_TWO_UPGRADE_ID:
           switch (plan) {
             case "free":
@@ -168,6 +169,7 @@ const checkout_session_successful_handler = async ({
             case "basic":
               return await update_sub({ newPlan: "pro", customerId });
           }
+          break;
         default:
           return true;
       }
@@ -197,7 +199,7 @@ export async function POST(req: Request) {
     }
     await connectDB();
     switch (event.type) {
-      case "checkout.session.completed":
+      case "checkout.session.completed": {
         const complete_success = await checkout_session_successful_handler({
           session: event.data.object,
         });
@@ -211,7 +213,9 @@ export async function POST(req: Request) {
           JSON.stringify({ success: false, message: "Webhook failed." }),
           { status: 500 },
         );
-      case "customer.subscription.created":
+      }
+
+      case "customer.subscription.created": {
         const create_success = await subscription_created_handler(
           event.data.object,
         );
@@ -224,7 +228,8 @@ export async function POST(req: Request) {
           JSON.stringify({ success: false, message: "Webhook failed." }),
           { status: 500 },
         );
-      case "customer.subscription.deleted":
+      }
+      case "customer.subscription.deleted": {
         const delete_success = await subscription_deleted_handler(
           event.data.object,
         );
@@ -237,7 +242,8 @@ export async function POST(req: Request) {
           JSON.stringify({ success: false, message: "Webhook failed." }),
           { status: 500 },
         );
-      case "customer.subscription.updated":
+      }
+      case "customer.subscription.updated": {
         const update_success = await subscription_updated_handler(
           event.data.object,
         );
@@ -250,6 +256,7 @@ export async function POST(req: Request) {
           JSON.stringify({ success: false, message: "Webhook failed." }),
           { status: 500 },
         );
+      }
       default:
         break;
     }

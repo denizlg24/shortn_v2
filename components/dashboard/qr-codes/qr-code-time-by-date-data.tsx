@@ -149,6 +149,7 @@ export const QRCodeTimeByDateData = ({
     }
   }, [unlocked, getScans, dateRange]);
 
+  const dateToday = format(new Date(), "yyyy-MM-dd");
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -652,7 +653,7 @@ export const QRCodeTimeByDateData = ({
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
-          filename={`${urlCode}-scan-time-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          filename={`${urlCode}-scan-time-date-data-${dateToday}`}
           data={groupedData.map((val) => {
             const date = val.date;
             const newVal: { date?: string } = { ...val };

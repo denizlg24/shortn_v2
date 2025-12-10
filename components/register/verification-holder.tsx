@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use } from "react";
 import { Skeleton } from "../ui/skeleton";
 
 import { VerificationAlready } from "./verification-already";
@@ -15,24 +15,9 @@ export const VerificationHolder = ({
   email: string;
   token: string;
 }) => {
-  const [verificationResult, setVerificationResult] = useState("");
-
-  useEffect(() => {
-    if (!email || !token) {
-      setVerificationResult("");
-    }
-
-    const verify = async () => {
-      const { success, message } = await verifyEmail(email, token);
-      if (success) {
-        setVerificationResult("true");
-      } else if (message) {
-        setVerificationResult(message);
-      }
-    };
-
-    verify();
-  }, [email, token]);
+  const { success, message } = use(verifyEmail(email, token));
+  const verificationResult =
+    !email || !token ? "" : success ? "true" : message || "";
 
   switch (verificationResult) {
     case "true":

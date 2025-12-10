@@ -17,17 +17,18 @@ export default async function Home({
   if (!token) {
     notFound();
   }
+  let decoded: { plan: string; type?: "upgrade" | "subscribe" };
   try {
-    const decoded = jwt.verify(token as string, env.AUTH_SECRET) as {
+    decoded = jwt.verify(token as string, env.AUTH_SECRET) as {
       plan: string;
       type?: "upgrade" | "subscribe";
     };
-    return (
-      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
-        <UpgradedCard plan={decoded.plan} type={decoded.type} />
-      </main>
-    );
   } catch {
     notFound();
   }
+  return (
+    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
+      <UpgradedCard plan={decoded.plan} type={decoded.type} />
+    </main>
+  );
 }
