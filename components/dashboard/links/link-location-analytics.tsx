@@ -64,6 +64,7 @@ export const LinkLocationAnalytics = ({
   const { urlCode } = useClicks();
   const [loading] = useState(false);
   const [clicks] = useState<ClickEntry[]>(initialClicks);
+  const dateToday = format(new Date(), "yyyy-MM-dd");
   if (unlocked == "none") {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -329,7 +330,7 @@ export const LinkLocationAnalytics = ({
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
-          filename={`${urlCode}-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          filename={`${urlCode}-${selected}-data-${dateToday}`}
           data={data.map((val) => ({
             [String(selected).charAt(0).toUpperCase() +
             String(selected).slice(1)]:

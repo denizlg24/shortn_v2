@@ -18,16 +18,17 @@ export default async function Home({
   if (!token) {
     notFound();
   }
+  let decoded: { plan: SubscriptionsType };
   try {
-    const decoded = jwt.verify(token as string, env.AUTH_SECRET) as {
+    decoded = jwt.verify(token as string, env.AUTH_SECRET) as {
       plan: SubscriptionsType;
     };
-    return (
-      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
-        <DowngradedCard plan={decoded.plan} />
-      </main>
-    );
   } catch {
     notFound();
   }
+  return (
+    <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
+      <DowngradedCard plan={decoded.plan} />
+    </main>
+  );
 }

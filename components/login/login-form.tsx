@@ -87,7 +87,7 @@ export const LoginForm = () => {
             });
             break;
           case "not-verified":
-            const notVerifiedToast = toast(
+            toast(
               <div className="w-full flex flex-col gap-2">
                 <div className="flex flex-row items-center justify-start gap-2">
                   <XCircle className="text-destructive" />
@@ -100,7 +100,7 @@ export const LoginForm = () => {
                     <Link
                       onClick={async () => {
                         await sendVerificationEmail(values.email, locale);
-                        toast.dismiss(notVerifiedToast);
+                        toast.dismiss("not-verified-toast");
                       }}
                       href={`/verification-sent/${values.email}`}
                       className="underline text-primary font-semibold"
@@ -109,7 +109,8 @@ export const LoginForm = () => {
                     </Link>
                   </p>
                 </div>
-              </div>
+              </div>,
+              { id: "not-verified-toast" },
             );
             break;
           default:

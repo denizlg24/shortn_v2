@@ -63,7 +63,7 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
@@ -85,13 +85,25 @@ export const LinkCard = ({
   const [currentLink, setCurrentLink] = useState(link);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [tagOpen, tagOpenChange] = useState(false);
-  const [shouldShowAddTag, setExactTagMatch] = useState(true);
+
+  const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
+
+  const shouldShowAddTag =
+    input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   const [justCopied, setJustCopied] = useState(false);
-  const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(undefined);
-  const [bioPageLoading, setBioPageLoading] = useState(true);
+  const response = use(
+    fetchApi<{ slug: string; avatar?: string }>(
+      `pages/slug-by-url/${link.urlCode}`,
+    ),
+  );
+  const bioPageSlugFetched =
+    response.success && response.slug ? response.slug : undefined;
+  const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(
+    bioPageSlugFetched,
+  );
+
   const isPro = session.user?.plan?.subscription === "pro";
 
   useEffect(() => {
@@ -104,10 +116,8 @@ export const LinkCard = ({
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -115,47 +125,14 @@ export const LinkCard = ({
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
   }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || tagOptions.length === 0);
-
-    setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
-
-  useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-
-    setBioPageLoading(true);
-    fetchApi<{ slug: string; avatar?: string }>(
-      `pages/slug-by-url/${link.urlCode}`,
-    )
-      .then((res) => {
-        if (res.success && res.slug) {
-          setBioPageSlug(res.slug);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching bio page:", error);
-      })
-      .finally(() => {
-        setBioPageLoading(false);
-      });
-  }, [link.urlCode, session.user]);
 
   if (!session.user) {
     return null;
@@ -329,15 +306,7 @@ export const LinkCard = ({
                   {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
                 </Link>
               </Button>
-              {bioPageLoading ? (
-                <Button
-                  variant={"outline"}
-                  className="w-full border-none! rounded-none! justify-start! shadow-none! "
-                  disabled
-                >
-                  <NotepadText /> Loading...
-                </Button>
-              ) : bioPageSlug ? (
+              {bioPageSlug ? (
                 <Button
                   asChild
                   variant={"outline"}
@@ -611,15 +580,7 @@ export const LinkCard = ({
 
           <HoverCard>
             <HoverCardTrigger asChild>
-              {bioPageLoading ? (
-                <Button
-                  variant={"outline"}
-                  className="p-2! aspect-square! border-transparent shadow-none"
-                  disabled
-                >
-                  <NotepadText className="text-muted-foreground" />
-                </Button>
-              ) : bioPageSlug ? (
+              {bioPageSlug ? (
                 <Button
                   variant={"outline"}
                   asChild
@@ -658,13 +619,11 @@ export const LinkCard = ({
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                 <p className="text-sm font-bold">
-                  {bioPageLoading
-                    ? "Loading..."
-                    : bioPageSlug
-                      ? "View page"
-                      : isPro
-                        ? "Add to a page"
-                        : "Upgrade to Pro"}
+                  {bioPageSlug
+                    ? "View page"
+                    : isPro
+                      ? "Add to a page"
+                      : "Upgrade to Pro"}
                 </p>
               </div>
             </HoverCardContent>
@@ -840,15 +799,7 @@ export const LinkCard = ({
                 {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
               </Link>
             </Button>
-            {bioPageLoading ? (
-              <Button
-                variant={"outline"}
-                className="w-full border-none! rounded-none! justify-start! shadow-none! "
-                disabled
-              >
-                <NotepadText /> Loading...
-              </Button>
-            ) : bioPageSlug ? (
+            {bioPageSlug ? (
               <Button
                 asChild
                 variant={"outline"}

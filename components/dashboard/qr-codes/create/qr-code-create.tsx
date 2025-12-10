@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Circle,
-  Infinity,
+  InfinityIcon,
   Loader2,
   LockIcon,
   Trash2Icon,
@@ -290,7 +290,7 @@ export const QRCodeCreate = ({
                     <div className="flex flex-row gap-2 items-center">
                       {session?.user?.plan.subscription == "pro" ? (
                         <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
-                          <Infinity className="min-w-3! w-3! h-3!" />
+                          <InfinityIcon className="min-w-3! w-3! h-3!" />
                           <p>left</p>
                         </div>
                       ) : linksLeft == undefined ? (

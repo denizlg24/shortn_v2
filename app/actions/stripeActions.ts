@@ -200,6 +200,7 @@ export async function downgradeSubscription({
               token,
             };
         }
+        break;
       case "plus":
         switch (downgrade) {
           case "plus":
@@ -215,6 +216,7 @@ export async function downgradeSubscription({
               token,
             };
         }
+        break;
       case "pro":
         switch (downgrade) {
           case "pro":

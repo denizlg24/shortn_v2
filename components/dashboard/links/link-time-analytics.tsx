@@ -202,6 +202,8 @@ export const LinkTimeAnalytics = ({
     }
   }, [dateRange, unlocked, getClicks]);
 
+  const dateToday = format(new Date(), "yyyy-MM-dd");
+
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -707,7 +709,7 @@ export const LinkTimeAnalytics = ({
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
-          filename={`${urlCode}-date-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          filename={`${urlCode}-date-data-${dateToday}`}
           data={groupedData.map((val) => ({
             Date: val.date,
             Clicks: val.scans,

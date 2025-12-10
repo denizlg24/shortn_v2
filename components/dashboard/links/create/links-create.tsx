@@ -24,7 +24,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { BASEURL, cn } from "@/lib/utils";
 import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Infinity, Loader2, LockIcon } from "lucide-react";
+import { InfinityIcon, Loader2, LockIcon } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -221,7 +221,7 @@ export const LinksCreate = () => {
           <div className="flex flex-row gap-2 items-center">
             {session?.user?.plan.subscription == "pro" ? (
               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
-                <Infinity className="min-w-3! w-3! h-3!" />
+                <InfinityIcon className="min-w-3! w-3! h-3!" />
                 <p>left</p>
               </div>
             ) : qrCodesLeft == undefined ? (

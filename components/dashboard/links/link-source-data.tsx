@@ -30,7 +30,7 @@ export const LinkSourceData = ({
   const { urlCode } = useClicks();
   const [loading] = useState(false);
   const [clicks] = useState<ClickEntry[]>(initialClicks);
-
+  const dateToday = format(new Date(), "yyyy-MM-dd");
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -109,7 +109,7 @@ export const LinkSourceData = ({
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
-          filename={`${urlCode}-referrer-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          filename={`${urlCode}-referrer-data-${dateToday}`}
           data={data.map((val) => ({
             "Referrer (Where click is coming from)": val.referrer,
             Clicks: val.clicks,
