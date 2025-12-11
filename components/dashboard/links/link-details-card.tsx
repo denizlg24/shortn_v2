@@ -72,7 +72,6 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const session = useUser();
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [tagOpen, tagOpenChange] = useState(false);
   const [shouldShowAddTag, setExactTagMatch] = useState(true);
 
@@ -88,10 +87,8 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -99,10 +96,8 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
@@ -117,7 +112,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
       input != "" && (!hasExactMatch || tagOptions.length === 0);
 
     setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
+  }, [tagOptions, input]);
 
   const router = useRouter();
 
@@ -128,8 +123,8 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
     return <Skeleton className="w-full h-42 bg-background" />;
   }
 
-  if (notFound || !currentLink) {
-    return <div>notFound</div>;
+  if (!currentLink) {
+    return null;
   }
 
   return (

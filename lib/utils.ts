@@ -77,11 +77,32 @@ export async function fetchApi<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<ApiResponse<T>> {
-  const res = await fetch(`/api/${path}`, {
+  const requestHeaders: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+  if (typeof window === "undefined") {
+    try {
+      const headerList = await (await import("next/headers")).headers();
+      const cookie = headerList.get("cookie");
+      if (cookie) {
+        requestHeaders["Cookie"] = cookie;
+      }
+    } catch (_error) {
+      // Ignored: Happens if fetchApi is called outside a request context (e.g. static generation)
+    }
+  }
+  const fetchOptions: RequestInit = {
     ...options,
-  });
-
+    headers: requestHeaders,
+    credentials: "include",
+  };
+  const res = await fetch(`${BASEURL}/api/${path}`, fetchOptions);
+  console.log("fetchApi", path, res.status);
   if (!res.ok) {
+    if (res.status === 403 || res.status === 401) {
+      console.error("Auth failed for path:", path);
+    }
     throw new ApiError(res.status, await res.text());
   }
 
