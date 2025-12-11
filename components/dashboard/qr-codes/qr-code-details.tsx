@@ -30,7 +30,9 @@ export const QRCodeDetails = async ({ qr }: { qr: IQRCode }) => {
               Back to list
             </Link>
           </Button>
-          <QRCodeDetailsCard qrCode={qr} />
+          <QRCodeDetailsCard
+            qrCode={{ ...qr, _id: (qr._id as string).toString() }}
+          />
           <QRCodeTimeAnalytics
             createdAt={qr.date}
             unlocked={plan == "plus" || plan == "pro"}

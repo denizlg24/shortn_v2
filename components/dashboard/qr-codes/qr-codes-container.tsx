@@ -69,7 +69,7 @@ export const QRCodesContainer = ({
           {qrCodes.map((code) => (
             <QRCodeCard
               key={code.qrCodeId}
-              qrCode={code}
+              qrCode={{ ...code, _id: (code._id as string).toString() }}
               addTag={addTag}
               removeTag={removeTag}
               tags={tags}
