@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import { Campaigns } from "@/models/url/Campaigns";
 import { NextResponse } from "next/server";
@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("q");
-  const session = await auth();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {

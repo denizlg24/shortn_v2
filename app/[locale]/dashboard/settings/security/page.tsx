@@ -1,7 +1,8 @@
-import { getLoginRecords, getUser } from "@/app/actions/userActions";
+import { getLoginRecords } from "@/app/actions/userActions";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
+import { getServerSession } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 export default async function Home({
   params,
@@ -10,9 +11,10 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
   if (!user) {
-    notFound();
+    forbidden();
   }
   const { loginRecords } = await getLoginRecords({ limit: 4, sub: user.sub });
   const { loginRecords: fullLoginRecords } = await getLoginRecords({

@@ -1,15 +1,14 @@
 "use server";
-
+import { headers } from "next/headers";
 import Stripe from "stripe";
 import env from "@/utils/env";
-import { auth } from "@/auth";
 import { countries } from "jsvat";
 import { mapJsvatToStripe } from "@/lib/utils";
-import { getUser } from "@/app/actions/userActions";
+
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
-import { User } from "@/models/auth/User";
-import { connectDB } from "@/lib/mongodb";
 import jwt from "jsonwebtoken";
+import { auth } from "@/lib/auth";
+import { getServerSession } from "@/lib/session";
 
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 export const update_sub = async ({
@@ -76,12 +75,15 @@ export const update_sub = async ({
 };
 export async function getStripeTax({ tax_id }: { tax_id: string }) {
   try {
-    const user = await getUser();
+    const user = await getServerSession();
+    if (!user) {
+      return { success: false, tax: null };
+    }
     if (!user.user) {
       return { success: false, tax: null };
     }
     const tax = await stripe.customers.retrieveTaxId(
-      user.user.stripeId,
+      user.user.stripeCustomerId,
       tax_id,
     );
     if (!tax.deleted) {
@@ -91,6 +93,31 @@ export async function getStripeTax({ tax_id }: { tax_id: string }) {
   } catch (error) {
     console.log(error);
     return { success: false, tax: null };
+  }
+}
+
+export async function subscribeToFreePlan({
+  customer_id,
+  userId,
+}: {
+  customer_id: string;
+  userId: string;
+}) {
+  try {
+    await stripe.subscriptions.create({
+      customer: customer_id,
+      items: [
+        {
+          price: env.FREE_PLAN_ID,
+        },
+      ],
+      metadata: {
+        userId: userId,
+      },
+    });
+    return true;
+  } catch (_error) {
+    return false;
   }
 }
 
@@ -105,7 +132,6 @@ export async function createFreePlan({
     name,
     email,
   });
-
   const subscription = await stripe.subscriptions.create({
     customer: customer.id,
     items: [
@@ -139,7 +165,7 @@ export async function getStripeExtraInfo(stripeId: string) {
 
 export async function updatePhone(stripeId: string, phone: string) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -160,13 +186,34 @@ export async function updatePhone(stripeId: string, phone: string) {
   }
 }
 
+export async function getUserPlan() {
+  try {
+    const subscriptions = await auth.api.listActiveSubscriptions({
+      headers: await headers(),
+    });
+
+    const sub = subscriptions.filter((sub) => sub.status === "active");
+
+    return {
+      success: true,
+      plan: sub.length > 0 ? (sub[0].plan as SubscriptionsType) : null,
+      lastPaid: sub.length > 0 ? sub[0].periodStart : null,
+    };
+  } catch {
+    return {
+      success: false,
+      message: "server-error",
+    };
+  }
+}
+
 export async function downgradeSubscription({
   downgrade,
 }: {
   downgrade: SubscriptionsType;
 }) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
     if (!user) {
       return {
@@ -195,7 +242,7 @@ export async function downgradeSubscription({
             return {
               success: await update_sub({
                 newPlan: "free",
-                customerId: user.stripeId,
+                customerId: user.stripeCustomerId,
               }),
               token,
             };
@@ -211,7 +258,7 @@ export async function downgradeSubscription({
             return {
               success: await update_sub({
                 newPlan: downgrade,
-                customerId: user.stripeId,
+                customerId: user.stripeCustomerId,
               }),
               token,
             };
@@ -227,12 +274,13 @@ export async function downgradeSubscription({
             return {
               success: await update_sub({
                 newPlan: downgrade,
-                customerId: user.stripeId,
+                customerId: user.stripeCustomerId,
               }),
               token,
             };
         }
     }
+    return { success: false };
   } catch (error) {
     console.log(error);
     return { success: false, message: "server-error" };
@@ -241,7 +289,7 @@ export async function downgradeSubscription({
 
 export async function updateTaxId(stripeId: string, tax_id: string) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -325,7 +373,7 @@ export async function updateUserAddress(
 }
 
 export async function getPaymentMethods(stripeId: string) {
-  const session = await auth();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {
@@ -347,7 +395,7 @@ export async function getPaymentMethods(stripeId: string) {
 }
 
 export async function getCharges(stripeId: string, limit: number = 3) {
-  const session = await auth();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {
@@ -370,7 +418,7 @@ export async function getCharges(stripeId: string, limit: number = 3) {
   }
 }
 
-const getPlanFromSubscription = ({
+const _getPlanFromSubscription = ({
   subscription,
 }: {
   subscription: Stripe.Subscription;
@@ -398,51 +446,6 @@ const getPlanFromSubscription = ({
   }
 };
 
-export async function getUserPlan(): Promise<
-  | { success: true; plan: SubscriptionsType }
-  | { success: false; message: string }
-> {
-  try {
-    const session = await getUser();
-    if (!session.user) {
-      return { success: false, message: "unauthenticated" };
-    }
-    const stripeCustomerId = session.user.stripeId;
-    const currentDBPlan = session.user.plan.subscription;
-
-    const subscriptions = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      limit: 1,
-    });
-    const subscription =
-      (subscriptions.data?.length ?? 0) == 1
-        ? subscriptions.data[0]
-        : undefined;
-    if (!subscription) {
-      return { success: true, plan: "free" };
-    }
-    const stripePlan: SubscriptionsType = subscription
-      ? getPlanFromSubscription({ subscription })
-      : "free";
-    if (stripePlan != currentDBPlan) {
-      await connectDB();
-      await User.findOneAndUpdate(
-        { sub: session.user.sub },
-        {
-          plan: {
-            subscription: stripePlan,
-            lastPaid: session.user.plan.lastPaid,
-          },
-        },
-      );
-    }
-    return { success: true, plan: stripePlan };
-  } catch (error) {
-    console.log(error);
-    return { success: false, message: "server-error" };
-  }
-}
-
 export async function createSubscriptionSession({
   tier,
 }: {
@@ -451,8 +454,8 @@ export async function createSubscriptionSession({
   { success: true; clientSecret: string } | { success: false; message: string }
 > {
   try {
-    const session = await getUser();
-    if (!session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "unauthenticated" };
     }
     let price: string = "";
@@ -470,7 +473,7 @@ export async function createSubscriptionSession({
         return { success: false, message: "wrong-tier" };
     }
     const checkout_session = await stripe.checkout.sessions.create({
-      customer: session.user.stripeId,
+      customer: session.user.stripeCustomerId,
       ui_mode: "custom",
       automatic_tax: { enabled: true },
       mode: "subscription",
@@ -514,8 +517,8 @@ export async function createUpgradeSession({
   { success: true; clientSecret: string } | { success: false; message: string }
 > {
   try {
-    const session = await getUser();
-    if (!session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "unauthenticated" };
     }
     const userPlan = await getUserPlan();
@@ -548,7 +551,7 @@ export async function createUpgradeSession({
     }
 
     const checkout_session = await stripe.checkout.sessions.create({
-      customer: session.user.stripeId,
+      customer: session.user.stripeCustomerId,
       ui_mode: "custom",
       automatic_tax: { enabled: true },
       mode: "payment",

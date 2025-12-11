@@ -1,9 +1,10 @@
-import { getUser } from "@/app/actions/userActions";
+import { getUserPlan } from "@/app/actions/stripeActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "@/i18n/navigation";
+import { getServerSession } from "@/lib/session";
 import { cn } from "@/lib/utils";
 import { getActiveCodes, getActiveLinks } from "@/utils/fetching-functions";
 import {
@@ -14,7 +15,7 @@ import {
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Check, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
@@ -34,10 +35,12 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
   if (!user) {
-    notFound();
+    forbidden();
   }
+  const { plan } = await getUserPlan();
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
@@ -52,15 +55,14 @@ export default async function Home({
           <Card className="w-full p-0 gap-0!">
             <CardHeader className="p-3 bg-muted rounded-t-xl flex flex-row justify-between items-center">
               <h1 className="sm:text-lg text-base font-bold">
-                <span className="capitalize">{user.plan.subscription}</span>{" "}
-                plan
+                <span className="capitalize">{plan}</span> plan
               </h1>
-              {user.plan.subscription != "pro" && (
+              {plan != "pro" && (
                 <Button className="h-fit!">
                   <Link href={`/dashboard/subscription`}>Upgrade</Link>
                 </Button>
               )}
-              {user.plan.subscription == "pro" && (
+              {plan == "pro" && (
                 <Button className="h-fit!">
                   <Link href={`/dashboard/subscription`}>Change Plan</Link>
                 </Button>
@@ -74,12 +76,8 @@ export default async function Home({
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   <Check className="w-3 h-3 shrink-0" />
                   <p>
-                    {allowed_links[
-                      user.plan.subscription as SubscriptionsType
-                    ] > 0
-                      ? allowed_links[
-                          user.plan.subscription as SubscriptionsType
-                        ]
+                    {allowed_links[plan as SubscriptionsType] > 0
+                      ? allowed_links[plan as SubscriptionsType]
                       : "Unlimited"}{" "}
                     shortn.at links allowed per month.
                   </p>
@@ -87,18 +85,14 @@ export default async function Home({
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   <Check className="w-3 h-3 shrink-0" />
                   <p>
-                    {allowed_qr_codes[
-                      user.plan.subscription as SubscriptionsType
-                    ] > 0
-                      ? allowed_qr_codes[
-                          user.plan.subscription as SubscriptionsType
-                        ]
+                    {allowed_qr_codes[plan as SubscriptionsType] > 0
+                      ? allowed_qr_codes[plan as SubscriptionsType]
                       : "Unlimited"}{" "}
                     QR Codes allowed per month.
                   </p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
-                  {user.plan.subscription != "free" ? (
+                  {plan != "free" ? (
                     <Check className="w-3 h-3 shrink-0" />
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
@@ -106,8 +100,7 @@ export default async function Home({
                   <p>Total click and scan count</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
-                  {user.plan.subscription == "plus" ||
-                  user.plan.subscription == "pro" ? (
+                  {plan == "plus" || plan == "pro" ? (
                     <Check className="w-3 h-3 shrink-0" />
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
@@ -115,8 +108,7 @@ export default async function Home({
                   <p>Time and Date-Based Analytics</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
-                  {user.plan.subscription == "plus" ||
-                  user.plan.subscription == "pro" ? (
+                  {plan == "plus" || plan == "pro" ? (
                     <Check className="w-3 h-3 shrink-0" />
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
@@ -124,7 +116,7 @@ export default async function Home({
                   <p>City level location Insights</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
-                  {user.plan.subscription == "pro" ? (
+                  {plan == "pro" ? (
                     <Check className="w-3 h-3 shrink-0" />
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
@@ -132,7 +124,7 @@ export default async function Home({
                   <p>Device, Browser and OS details</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
-                  {user.plan.subscription == "pro" ? (
+                  {plan == "pro" ? (
                     <Check className="w-3 h-3 shrink-0" />
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
@@ -168,11 +160,10 @@ export default async function Home({
                       <span
                         className={cn(
                           "text-xs font-medium",
-                          (user.plan.subscription == "pro"
+                          (plan == "pro"
                             ? 1000
-                            : allowed_links[
-                                user.plan.subscription as SubscriptionsType
-                              ]) < user.links_this_month
+                            : allowed_links[plan as SubscriptionsType]) <
+                            user.links_this_month
                             ? "text-red-600"
                             : "text-muted-foreground",
                         )}
@@ -182,21 +173,17 @@ export default async function Home({
                           {user.links_this_month}
                         </span>
                         /
-                        {user.plan.subscription == "pro"
+                        {plan == "pro"
                           ? "Unlimited"
-                          : allowed_links[
-                              user.plan.subscription as SubscriptionsType
-                            ]}
+                          : allowed_links[plan as SubscriptionsType]}
                         )
                       </span>
                     </p>
                     <UsageBar
                       max={
-                        user.plan.subscription == "pro"
+                        plan == "pro"
                           ? 1000
-                          : allowed_links[
-                              user.plan.subscription as SubscriptionsType
-                            ]
+                          : allowed_links[plan as SubscriptionsType]
                       }
                       curr={user.links_this_month}
                     />
@@ -218,11 +205,10 @@ export default async function Home({
                       <span
                         className={cn(
                           "text-xs font-medium",
-                          (user.plan.subscription == "pro"
+                          (plan == "pro"
                             ? 1000
-                            : allowed_qr_codes[
-                                user.plan.subscription as SubscriptionsType
-                              ]) < user.qr_codes_this_month
+                            : allowed_qr_codes[plan as SubscriptionsType]) <
+                            user.qr_codes_this_month
                             ? "text-red-600"
                             : "text-muted-foreground",
                         )}
@@ -232,21 +218,17 @@ export default async function Home({
                           {user.qr_codes_this_month}
                         </span>
                         /
-                        {user.plan.subscription == "pro"
+                        {plan == "pro"
                           ? "Unlimited"
-                          : allowed_links[
-                              user.plan.subscription as SubscriptionsType
-                            ]}
+                          : allowed_links[plan as SubscriptionsType]}
                         )
                       </span>
                     </p>
                     <UsageBar
                       max={
-                        user.plan.subscription == "pro"
+                        plan == "pro"
                           ? 1000
-                          : allowed_qr_codes[
-                              user.plan.subscription as SubscriptionsType
-                            ]
+                          : allowed_qr_codes[plan as SubscriptionsType]
                       }
                       curr={user.qr_codes_this_month}
                     />

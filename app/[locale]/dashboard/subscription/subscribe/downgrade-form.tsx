@@ -2,8 +2,8 @@
 import { downgradeSubscription } from "@/app/actions/stripeActions";
 import { Button } from "@/components/ui/button";
 import { Link, useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { SubscriptionsType } from "@/utils/plan-utils";
-import { useUser } from "@/utils/UserContext";
 import {
   ArrowDown,
   Check,
@@ -77,8 +77,8 @@ export const DowngradeForm = ({
   tier: SubscriptionsType;
   currentPlan: SubscriptionsType;
 }) => {
+  const { refetch } = authClient.useSession();
   const router = useRouter();
-  const { refresh } = useUser();
   const [changing, setChanging] = useState(false);
   return (
     <div className="max-w-7xl mx-auto w-full sm:mt-8 mt-4 px-4">
@@ -111,7 +111,7 @@ export const DowngradeForm = ({
                   key={plan.id}
                   className={`relative w-full h-full flex flex-col rounded-2xl p-4 border border-primary/10 shadow-xl ${
                     plan.featured
-                      ? "bg-gradient-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
+                      ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
                       : "bg-white"
                   }`}
                 >
@@ -176,7 +176,7 @@ export const DowngradeForm = ({
                   key={plan.id}
                   className={`relative rounded-2xl w-full h-full flex flex-col p-4 border border-primary/10 shadow-xl ${
                     plan.featured
-                      ? "bg-gradient-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
+                      ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
                       : "bg-white"
                   }`}
                 >
@@ -238,10 +238,10 @@ export const DowngradeForm = ({
                         downgrade: tier,
                       });
                       if (result.success && result.token) {
-                        await refresh();
                         router.push(
                           `/dashboard/subscription/downgraded?token=${result.token}`,
                         );
+                        refetch();
                       } else {
                         toast.error(
                           "There was a problem updating your plan. Try again later.",

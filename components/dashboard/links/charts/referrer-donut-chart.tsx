@@ -1,6 +1,4 @@
 "use client";
-
-import * as React from "react";
 import { Label, Pie, PieChart, TooltipProps } from "recharts";
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,7 +18,7 @@ export type ReferrerStats = {
 export const description = "A donut chart with text";
 
 export function aggregateReferrers(
-  clicks: { referrer?: string | null | undefined }[]
+  clicks: { referrer?: string | null | undefined }[],
 ): ReferrerStats[] {
   const counts: Record<string, number> = {};
 
@@ -89,7 +87,7 @@ export function ReferrerDonutChart({
         label: d.referrer,
         color: `var(--chart-${(i % 5) + 1})`,
       },
-    ])
+    ]),
   ) satisfies ChartConfig;
 
   const totalClicks = chartData.reduce((acc, curr) => acc + curr.clicks, 0);

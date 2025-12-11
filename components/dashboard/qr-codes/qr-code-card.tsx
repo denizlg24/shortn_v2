@@ -20,9 +20,8 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
-import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -58,6 +57,8 @@ import { toast } from "sonner";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import QRCodeStyling from "qr-code-styling";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 export const QRCodeCard = ({
   qrCode,
@@ -65,12 +66,33 @@ export const QRCodeCard = ({
   removeTag,
   tags,
 }: {
-  qrCode: IQRCode;
+  qrCode: TQRCode;
   addTag: (tagId: string) => void;
   removeTag: (tagId: string) => void;
   tags: string[];
 }) => {
-  const session = useUser();
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
 
   const allowedLinks = {
     free: 3,
@@ -79,10 +101,9 @@ export const QRCodeCard = ({
   };
 
   const linksLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.links_this_month ?? 0)
+    plan != "pro"
+      ? allowedLinks[plan as "free" | "basic" | "plus"] -
+        (user?.links_this_month ?? 0)
       : undefined;
 
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
@@ -102,7 +123,7 @@ export const QRCodeCard = ({
   );
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -127,11 +148,11 @@ export const QRCodeCard = ({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   const router = useRouter();
 
-  if (!session.user) {
+  if (!user) {
     return null;
   }
 
@@ -378,7 +399,7 @@ export const QRCodeCard = ({
             <div className="w-full flex sm:flex-row flex-col sm:items-center items-start sm:gap-4 gap-2">
               <div className="flex flex-row items-center gap-1">
                 <ChartNoAxesColumn className="w-4 h-4" />
-                {session.user.plan.subscription == "free" ? (
+                {plan == "free" ? (
                   <HoverCard>
                     <HoverCardTrigger
                       className="px-1 rounded-none! h-fit text-xs flex flex-row bg-secondary items-center py-0.5 shadow-xs font-normal
@@ -489,12 +510,14 @@ export const QRCodeCard = ({
                                         tag.id,
                                       );
                                     if (success) {
-                                      const newQR = currentQrCode;
-                                      newQR.tags =
-                                        newQR.tags?.filter(
-                                          (_t) => _t.id != tag.id,
-                                        ) || [];
-                                      setCurrentQrCode(newQR);
+                                      setCurrentQrCode((prev) => ({
+                                        ...prev,
+                                        tags: prev.tags?.filter(
+                                          (_t) =>
+                                            (_t._id as string).toString() !=
+                                            (tag._id as string).toString(),
+                                        ),
+                                      }));
                                       tagOpenChange(false);
                                     }
                                   } else {
@@ -503,7 +526,10 @@ export const QRCodeCard = ({
                                       tag.id,
                                     );
                                     if (success) {
-                                      currentQrCode.tags?.push(tag);
+                                      setCurrentQrCode((prev) => ({
+                                        ...prev,
+                                        tags: [...(prev.tags || []), tag],
+                                      }));
                                       tagOpenChange(false);
                                     }
                                   }
@@ -535,7 +561,10 @@ export const QRCodeCard = ({
                                     );
                                   setInput("");
                                   if (success && tag) {
-                                    currentQrCode.tags?.push(tag);
+                                    setCurrentQrCode((prev) => ({
+                                      ...prev,
+                                      tags: [...(prev.tags || []), tag],
+                                    }));
                                   }
                                   tagOpenChange(false);
                                 }}

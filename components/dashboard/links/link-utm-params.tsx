@@ -26,10 +26,10 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { cn, fetchApi } from "@/lib/utils";
 import { ICampaign } from "@/models/url/Campaigns";
 import { TUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
 import {
   Check,
   CheckCircle,
@@ -43,7 +43,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
 function buildUrl(
   link: string,
   utm?: {
@@ -102,14 +101,15 @@ export const LinkUtmParams = ({
   const [input, setInput] = useState("");
   const [campaignOptions, setCampaignOptions] = useState<ICampaign[]>([]);
   const [collapsed, setCollapsed] = useState(-1);
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
   const hasExactMatch = campaignOptions.some(
     (campaign) => campaign.title === input,
   );
   const shouldShowAddCampaign =
     input != "" && (!hasExactMatch || campaignOptions.length === 0);
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -136,7 +136,7 @@ export const LinkUtmParams = ({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   if (!unlocked) {
     return (

@@ -1,6 +1,4 @@
 "use client";
-
-import { updatePassword } from "@/app/actions/userActions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { TLoginRecord } from "@/models/auth/LoginActivity";
-import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { EyeOff, Eye, Loader2, SquareArrowOutUpRight } from "lucide-react";
@@ -31,6 +28,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FullLoginRecordsCard } from "./full-login-records-card";
+import { authClient } from "@/lib/authClient";
 const updatePasswordFormSchema = z
   .object({
     old_password: z.string().min(1, "Required"),
@@ -62,24 +60,27 @@ export const SecurityCard = ({
       confirmPassword: "",
     },
   });
+  const { isDirty } = form.formState;
   const [showPassword, toggleShowPassword] = useState(false);
   const [showCurrentPassword, toggleShowCurrentPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
   const [changesLoading, setChangesLoading] = useState(false);
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
   async function onSubmit(values: z.infer<typeof updatePasswordFormSchema>) {
-    if (!session.user) {
+    if (!user) {
       return;
     }
     setChangesLoading(true);
-    const { success, message } = await updatePassword({
-      old: values.old_password,
+    const { error } = await authClient.changePassword({
       newPassword: values.password,
+      currentPassword: values.old_password,
+      revokeOtherSessions: true,
     });
 
-    if (success) {
+    if (!error) {
       const accountActivity = {
-        sub: session.user.sub,
+        sub: user.sub,
         type: "password-changed",
         success: true,
       };
@@ -92,30 +93,22 @@ export const SecurityCard = ({
       form.reset();
       setChangesLoading(false);
       return;
+    } else if (error) {
+      toast.error(
+        error.message || "There was an error updating your password.",
+      );
+      const accountActivity = {
+        sub: user.sub,
+        type: "password-change-attempt",
+        success: false,
+      };
+      fetch("/api/auth/track-activity", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountActivity),
+      });
     }
 
-    if (message === "password-incorrect") {
-      form.setError("old_password", {
-        type: "manual",
-        message: "Your current password is incorrect.",
-      });
-    } else if (message === "user-not-found") {
-      toast.error("User not found. Please log in again.");
-    } else if (message === "server-error") {
-      toast.error(
-        "There was a problem updating your password. Try again later.",
-      );
-    }
-    const accountActivity = {
-      sub: session.user.sub,
-      type: "password-change-attempt",
-      success: false,
-    };
-    fetch("/api/auth/track-activity", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(accountActivity),
-    });
     setChangesLoading(false);
   }
 
@@ -218,7 +211,7 @@ export const SecurityCard = ({
             )}
           />
           <div className="grid xs:grid-cols-2 grid-cols-1 w-full col-span-full gap-6 gap-y-2">
-            {form.formState.isDirty && (
+            {isDirty && (
               <>
                 <Button type="submit" disabled={changesLoading}>
                   {changesLoading ? (

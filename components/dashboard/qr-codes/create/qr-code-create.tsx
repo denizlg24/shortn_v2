@@ -1,9 +1,8 @@
 "use client";
 
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Options } from "qr-code-styling";
-import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -64,6 +63,9 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { uploadImage } from "@/app/actions/uploadImage";
 import { deletePicture } from "@/app/actions/deletePicture";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
+import { fetchApi } from "@/lib/utils";
 
 const qrCodeFormSchema = z.object({
   destination: z
@@ -93,8 +95,27 @@ export const QRCodeCreate = ({
   state: "configure" | "customize";
   setState: (arg0: "configure" | "customize") => void;
 }) => {
-  const session = useUser();
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
 
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const allowedLinks = {
     free: 3,
     basic: 25,
@@ -102,10 +123,9 @@ export const QRCodeCreate = ({
   };
 
   const linksLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.links_this_month ?? 0)
+    plan != "pro"
+      ? allowedLinks[plan as "free" | "basic" | "plus"] -
+        (user?.links_this_month ?? 0)
       : undefined;
 
   const [options, setOptions] = useState<Partial<Options>>({
@@ -239,8 +259,8 @@ export const QRCodeCreate = ({
                 Create a new QR Code
               </h1>
               {getLinksLeft(
-                session.user?.plan.subscription ?? "free",
-                session.user?.qr_codes_this_month ?? 0,
+                plan,
+                user?.qr_codes_this_month ?? 0,
                 true,
                 "text-xs",
               )}
@@ -288,7 +308,7 @@ export const QRCodeCreate = ({
                       </p>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
-                      {session?.user?.plan.subscription == "pro" ? (
+                      {plan == "pro" ? (
                         <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                           <InfinityIcon className="min-w-3! w-3! h-3!" />
                           <p>left</p>
@@ -329,7 +349,7 @@ export const QRCodeCreate = ({
                           <p className="sm:text-sm text-xs font-semibold">
                             Custom back-half (optional)
                           </p>
-                          {session.user?.plan.subscription != "pro" && (
+                          {plan != "pro" && (
                             <HoverCard>
                               <HoverCardTrigger>
                                 <LockIcon className="w-3! h-3!" />
@@ -360,9 +380,7 @@ export const QRCodeCreate = ({
                             <FormItem className="w-full relative">
                               <FormControl>
                                 <Input
-                                  disabled={
-                                    session.user?.plan.subscription != "pro"
-                                  }
+                                  disabled={plan != "pro"}
                                   className="w-full"
                                   placeholder=""
                                   {...field}
@@ -999,8 +1017,7 @@ export const QRCodeCreate = ({
               />
             </div>
             <div className="w-full flex flex-col gap-2 items-start">
-              {session.user?.plan.subscription != "pro" &&
-              session.user?.plan.subscription != "plus" ? (
+              {plan != "pro" && plan != "plus" ? (
                 <HoverCard>
                   <HoverCardTrigger
                     className="px-1 rounded-none! h-fit flex flex-row items-baseline
@@ -1038,10 +1055,7 @@ export const QRCodeCreate = ({
                   <Input
                     ref={logoRef}
                     disabled={
-                      !session.user ||
-                      (session.user.plan.subscription != "pro" &&
-                        session.user.plan.subscription != "plus") ||
-                      uploading
+                      !user || (plan != "pro" && plan != "plus") || uploading
                     }
                     onChange={handleChange}
                     type="file"

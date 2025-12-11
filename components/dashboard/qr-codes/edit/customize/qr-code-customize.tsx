@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { Loader2, LockIcon, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
 import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
@@ -35,18 +35,40 @@ import { deletePicture } from "@/app/actions/deletePicture";
 import { uploadImage } from "@/app/actions/uploadImage";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { useUser } from "@/utils/UserContext";
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
+import { fetchApi } from "@/lib/utils";
 
 export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
   const [options, setOptions] = useState<Partial<Options>>(qrCode.options);
 
   const router = useRouter();
-  const session = useUser();
+  const { isPending, isRefetching } = authClient.useSession();
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
 
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 
@@ -699,8 +721,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
             />
           </div>
           <div className="w-full flex flex-col gap-2 items-start">
-            {session.user?.plan.subscription != "pro" &&
-            session.user?.plan.subscription != "plus" ? (
+            {plan != "pro" && plan != "plus" ? (
               <HoverCard>
                 <HoverCardTrigger
                   className="px-1 rounded-none! h-fit flex flex-row items-baseline
@@ -736,12 +757,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
               <div className="w-full flex flex-row items-center gap-1 sm:max-w-sm">
                 <Input
                   ref={logoRef}
-                  disabled={
-                    !session.user ||
-                    (session.user.plan.subscription != "pro" &&
-                      session.user.plan.subscription != "plus") ||
-                    uploading
-                  }
+                  disabled={(plan != "pro" && plan != "plus") || uploading}
                   onChange={handleChange}
                   type="file"
                   className="grow"

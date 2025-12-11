@@ -12,7 +12,6 @@ import {
   TaxIdElement,
   useCheckout,
 } from "@stripe/react-stripe-js/checkout";
-import { User } from "next-auth";
 import Stripe from "stripe";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
@@ -28,9 +27,10 @@ import { Separator } from "@/components/ui/separator";
 import { Check, Loader2, Tag, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "@/i18n/navigation";
-import { useUser } from "@/utils/UserContext";
 import { PhoneInput } from "@/components/ui/phone-input";
 import { isValidPhoneNumber } from "react-phone-number-input";
+import { ServerUser } from "@/lib/session";
+import { authClient } from "@/lib/authClient";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY!, {
   betas: ["custom_checkout_tax_id_1"],
@@ -43,7 +43,10 @@ export const UpgradeForm = ({
   address,
   className,
 }: {
-  user: User;
+  user: ServerUser & {
+    phone_number?: string;
+    tax_ids?: Stripe.TaxId[] | undefined;
+  };
   upgradeLevel: number;
   address: Stripe.Address | undefined;
   tier: "pro" | "plus" | "basic";
@@ -245,12 +248,15 @@ const CheckoutEmailInput = ({ initialEmail }: { initialEmail: string }) => {
 
 const CheckoutPhoneInput = ({
   initialPhoneNumber,
+  error,
+  setError,
 }: {
   initialPhoneNumber: string | undefined;
+  error: string | null;
+  setError: (error: string | null) => void;
 }) => {
   const checkoutState = useCheckout();
   const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber ?? "");
-  const [error, setError] = useState<string | null>("");
   if (checkoutState.type === "loading") {
     return <Skeleton className="w-full h-8" />;
   } else if (checkoutState.type === "error") {
@@ -303,10 +309,14 @@ const CustomCheckoutForm = ({
   className,
 }: {
   tier: string;
-  user: User;
+  user: ServerUser & {
+    phone_number?: string;
+    tax_ids?: Stripe.TaxId[] | undefined;
+  };
   className?: string;
   address: Stripe.Address | undefined;
 }) => {
+  const { refetch } = authClient.useSession();
   const checkoutState = useCheckout();
   const router = useRouter();
   const [needTax, setNeedTax] = useState(false);
@@ -314,7 +324,6 @@ const CustomCheckoutForm = ({
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState("");
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const { refresh } = useUser();
   if (checkoutState.type === "loading") {
     return (
       <Skeleton
@@ -355,7 +364,6 @@ const CustomCheckoutForm = ({
         savePaymentMethod: true,
       });
       if (response.type == "success") {
-        await refresh();
         const tokenRes = await fetch("/api/stripe/subscription-token", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -363,6 +371,7 @@ const CustomCheckoutForm = ({
         });
         const { token } = await tokenRes.json();
         router.push(`/dashboard/subscription/upgraded?token=${token}`);
+        refetch();
       } else {
         console.log(response.error.message);
         setError(response.error.message);
@@ -388,7 +397,7 @@ const CustomCheckoutForm = ({
           contacts: address
             ? [
                 {
-                  name: user.displayName,
+                  name: user.name,
                   address: {
                     line1: address.line1 ?? "",
                     line2: address.line2 ?? undefined,
@@ -405,12 +414,11 @@ const CustomCheckoutForm = ({
       {elementsReady && <CheckoutEmailInput initialEmail={user.email} />}
       {elementsReady && (
         <>
-          <CheckoutPhoneInput initialPhoneNumber={user.phone_number} />
-          {phoneError && (
-            <p className="text-xs font-semibold text-destructive text-left">
-              {phoneError}
-            </p>
-          )}
+          <CheckoutPhoneInput
+            initialPhoneNumber={user.phone_number}
+            error={phoneError}
+            setError={setPhoneError}
+          />
         </>
       )}
       {elementsReady && (
@@ -434,7 +442,7 @@ const CustomCheckoutForm = ({
                 businessName:
                   e.value.businessName ||
                   checkoutState.checkout.billingAddress?.name ||
-                  user.displayName,
+                  user.name,
               });
             }
           }}

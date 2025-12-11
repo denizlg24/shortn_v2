@@ -2,10 +2,12 @@ import { redirect } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 import { setRequestLocale } from "next-intl/server";
-import { getUser } from "@/app/actions/userActions";
-import { notFound } from "next/navigation";
+
+import { forbidden, notFound } from "next/navigation";
 import { ManageLinksPage } from "./manage-links-page";
 import { IUrl } from "@/models/url/UrlV3";
+import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/app/actions/stripeActions";
 
 export default async function Page({
   params,
@@ -14,14 +16,14 @@ export default async function Page({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const { success, user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
 
-  if (!success || !user) {
-    redirect({ href: "/login", locale });
-    return;
+  if (!user) {
+    forbidden();
   }
-
-  if (user.plan.subscription != "pro") {
+  const { plan } = await getUserPlan();
+  if (plan != "pro") {
     redirect({ href: "/dashboard/subscription", locale });
   }
 

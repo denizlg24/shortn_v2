@@ -22,14 +22,16 @@ import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Switch } from "@/components/ui/switch";
 import { Link, useRouter } from "@/i18n/navigation";
 import { BASEURL, cn } from "@/lib/utils";
-import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InfinityIcon, Loader2, LockIcon } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { getLinksLeft } from "../../home/quick-create";
+import { authClient } from "@/lib/authClient";
+import { fetchApi } from "@/lib/utils";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 const linkFormSchema = z.object({
   destination: z
@@ -53,7 +55,27 @@ const linkFormSchema = z.object({
 });
 
 export const LinksCreate = () => {
-  const session = useUser();
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const router = useRouter();
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 
@@ -88,10 +110,9 @@ export const LinksCreate = () => {
   };
 
   const qrCodesLeft =
-    session.user?.plan.subscription && session.user.plan.subscription != "pro"
-      ? allowedLinks[
-          session.user.plan.subscription as "free" | "basic" | "plus"
-        ] - (session.user.qr_codes_this_month ?? 0)
+    plan && plan != "pro"
+      ? allowedLinks[plan as "free" | "basic" | "plus"] -
+        (user?.qr_codes_this_month ?? 0)
       : undefined;
 
   const linkForm = useForm<z.infer<typeof linkFormSchema>>({
@@ -112,8 +133,8 @@ export const LinksCreate = () => {
           Create a new short link
         </h1>
         {getLinksLeft(
-          session.user?.plan.subscription ?? "free",
-          session.user?.links_this_month ?? 0,
+          plan ?? "free",
+          user?.links_this_month ?? 0,
           false,
           "text-xs",
         )}
@@ -163,7 +184,7 @@ export const LinksCreate = () => {
                   <p className="sm:text-sm text-xs font-semibold">
                     Custom back-half (optional)
                   </p>
-                  {session.user?.plan.subscription != "pro" && (
+                  {plan != "pro" && (
                     <HoverCard>
                       <HoverCardTrigger>
                         <LockIcon className="w-3! h-3!" />
@@ -194,7 +215,7 @@ export const LinksCreate = () => {
                     <FormItem className="w-full relative">
                       <FormControl>
                         <Input
-                          disabled={session.user?.plan.subscription != "pro"}
+                          disabled={plan != "pro"}
                           className="w-full"
                           placeholder=""
                           {...field}
@@ -219,7 +240,7 @@ export const LinksCreate = () => {
             </p>
           </div>
           <div className="flex flex-row gap-2 items-center">
-            {session?.user?.plan.subscription == "pro" ? (
+            {plan == "pro" ? (
               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                 <InfinityIcon className="min-w-3! w-3! h-3!" />
                 <p>left</p>

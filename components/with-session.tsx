@@ -1,12 +1,12 @@
 import { ReactNode } from "react";
-import { auth } from "@/auth";
-import type { Session } from "next-auth"; // or your custom session type
+import { getServerSession } from "@/lib/session";
+import type { ServerSession } from "@/lib/session";
 
 interface WithSessionProps {
-  children: (session: Session | null) => ReactNode;
+  children: (session: ServerSession | null) => ReactNode;
 }
 
 export const WithSession = async ({ children }: WithSessionProps) => {
-  const session = await auth();
+  const session = await getServerSession();
   return <>{children(session)}</>;
 };

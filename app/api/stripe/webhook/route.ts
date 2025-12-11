@@ -1,17 +1,24 @@
 import { update_sub } from "@/app/actions/stripeActions";
 import { connectDB } from "@/lib/mongodb";
+import { Subscription } from "@/models/auth/Subscription";
 import { User } from "@/models/auth/User";
 import env from "@/utils/env";
-import { revalidateTag } from "next/cache";
 import Stripe from "stripe";
 
 const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
 const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
-const subscription_created_handler = async (
+export const subscription_created_handler = async (
   subscriptionObject: Stripe.Subscription,
 ) => {
   const customerId = subscriptionObject.customer as string;
+  await connectDB();
+  const user = await User.findOne({ stripeCustomerId: customerId });
+  if (!user) {
+    console.log("No user found for customer ID:", customerId);
+    return false;
+  }
+  const userId = user._id;
   if (customerId) {
     const subItems = subscriptionObject.items;
     const item =
@@ -35,11 +42,20 @@ const subscription_created_handler = async (
         plan = "pro";
         break;
     }
-    await User.updateOne(
-      { stripeId: customerId },
-      { plan: { subscription: plan, lastPaid: new Date() } },
+    await Subscription.findOneAndUpdate(
+      { referenceId: userId },
+      {
+        referenceId: userId,
+        plan,
+        status: "active",
+        stripeSubscriptionId: subscriptionObject.id,
+        periodStart: new Date(),
+        periodEnd: subscriptionObject.cancel_at,
+        updatedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
     );
-    revalidateTag(`user-plan-${customerId}`, "max");
+
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
     });
@@ -53,10 +69,16 @@ const subscription_created_handler = async (
   return false;
 };
 
-const subscription_deleted_handler = async (
+export const subscription_deleted_handler = async (
   subscriptionObject: Stripe.Subscription,
 ) => {
   const customerId = subscriptionObject.customer as string;
+  await connectDB();
+  const user = await User.findOne({ stripeCustomerId: customerId });
+  if (!user) {
+    return false;
+  }
+  const userId = user._id;
   if (customerId) {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
@@ -64,7 +86,7 @@ const subscription_deleted_handler = async (
     if (subscriptions.data.length >= 1) {
       return true;
     }
-    await stripe.subscriptions.create({
+    const subscription = await stripe.subscriptions.create({
       customer: customerId,
       items: [
         {
@@ -72,20 +94,34 @@ const subscription_deleted_handler = async (
         },
       ],
     });
-    await User.updateOne(
-      { stripeId: customerId },
-      { plan: { subscription: "free", lastPaid: new Date() } },
+    await Subscription.findOneAndUpdate(
+      { referenceId: userId },
+      {
+        referenceId: userId,
+        plan: "free",
+        status: "active",
+        stripeSubscriptionId: subscription.id,
+        periodStart: new Date(),
+        periodEnd: subscription.cancel_at,
+        updatedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
     );
-    revalidateTag(`user-pan-${customerId}`, "max");
     return true;
   }
   return false;
 };
 
-const subscription_updated_handler = async (
+export const subscription_updated_handler = async (
   subscriptionObject: Stripe.Subscription,
 ) => {
   const customerId = subscriptionObject.customer as string;
+  await connectDB();
+  const user = await User.findOne({ stripeCustomerId: customerId });
+  if (!user) {
+    return false;
+  }
+  const userId = user._id;
   if (customerId) {
     const subItems = subscriptionObject.items;
     const item =
@@ -109,17 +145,25 @@ const subscription_updated_handler = async (
         plan = "pro";
         break;
     }
-    await User.updateOne(
-      { stripeId: customerId },
-      { plan: { subscription: plan, lastPaid: new Date() } },
+    await Subscription.findOneAndUpdate(
+      { referenceId: userId },
+      {
+        referenceId: userId,
+        plan,
+        status: "active",
+        stripeSubscriptionId: subscriptionObject.id,
+        periodStart: new Date(),
+        periodEnd: subscriptionObject.cancel_at,
+        updatedAt: new Date(),
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
     );
-    revalidateTag(`user-pan-${customerId}`, "max");
     return true;
   }
   return false;
 };
 
-const checkout_session_successful_handler = async ({
+export const checkout_session_successful_handler = async ({
   session,
 }: {
   session: Stripe.Checkout.Session;
@@ -143,11 +187,14 @@ const checkout_session_successful_handler = async ({
         return false;
       }
       await connectDB();
-      const user = await User.findOne({ stripeId: customerId });
+      const user = await User.findOne({ stripeCustomerId: customerId });
       if (!user) {
         return false;
       }
-      const plan = user.plan.subscription;
+      const subscription = await Subscription.findOne({
+        referenceId: user._id,
+      }).lean();
+      const plan = subscription?.plan || "free";
       switch (price.id) {
         case env.LEVEL_ONE_UPGRADE_ID:
           switch (plan) {

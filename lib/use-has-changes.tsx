@@ -12,7 +12,6 @@ export function useDebounce<T>(value: T, delay = 300): T {
   return debounced;
 }
 
-// ---- Main Hook ----
 export function useHasObjectChanges<T>(current: T, initial: T, delay = 300) {
   const debounced = useDebounce(current, delay);
 

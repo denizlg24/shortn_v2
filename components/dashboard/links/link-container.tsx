@@ -14,7 +14,7 @@ export const LinkContainer = ({
   limit,
   hideEndTag,
 }: {
-  links: TUrl[];
+  links: (TUrl & { bioPageSlug?: string })[];
   total: number;
   tags: string[];
   page: number;
@@ -81,6 +81,7 @@ export const LinkContainer = ({
               removeTag={removeTag}
               key={link._id as string}
               link={link}
+              initialBioPageSlug={link.bioPageSlug}
             />
           ))}
           {page >= Math.ceil(total / limit) &&

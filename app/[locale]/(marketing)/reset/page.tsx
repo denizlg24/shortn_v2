@@ -1,15 +1,20 @@
 import { ChangePassword } from "@/components/login/change-password";
 import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { notFound } from "next/navigation";
 
-export default function Home({
+export default async function Home({
   params,
+  searchParams,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ token: string }>;
 }) {
-  const { locale, token } = use<{ locale: string; token: string }>(params);
+  const { locale } = await params;
+  const { token } = await searchParams;
   setRequestLocale(locale);
+  if (!token) {
+    notFound();
+  }
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
       <div className="w-full flex flex-col max-w-lg p-4 gap-6 sm:pt-8">

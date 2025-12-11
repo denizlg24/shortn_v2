@@ -2,77 +2,42 @@
 
 import mongoose, { Document, Schema, Model } from "mongoose";
 
-export interface IPlan {
-    subscription: string;
-    lastPaid: Date;
+export interface IDBUser extends Document {
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  sub: string;
+  links_this_month: number;
+  qr_codes_this_month: number;
+  redirects_this_month: number;
+  qr_code_redirects_this_month: number;
+  stripeCustomerId?: string | null;
 }
 
-export interface IUser extends Document {
-    sub: string;
-    displayName: string;
-    stripeId: string;
-    username: string;
-    email: string;
-    password: string;
-    profilePicture?: string;
-    emailVerified: boolean;
-    createdAt: Date;
-    plan: IPlan;
-    links_this_month: number;
-    qr_codes_this_month: number;
-}
+const userSchema = new Schema<IDBUser>(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    emailVerified: { type: Boolean, required: true },
+    image: { type: String },
+    createdAt: { type: Date, required: true },
+    updatedAt: { type: Date, required: true },
 
-const userSchema = new Schema<IUser>({
-    sub: {
-        type: String,
-        required: true,
-        unique: [true, "A user with that sub already exists"],
-    },
-    displayName: {
-        type: String,
-    },
-    stripeId: {
-        type: String,
-    },
-    username: {
-        type: String,
-    },
-    email: {
-        type: String,
+    sub: { type: String, unique: true, index: true },
+    links_this_month: { type: Number, default: 0 },
+    qr_codes_this_month: { type: Number, default: 0 },
+    redirects_this_month: { type: Number, default: 0 },
+    qr_code_redirects_this_month: { type: Number, default: 0 },
+    stripeCustomerId: { type: String, default: null },
+  },
+  {
+    collection: "user",
+    timestamps: true,
+  },
+);
 
-    },
-    password: {
-        type: String,
-
-    },
-    profilePicture: {
-        type: String,
-
-    },
-    emailVerified: {
-        type: Boolean,
-        default: false,
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now,
-    },
-    plan: {
-        type: Object,
-        default: {
-            subscription: "free",
-            lastPaid: new Date(),
-        },
-    },
-    links_this_month: {
-        type: Number,
-        default: 0,
-    },
-    qr_codes_this_month: {
-        type: Number,
-        default: 0,
-    }
-});
-
-export const User: Model<IUser> =
-    mongoose.models?.User || mongoose.model<IUser>("User", userSchema);
+export const User: Model<IDBUser> =
+  mongoose.models?.User || mongoose.model<IDBUser>("User", userSchema);

@@ -1,13 +1,14 @@
 "use server";
 
 import { BioPage } from "@/models/link-in-bio/BioPage";
-import { getUser } from "./userActions";
 import { connectDB } from "@/lib/mongodb";
 import { getShortn } from "@/utils/fetching-functions";
 import mongoose from "mongoose";
 import UrlV3 from "@/models/url/UrlV3";
 import { revalidatePath } from "next/cache";
 import { deletePicture } from "./deletePicture";
+import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "./stripeActions";
 
 export async function createBioPage({
   title,
@@ -19,12 +20,13 @@ export async function createBioPage({
   urlCode?: string;
 }) {
   try {
-    const { success, user } = await getUser();
-    if (!success || !user) {
+    const session = await getServerSession();
+    const user = session?.user;
+    if (!user) {
       return { success: false, message: "no-user" };
     }
     const sub = user.sub;
-    const plan = user.plan.subscription;
+    const { plan } = await getUserPlan();
     if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
@@ -39,8 +41,7 @@ export async function createBioPage({
     const newPage = await BioPage.create({
       userId: sub,
       title:
-        title ||
-        `${user.displayName}'s Bio Page ${Math.floor(Math.random() * 1000)}`,
+        title || `${user.name}'s Bio Page ${Math.floor(Math.random() * 1000)}`,
       slug,
       links: url
         ? [{ link: new mongoose.Types.ObjectId(url._id), title: url.title }]
@@ -93,14 +94,15 @@ export async function updateBioPage({
   };
 }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
     if (session.user.sub !== bio.userId) {
       return { success: false, message: "unauthorized" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
     await connectDB();
@@ -126,11 +128,12 @@ export async function updateBioLink({
   image?: string;
 }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
 
@@ -174,11 +177,12 @@ export async function removeLinkFromBio({
   linkId: string;
 }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
 
@@ -215,11 +219,12 @@ export async function reorderBioLinks({
   linkIds: string[];
 }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
 
@@ -265,11 +270,12 @@ export async function addLinkToBioPage({
   linkId: string;
 }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
 
@@ -319,12 +325,13 @@ export async function addLinkToBioPage({
 
 export async function getUserBioPages() {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
-      return { success: false, message: "no-user", bioPages: [] };
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
-      return { success: false, message: "plan-restricted", bioPages: [] };
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
+      return { success: false, message: "plan-restricted" };
     }
 
     await connectDB();
@@ -349,11 +356,12 @@ export async function getUserBioPages() {
 
 export async function deleteBioPage({ slug }: { slug: string }) {
   try {
-    const session = await getUser();
-    if (!session.success || !session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
     await connectDB();

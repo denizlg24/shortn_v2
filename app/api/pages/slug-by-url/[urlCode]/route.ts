@@ -1,11 +1,11 @@
-import { getUser } from "@/app/actions/userActions";
+import { auth } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 import UrlV3 from "@/models/url/UrlV3";
 import { NextResponse } from "next/server";
 
 export async function GET(
-  _: Request,
+  request: Request,
   { params }: { params: Promise<{ urlCode: string }> },
 ) {
   const { urlCode } = await params;
@@ -16,9 +16,12 @@ export async function GET(
       { status: 400 },
     );
   }
-  const session = await getUser();
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
   const user = session?.user;
   if (!user) {
+    console.log("No user session found");
     return NextResponse.json(
       { success: false, slug: undefined },
       { status: 403 },

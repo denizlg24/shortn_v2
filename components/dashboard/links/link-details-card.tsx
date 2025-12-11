@@ -31,13 +31,13 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
-import { IUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
+import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 import {
   Calendar,
@@ -68,11 +68,34 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
-  const session = useUser();
+export const LinkDetailsCard = ({
+  currentLink: initialLink,
+}: {
+  currentLink: TUrl;
+}) => {
+  const { isPending, isRefetching } = authClient.useSession();
+  const [currentLink, setCurrentLink] = useState<TUrl>(initialLink);
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [tagOpen, tagOpenChange] = useState(false);
   const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
@@ -82,19 +105,13 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
   const [justCopied, setJustCopied] = useState(false);
 
   useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -102,28 +119,19 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input]);
 
   const router = useRouter();
 
-  if (!session) {
-    return <Skeleton className="w-full h-42 bg-background" />;
-  }
-  if (!session.user) {
-    return <Skeleton className="w-full h-42 bg-background" />;
-  }
-
-  if (notFound || !currentLink) {
-    return <div>notFound</div>;
+  if (!currentLink) {
+    return null;
   }
 
   return (
@@ -265,7 +273,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
               >
                 <Trash2 /> Delete
               </Button>
-              {session.user.plan.subscription != "pro" ? (
+              {plan != "pro" ? (
                 <HoverCard>
                   <HoverCardTrigger asChild>
                     <Button
@@ -415,10 +423,14 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                                   tag.id,
                                 );
                                 if (success) {
-                                  currentLink.tags =
-                                    currentLink.tags?.filter(
-                                      (_t) => _t.id != tag.id,
-                                    ) || [];
+                                  setCurrentLink((prev) => ({
+                                    ...prev,
+                                    tags: prev.tags?.filter(
+                                      (_t) =>
+                                        (_t._id as string).toString() !=
+                                        (tag._id as string).toString(),
+                                    ),
+                                  }));
                                   tagOpenChange(false);
                                 }
                               } else {
@@ -427,7 +439,10 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                                   tag.id,
                                 );
                                 if (success) {
-                                  currentLink.tags?.push(tag);
+                                  setCurrentLink((prev) => ({
+                                    ...prev,
+                                    tags: [...(prev.tags || []), tag],
+                                  }));
                                   tagOpenChange(false);
                                 }
                               }
@@ -459,7 +474,10 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
                                 );
                               setInput("");
                               if (success && tag) {
-                                currentLink.tags?.push(tag);
+                                setCurrentLink((prev) => ({
+                                  ...prev,
+                                  tags: [...(prev.tags || []), tag],
+                                }));
                               }
                               tagOpenChange(false);
                             }}
@@ -629,7 +647,7 @@ export const LinkDetailsCard = ({ currentLink }: { currentLink: IUrl }) => {
             >
               <Trash2 /> Delete
             </Button>
-            {session.user.plan.subscription != "pro" ? (
+            {plan != "pro" ? (
               <HoverCard>
                 <HoverCardTrigger asChild>
                   <Button

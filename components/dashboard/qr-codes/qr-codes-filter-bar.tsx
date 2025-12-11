@@ -32,9 +32,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
-import { useUser } from "@/utils/UserContext";
 import { format, parse } from "date-fns";
 import {
   CalendarIcon,
@@ -57,7 +57,8 @@ export const QRCodesFilterBar = () => {
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
 
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -98,7 +99,7 @@ export const QRCodesFilterBar = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
     readTags();
@@ -112,10 +113,10 @@ export const QRCodesFilterBar = () => {
       });
       return;
     }
-  }, [input, readTags, session.user]);
+  }, [input, readTags, user]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -140,7 +141,7 @@ export const QRCodesFilterBar = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   useEffect(() => {
     if (moreFiltersOpen) {
@@ -149,7 +150,7 @@ export const QRCodesFilterBar = () => {
   }, [moreFiltersOpen, readTags]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
     const params = new URLSearchParams(searchParams.toString());
@@ -173,7 +174,7 @@ export const QRCodesFilterBar = () => {
 
     getTagsFromId();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams.toString(), session.user]);
+  }, [pathname, searchParams.toString(), user]);
 
   const applyFilters = ({
     override_query,

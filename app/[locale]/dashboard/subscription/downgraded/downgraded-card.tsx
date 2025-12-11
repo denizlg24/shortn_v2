@@ -26,7 +26,7 @@ export const DowngradedCard = ({ plan }: { plan: string }) => {
 
       <CardContent className="space-y-4">
         <div className="text-sm text-muted-foreground">
-          You’ve successfully moved to the{" "}
+          You've successfully moved to the{" "}
           <span className="font-medium text-foreground capitalize">{plan}</span>{" "}
           plan.
         </div>
