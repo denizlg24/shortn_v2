@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import { Campaigns } from "@/models/url/Campaigns";
 import { NextResponse } from "next/server";
@@ -8,7 +8,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const session = await auth();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {

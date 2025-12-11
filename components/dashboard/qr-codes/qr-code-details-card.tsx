@@ -30,9 +30,8 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
-import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -60,9 +59,32 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
-export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
-  const session = useUser();
+export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  const [currentQrCode, setCurrentQrCode] = useState<TQRCode>(qrCode);
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);
@@ -78,7 +100,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
     input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -103,14 +125,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   const router = useRouter();
 
-  if (!session) {
-    return <Skeleton className="w-full h-42 bg-background" />;
-  }
-  if (!session.user) {
+  if (!user) {
     return <Skeleton className="w-full h-42 bg-background" />;
   }
 
@@ -119,7 +138,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
       <div className="w-full grow sm:max-w-[calc(100%-112px-8px-8px)] flex flex-col gap-0">
         <div className="w-full flex flex-row items-start sm:justify-between gap-2 justify-center">
           <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
-            {qrCode.title}
+            {currentQrCode.title}
           </h1>
           <div className="sm:flex hidden flex-row items-center gap-2">
             <Popover>
@@ -129,14 +148,14 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                 </Button>
               </PopoverTrigger>
               <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
-                {qrCode.attachedUrl ? (
+                {currentQrCode.attachedUrl ? (
                   <Button
                     asChild
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! "
                   >
                     <Link
-                      href={`/dashboard/links/${qrCode.attachedUrl}/details`}
+                      href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                     >
                       <LinkIcon /> View short link
                     </Link>
@@ -165,11 +184,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               Creating a link for this QR Code will use up one
                               of your monthly links.
                             </p>
-                            {getLinksLeft(
-                              session.user.plan.subscription,
-                              session.user.qr_codes_this_month,
-                              true,
-                            )}
+                            {getLinksLeft(plan, user.qr_codes_this_month, true)}
                           </div>
                         </DialogDescription>
                       </DialogHeader>
@@ -177,13 +192,17 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                         <p className="font-semibold xs:text-base text-sm">
                           Destination
                         </p>
-                        <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
+                        <p className="xs:text-sm text-xs">
+                          {currentQrCode.longUrl}
+                        </p>
                       </div>
                       <div className="w-full flex flex-col text-left gap-1 items-start">
                         <p className="font-semibold xs:text-base text-sm">
                           Title
                         </p>
-                        <p className="xs:text-sm text-xs">{qrCode.title}</p>
+                        <p className="xs:text-sm text-xs">
+                          {currentQrCode.title}
+                        </p>
                       </div>
                       <DialogFooter className="flex flex-row items-center justify-end gap-2">
                         <DialogClose asChild>
@@ -193,10 +212,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                           onClick={async () => {
                             setCreating(true);
                             const response = await createShortn({
-                              longUrl: qrCode.longUrl,
-                              title: qrCode.title,
-                              tags: qrCode.tags?.map((t) => t.id),
-                              qrCodeId: qrCode.qrCodeId,
+                              longUrl: currentQrCode.longUrl,
+                              title: currentQrCode.title,
+                              tags: currentQrCode.tags?.map((t) => t.id),
+                              qrCodeId: currentQrCode.qrCodeId,
                             });
                             if (!response.success) {
                               switch (response.message) {
@@ -227,7 +246,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             if (response.success && response.data) {
                               await attachShortnToQR(
                                 response.data.shortUrl,
-                                qrCode.qrCodeId,
+                                currentQrCode.qrCodeId,
                               );
                               router.push(
                                 `/dashboard/links/${response.data.shortUrl}/details`,
@@ -256,10 +275,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                 )}
                 <Button
                   onClick={async () => {
-                    const response = await deleteQRCode(qrCode.qrCodeId);
+                    const response = await deleteQRCode(currentQrCode.qrCodeId);
                     if (response.success) {
                       toast.success(
-                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
+                        `QR Code ${currentQrCode.qrCodeId} was successfully deleted.`,
                       );
                     } else {
                       toast.error("There was a problem deleting your QR Code.");
@@ -271,7 +290,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                 >
                   <Trash2 /> Delete
                 </Button>
-                {session.user.plan.subscription != "pro" ? (
+                {plan != "pro" ? (
                   <HoverCard>
                     <HoverCardTrigger asChild>
                       <Button
@@ -303,7 +322,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                       toast.promise<{ success: boolean; url: string }>(
                         async () => {
                           const response = await generateCSV({
-                            code: qrCode.qrCodeId,
+                            code: currentQrCode.qrCodeId,
                             type: "scan",
                           });
                           return response;
@@ -314,7 +333,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             if (response.success) {
                               const a = document.createElement("a");
                               a.href = response.url;
-                              a.download = `${qrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                              a.download = `${currentQrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                               a.click();
                               return `Your download is ready and should start now.`;
                             }
@@ -334,14 +353,14 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
             </Popover>
             <Button asChild variant={"outline"} className="p-2! aspect-square!">
               <Link
-                href={`/dashboard/qr-codes/${qrCode.qrCodeId}/edit/customize`}
+                href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
               >
                 <Palette />
               </Link>
             </Button>
             <Button asChild variant={"outline"} className="p-2! aspect-square!">
               <Link
-                href={`/dashboard/qr-codes/${qrCode.qrCodeId}/edit/content`}
+                href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
               >
                 <Edit2 />
               </Link>
@@ -349,7 +368,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
             <Button
               onClick={() => {
                 styledCode?.download({
-                  name: `${qrCode.qrCodeId}`,
+                  name: `${currentQrCode.qrCodeId}`,
                   extension: "png",
                 });
               }}
@@ -369,13 +388,15 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
               </Button>
             </PopoverTrigger>
             <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
-              {qrCode.attachedUrl ? (
+              {currentQrCode.attachedUrl ? (
                 <Button
                   asChild
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! "
                 >
-                  <Link href={`/dashboard/links/${qrCode.attachedUrl}/details`}>
+                  <Link
+                    href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
+                  >
                     <LinkIcon /> View short link
                   </Link>
                 </Button>
@@ -403,11 +424,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                             Creating a link for this QR Code will use up one of
                             your monthly links.
                           </p>
-                          {getLinksLeft(
-                            session.user.plan.subscription,
-                            session.user.qr_codes_this_month,
-                            true,
-                          )}
+                          {getLinksLeft(plan, user.qr_codes_this_month, true)}
                         </div>
                       </DialogDescription>
                     </DialogHeader>
@@ -415,13 +432,17 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                       <p className="font-semibold xs:text-base text-sm">
                         Destination
                       </p>
-                      <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
+                      <p className="xs:text-sm text-xs">
+                        {currentQrCode.longUrl}
+                      </p>
                     </div>
                     <div className="w-full flex flex-col text-left gap-1 items-start">
                       <p className="font-semibold xs:text-base text-sm">
                         Title
                       </p>
-                      <p className="xs:text-sm text-xs">{qrCode.title}</p>
+                      <p className="xs:text-sm text-xs">
+                        {currentQrCode.title}
+                      </p>
                     </div>
                     <DialogFooter className="flex flex-row items-center justify-end gap-2">
                       <DialogClose asChild>
@@ -431,10 +452,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                         onClick={async () => {
                           setCreating(true);
                           const response = await createShortn({
-                            longUrl: qrCode.longUrl,
-                            title: qrCode.title,
-                            tags: qrCode.tags?.map((t) => t.id),
-                            qrCodeId: qrCode.qrCodeId,
+                            longUrl: currentQrCode.longUrl,
+                            title: currentQrCode.title,
+                            tags: currentQrCode.tags?.map((t) => t.id),
+                            qrCodeId: currentQrCode.qrCodeId,
                           });
                           if (!response.success) {
                             switch (response.message) {
@@ -465,7 +486,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                           if (response.success && response.data) {
                             await attachShortnToQR(
                               response.data.shortUrl,
-                              qrCode.qrCodeId,
+                              currentQrCode.qrCodeId,
                             );
                             router.push(
                               `/dashboard/links/${response.data.shortUrl}/details`,
@@ -489,10 +510,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
               )}
               <Button
                 onClick={async () => {
-                  const response = await deleteQRCode(qrCode.qrCodeId);
+                  const response = await deleteQRCode(currentQrCode.qrCodeId);
                   if (response.success) {
                     toast.success(
-                      `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
+                      `QR Code ${currentQrCode.qrCodeId} was successfully deleted.`,
                     );
                   } else {
                     toast.error("There was a problem deleting your QR Code.");
@@ -504,7 +525,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
               >
                 <Trash2 /> Delete
               </Button>
-              {session.user.plan.subscription != "pro" ? (
+              {plan != "pro" ? (
                 <HoverCard>
                   <HoverCardTrigger asChild>
                     <Button
@@ -536,7 +557,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                     toast.promise<{ success: boolean; url: string }>(
                       async () => {
                         const response = await generateCSV({
-                          code: qrCode.qrCodeId,
+                          code: currentQrCode.qrCodeId,
                           type: "scan",
                         });
                         return response;
@@ -547,7 +568,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                           if (response.success) {
                             const a = document.createElement("a");
                             a.href = response.url;
-                            a.download = `${qrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
+                            a.download = `${currentQrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                             a.click();
                             return `Your download is ready and should start now.`;
                           }
@@ -567,20 +588,22 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
           </Popover>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
             <Link
-              href={`/dashboard/qr-codes/${qrCode.qrCodeId}/edit/customize`}
+              href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/customize`}
             >
               <Palette />
             </Link>
           </Button>
           <Button asChild variant={"outline"} className="p-2! aspect-square!">
-            <Link href={`/dashboard/qr-codes/${qrCode.qrCodeId}/edit/content`}>
+            <Link
+              href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/edit/content`}
+            >
               <Edit2 />
             </Link>
           </Button>
           <Button
             onClick={() => {
               styledCode?.download({
-                name: `${qrCode.qrCodeId}`,
+                name: `${currentQrCode.qrCodeId}`,
                 extension: "png",
               });
             }}
@@ -597,10 +620,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
         <div className="w-full flex flex-row justify-start items-center gap-1">
           <CornerDownRight className="w-4 h-4 shrink-0" />
           <Link
-            href={qrCode.longUrl}
+            href={currentQrCode.longUrl}
             className="lg:text-base text-sm hover:underline truncate"
           >
-            {qrCode.longUrl}
+            {currentQrCode.longUrl}
           </Link>
         </div>
         <div className="w-full mt-4 flex flex-row sm:items-center items-end justify-between">
@@ -608,13 +631,13 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
             <div className="flex flex-row items-center gap-1">
               <Calendar className="w-4 h-4" />
               <p className="sm:text-sm text-xs">
-                {format(qrCode.date, "MMM dd, yyyy")}
+                {format(currentQrCode.date, "MMM dd, yyyy")}
               </p>
             </div>
             <div className="md:flex hidden flex-row items-center gap-1">
               <Tags className="w-4 h-4" />
               <div className="flex flex-row items-center gap-1">
-                {qrCode.tags?.map((tag, indx) => {
+                {currentQrCode.tags?.map((tag, indx) => {
                   if (indx > 3) {
                     return null;
                   }
@@ -630,8 +653,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                     </Button>
                   );
                 })}
-                {qrCode.tags && qrCode.tags.length > 4 && (
-                  <p className="text-xs">+{qrCode.tags.length - 4} more</p>
+                {currentQrCode.tags && currentQrCode.tags.length > 4 && (
+                  <p className="text-xs">
+                    +{currentQrCode.tags.length - 4} more
+                  </p>
                 )}
                 <Popover open={tagOpen} onOpenChange={tagOpenChange}>
                   <PopoverTrigger asChild>
@@ -663,28 +688,34 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               key={tag.id}
                               value={tag.tagName}
                               onSelect={async () => {
-                                const added = qrCode.tags?.some(
+                                const added = currentQrCode.tags?.some(
                                   (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   const { success } = await removeTagFromQRCode(
-                                    qrCode.qrCodeId,
+                                    currentQrCode.qrCodeId,
                                     tag.id,
                                   );
                                   if (success) {
-                                    qrCode.tags =
-                                      qrCode.tags?.filter(
-                                        (_t) => _t.id != tag.id,
-                                      ) || [];
+                                    setCurrentQrCode((prev) => ({
+                                      ...prev,
+                                      tags:
+                                        prev.tags?.filter(
+                                          (_t) => _t.id != tag.id,
+                                        ) || [],
+                                    }));
                                     tagOpenChange(false);
                                   }
                                 } else {
                                   const { success } = await addTagToQRCode(
-                                    qrCode.qrCodeId,
+                                    currentQrCode.qrCodeId,
                                     tag.id,
                                   );
                                   if (success) {
-                                    qrCode.tags?.push(tag);
+                                    setCurrentQrCode((prev) => ({
+                                      ...prev,
+                                      tags: [...(prev.tags || []), tag],
+                                    }));
                                     tagOpenChange(false);
                                   }
                                 }
@@ -694,7 +725,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                               <Check
                                 className={cn(
                                   "ml-auto",
-                                  qrCode.tags?.some(
+                                  currentQrCode.tags?.some(
                                     (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
@@ -712,11 +743,14 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
                                 const { success, tag } =
                                   await createAndAddTagToUrl(
                                     input,
-                                    qrCode.qrCodeId,
+                                    currentQrCode.qrCodeId,
                                   );
                                 setInput("");
                                 if (success && tag) {
-                                  qrCode.tags?.push(tag);
+                                  setCurrentQrCode((prev) => ({
+                                    ...prev,
+                                    tags: [...(prev.tags || []), tag],
+                                  }));
                                 }
                                 tagOpenChange(false);
                               }}
@@ -733,10 +767,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
             </div>
             <div className="md:hidden flex flex-row items-center gap-1">
               <Tags className="w-4 h-4" />
-              {qrCode.tags && qrCode.tags.length > 0 ? (
+              {currentQrCode.tags && currentQrCode.tags.length > 0 ? (
                 <p className="text-xs">
-                  {qrCode.tags.length}{" "}
-                  {qrCode.tags.length == 1 ? "tag" : "tags"}
+                  {currentQrCode.tags.length}{" "}
+                  {currentQrCode.tags.length == 1 ? "tag" : "tags"}
                 </p>
               ) : (
                 <p className="text-xs">No tags</p>
@@ -747,14 +781,14 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: IQRCode }) => {
       </div>
       <div className="w-full sm:mx-0 mx-auto shrink-0 max-w-28 h-auto aspect-square! p-2 border">
         <StyledQRCode
-          options={qrCode.options}
+          options={currentQrCode.options}
           className="w-full h-auto aspect-square object-contain"
         />
       </div>
       <div className="fixed -top-[9999px] -left-[9999px] -z-99 pointer-events-none opacity-0 w-[1000px] h-[1000px]">
         <StyledQRCode
           setStyledCode={setStyledCode}
-          options={qrCode.options}
+          options={currentQrCode.options}
           className="w-full h-auto aspect-square object-contain"
         />
       </div>

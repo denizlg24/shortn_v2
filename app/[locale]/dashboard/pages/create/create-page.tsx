@@ -12,12 +12,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "@/i18n/navigation";
-import { BASEURL } from "@/lib/utils";
+import { authClient } from "@/lib/authClient";
+import { BASEURL, fetchApi } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
+import { SubscriptionsType } from "@/utils/plan-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockIcon } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -37,7 +38,25 @@ const pageFormSchema = z.object({
 });
 
 export const CreatePage = ({ url }: { url?: IUrl }) => {
-  const session = useUser();
+  const { isPending, isRefetching } = authClient.useSession();
+  const [plan, setPlan] = useState("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const [creating, setCreating] = useState(false);
   const pageForm = useForm<z.infer<typeof pageFormSchema>>({
     resolver: zodResolver(pageFormSchema),
@@ -123,7 +142,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
           </Button>
           <Button
             onClick={async () => {
-              if (session.user?.plan.subscription != "pro") {
+              if (plan != "pro") {
                 router.push("/dashboard/subscription");
                 return;
               }
@@ -176,7 +195,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
             disabled={creating}
             variant={"default"}
           >
-            {session.user?.plan.subscription != "pro" ? (
+            {plan != "pro" ? (
               <>
                 <LockIcon /> Upgrade to Pro
               </>

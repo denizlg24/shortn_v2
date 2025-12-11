@@ -29,7 +29,7 @@ export const ResetPasswordEmail = ({ resetLink }: ResetPasswordEmailProps) => {
           <Container className="p-5 mx-auto bg-[#eee]">
             <Section className="bg-white">
               <Section className="bg-[#252f3d] flex py-5 items-center justify-center">
-                <Heading className="text-[#ffffff] text-[24px] font-bold">
+                <Heading className="text-[#ffffff] text-[24px] font-bold text-center w-full">
                   Shortn.at
                 </Heading>
               </Section>

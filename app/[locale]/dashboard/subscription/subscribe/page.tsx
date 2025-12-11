@@ -1,12 +1,13 @@
 import { getStripeExtraInfo, getUserPlan } from "@/app/actions/stripeActions";
 import { redirect } from "@/i18n/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { SubscribeForm } from "./subscribe-form";
-import { getUser } from "@/app/actions/userActions";
+
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { UpgradeForm } from "./upgrade-form";
 import { DowngradeForm } from "./downgrade-form";
+import { getServerSession } from "@/lib/session";
 
 export default async function Home({
   params,
@@ -22,11 +23,14 @@ export default async function Home({
   if (!tier || !["free", "basic", "plus", "pro"].includes(tier as string)) {
     redirect({ href: "/dashboard/subscription", locale });
   }
-  const user = await getUser();
-  if (!user.user) {
-    notFound();
+  const session = await getServerSession();
+  const user = session?.user;
+  if (!user) {
+    forbidden();
   }
-  const stripeCustomer = await getStripeExtraInfo(user.user.stripeId);
+  const stripeCustomer = await getStripeExtraInfo(
+    session.user.stripeCustomerId,
+  );
   const response = await getUserPlan();
   if (!response.success || !response.plan) {
     notFound();
@@ -39,7 +43,11 @@ export default async function Home({
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <SubscribeForm
-          user={user.user}
+          user={{
+            ...session.user,
+            tax_ids: stripeCustomer.tax_ids?.data || [],
+            phone_number: stripeCustomer.phone_number,
+          }}
           address={stripeCustomer.address}
           tier={tier as "basic" | "plus" | "pro"}
         />
@@ -67,7 +75,11 @@ export default async function Home({
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <UpgradeForm
-          user={user.user}
+          user={{
+            ...session.user,
+            tax_ids: stripeCustomer.tax_ids?.data || [],
+            phone_number: stripeCustomer.phone_number,
+          }}
           address={stripeCustomer.address}
           tier={tier as "basic" | "plus" | "pro"}
           upgradeLevel={relativeOrder}

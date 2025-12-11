@@ -1,8 +1,8 @@
-import { getUser } from "@/app/actions/userActions";
 import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { QRCodesContainer } from "@/components/dashboard/qr-codes/qr-codes-container";
 import { QRCodesFilterBar } from "@/components/dashboard/qr-codes/qr-codes-filter-bar";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "@/lib/session";
 import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
@@ -21,7 +21,7 @@ interface IFilters {
 const getFilteredQRCodes = async (
   filters: IFilters,
 ): Promise<{ qrcodes: IQRCode[]; total: number }> => {
-  const session = await getUser();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {

@@ -1,9 +1,8 @@
 "use server";
 
 import { headers } from "next/headers";
-import { auth } from "@/auth";
+import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/auth/User";
 import UrlV3, { TUrl } from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
@@ -14,8 +13,9 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
-import { getUser } from "./userActions";
 import { Campaigns } from "@/models/url/Campaigns";
+import { getUserPlan } from "./stripeActions";
+import { User } from "@/models/auth/User";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -53,9 +53,8 @@ export async function createShortn({
   qrCodeId,
 }: CreateUrlInput) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
-
     if (!user) {
       return {
         success: false,
@@ -63,6 +62,7 @@ export async function createShortn({
       };
     }
     const sub = user?.sub;
+    const { plan } = await getUserPlan();
     await connectDB();
     const headersList = await headers();
     const host = headersList.get("host");
@@ -99,15 +99,8 @@ export async function createShortn({
       }
     }
 
-    const dbUser = await User.findOne({ sub: user.sub });
-    if (!dbUser) {
-      return {
-        success: false,
-        message: "no-user",
-      };
-    }
-    const links = dbUser.links_this_month;
-    if (dbUser.plan.subscription === "free") {
+    const links = user.links_this_month;
+    if (plan === "free") {
       if (links >= 3) {
         return {
           success: false,
@@ -121,7 +114,7 @@ export async function createShortn({
         };
       }
     }
-    if (dbUser.plan.subscription === "basic") {
+    if (plan === "basic") {
       if (links >= 25) {
         return {
           success: false,
@@ -135,7 +128,7 @@ export async function createShortn({
         };
       }
     }
-    if (dbUser.plan.subscription === "plus") {
+    if (plan === "plus") {
       if (links >= 50) {
         return {
           success: false,
@@ -172,12 +165,10 @@ export async function createShortn({
       qrCodeId,
     });
 
-    const updatedUser = await User.findOneAndUpdate(
-      { sub: user.sub },
-      { links_this_month: links + 1 },
-    );
-
-    if (!updatedUser) {
+    const updated = await User.findByIdAndUpdate(session.user.id, {
+      $inc: { links_this_month: 1 },
+    });
+    if (!updated) {
       return {
         success: false,
         message: "server-error",
@@ -203,7 +194,7 @@ export async function createShortn({
 
 export const getShortn = async (urlCode: string) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -244,7 +235,7 @@ export const getShortn = async (urlCode: string) => {
 
 export const attachQRToShortn = async (urlCode: string, qrCodeId: string) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -271,7 +262,7 @@ export const attachQRToShortn = async (urlCode: string, qrCodeId: string) => {
 
 export const deleteShortn = async (urlCode: string) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -328,7 +319,7 @@ export const updateShortnData = async ({
   applyToQRCode: boolean;
 }) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -350,11 +341,8 @@ export const updateShortnData = async ({
       }
     }
 
-    const dbUser = await User.findOne({ sub });
-    if (!dbUser) {
-      return { success: false, message: "no-user" };
-    }
-    if (custom_code && dbUser.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (custom_code && plan != "pro") {
       return { success: false, message: "custom-restricted" };
     }
     const headersList = await headers();
@@ -494,7 +482,7 @@ export async function generateCSV({
   type: "click" | "scan";
 }) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -521,7 +509,7 @@ export async function generateCSV({
 
 export async function generateCSVFromClicks({ clicks }: { clicks: unknown[] }) {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -557,12 +545,13 @@ export async function updateUTM({
   { success: true; newUrl: TUrl } | { success: false; message: string }
 > {
   try {
-    const session = await getUser();
-    if (!session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
       return { success: false, message: "no-user" };
     }
     const sub = session.user.sub;
-    if (session.user.plan.subscription != "pro") {
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "plan-restricted" };
     }
     const foundUrl = await UrlV3.findOne({ sub, urlCode });
@@ -678,8 +667,12 @@ export async function deleteCampaign({
   campaignTitle: string;
 }) {
   try {
-    const session = await getUser();
-    if (!session.user) {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
       return { success: false, message: "no-user" };
     }
     const sub = session.user.sub;

@@ -1,10 +1,11 @@
-import { getUser } from "@/app/actions/userActions";
+import { getServerSession } from "@/lib/session";
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const { success, user } = await getUser();
-    return NextResponse.json({ success, user });
+    const session = await getServerSession();
+    const user = session?.user;
+    return NextResponse.json({ success: true, user });
   } catch (err) {
     console.log(err);
     return NextResponse.json(

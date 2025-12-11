@@ -1,17 +1,16 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { notFound } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { cookies } from "next/headers";
-import { UserProvider } from "@/utils/UserContext";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
 import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
-import { getUser } from "@/app/actions/userActions";
 import { AbortControllerProvider } from "@/utils/AbortContext";
 import ScrollToTop from "@/utils/ScrollToTop";
+import { getServerSession } from "@/lib/session";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -59,7 +58,11 @@ export default async function RootLayout({
     defaultOpen = sidebarCookie.value === "true";
   }
 
-  const { user } = await getUser();
+  const session = await getServerSession();
+
+  if (!session) {
+    forbidden();
+  }
 
   return (
     <html lang={locale}>
@@ -68,16 +71,14 @@ export default async function RootLayout({
       >
         <AbortControllerProvider>
           <ScrollToTop />
-          <UserProvider initialUser={user}>
-            <NextIntlClientProvider>
-              <SidebarProvider defaultOpen={defaultOpen}>
-                <AppSidebar />
-                <DashboardHeaderClient />
-                {children}
-                <Toaster position="top-center" />
-              </SidebarProvider>
-            </NextIntlClientProvider>
-          </UserProvider>
+          <NextIntlClientProvider>
+            <SidebarProvider defaultOpen={defaultOpen}>
+              <AppSidebar />
+              <DashboardHeaderClient />
+              {children}
+              <Toaster position="top-center" />
+            </SidebarProvider>
+          </NextIntlClientProvider>
         </AbortControllerProvider>
       </body>
     </html>

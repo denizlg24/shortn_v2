@@ -22,7 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
-import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -44,6 +43,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
+import { authClient } from "@/lib/authClient";
 
 const qrCodeFormSchema = z.object({
   title: z
@@ -54,7 +54,8 @@ const qrCodeFormSchema = z.object({
 });
 
 export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
 
   const router = useRouter();
 
@@ -82,7 +83,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -96,10 +97,10 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
       });
       return;
     }
-  }, [input, session.user]);
+  }, [input, user]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -124,7 +125,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   if (!qrCode) {
     return <Skeleton className="w-full col-span-full aspect-video h-auto" />;
@@ -280,7 +281,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               key={input}
                               value={input}
                               onSelect={async () => {
-                                if (!session.user?.sub) return;
+                                if (!user?.sub) return;
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
@@ -418,7 +419,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               key={input}
                               value={input}
                               onSelect={async () => {
-                                if (!session.user?.sub) return;
+                                if (!user?.sub) return;
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {

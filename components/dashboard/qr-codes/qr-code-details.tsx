@@ -1,5 +1,3 @@
-"use client";
-import { useUser } from "@/utils/UserContext";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
@@ -9,10 +7,16 @@ import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
 import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
 import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 import { ScanDataProvider } from "@/utils/ScanDataContext";
+import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/app/actions/stripeActions";
+import { forbidden } from "next/navigation";
 
-export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
-  const session = useUser();
-
+export const QRCodeDetails = async ({ qr }: { qr: IQRCode }) => {
+  const session = await getServerSession();
+  const { plan } = await getUserPlan();
+  if (!session?.user) {
+    forbidden();
+  }
   return (
     <>
       {qr && session.user && (
@@ -26,26 +30,20 @@ export const QRCodeDetails = ({ qr }: { qr: IQRCode }) => {
               Back to list
             </Link>
           </Button>
-          <QRCodeDetailsCard qrCode={qr} />
+          <QRCodeDetailsCard
+            qrCode={{ ...qr, _id: (qr._id as string).toString() }}
+          />
           <QRCodeTimeAnalytics
             createdAt={qr.date}
-            unlocked={session.user.plan.subscription == "plus" ||
-            session.user.plan.subscription == "pro"}
+            unlocked={plan == "plus" || plan == "pro"}
           />
           <QRCodeTimeByDateData
-            unlocked={
-              session.user.plan.subscription == "plus" ||
-              session.user.plan.subscription == "pro"
-            }
+            unlocked={plan == "plus" || plan == "pro"}
             createdAt={qr.date}
           />
           <QRCodeLocationAnalytics
             unlocked={
-              session.user.plan.subscription == "pro"
-                ? "all"
-                : session.user.plan.subscription == "plus"
-                ? "location"
-                : "none"
+              plan == "pro" ? "all" : plan == "plus" ? "location" : "none"
             }
           />
         </ScanDataProvider>

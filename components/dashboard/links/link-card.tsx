@@ -44,7 +44,6 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -63,23 +62,47 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export const LinkCard = ({
   link,
+  initialBioPageSlug,
   addTag,
   removeTag,
   tags,
 }: {
   link: TUrl;
+  initialBioPageSlug?: string;
   addTag: (_tagId: string) => void;
   removeTag: (_tagId: string) => void;
   tags: string[];
 }) => {
-  const session = useUser();
+  const { isPending, isRefetching } = authClient.useSession();
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
   const router = useRouter();
 
   const [currentLink, setCurrentLink] = useState(link);
@@ -93,24 +116,13 @@ export const LinkCard = ({
     input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   const [justCopied, setJustCopied] = useState(false);
-  const response = use(
-    fetchApi<{ slug: string; avatar?: string }>(
-      `pages/slug-by-url/${link.urlCode}`,
-    ),
-  );
-  const bioPageSlugFetched =
-    response.success && response.slug ? response.slug : undefined;
-  const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(
-    bioPageSlugFetched,
-  );
 
-  const isPro = session.user?.plan?.subscription === "pro";
+  const isPro = plan === "pro";
+  const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(
+    initialBioPageSlug,
+  );
 
   useEffect(() => {
-    if (!session.user) {
-      return;
-    }
-
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
@@ -132,10 +144,14 @@ export const LinkCard = ({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input]);
 
-  if (!session.user) {
-    return null;
+  if (isPending || isRefetching) {
+    return (
+      <div className="lg:p-6 sm:p-4 p-3 w-full flex flex-col items-center justify-center gap-0">
+        <Spinner />
+      </div>
+    );
   }
 
   return (
@@ -367,7 +383,7 @@ export const LinkCard = ({
         <div className="w-full flex sm:flex-row flex-col sm:items-center items-start sm:gap-4 gap-2">
           <div className="flex flex-row items-center gap-1">
             <ChartNoAxesColumn className="w-4 h-4" />
-            {session.user.plan.subscription == "free" ? (
+            {plan == "free" ? (
               <HoverCard>
                 <HoverCardTrigger
                   className="px-1 rounded-none! h-fit text-xs flex flex-row bg-secondary items-center py-0.5 shadow-xs font-normal
@@ -475,12 +491,14 @@ export const LinkCard = ({
                                   tag.id,
                                 );
                                 if (success) {
-                                  const newLink = currentLink;
-                                  newLink.tags =
-                                    newLink.tags?.filter(
-                                      (_t) => _t.id != tag.id,
-                                    ) || [];
-                                  setCurrentLink(newLink);
+                                  setCurrentLink((prev) => ({
+                                    ...prev,
+                                    tags: prev.tags?.filter(
+                                      (_t) =>
+                                        (_t._id as string).toString() !=
+                                        (tag._id as string).toString(),
+                                    ),
+                                  }));
                                   tagOpenChange(false);
                                 }
                               } else {
@@ -489,7 +507,10 @@ export const LinkCard = ({
                                   tag.id,
                                 );
                                 if (success) {
-                                  currentLink.tags?.push(tag);
+                                  setCurrentLink((prev) => ({
+                                    ...prev,
+                                    tags: [...(prev.tags || []), tag],
+                                  }));
                                   tagOpenChange(false);
                                 }
                               }
@@ -500,7 +521,9 @@ export const LinkCard = ({
                               className={cn(
                                 "ml-auto",
                                 currentLink.tags?.some(
-                                  (_tag) => _tag.tagName == tag.tagName,
+                                  (_tag) =>
+                                    (_tag._id as string).toString() ==
+                                    (tag._id as string).toString(),
                                 )
                                   ? "opacity-100"
                                   : "opacity-0",
@@ -521,7 +544,10 @@ export const LinkCard = ({
                                 );
                               setInput("");
                               if (success && tag) {
-                                currentLink.tags?.push(tag);
+                                setCurrentLink((prev) => ({
+                                  ...prev,
+                                  tags: [...(prev.tags || []), tag],
+                                }));
                               }
                               tagOpenChange(false);
                             }}

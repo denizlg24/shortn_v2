@@ -1,14 +1,17 @@
-import { Link, redirect } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 
 import { setRequestLocale } from "next-intl/server";
 import { EmptyBiosCard } from "./empty-bios-card";
-import { getUser } from "@/app/actions/userActions";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PagesContainer } from "./pages-container";
+import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/app/actions/stripeActions";
+import { forbidden } from "next/navigation";
 
 export default async function Home({
   params,
@@ -19,14 +22,14 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { success, user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
 
-  if (!success || !user) {
-    redirect({ href: "/login", locale });
-    return;
+  if (!user) {
+    forbidden();
   }
-
-  if (user.plan.subscription != "pro") {
+  const { plan } = await getUserPlan();
+  if (plan != "pro") {
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <Card className="w-full max-w-3xl mx-auto">

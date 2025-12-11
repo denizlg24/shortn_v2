@@ -3,10 +3,12 @@ import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const nextConfig: NextConfig = {
+  reactCompiler: true,
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",
     },
+    authInterrupts: true,
   },
   images: {
     remotePatterns: [

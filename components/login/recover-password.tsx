@@ -15,10 +15,11 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { sendRecoveryEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
+import { BASEURL } from "@/lib/utils";
+import { authClient } from "@/lib/authClient";
 const resetFormSchema = z.object({
   email: z.string().email("Must be a valid email address").min(1, {
     message: "Please fill out your email or username",
@@ -38,23 +39,19 @@ export const RecoverPassword = () => {
 
   async function onSubmit(values: z.infer<typeof resetFormSchema>) {
     setLoading(1);
-    const { success, message, token } = await sendRecoveryEmail(
-      values.email,
-      locale,
-    );
-    if (success && token) {
-      router.push(`/recover/sent/${token}`);
-      return;
-    } else if (message) {
-      if (message == "no-user") {
-        form.setError("email", {
-          type: "manual",
-          message: "There is no account linked to this email address.",
-        });
-      } else {
-        toast.error("There was a problem sending your email.");
-        form.reset();
-      }
+    const { error } = await authClient.requestPasswordReset({
+      email: values.email,
+      redirectTo: `${BASEURL}/${locale}/recover/reset`,
+    });
+    if (error) {
+      toast.error(
+        error.message || "There was a problem sending the recovery email.",
+      );
+      form.reset();
+      setLoading(0);
+    } else {
+      toast.success("Recovery email sent! Please check your inbox.");
+      router.push(`/login`);
       setLoading(0);
     }
   }

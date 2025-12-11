@@ -4,7 +4,6 @@ import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
-import { useUser } from "@/utils/UserContext";
 import { useLocale } from "next-intl";
 
 interface SubscriptionSuccessProps {
@@ -16,10 +15,8 @@ export function UpgradedCard({
   plan,
   type = "subscribe",
 }: SubscriptionSuccessProps) {
-  const { refresh } = useUser();
   const locale = useLocale();
   async function handleNavigate(path: string) {
-    await refresh();
     window.location.href = `/${locale}${path}`;
   }
   return (
@@ -29,7 +26,7 @@ export function UpgradedCard({
       className="relative"
       transition={{ duration: 0.5, ease: "easeOut" }}
     >
-      <Card className="max-w-lg text-center shadow-2xl border-border/40 bg-gradient-to-b from-background to-muted mx-auto">
+      <Card className="max-w-lg text-center shadow-2xl border-border/40 bg-linear-to-b from-background to-muted mx-auto">
         <CardHeader>
           <div className="flex justify-center mb-2">
             <motion.div
