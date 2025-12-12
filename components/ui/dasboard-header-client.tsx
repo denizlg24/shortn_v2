@@ -17,9 +17,8 @@ import {
   Settings,
 } from "lucide-react";
 import { Separator } from "./separator";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./locale-switcher";
-import { signOutUser } from "@/app/actions/signOut";
 import { useEffect, useState } from "react";
 import {
   Sheet,
@@ -80,6 +79,7 @@ export const DashboardHeaderClient = () => {
   const [hamburguerOpen, setHamburguerOpen] = useState(false);
   const [createdNewOpen, createNewOpenChange] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   return (
     <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-85 transition-shadow flex flex-row justify-between gap-4">
@@ -420,9 +420,15 @@ export const DashboardHeaderClient = () => {
                 <Separator />
                 <div className="w-full py-2 flex flex-col gap-0">
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       setOpen(false);
-                      signOutUser();
+                      await authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            router.push("/");
+                          },
+                        },
+                      });
                     }}
                     className="rounded-none justify-start"
                     variant="ghost"

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
+import { CheckCircle2, Loader2, LockIcon, Trash2, Upload } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -41,6 +41,7 @@ import { authClient } from "@/lib/authClient";
 import { useRouter } from "@/i18n/navigation";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { ServerUser } from "@/lib/auth";
+import { BASEURL } from "@/lib/utils";
 
 const updateEmailFormSchema = z.object({
   email: z
@@ -180,7 +181,7 @@ export const ProfileCard = ({
     setUpdatingEmail(true);
     const { error } = await authClient.changeEmail({
       newEmail: values.email,
-      callbackURL: `/${locale}/dashboard/settings/profile`,
+      callbackURL: `${BASEURL}/${locale}/dashboard`,
     });
     if (!error) {
       const accountActivity = {
@@ -592,7 +593,18 @@ export const ProfileCard = ({
           <Separator className="col-span-full" />
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="mt-2 w-fit">Update Email</Button>
+              <Button
+                disabled={!user.sub.startsWith("authS|")}
+                className="mt-2 w-fit"
+              >
+                {user.sub.startsWith("authS|") ? (
+                  "Update Email"
+                ) : (
+                  <>
+                    Social Login <LockIcon />
+                  </>
+                )}
+              </Button>
             </DialogTrigger>
             <DialogContent className="z-99">
               <DialogHeader>

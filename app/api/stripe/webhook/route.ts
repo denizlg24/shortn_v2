@@ -12,6 +12,11 @@ export const subscription_created_handler = async (
   subscriptionObject: Stripe.Subscription,
 ) => {
   const customerId = subscriptionObject.customer as string;
+  const isFirstFreePlan =
+    subscriptionObject.metadata?.first_free_plan === "true";
+  if (isFirstFreePlan) {
+    return true;
+  }
   await connectDB();
   const user = await User.findOne({ stripeCustomerId: customerId });
   if (!user) {

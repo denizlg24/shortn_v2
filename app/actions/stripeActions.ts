@@ -139,9 +139,12 @@ export async function createFreePlan({
         price: env.FREE_PLAN_ID,
       },
     ],
+    metadata: {
+      first_free_plan: "true",
+    },
   });
 
-  return { customerId: customer.id, subscriptionId: subscription.id };
+  return { customerId: customer.id, subscription: subscription };
 }
 
 export async function getStripeExtraInfo(stripeId: string) {

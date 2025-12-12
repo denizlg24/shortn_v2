@@ -4,16 +4,19 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
-import {
-  sendRecoveryEmail,
-  //sendUpdateEmailVerificationEmail,
-  sendVerificationEmail,
-} from "@/app/actions/userActions";
+import { sendReactEmail, sendRecoveryEmail } from "@/app/actions/userActions";
 import { stripe } from "@better-auth/stripe";
 import Stripe from "stripe";
-import { subscribeToFreePlan } from "@/app/actions/stripeActions";
+import { createFreePlan } from "@/app/actions/stripeActions";
+import { BASEURL } from "./utils";
 import { User } from "@/models/auth/User";
 import { connectDB } from "./mongodb";
+import { Subscription } from "@/models/auth/Subscription";
+import { Session } from "@/models/auth/Session";
+import { WelcomeEmail } from "@/components/emails/welcome-email";
+import { AccountVerifiedEmail } from "@/components/emails/email-verified";
+import { ConfirmUpdateEmailRequest } from "@/components/emails/update-email-react-email";
+import { VerifyUpdateEmailRequest } from "@/components/emails/verify-react-email";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -27,6 +30,7 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY);
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 export const auth = betterAuth({
+  baseURL: BASEURL,
   database: mongodbAdapter(db, {
     client,
     transaction: true,
@@ -34,9 +38,17 @@ export const auth = betterAuth({
   user: {
     changeEmail: {
       enabled: true,
-      // sendChangeEmailConfirmation: async ({ user,newEmail, url }) => {
-      //   void sendUpdateEmailVerificationEmail(user.email, url,newEmail);
-      // },
+      sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+        await sendReactEmail({
+          react: ConfirmUpdateEmailRequest({
+            link: url,
+            userName: user.name || user.email,
+            newEmail,
+          }),
+          email: user.email,
+          subject: "Shortn Account - Confirm Your Email Change Request",
+        });
+      },
     },
     additionalFields: {
       sub: {
@@ -59,6 +71,16 @@ export const auth = betterAuth({
   },
   databaseHooks: {
     user: {
+      update: {
+        after: async (user, ctx) => {
+          if (user.email !== ctx?.context.session?.user.email) {
+            console.log(
+              `Email changed for user ${user.id}. Revoking all sessions.`,
+            );
+            await Session.deleteMany({ userId: user.id });
+          }
+        },
+      },
       create: {
         before: async (user) => {
           return {
@@ -71,6 +93,29 @@ export const auth = betterAuth({
             },
           };
         },
+        after: async (user) => {
+          await connectDB();
+          const { customerId, subscription } = await createFreePlan({
+            name: user.name || user.email,
+            email: user.email,
+          });
+          await User.findByIdAndUpdate(user.id, {
+            stripeCustomerId: customerId,
+          });
+          await Subscription.create({
+            referenceId: user.id,
+            plan: "free",
+            status: "active",
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscription.id,
+            periodStart: new Date(subscription.start_date),
+            periodEnd: new Date(
+              subscription.start_date + 30 * 24 * 60 * 60 * 1000,
+            ),
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+        },
       },
     },
   },
@@ -80,27 +125,33 @@ export const auth = betterAuth({
 
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }, _request) => {
-      void sendRecoveryEmail(user.email, url);
+      await sendRecoveryEmail(user.email, url);
     },
   },
 
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }, _request) => {
-      void sendVerificationEmail(user.email, url);
+    sendVerificationEmail: async ({ user, url }, request) => {
+      if (request?.url?.includes("/verify-email")) {
+        await sendReactEmail({
+          react: VerifyUpdateEmailRequest({ link: url }),
+          email: user.email,
+          subject: "Shortn account - Verify Your New Email Address",
+        });
+      } else {
+        await sendReactEmail({
+          react: WelcomeEmail({ userName: user.name || user.email, link: url }),
+          email: user.email,
+          subject: "Welcome to Shortn! - Verify Your Email",
+        });
+      }
     },
     onEmailVerification: async (user) => {
-      await connectDB();
-      const dbUser = await User.findById(user.id).lean();
-      const stripeCustomerId = dbUser?.stripeCustomerId;
-      if (!stripeCustomerId) {
-        console.log("No stripe attached at the time of verification.");
-        return;
-      }
-      await subscribeToFreePlan({
-        customer_id: stripeCustomerId,
-        userId: user.id,
+      await sendReactEmail({
+        react: AccountVerifiedEmail(),
+        email: user.email,
+        subject: "Shortn Account Verified!",
       });
     },
   },
@@ -113,6 +164,9 @@ export const auth = betterAuth({
         return {
           name: profile.name || profile.login,
           email: profile.email,
+          username:
+            profile.login ||
+            profile.email.substring(0, profile.email.indexOf("@")),
           image: profile.avatar_url,
           emailVerified: true,
           sub: `github|${profile.id}`,
@@ -125,7 +179,11 @@ export const auth = betterAuth({
       clientSecret: env.AUTH_GOOGLE_SECRET,
       mapProfileToUser: (profile) => {
         return {
-          name: profile.name,
+          name:
+            [profile.given_name, profile.family_name].join(" ").trim() ||
+            profile.name ||
+            profile.email.substring(0, profile.email.indexOf("@")),
+          username: profile.email.substring(0, profile.email.indexOf("@")),
           email: profile.email,
           image: profile.picture,
           emailVerified: profile.email_verified,
@@ -158,22 +216,9 @@ export const auth = betterAuth({
       },
       stripeClient,
       stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      createCustomerOnSignUp: true,
+      createCustomerOnSignUp: false,
       subscription: {
         enabled: true,
-        onSubscriptionComplete: async ({
-          event,
-          subscription,
-          stripeSubscription,
-          plan,
-        }) => {
-          console.log("Subscription complete:", {
-            event,
-            subscription,
-            stripeSubscription,
-            plan,
-          });
-        },
         plans: [
           {
             name: "free",

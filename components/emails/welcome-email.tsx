@@ -5,7 +5,7 @@ import {
   Container,
   Head,
   Html,
-  //Img,
+  Img,
   Link,
   Preview,
   Row,
@@ -14,10 +14,16 @@ import {
   Text,
 } from "@react-email/components";
 
-export function VerifyUpdateEmailRequest({ link }: { link: string }) {
+export function WelcomeEmail({
+  userName,
+  link,
+}: {
+  userName: string;
+  link: string;
+}) {
   return (
     <Html>
-      <Preview>Shortn.at - Email Change Verification</Preview>
+      <Preview>Shortn.at - Welcome</Preview>
       <Tailwind
         config={{
           darkMode: "class",
@@ -95,60 +101,35 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
                 <tr>
                   <td>
                     <Section>
-                      <table
-                        cellPadding="0"
-                        cellSpacing="0"
-                        style={{ width: "100%" }}
-                      >
-                        <tr className="align-start flex items-center justify-start gap-[16px]">
-                          {/* <td className="h-[40px] w-[40px] rounded-[8px]">
-                            <Section
-                              className="flex h-[40px] w-[40px] items-center justify-center rounded-[8px]"
-                              style={{
-                                backgroundColor: "hsl(151.8 81% 95.9%)",
-                                borderRadius: "8px",
-                                border: "1px solid hsl(149.3 80.4% 90%)",
-                              }}
-                            >
-                              <svg
-                                width="24"
-                                height="24"
-                                fill="none"
-                                stroke="hsl(161.4 93.5% 30.4%)"
-                                strokeWidth="2"
-                                className="text-[hsl(161.4 93.5% 30.4%)]"
-                                viewBox="0 0 24 24"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path d="M20.5 15.8V8.2a1.91 1.91 0 0 0-.944-1.645l-6.612-3.8a1.88 1.88 0 0 0-1.888 0l-6.612 3.8A1.9 1.9 0 0 0 3.5 8.2v7.602a1.91 1.91 0 0 0 .944 1.644l6.612 3.8a1.88 1.88 0 0 0 1.888 0l6.612-3.8A1.9 1.9 0 0 0 20.5 15.8" />
-                                <path d="m8.667 12.633 1.505 1.721a1 1 0 0 0 1.564-.073L15.333 9.3" />
-                              </svg>
-                            </Section>
-                          </td> */}
+                      <Link href="https://shortn.at">
+                        <Img
+                          src="https://res.cloudinary.com/sutharjay/image/upload/v1741669349/me/projects/reactui-email/myna-ui/rt2fwqotiiphxlzyx6yt.png"
+                          alt="Public Analytics Dashboards"
+                          className="aspect-video w-full cursor-pointer rounded-[8px] object-cover"
+                        />
+                      </Link>
+                    </Section>
 
-                          <td className="text-left">
-                            <Text className="text-text-light m-0 p-0 text-lg font-bold leading-tight">
-                              Verification Required!
-                            </Text>
-                          </td>
-                        </tr>
-                      </table>
-                    </Section>
-                    <Section>
-                      <Text className="text-text-light m-0 mt-6 p-0 text-base">
-                        We got a request to update the your Shortn.at account
-                        email to this one. If this request wasn't made by
-                        yourself you can safely ignore this email.
+                    <Section className="mt-4">
+                      <Text className="text-text-light  m-0 p-0 text-lg font-semibold leading-tight">
+                        Hey {userName}!
                       </Text>
                     </Section>
+
                     <Section>
-                      <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        If this was you, please click the button bellow to
-                        verify your new email address.
+                      <Text className="text-text-light  text-base">
+                        We&apos;re thrilled to have you on board at Shortn.at,
+                        the ultimate destination for your shortening needs.
+                        Before you dive into organizing and accessing your
+                        dashboard with ease, there&apos;s just one small step
+                        left - verifying your email.
+                      </Text>
+                      <Text className="text-text-light  m-0 mt-4 p-0 text-base">
+                        Click the link below to confirm your email address and
+                        unlock a world of shortening possibilities.
                       </Text>
                     </Section>
+
                     <Section className="mt-4 text-center">
                       <table
                         style={{
@@ -166,7 +147,7 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
                             >
                               <Row className="m-0 p-0">
                                 <Column className="text-white">
-                                  Verify my email
+                                  Verify Your Email
                                 </Column>
                                 <Column>
                                   <svg
@@ -190,16 +171,14 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
                         </tr>
                       </table>
                     </Section>
+
                     <Section className="mt-4">
-                      <Text className="text-text-light m-0 p-0 text-base">
-                        This measure is to ensure that only you have access to
-                        your account, and no intrusions occur.
+                      <Text className="text-text-light  m-0 p-0 text-base">
+                        If you have any questions, our support team is just an
+                        email away. Welcome to the Shortn.at community!
                       </Text>
-                      <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        Stay safe,
-                      </Text>
-                      <Text className="text-text-light m-0 p-0 text-base">
-                        The Shortn Team
+                      <Text className="text-text-light  m-0 mt-4 p-0 text-base">
+                        Happy Shortening, The Shortn.at Team
                       </Text>
                     </Section>
                   </td>
@@ -207,7 +186,7 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
               </table>
             </Section>
 
-            <Section className="text-text-light mt-6 mb-4 text-left text-sm">
+            <Section className="text-text-light mt-6  mb-4 text-left text-sm">
               <Text className="m-0 p-0 text-xs">
                 This message was sent by Shortn.at. © 2025 Shortn.at. All
                 rights reserved. View our{" "}
