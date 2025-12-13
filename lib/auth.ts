@@ -33,15 +33,15 @@ export const auth = betterAuth({
   baseURL: BASEURL,
   database: mongodbAdapter(db, {
     client,
-    transaction: true,
   }),
   user: {
     changeEmail: {
       enabled: true,
-      sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+      sendChangeEmailConfirmation: async ({ user, newEmail, token }) => {
+        const verifyUrl = `${BASEURL}/${"en"}/request-change?token=${token}`;
         await sendReactEmail({
           react: ConfirmUpdateEmailRequest({
-            link: url,
+            link: verifyUrl,
             userName: user.name || user.email,
             newEmail,
           }),
@@ -132,16 +132,20 @@ export const auth = betterAuth({
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }, request) => {
+    sendVerificationEmail: async ({ user, token }, request) => {
+      const verifyUrl = `${BASEURL}/${"en"}/verify?token=${token}`;
       if (request?.url?.includes("/verify-email")) {
         await sendReactEmail({
-          react: VerifyUpdateEmailRequest({ link: url }),
+          react: VerifyUpdateEmailRequest({ link: verifyUrl }),
           email: user.email,
           subject: "Shortn account - Verify Your New Email Address",
         });
       } else {
         await sendReactEmail({
-          react: WelcomeEmail({ userName: user.name || user.email, link: url }),
+          react: WelcomeEmail({
+            userName: user.name || user.email,
+            link: verifyUrl,
+          }),
           email: user.email,
           subject: "Welcome to Shortn! - Verify Your Email",
         });
