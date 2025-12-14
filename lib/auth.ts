@@ -4,19 +4,21 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
-import { sendReactEmail, sendRecoveryEmail } from "@/app/actions/userActions";
+import { sendRecoveryEmail } from "@/app/actions/userActions";
+import { sendEmail } from "@/app/actions/sendEmail";
+import {
+  verificationEmailTemplate,
+  emailVerifiedTemplate,
+  updateEmailVerificationTemplate,
+  confirmEmailChangeTemplate,
+} from "@/lib/email-templates";
 import { stripe } from "@better-auth/stripe";
 import Stripe from "stripe";
-import { createFreePlan } from "@/app/actions/stripeActions";
+import { subscribeToFreePlan } from "@/app/actions/stripeActions";
 import { BASEURL } from "./utils";
-import { User } from "@/models/auth/User";
 import { connectDB } from "./mongodb";
 import { Subscription } from "@/models/auth/Subscription";
 import { Session } from "@/models/auth/Session";
-import { WelcomeEmail } from "@/components/emails/welcome-email";
-import { AccountVerifiedEmail } from "@/components/emails/email-verified";
-import { ConfirmUpdateEmailRequest } from "@/components/emails/update-email-react-email";
-import { VerifyUpdateEmailRequest } from "@/components/emails/verify-react-email";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -39,14 +41,15 @@ export const auth = betterAuth({
       enabled: true,
       sendChangeEmailConfirmation: async ({ user, newEmail, token }) => {
         const verifyUrl = `${BASEURL}/${"en"}/verify/request-change?token=${token}&email=${user.email}&new=${newEmail}`;
-        await sendReactEmail({
-          react: ConfirmUpdateEmailRequest({
-            link: verifyUrl,
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
+          subject: "Shortn Account - Confirm your email change request",
+          html: confirmEmailChangeTemplate({
+            confirmLink: verifyUrl,
             userName: user.name || user.email,
             newEmail,
           }),
-          email: user.email,
-          subject: "Shortn Account - Confirm Your Email Change Request",
         });
       },
     },
@@ -93,29 +96,6 @@ export const auth = betterAuth({
             },
           };
         },
-        after: async (user) => {
-          await connectDB();
-          const { customerId, subscription } = await createFreePlan({
-            name: user.name || user.email,
-            email: user.email,
-          });
-          await User.findByIdAndUpdate(user.id, {
-            stripeCustomerId: customerId,
-          });
-          await Subscription.create({
-            referenceId: user.id,
-            plan: "free",
-            status: "active",
-            stripeCustomerId: customerId,
-            stripeSubscriptionId: subscription.id,
-            periodStart: new Date(subscription.start_date),
-            periodEnd: new Date(
-              subscription.start_date + 30 * 24 * 60 * 60 * 1000,
-            ),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        },
       },
     },
   },
@@ -135,27 +115,36 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }, request) => {
       const verifyUrl = `${BASEURL}/${"en"}/verify?token=${token}`;
       if (request?.url?.includes("/verify-email")) {
-        await sendReactEmail({
-          react: VerifyUpdateEmailRequest({ link: verifyUrl }),
-          email: user.email,
-          subject: "Shortn account - Verify Your New Email Address",
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
+          subject: "Shortn account - Verify your new email address",
+          html: updateEmailVerificationTemplate({
+            verificationLink: verifyUrl,
+            newEmail: user.email,
+          }),
         });
       } else {
-        await sendReactEmail({
-          react: WelcomeEmail({
-            userName: user.name || user.email,
-            link: verifyUrl,
-          }),
-          email: user.email,
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
           subject: "Welcome to Shortn! - Verify Your Email",
+          html: verificationEmailTemplate({
+            verificationLink: verifyUrl,
+            userName: user.name || user.email,
+          }),
         });
       }
     },
     onEmailVerification: async (user) => {
-      await sendReactEmail({
-        react: AccountVerifiedEmail(),
-        email: user.email,
-        subject: "Shortn Account Verified!",
+      await sendEmail({
+        from: "no-reply@shortn.at",
+        to: user.email,
+        subject: "Shortn account - Email Verified Successfully!",
+        html: emailVerifiedTemplate({
+          userName: user.name,
+          dashboardLink: `${BASEURL}/${"en"}/dashboard`,
+        }),
       });
     },
   },
@@ -220,7 +209,31 @@ export const auth = betterAuth({
       },
       stripeClient,
       stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
-      createCustomerOnSignUp: false,
+      createCustomerOnSignUp: true,
+      onCustomerCreate: async (data) => {
+        const { user, stripeCustomer } = data;
+        await connectDB();
+        const subscription = await subscribeToFreePlan({
+          customer_id: stripeCustomer.id,
+          userId: user.id,
+        });
+        if (!subscription) {
+          throw new Error("Failed to create subscription");
+        }
+        await Subscription.create({
+          referenceId: user.id,
+          plan: "free",
+          status: "active",
+          stripeCustomerId: stripeCustomer.id,
+          stripeSubscriptionId: subscription.id,
+          periodStart: new Date(subscription.start_date),
+          periodEnd: new Date(
+            subscription.start_date + 30 * 24 * 60 * 60 * 1000,
+          ),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      },
       subscription: {
         enabled: true,
         plans: [

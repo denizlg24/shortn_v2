@@ -41,7 +41,7 @@ export const RecoverPassword = () => {
     setLoading(1);
     const { error } = await authClient.requestPasswordReset({
       email: values.email,
-      redirectTo: `${BASEURL}/${locale}/recover/reset`,
+      redirectTo: `${BASEURL}/${locale}/reset`,
     });
     if (error) {
       toast.error(

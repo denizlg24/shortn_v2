@@ -274,31 +274,33 @@ export const VerifiedPage = () => {
         )}
       </AnimatePresence>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.5 }}
-        className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2"
-      >
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.push("/login")}
-          className="w-full sm:w-auto"
+      {status.kind != "success" && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.5 }}
+          className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2"
         >
-          Back to Login
-        </Button>
-
-        {effectiveStatus.kind === "failed" && (
           <Button
             type="button"
-            onClick={() => router.push("/register")}
+            variant="outline"
+            onClick={() => router.push("/login")}
             className="w-full sm:w-auto"
           >
-            Create Account
+            Back to Login
           </Button>
-        )}
-      </motion.div>
+
+          {effectiveStatus.kind === "failed" && (
+            <Button
+              type="button"
+              onClick={() => router.push("/register")}
+              className="w-full sm:w-auto"
+            >
+              Create Account
+            </Button>
+          )}
+        </motion.div>
+      )}
     </motion.div>
   );
 };

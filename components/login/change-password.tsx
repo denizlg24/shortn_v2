@@ -18,6 +18,7 @@ import {
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { authClient } from "@/lib/authClient";
+import { useRouter } from "@/i18n/navigation";
 
 const resetFormSchema = z
   .object({
@@ -45,6 +46,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
       confirmPassword: "",
     },
   });
+  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof resetFormSchema>) {
     setLoading(1);
@@ -54,6 +56,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
     });
     if (!error) {
       toast.success("Password updated, you can now login.");
+      router.push("/login");
     } else {
       toast.error("There was a problem resetting your password.");
       form.reset();

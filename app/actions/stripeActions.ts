@@ -104,7 +104,7 @@ export async function subscribeToFreePlan({
   userId: string;
 }) {
   try {
-    await stripe.subscriptions.create({
+    const subscription = await stripe.subscriptions.create({
       customer: customer_id,
       items: [
         {
@@ -113,9 +113,10 @@ export async function subscribeToFreePlan({
       ],
       metadata: {
         userId: userId,
+        first_free_plan: "true",
       },
     });
-    return true;
+    return subscription;
   } catch (_error) {
     return false;
   }

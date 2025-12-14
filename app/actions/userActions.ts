@@ -1,8 +1,14 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
+import { LoginRecord } from "@/models/auth/LoginActivity";
+import { Geo } from "@vercel/functions";
+import { sendEmail, sendReactEmail } from "./sendEmail";
+import { resetPasswordEmailTemplate } from "@/lib/email-templates";
+import { ReactNode } from "react";
 
-export async function sendReactEmail({
+// Keep legacy function for backward compatibility
+export async function sendReactEmailLegacy({
   react,
   email,
   subject,
@@ -11,7 +17,7 @@ export async function sendReactEmail({
   email: string;
   subject: string;
 }) {
-  const response = await sendEmail({
+  const response = await sendReactEmail({
     from: "no-reply@shortn.at",
     to: email,
     subject: subject,
@@ -25,24 +31,20 @@ export async function sendReactEmail({
 
 export async function sendRecoveryEmail(email: string, url: string) {
   await connectDB();
-  const hrefLink = url;
   const response = await sendEmail({
     from: "no-reply@shortn.at",
     to: email,
-    subject: "Shortn Account Recovery",
-    reactNode: ResetPasswordEmail({ resetLink: hrefLink }),
+    subject: "Reset your Shortn password",
+    html: resetPasswordEmailTemplate({
+      resetLink: url,
+      expiryMinutes: 10,
+    }),
   });
   if (!response) {
     return { success: false, token: undefined };
   }
   return { success: true, token: undefined };
 }
-
-import { LoginRecord } from "@/models/auth/LoginActivity";
-import { Geo } from "@vercel/functions";
-import { sendEmail } from "./sendEmail";
-import { ResetPasswordEmail } from "@/components/emails/reset-password-react-email";
-import { ReactNode } from "react";
 
 export async function loginAttempt({
   sub,
