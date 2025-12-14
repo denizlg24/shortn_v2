@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Loader2, Trash2, Upload } from "lucide-react";
+import { CheckCircle2, Loader2, LockIcon, Trash2, Upload } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -41,7 +41,8 @@ import { authClient } from "@/lib/authClient";
 import { useRouter } from "@/i18n/navigation";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { ServerUser } from "@/lib/auth";
-
+import { BASEURL } from "@/lib/utils";
+import Cookies from "js-cookie";
 const updateEmailFormSchema = z.object({
   email: z
     .string()
@@ -180,7 +181,7 @@ export const ProfileCard = ({
     setUpdatingEmail(true);
     const { error } = await authClient.changeEmail({
       newEmail: values.email,
-      callbackURL: `/${locale}/dashboard/settings/profile`,
+      callbackURL: `${BASEURL}/${locale}/dashboard`,
     });
     if (!error) {
       const accountActivity = {
@@ -193,9 +194,12 @@ export const ProfileCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountActivity),
       });
-      toast.success("Verification email sent. Please check your inbox.");
       await signOutUser();
-      router.push("/login");
+      Cookies.set("flow_request_change_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+      Cookies.set("flow_request_change_email", values.email, {
+        expires: 30 / 288,
+      });
+      router.push("/verify/requested");
     } else if (error) {
       updateEmailForm.setError("email", {
         type: "manual",
@@ -592,7 +596,18 @@ export const ProfileCard = ({
           <Separator className="col-span-full" />
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="mt-2 w-fit">Update Email</Button>
+              <Button
+                disabled={!user.sub.startsWith("authS|")}
+                className="mt-2 w-fit"
+              >
+                {user.sub.startsWith("authS|") ? (
+                  "Update Email"
+                ) : (
+                  <>
+                    Social Login <LockIcon />
+                  </>
+                )}
+              </Button>
             </DialogTrigger>
             <DialogContent className="z-99">
               <DialogHeader>

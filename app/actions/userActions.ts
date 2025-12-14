@@ -1,16 +1,27 @@
 "use server";
 
 import { connectDB } from "@/lib/mongodb";
-import { VerifyReactEmail } from "@/components/emails/verify-react-email";
+import { LoginRecord } from "@/models/auth/LoginActivity";
+import { Geo } from "@vercel/functions";
+import { sendEmail, sendReactEmail } from "./sendEmail";
+import { resetPasswordEmailTemplate } from "@/lib/email-templates";
+import { ReactNode } from "react";
 
-export async function sendRecoveryEmail(email: string, url: string) {
-  await connectDB();
-  const hrefLink = url;
-  const response = await sendEmail({
+// Keep legacy function for backward compatibility
+export async function sendReactEmailLegacy({
+  react,
+  email,
+  subject,
+}: {
+  react: ReactNode;
+  email: string;
+  subject: string;
+}) {
+  const response = await sendReactEmail({
     from: "no-reply@shortn.at",
     to: email,
-    subject: "Shortn Account Recovery",
-    reactNode: ResetPasswordEmail({ resetLink: hrefLink }),
+    subject: subject,
+    reactNode: react,
   });
   if (!response) {
     return { success: false, token: undefined };
@@ -18,44 +29,21 @@ export async function sendRecoveryEmail(email: string, url: string) {
   return { success: true, token: undefined };
 }
 
-import { LoginRecord } from "@/models/auth/LoginActivity";
-import { Geo } from "@vercel/functions";
-import { sendEmail } from "./sendEmail";
-import { ResetPasswordEmail } from "@/components/emails/reset-password-react-email";
-import { UpdateEmailReactEmail } from "@/components/emails/update-email-react-email";
-
-export async function sendVerificationEmail(email: string, url: string) {
+export async function sendRecoveryEmail(email: string, url: string) {
   await connectDB();
-  const hrefLink = url;
   const response = await sendEmail({
     from: "no-reply@shortn.at",
     to: email,
-    subject: "Shortn Account Verification",
-    reactNode: VerifyReactEmail({ verificationLink: hrefLink }),
+    subject: "Reset your Shortn password",
+    html: resetPasswordEmailTemplate({
+      resetLink: url,
+      expiryMinutes: 10,
+    }),
   });
   if (!response) {
-    return false;
+    return { success: false, token: undefined };
   }
-  return true;
-}
-
-export async function sendUpdateEmailVerificationEmail(
-  email: string,
-  url: string,
-  newEmail: string,
-) {
-  await connectDB();
-  const hrefLink = url;
-  const response = await sendEmail({
-    from: "no-reply@shortn.at",
-    to: email,
-    subject: "Shortn Account Update Verification",
-    reactNode: UpdateEmailReactEmail({ verificationLink: hrefLink, newEmail }),
-  });
-  if (!response) {
-    return false;
-  }
-  return true;
+  return { success: true, token: undefined };
 }
 
 export async function loginAttempt({

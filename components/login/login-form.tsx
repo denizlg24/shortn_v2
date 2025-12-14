@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Eye, EyeOff, Loader2, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
 import { authClient } from "@/lib/authClient";
+import { BASEURL } from "@/lib/utils";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -52,7 +52,7 @@ export const LoginForm = () => {
         {
           email: identifier,
           password: password,
-          callbackURL: `/${locale}/dashboard`,
+          callbackURL: `${BASEURL}/${locale}/dashboard`,
           rememberMe: false,
         },
         {
@@ -91,32 +91,35 @@ export const LoginForm = () => {
               ctx.error.code === "EMAIL_NOT_VERIFIED" ||
               ctx.error.status === 403
             ) {
-              toast(
-                <div className="w-full flex flex-col gap-2">
-                  <div className="flex flex-row items-center justify-start gap-2">
-                    <XCircle className="text-destructive" />
-                    <p className="text-lg font-bold">Account not verified.</p>
-                  </div>
-                  <div className="w-full">
-                    <p className="text-sm">
-                      You still haven&apos;t verified your email. Please check
-                      your inbox and{" "}
-                      <Link
-                        onClick={async () => {
-                          await sendVerificationEmail(values.email, locale);
-                          toast.dismiss("not-verified-toast");
-                        }}
-                        href={`/verification-sent/${values.email}`}
-                        className="underline text-primary font-semibold"
-                      >
-                        verify your account.
-                      </Link>
-                    </p>
-                  </div>
-                </div>,
+              toast.error(
+                <p className="text-xs flex flex-row flex-wrap gap-1">
+                  Please verify your email address before logging in.{" "}
+                  <Button
+                    onClick={async () => {
+                      await authClient.sendVerificationEmail(
+                        {
+                          email: identifier,
+                          callbackURL: `${BASEURL}/${locale}/dashboard`,
+                        },
+                        {
+                          onSuccess: () => {
+                            toast.success(
+                              "Verification email resent successfully.",
+                            );
+                          },
+                        },
+                      );
+                      toast.dismiss("not-verified-toast");
+                    }}
+                    variant={"link"}
+                    className="text-xs p-0! h-fit! w-fit!"
+                  >
+                    Resend verification email.
+                  </Button>
+                </p>,
                 { id: "not-verified-toast" },
               );
-
+              setLoading(0);
               return;
             }
             setLoading(0);
@@ -132,7 +135,7 @@ export const LoginForm = () => {
         {
           username: identifier,
           password: password,
-          callbackURL: `/${locale}/dashboard`,
+          callbackURL: `${BASEURL}/${locale}/dashboard`,
           rememberMe: false,
         },
         {
@@ -171,32 +174,14 @@ export const LoginForm = () => {
               ctx.error.code === "EMAIL_NOT_VERIFIED" ||
               ctx.error.status === 403
             ) {
-              toast(
-                <div className="w-full flex flex-col gap-2">
-                  <div className="flex flex-row items-center justify-start gap-2">
-                    <XCircle className="text-destructive" />
-                    <p className="text-lg font-bold">Account not verified.</p>
-                  </div>
-                  <div className="w-full">
-                    <p className="text-sm">
-                      You still haven&apos;t verified your email. Please check
-                      your inbox and{" "}
-                      <Link
-                        onClick={async () => {
-                          await sendVerificationEmail(values.email, locale);
-                          toast.dismiss("not-verified-toast");
-                        }}
-                        href={`/verification-sent/${values.email}`}
-                        className="underline text-primary font-semibold"
-                      >
-                        verify your account.
-                      </Link>
-                    </p>
-                  </div>
-                </div>,
+              toast.error(
+                <p className="text-xs flex flex-row flex-wrap gap-1">
+                  Your account isn't verified. Please login with your email to
+                  get a verification email.
+                </p>,
                 { id: "not-verified-toast" },
               );
-
+              setLoading(0);
               return;
             }
             setLoading(0);

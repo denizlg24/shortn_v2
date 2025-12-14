@@ -1,23 +1,20 @@
 import {
   Body,
-  Button,
-  Column,
   Container,
   Head,
   Html,
   //Img,
   Link,
   Preview,
-  Row,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
 
-export function VerifyUpdateEmailRequest({ link }: { link: string }) {
+export function AccountVerifiedEmail() {
   return (
     <Html>
-      <Preview>Shortn.at - Email Change Verification</Preview>
+      <Preview>Shortn.at - Account Verified</Preview>
       <Tailwind
         config={{
           darkMode: "class",
@@ -130,76 +127,34 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
 
                           <td className="text-left">
                             <Text className="text-text-light m-0 p-0 text-lg font-bold leading-tight">
-                              Verification Required!
+                              Account Verified!
                             </Text>
                           </td>
                         </tr>
                       </table>
                     </Section>
+
                     <Section>
                       <Text className="text-text-light m-0 mt-6 p-0 text-base">
-                        Someone requested to change their Shortn.at account
-                        email to this address. To complete this change, we need
-                        to verify that you own this email.
+                        Success! Your email has been verified. You&apos;re now
+                        all set to explore the vast world of Shortn.at.
                       </Text>
                     </Section>
+
                     <Section>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        If you made this request, click the button below. If you
-                        didn&apos;t request this, you can ignore this email.
+                        Start sharing links, tracking clicks, and enjoying the
+                        benefits of an optimized online presence.
                       </Text>
                     </Section>
-                    <Section className="mt-4 text-center">
-                      <table
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          width: "fit-content",
-                          alignItems: "center",
-                        }}
-                      >
-                        <tr>
-                          <td>
-                            <Button
-                              className="bg-brand mx-auto flex w-fit items-center justify-center rounded-[8px] px-[20px] py-[10px] text-center text-[14px] font-semibold text-muted"
-                              href={link}
-                            >
-                              <Row className="m-0 p-0">
-                                <Column className="text-white">
-                                  Verify my email
-                                </Column>
-                                <Column>
-                                  <svg
-                                    width="24"
-                                    height="24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    className="ml-[8px] text-white"
-                                    strokeWidth="1.5"
-                                    viewBox="0 0 24 24"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path d="M4.5 12h15m0 0-5.625-6m5.625 6-5.625 6" />
-                                  </svg>
-                                </Column>
-                              </Row>
-                            </Button>
-                          </td>
-                        </tr>
-                      </table>
-                    </Section>
+
                     <Section className="mt-4">
                       <Text className="text-text-light m-0 p-0 text-base">
-                        This verification step helps ensure the security of your
-                        account and prevents unauthorized access.
+                        If you have any questions or need a hand getting
+                        started, contact us at geral@oceaninformatix.com.
                       </Text>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        Best regards,
-                      </Text>
-                      <Text className="text-text-light m-0 p-0 text-base">
-                        The Shortn.at Team
+                        Enjoy your journey with Shortn.at!
                       </Text>
                     </Section>
                   </td>

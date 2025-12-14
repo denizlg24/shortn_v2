@@ -1,28 +1,31 @@
 import {
   Body,
   Button,
+  Column,
   Container,
   Head,
-  Hr,
   Html,
+  //Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
 } from "@react-email/components";
 
-export function UpdateEmailReactEmail({
-  verificationLink,
+export function ConfirmUpdateEmailRequest({
+  link,
+  userName,
   newEmail,
 }: {
-  verificationLink: string;
+  link: string;
+  userName: string;
   newEmail: string;
 }) {
   return (
     <Html>
-      <Head />
-      <Preview>Update shortn.at email</Preview>
+      <Preview>Shortn.at - Email Change Requested</Preview>
       <Tailwind
         config={{
           darkMode: "class",
@@ -32,29 +35,21 @@ export function UpdateEmailReactEmail({
                 sans: ["var(--font-sans)"],
               },
               colors: {
-                brand: "#0a0a0a",
-                muted: "#fafafa",
+                brand: "#155dfc",
+
                 background: "hsl(var(--background))",
                 foreground: "hsl(var(--foreground))",
-                card: {
-                  DEFAULT: "hsl(var(--card))",
-                  foreground: "hsl(var(--card-foreground))",
-                },
-                popover: {
-                  DEFAULT: "hsl(var(--popover))",
-                  foreground: "hsl(var(--popover-foreground))",
-                },
                 primary: {
-                  DEFAULT: "hsl(var(--primary))",
+                  DEFAULT: "#314158",
                   foreground: "hsl(var(--primary-foreground))",
                 },
-                secondary: {
-                  DEFAULT: "hsl(var(--secondary))",
-                  foreground: "hsl(var(--secondary-foreground))",
-                },
                 accent: {
-                  DEFAULT: "hsl(var(--accent))",
+                  DEFAULT: "#314158",
                   foreground: "hsl(var(--accent-foreground))",
+                },
+                muted: {
+                  DEFAULT: "hsl(var(--muted))",
+                  foreground: "hsl(var(--muted-foreground))",
                 },
                 destructive: {
                   DEFAULT: "hsl(var(--destructive))",
@@ -70,6 +65,9 @@ export function UpdateEmailReactEmail({
                   "4": "hsl(var(--chart-4))",
                   "5": "hsl(var(--chart-5))",
                 },
+                text: {
+                  light: "#314158",
+                },
               },
               borderRadius: {
                 lg: "var(--radius)",
@@ -80,91 +78,156 @@ export function UpdateEmailReactEmail({
           },
         }}
       >
-        <Body className="font-sans bg-white text-[#212121]">
-          <Container className="mx-auto px-4 py-5">
-            <Section className="mt-8">
-              <svg
-                version="1.0"
-                xmlns="http://www.w3.org/2000/svg"
-                width="504.000000pt"
-                height="507.000000pt"
-                viewBox="0 0 504.000000 507.000000"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <g
-                  transform="translate(0.000000,507.000000) scale(0.100000,-0.100000)"
-                  fill="#222731"
-                  stroke="none"
-                >
-                  <path
-                    d="M0 2535 l0 -2535 2520 0 2520 0 0 2535 0 2535 -2520 0 -2520 0 0
--2535z m2802 1850 c207 -26 310 -55 508 -140 168 -73 343 -212 453 -360 73
--99 96 -144 135 -270 41 -130 52 -204 52 -348 l0 -117 -26 -11 c-36 -13 -979
--8 -993 6 -5 6 -14 53 -20 106 -22 217 -120 320 -339 352 -137 21 -355 -35
--436 -111 -44 -42 -76 -124 -76 -196 0 -57 4 -68 43 -126 35 -53 56 -72 127
--114 89 -54 218 -115 285 -136 22 -7 92 -33 155 -58 63 -24 165 -62 225 -82
-128 -44 413 -171 500 -223 33 -20 79 -46 103 -58 67 -36 207 -158 278 -243 35
--43 77 -107 95 -144 17 -37 36 -76 41 -86 6 -11 22 -60 36 -110 21 -77 26
--118 30 -263 4 -161 2 -178 -23 -279 -78 -310 -263 -529 -576 -681 -160 -77
--233 -101 -427 -138 -227 -44 -542 -54 -747 -25 -95 14 -294 58 -360 79 -86
-27 -276 123 -354 178 -102 71 -238 215 -302 319 -91 145 -144 342 -156 572 -5
-109 -4 124 12 142 18 19 31 20 505 20 374 0 490 -3 502 -13 11 -8 17 -37 22
--97 11 -155 48 -246 128 -315 87 -75 155 -95 326 -95 203 0 332 42 402 131 38
-46 50 127 30 198 -22 82 -143 181 -330 268 -179 85 -223 103 -275 118 -45 12
--135 43 -415 143 -117 42 -358 174 -455 249 -111 85 -202 182 -271 288 -114
-176 -147 300 -148 560 0 208 22 334 80 448 65 128 223 311 333 385 30 21 73
-50 95 65 23 15 50 32 61 37 269 119 358 146 565 174 145 19 449 20 602 1z"
-                  />
-                </g>
-              </svg>
-            </Section>
-
-            <Section className="mt-8">
-              <Text className="text-xl font-bold leading-tight">
-                Update your email address
-              </Text>
-            </Section>
-
-            <Section className="mt-2">
-              <Text className="text-base">
-                We see you're trying to update your email address to{" "}
-                <span className="font-semibold">{newEmail}</span>. We need to
-                verify this request from your side. Please click the button
-                below to confirm that you made this request. After confirmation,
-                you will get a confirmation email on your new email address.
-              </Text>
-            </Section>
-
-            <Section className="mt-4 text-center">
-              <Container className="mx-auto flex w-full flex-col items-center justify-center px-4 py-5">
-                <Button
-                  href={verificationLink}
-                  className="mx-auto flex w-fit items-center justify-center rounded-[32px] bg-[#020618] px-[24px] py-[12px] text-center text-[14px] font-semibold text-[#ffffff]"
-                >
-                  Confirm Action.
-                </Button>
-              </Container>
-              <Text className="text-[#666] text-[12px] mt-4 mb-0 text-left">
-                Or copy and paste this link in your browser:
-              </Text>
-              <Link
-                href={verificationLink}
-                className="text-[#2754C5] text-[12px] break-all mt-2 text-left"
-              >
-                {verificationLink}
+        <Head />
+        <Body className="font-sans">
+          <Container className="mx-auto mb-5 px-4 py-5">
+            {/* <Section className="my-8">
+              <Link href="https://shortn.at">
+                <Img src="https://shortn.at/assets/favicon-96x96-c6fc0ab4.png" className="aspect-square w-[64px] cursor-pointer rounded-[2px] object-cover"/>
               </Link>
+            </Section> */}
+
+            <Section className="mb-6 flex flex-col items-center justify-center rounded-[12px] bg-[hsl(240,4.8%,95.9%)]/50">
+              <table
+                style={{
+                  border: "1px solid rgb(39 39 42 / 0.1)",
+                  borderRadius: "8px",
+                  borderCollapse: "collapse",
+                  display: "flex",
+                  justifyContent: "center",
+                  width: "fit-content",
+                  alignItems: "center",
+                  padding: "24px",
+                }}
+              >
+                <tr>
+                  <td>
+                    <Section>
+                      <table
+                        cellPadding="0"
+                        cellSpacing="0"
+                        style={{ width: "100%" }}
+                      >
+                        <tr className="align-start flex items-center justify-start gap-[16px]">
+                          {/* <td className="h-[40px] w-[40px] rounded-[8px]">
+                            <Section
+                              className="flex h-[40px] w-[40px] items-center justify-center rounded-[8px]"
+                              style={{
+                                backgroundColor: "hsl(151.8 81% 95.9%)",
+                                borderRadius: "8px",
+                                border: "1px solid hsl(149.3 80.4% 90%)",
+                              }}
+                            >
+                              <svg
+                                width="24"
+                                height="24"
+                                fill="none"
+                                stroke="hsl(161.4 93.5% 30.4%)"
+                                strokeWidth="2"
+                                className="text-[hsl(161.4 93.5% 30.4%)]"
+                                viewBox="0 0 24 24"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M20.5 15.8V8.2a1.91 1.91 0 0 0-.944-1.645l-6.612-3.8a1.88 1.88 0 0 0-1.888 0l-6.612 3.8A1.9 1.9 0 0 0 3.5 8.2v7.602a1.91 1.91 0 0 0 .944 1.644l6.612 3.8a1.88 1.88 0 0 0 1.888 0l6.612-3.8A1.9 1.9 0 0 0 20.5 15.8" />
+                                <path d="m8.667 12.633 1.505 1.721a1 1 0 0 0 1.564-.073L15.333 9.3" />
+                              </svg>
+                            </Section>
+                          </td> */}
+
+                          <td className="text-left">
+                            <Text className="text-text-light m-0 p-0 text-lg font-bold leading-tight">
+                              Confirmation Required!
+                            </Text>
+                          </td>
+                        </tr>
+                      </table>
+                    </Section>
+                    <Section>
+                      <Text className="text-text-light m-0 mt-6 p-0 text-base">
+                        Dear {userName},
+                      </Text>
+                      <Text className="text-text-light m-0 mt-4 p-0 text-base">
+                        We received a request to change the email address
+                        associated with your Shortn.at account to{" "}
+                        <span className="text-sm text-brand">{newEmail}</span>.
+                        If you did not initiate this change, you may safely
+                        disregard this message.
+                      </Text>
+                    </Section>
+                    <Section>
+                      <Text className="text-text-light m-0 mt-4 p-0 text-base">
+                        To proceed with this email change, please click the
+                        button below to confirm your request.
+                      </Text>
+                    </Section>
+                    <Section className="mt-4 text-center">
+                      <table
+                        style={{
+                          display: "flex",
+                          justifyContent: "center",
+                          width: "fit-content",
+                          alignItems: "center",
+                        }}
+                      >
+                        <tr>
+                          <td>
+                            <Button
+                              className="bg-brand mx-auto flex w-fit items-center justify-center rounded-[8px] px-[20px] py-[10px] text-center text-[14px] font-semibold text-muted"
+                              href={link}
+                            >
+                              <Row className="m-0 p-0">
+                                <Column className="text-white">
+                                  Change my email
+                                </Column>
+                                <Column>
+                                  <svg
+                                    width="24"
+                                    height="24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    className="ml-[8px] text-white"
+                                    strokeWidth="1.5"
+                                    viewBox="0 0 24 24"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                  >
+                                    <path d="M4.5 12h15m0 0-5.625-6m5.625 6-5.625 6" />
+                                  </svg>
+                                </Column>
+                              </Row>
+                            </Button>
+                          </td>
+                        </tr>
+                      </table>
+                    </Section>
+                    <Section className="mt-4">
+                      <Text className="text-text-light m-0 p-0 text-base">
+                        This confirmation step helps ensure the security of your
+                        account and prevents unauthorized changes.
+                      </Text>
+                      <Text className="text-text-light m-0 mt-4 p-0 text-base">
+                        Best regards,
+                      </Text>
+                      <Text className="text-text-light m-0 p-0 text-base">
+                        The Shortn.at Team
+                      </Text>
+                    </Section>
+                  </td>
+                </tr>
+              </table>
             </Section>
 
-            <Hr className="mb-6 mt-8 border-gray-200" />
-
-            <Section className="mb-4 text-left text-sm text-primary/80">
-              <Text className="text-[#333] text-[12px] my-[24px] m-0 p-0">
+            <Section className="text-text-light mt-6 mb-4 text-left text-sm">
+              <Text className="m-0 p-0 text-xs">
                 This message was sent by Shortn.at. © 2025 Shortn.at. All
                 rights reserved. View our{" "}
                 <Link
                   href="https://shortn.at/privacy"
                   target="_blank"
-                  className="text-[#2754C5] underline text-[14px]"
+                  className="text-[#2754C5] underline"
                 >
                   privacy policy
                 </Link>{" "}
@@ -172,12 +235,83 @@ export function UpdateEmailReactEmail({
                 <Link
                   href="https://shortn.at/terms"
                   target="_blank"
-                  className="text-[#2754C5] underline text-[14px]"
+                  className="text-[#2754C5] underline"
                 >
                   terms of service
                 </Link>
                 .
               </Text>
+              <Section className="mt-4 text-left text-sm text-zinc-900">
+                <table
+                  cellPadding="0"
+                  cellSpacing="0"
+                  style={{ width: "100%" }}
+                >
+                  <tr>
+                    <td>
+                      <table cellPadding="0" cellSpacing="0">
+                        <tr>
+                          <td style={{ paddingRight: "16px" }}>
+                            <Link href="https://x.com/shortn-at/">
+                              <svg
+                                width="24"
+                                height="24"
+                                fill="none"
+                                stroke="currentColor"
+                                className="text-zinc-900"
+                                strokeWidth="1.5"
+                                viewBox="0 0 24 24"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="m19 4-5.93 6.93M5 20l5.93-6.93m0 0 5.795 6.587c.19.216.483.343.794.343h1.474c.836 0 1.307-.85.793-1.435L13.07 10.93m-2.14 2.14L4.214 5.435C3.7 4.85 4.17 4 5.007 4h1.474c.31 0 .604.127.794.343l5.795 6.587" />
+                              </svg>
+                            </Link>
+                          </td>
+                          <td style={{ paddingRight: "16px" }}>
+                            <Link href="https://www.instagram.com/shortn-at/">
+                              <svg
+                                width="24"
+                                height="24"
+                                fill="none"
+                                stroke="currentColor"
+                                className="text-zinc-900"
+                                strokeWidth="1.5"
+                                viewBox="0 0 24 24"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M3 9.4c0-2.24 0-3.36.436-4.216a4 4 0 0 1 1.748-1.748C6.04 3 7.16 3 9.4 3h5.2c2.24 0 3.36 0 4.216.436a4 4 0 0 1 1.748 1.748C21 6.04 21 7.16 21 9.4v5.2c0 2.24 0 3.36-.436 4.216a4 4 0 0 1-1.748 1.748C17.96 21 16.84 21 14.6 21H9.4c-2.24 0-3.36 0-4.216-.436a4 4 0 0 1-1.748-1.748C3 17.96 3 16.84 3 14.6zm14-2.9h.5" />
+                                <path d="M15.462 11.487a3.5 3.5 0 1 1-6.925 1.026 3.5 3.5 0 0 1 6.925-1.026" />
+                              </svg>
+                            </Link>
+                          </td>
+                          <td style={{ paddingRight: "16px" }}>
+                            <Link href="https://www.threads.net/@shortn-at">
+                              <svg
+                                width="24"
+                                height="24"
+                                fill="none"
+                                stroke="currentColor"
+                                className="text-zinc-900"
+                                strokeWidth="1.5"
+                                viewBox="0 0 24 24"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M9.77 8.515c2.23-1.812 5.444-.845 5.823 2.135.403 3.163-.4 5.67-3.52 5.67-2.895 0-2.806-2.52-2.806-2.52 0-2.7 4.589-3.06 7.262-1.71 4.9 3.15 1.336 8.91-4.01 8.91C8.09 21 4.5 18.75 4.5 12s3.59-9 8.02-9c3.125 0 5.944 1.626 6.98 4.879" />
+                              </svg>
+                            </Link>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </Section>
             </Section>
           </Container>
         </Body>

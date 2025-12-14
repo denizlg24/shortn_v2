@@ -22,8 +22,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { authClient } from "@/lib/authClient";
 import { BASEURL } from "@/lib/utils";
-import { toast } from "sonner";
-
+import Cookies from "js-cookie";
 const registerFormSchema = z
   .object({
     fullName: z
@@ -84,10 +83,9 @@ export const RegisterForm = () => {
       },
       {
         onSuccess() {
-          toast.success(
-            "We have sent a verification email to your inbox. Please verify to log in.",
-          );
-          router.push(`/login`);
+          Cookies.set("flow_signup_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+          Cookies.set("flow_signup_email", values.email, { expires: 30 / 288 });
+          router.push("/verify/sent");
         },
         onError(context) {
           form.setError("root", {

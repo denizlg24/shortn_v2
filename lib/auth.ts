@@ -4,16 +4,21 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
+import { sendRecoveryEmail } from "@/app/actions/userActions";
+import { sendEmail } from "@/app/actions/sendEmail";
 import {
-  sendRecoveryEmail,
-  //sendUpdateEmailVerificationEmail,
-  sendVerificationEmail,
-} from "@/app/actions/userActions";
+  verificationEmailTemplate,
+  emailVerifiedTemplate,
+  updateEmailVerificationTemplate,
+  confirmEmailChangeTemplate,
+} from "@/lib/email-templates";
 import { stripe } from "@better-auth/stripe";
 import Stripe from "stripe";
 import { subscribeToFreePlan } from "@/app/actions/stripeActions";
-import { User } from "@/models/auth/User";
+import { BASEURL } from "./utils";
 import { connectDB } from "./mongodb";
+import { Subscription } from "@/models/auth/Subscription";
+import { Session } from "@/models/auth/Session";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -27,16 +32,26 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY);
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 export const auth = betterAuth({
+  baseURL: BASEURL,
   database: mongodbAdapter(db, {
     client,
-    transaction: true,
   }),
   user: {
     changeEmail: {
       enabled: true,
-      // sendChangeEmailConfirmation: async ({ user,newEmail, url }) => {
-      //   void sendUpdateEmailVerificationEmail(user.email, url,newEmail);
-      // },
+      sendChangeEmailConfirmation: async ({ user, newEmail, token }) => {
+        const verifyUrl = `${BASEURL}/${"en"}/verify/request-change?token=${token}&email=${user.email}&new=${newEmail}`;
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
+          subject: "Shortn Account - Confirm your email change request",
+          html: confirmEmailChangeTemplate({
+            confirmLink: verifyUrl,
+            userName: user.name || user.email,
+            newEmail,
+          }),
+        });
+      },
     },
     additionalFields: {
       sub: {
@@ -59,6 +74,16 @@ export const auth = betterAuth({
   },
   databaseHooks: {
     user: {
+      update: {
+        after: async (user, ctx) => {
+          if (user.email !== ctx?.context.session?.user.email) {
+            console.log(
+              `Email changed for user ${user.id}. Revoking all sessions.`,
+            );
+            await Session.deleteMany({ userId: user.id });
+          }
+        },
+      },
       create: {
         before: async (user) => {
           return {
@@ -80,27 +105,46 @@ export const auth = betterAuth({
 
     requireEmailVerification: true,
     sendResetPassword: async ({ user, url }, _request) => {
-      void sendRecoveryEmail(user.email, url);
+      await sendRecoveryEmail(user.email, url);
     },
   },
 
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url }, _request) => {
-      void sendVerificationEmail(user.email, url);
+    sendVerificationEmail: async ({ user, token }, request) => {
+      const verifyUrl = `${BASEURL}/${"en"}/verify?token=${token}`;
+      if (request?.url?.includes("/verify-email")) {
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
+          subject: "Shortn account - Verify your new email address",
+          html: updateEmailVerificationTemplate({
+            verificationLink: verifyUrl,
+            newEmail: user.email,
+          }),
+        });
+      } else {
+        await sendEmail({
+          from: "no-reply@shortn.at",
+          to: user.email,
+          subject: "Welcome to Shortn! - Verify Your Email",
+          html: verificationEmailTemplate({
+            verificationLink: verifyUrl,
+            userName: user.name || user.email,
+          }),
+        });
+      }
     },
     onEmailVerification: async (user) => {
-      await connectDB();
-      const dbUser = await User.findById(user.id).lean();
-      const stripeCustomerId = dbUser?.stripeCustomerId;
-      if (!stripeCustomerId) {
-        console.log("No stripe attached at the time of verification.");
-        return;
-      }
-      await subscribeToFreePlan({
-        customer_id: stripeCustomerId,
-        userId: user.id,
+      await sendEmail({
+        from: "no-reply@shortn.at",
+        to: user.email,
+        subject: "Shortn account - Email Verified Successfully!",
+        html: emailVerifiedTemplate({
+          userName: user.name,
+          dashboardLink: `${BASEURL}/${"en"}/dashboard`,
+        }),
       });
     },
   },
@@ -113,6 +157,9 @@ export const auth = betterAuth({
         return {
           name: profile.name || profile.login,
           email: profile.email,
+          username:
+            profile.login ||
+            profile.email.substring(0, profile.email.indexOf("@")),
           image: profile.avatar_url,
           emailVerified: true,
           sub: `github|${profile.id}`,
@@ -125,7 +172,11 @@ export const auth = betterAuth({
       clientSecret: env.AUTH_GOOGLE_SECRET,
       mapProfileToUser: (profile) => {
         return {
-          name: profile.name,
+          name:
+            [profile.given_name, profile.family_name].join(" ").trim() ||
+            profile.name ||
+            profile.email.substring(0, profile.email.indexOf("@")),
+          username: profile.email.substring(0, profile.email.indexOf("@")),
           email: profile.email,
           image: profile.picture,
           emailVerified: profile.email_verified,
@@ -159,21 +210,32 @@ export const auth = betterAuth({
       stripeClient,
       stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
       createCustomerOnSignUp: true,
+      onCustomerCreate: async (data) => {
+        const { user, stripeCustomer } = data;
+        await connectDB();
+        const subscription = await subscribeToFreePlan({
+          customer_id: stripeCustomer.id,
+          userId: user.id,
+        });
+        if (!subscription) {
+          throw new Error("Failed to create subscription");
+        }
+        await Subscription.create({
+          referenceId: user.id,
+          plan: "free",
+          status: "active",
+          stripeCustomerId: stripeCustomer.id,
+          stripeSubscriptionId: subscription.id,
+          periodStart: new Date(subscription.start_date),
+          periodEnd: new Date(
+            subscription.start_date + 30 * 24 * 60 * 60 * 1000,
+          ),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+      },
       subscription: {
         enabled: true,
-        onSubscriptionComplete: async ({
-          event,
-          subscription,
-          stripeSubscription,
-          plan,
-        }) => {
-          console.log("Subscription complete:", {
-            event,
-            subscription,
-            stripeSubscription,
-            plan,
-          });
-        },
         plans: [
           {
             name: "free",
