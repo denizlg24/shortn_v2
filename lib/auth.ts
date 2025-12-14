@@ -38,7 +38,7 @@ export const auth = betterAuth({
     changeEmail: {
       enabled: true,
       sendChangeEmailConfirmation: async ({ user, newEmail, token }) => {
-        const verifyUrl = `${BASEURL}/${"en"}/request-change?token=${token}`;
+        const verifyUrl = `${BASEURL}/${"en"}/verify/request-change?token=${token}&email=${user.email}&new=${newEmail}`;
         await sendReactEmail({
           react: ConfirmUpdateEmailRequest({
             link: verifyUrl,

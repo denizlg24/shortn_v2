@@ -118,15 +118,15 @@ export function WelcomeEmail({
 
                     <Section>
                       <Text className="text-text-light  text-base">
-                        We&apos;re thrilled to have you on board at Shortn.at,
-                        the ultimate destination for your shortening needs.
-                        Before you dive into organizing and accessing your
-                        dashboard with ease, there&apos;s just one small step
-                        left - verifying your email.
+                        Thank you for creating an account with Shortn.at. To
+                        ensure the security of your account and enable full
+                        access to your dashboard, we need to verify your email
+                        address. This is a standard security measure to protect
+                        your account.
                       </Text>
                       <Text className="text-text-light  m-0 mt-4 p-0 text-base">
-                        Click the link below to confirm your email address and
-                        unlock a world of shortening possibilities.
+                        Please click the link below to verify your email address
+                        and activate your account.
                       </Text>
                     </Section>
 
@@ -174,11 +174,14 @@ export function WelcomeEmail({
 
                     <Section className="mt-4">
                       <Text className="text-text-light  m-0 p-0 text-base">
-                        If you have any questions, our support team is just an
-                        email away. Welcome to the Shortn.at community!
+                        If you have any questions or need assistance, please
+                        don&apos;t hesitate to contact our support team.
                       </Text>
                       <Text className="text-text-light  m-0 mt-4 p-0 text-base">
-                        Happy Shortening, The Shortn.at Team
+                        Best regards,
+                      </Text>
+                      <Text className="text-text-light  m-0 p-0 text-base">
+                        The Shortn.at Team
                       </Text>
                     </Section>
                   </td>

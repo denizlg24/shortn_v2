@@ -149,17 +149,17 @@ export function ConfirmUpdateEmailRequest({
                         Dear {userName},
                       </Text>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        We got a request to update the email address associated
-                        with your Shortn.at account to{" "}
+                        We received a request to change the email address
+                        associated with your Shortn.at account to{" "}
                         <span className="text-sm text-brand">{newEmail}</span>.
-                        If this request wasn't made by yourself you can safely
-                        ignore this email.
+                        If you did not initiate this change, you may safely
+                        disregard this message.
                       </Text>
                     </Section>
                     <Section>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        If this was you, please click the button bellow to
-                        proceed with the email change.
+                        To proceed with this email change, please click the
+                        button below to confirm your request.
                       </Text>
                     </Section>
                     <Section className="mt-4 text-center">
@@ -205,14 +205,14 @@ export function ConfirmUpdateEmailRequest({
                     </Section>
                     <Section className="mt-4">
                       <Text className="text-text-light m-0 p-0 text-base">
-                        This measure is to ensure that only you have access to
-                        your account, and no intrusions occur.
+                        This confirmation step helps ensure the security of your
+                        account and prevents unauthorized changes.
                       </Text>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        Stay safe,
+                        Best regards,
                       </Text>
                       <Text className="text-text-light m-0 p-0 text-base">
-                        The Shortn Team
+                        The Shortn.at Team
                       </Text>
                     </Section>
                   </td>

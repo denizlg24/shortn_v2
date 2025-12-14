@@ -95,12 +95,32 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
       </motion.div>
 
       <div className="space-y-4">
-        <p className="text-sm text-muted-foreground text-center">
-          Open the link in your email to verify your account. If you don&apos;t
-          see it, check your spam folder.
-        </p>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <Alert>
+            <Mail className="h-4 w-4" />
+            <AlertTitle>Check Your Inbox</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>
+                We&apos;ve sent a verification link to your email address. Click
+                the link to verify your account.
+              </p>
+              <p className="text-xs">
+                If you don&apos;t see the email, check your spam or junk folder.
+              </p>
+            </AlertDescription>
+          </Alert>
+        </motion.div>
 
-        <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="space-y-3"
+        >
           <Label htmlFor="verify-email" className="text-sm">
             Need to resend? Enter your email
           </Label>
@@ -136,7 +156,7 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
               </motion.p>
             )}
           </AnimatePresence>
-        </div>
+        </motion.div>
 
         <AnimatePresence mode="wait">
           {status.kind === "loading" && (
@@ -201,14 +221,19 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
         </AnimatePresence>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+        className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2"
+      >
         <Button
           type="button"
-          variant="ghost"
+          variant="outline"
           onClick={() => window.location.assign("/login")}
           className="w-full sm:w-auto"
         >
-          Back to login
+          Back to Login
         </Button>
 
         <Button
@@ -223,10 +248,10 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
               Sending…
             </>
           ) : (
-            "Resend email"
+            "Resend Email"
           )}
         </Button>
-      </div>
+      </motion.div>
 
       <p className="text-center text-xs text-muted-foreground pt-4">
         For your security, we won&apos;t tell you whether an email exists.

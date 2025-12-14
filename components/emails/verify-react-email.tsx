@@ -138,15 +138,15 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
                     </Section>
                     <Section>
                       <Text className="text-text-light m-0 mt-6 p-0 text-base">
-                        We got a request to update the your Shortn.at account
-                        email to this one. If this request wasn't made by
-                        yourself you can safely ignore this email.
+                        Someone requested to change their Shortn.at account
+                        email to this address. To complete this change, we need
+                        to verify that you own this email.
                       </Text>
                     </Section>
                     <Section>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        If this was you, please click the button bellow to
-                        verify your new email address.
+                        If you made this request, click the button below. If you
+                        didn&apos;t request this, you can ignore this email.
                       </Text>
                     </Section>
                     <Section className="mt-4 text-center">
@@ -192,14 +192,14 @@ export function VerifyUpdateEmailRequest({ link }: { link: string }) {
                     </Section>
                     <Section className="mt-4">
                       <Text className="text-text-light m-0 p-0 text-base">
-                        This measure is to ensure that only you have access to
-                        your account, and no intrusions occur.
+                        This verification step helps ensure the security of your
+                        account and prevents unauthorized access.
                       </Text>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
-                        Stay safe,
+                        Best regards,
                       </Text>
                       <Text className="text-text-light m-0 p-0 text-base">
-                        The Shortn Team
+                        The Shortn.at Team
                       </Text>
                     </Section>
                   </td>

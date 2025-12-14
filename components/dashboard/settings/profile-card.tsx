@@ -42,7 +42,7 @@ import { useRouter } from "@/i18n/navigation";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { ServerUser } from "@/lib/auth";
 import { BASEURL } from "@/lib/utils";
-
+import Cookies from "js-cookie";
 const updateEmailFormSchema = z.object({
   email: z
     .string()
@@ -194,9 +194,12 @@ export const ProfileCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountActivity),
       });
-      toast.success("Verification email sent. Please check your inbox.");
       await signOutUser();
-      router.push("/login");
+      Cookies.set("flow_request_change_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+      Cookies.set("flow_request_change_email", values.email, {
+        expires: 30 / 288,
+      });
+      router.push("/verify/requested");
     } else if (error) {
       updateEmailForm.setError("email", {
         type: "manual",

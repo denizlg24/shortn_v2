@@ -1,80 +1,74 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { useRouter } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, XCircle, Mail, AlertTriangle } from "lucide-react";
 
 type Status =
+  | { kind: "idle" }
   | { kind: "verifying" }
   | { kind: "success" }
   | { kind: "failed"; message: string };
 
-export const VerifiedPage = () => {
+export const EmailChangeRequestConfirm = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const token = searchParams.get("token");
 
-  const [status, setStatus] = useState<Status>({ kind: "verifying" });
+  const token = searchParams.get("token");
+  const oldEmail = searchParams.get("email");
+  const newEmail = searchParams.get("new");
+
+  const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [redirectIn, setRedirectIn] = useState<number | null>(null);
 
-  // If token is missing, treat it as a derived failure state.
+  // Determine effective status based on missing parameters
   const effectiveStatus: Status =
-    token === null
+    !token || !oldEmail || !newEmail
       ? {
           kind: "failed",
-          message: "This verification link is missing a token.",
+          message: "This email change link is missing required information.",
         }
       : status;
 
-  useEffect(() => {
+  const handleConfirm = async () => {
     if (!token) return;
 
-    let cancelled = false;
+    setStatus({ kind: "verifying" });
 
-    authClient
-      .verifyEmail({
-        query: {
-          token,
-        },
-      })
-      .then(({ error }) => {
-        if (cancelled) return;
-
-        if (error) {
-          setStatus({
-            kind: "failed",
-            message: "This verification link is invalid or has expired.",
-          });
-          return;
-        }
-
-        setStatus({ kind: "success" });
-        setRedirectIn(3);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setStatus({
-          kind: "failed",
-          message: "We couldn't verify your email right now. Please try again.",
-        });
+    try {
+      const { error } = await authClient.verifyEmail({
+        query: { token },
       });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [token]);
+      if (error) {
+        setStatus({
+          kind: "failed",
+          message: "This verification link is invalid or has expired.",
+        });
+        return;
+      }
+
+      setStatus({ kind: "success" });
+      setRedirectIn(5);
+    } catch {
+      setStatus({
+        kind: "failed",
+        message:
+          "We couldn't process your request right now. Please try again.",
+      });
+    }
+  };
 
   useEffect(() => {
     if (redirectIn == null) return;
     if (redirectIn <= 0) {
-      router.replace("/dashboard");
+      router.replace("/login");
       return;
     }
 
@@ -93,6 +87,79 @@ export const VerifiedPage = () => {
       className="space-y-6"
     >
       <AnimatePresence mode="wait">
+        {effectiveStatus.kind === "idle" && (
+          <motion.div
+            key="idle"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-4"
+          >
+            {/* Confirmation icon visual */}
+            <motion.div
+              className="flex justify-center"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
+              <div className="rounded-full bg-amber-500/10 p-4">
+                <AlertTriangle className="h-8 w-8 text-amber-600" />
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.2 }}
+            >
+              <h2 className="text-2xl font-semibold text-center mb-2">
+                Confirm Email Change
+              </h2>
+              <p className="text-sm text-muted-foreground text-center">
+                Please review and confirm this email address change.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              <Alert>
+                <Mail className="h-4 w-4" />
+                <AlertTitle>Email Address Change</AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">From:</p>
+                    <p className="font-medium">{oldEmail}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-xs text-muted-foreground">To:</p>
+                    <p className="font-medium">{newEmail}</p>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+              className="rounded-lg border bg-card p-4"
+            >
+              <h3 className="font-medium text-sm mb-2">What happens next?</h3>
+              <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                <li>Click confirm to proceed with the email change</li>
+                <li>
+                  We&apos;ll send a verification email to your new address
+                </li>
+                <li>Verify your new email to complete the change</li>
+              </ol>
+            </motion.div>
+          </motion.div>
+        )}
+
         {effectiveStatus.kind === "verifying" && (
           <motion.div
             key="verifying"
@@ -115,13 +182,13 @@ export const VerifiedPage = () => {
             </motion.div>
 
             <p className="text-sm text-muted-foreground text-center">
-              Please wait while we verify your email address.
+              Please wait while we process your email change request.
             </p>
 
             <div className="rounded-lg border bg-card px-4 py-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner />
-                <span>Verifying your email…</span>
+                <span>Processing email change…</span>
               </div>
               <div className="mt-2 h-1 w-full overflow-hidden rounded bg-muted">
                 <motion.div
@@ -166,10 +233,10 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Email Verified!
+                Email Change Confirmed!
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                Your email has been verified successfully.
+                Your email address has been updated.
               </p>
             </motion.div>
 
@@ -179,15 +246,35 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.3 }}
             >
               <Alert>
+                <Mail className="h-4 w-4" />
+                <AlertTitle>Verify Your New Email</AlertTitle>
+                <AlertDescription className="space-y-2">
+                  <p>
+                    We&apos;ve sent a verification email to{" "}
+                    <strong>{newEmail}</strong>. Please check your inbox and
+                    click the verification link to complete the process.
+                  </p>
+                  <p className="text-xs">
+                    Don&apos;t forget to check your spam folder if you
+                    don&apos;t see it.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.4 }}
+            >
+              <Alert>
                 <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Welcome Aboard</AlertTitle>
+                <AlertTitle>Redirecting to Login</AlertTitle>
                 <AlertDescription>
                   {redirectIn != null ? (
-                    <>
-                      Redirecting you to your dashboard in {redirectIn} seconds…
-                    </>
+                    <>Redirecting you to login in {redirectIn} seconds…</>
                   ) : (
-                    "Redirecting you to your dashboard…"
+                    "Redirecting you to login…"
                   )}
                 </AlertDescription>
               </Alert>
@@ -197,14 +284,14 @@ export const VerifiedPage = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
                 className="h-2 w-full overflow-hidden rounded bg-muted"
               >
                 <motion.div
                   className="h-full rounded bg-green-600"
                   initial={{ width: "0%" }}
                   animate={{ width: "100%" }}
-                  transition={{ duration: 3, ease: "linear" }}
+                  transition={{ duration: 5, ease: "linear" }}
                 />
               </motion.div>
             )}
@@ -238,10 +325,10 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Verification Failed
+                Change Request Failed
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                We couldn&apos;t verify your email address.
+                We couldn&apos;t process your email change request.
               </p>
             </motion.div>
 
@@ -265,9 +352,11 @@ export const VerifiedPage = () => {
             >
               <h3 className="font-medium text-sm mb-2">What can you do?</h3>
               <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                <li>Request a new verification email</li>
-                <li>Check if you&apos;re using the latest link</li>
-                <li>Try creating a new account if the issue persists</li>
+                <li>
+                  Request a new email change link from your account settings
+                </li>
+                <li>Make sure you&apos;re using the latest link sent to you</li>
+                <li>Contact support if the issue persists</li>
               </ul>
             </motion.div>
           </motion.div>
@@ -289,16 +378,22 @@ export const VerifiedPage = () => {
           Back to Login
         </Button>
 
-        {effectiveStatus.kind === "failed" && (
+        {effectiveStatus.kind === "idle" && (
           <Button
             type="button"
-            onClick={() => router.push("/register")}
+            onClick={handleConfirm}
             className="w-full sm:w-auto"
           >
-            Create Account
+            Confirm Email Change
           </Button>
         )}
       </motion.div>
+
+      {effectiveStatus.kind === "idle" && (
+        <p className="text-center text-xs text-muted-foreground pt-4">
+          Only confirm if you requested this email change.
+        </p>
+      )}
     </motion.div>
   );
 };
