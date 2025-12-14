@@ -75,10 +75,14 @@ export const auth = betterAuth({
     user: {
       update: {
         after: async (user, ctx) => {
-          if (user.email !== ctx?.context.session?.user.email) {
+          if (
+            ctx?.context.session?.user.email &&
+            user.email !== ctx?.context.session?.user.email
+          ) {
             console.log(
-              `Email changed for user ${user.id}. Revoking all sessions.`,
+              `Email changed for user ${user.id}. Revoking all sessions.`
             );
+            await connectDB();
             await Session.deleteMany({ userId: user.id });
           }
         },
