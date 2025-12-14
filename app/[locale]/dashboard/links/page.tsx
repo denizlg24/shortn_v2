@@ -1,8 +1,9 @@
-import { getUser } from "@/app/actions/userActions";
 import { LinkContainer } from "@/components/dashboard/links/link-container";
 import { LinkFilterBar } from "@/components/dashboard/links/link-filter-bar";
 import { SortingControls } from "@/components/dashboard/links/sorting-controls";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "@/lib/session";
+import { BioPage } from "@/models/link-in-bio/BioPage";
 import { TagT } from "@/models/url/Tag";
 import UrlV3, { IUrl, TUrl } from "@/models/url/UrlV3";
 import { addDays, parse } from "date-fns";
@@ -23,7 +24,7 @@ interface IFilters {
 const getFilteredLinks = async (
   filters: IFilters,
 ): Promise<{ links: TUrl[]; total: number }> => {
-  const session = await getUser();
+  const session = await getServerSession();
   const user = session?.user;
 
   if (!user) {
@@ -197,6 +198,15 @@ export default async function Home({
 
   const { links, total } = await getFilteredLinks(filters);
 
+  const linksWithBioPageSlug = await Promise.all(
+    links.map(async (link) => {
+      const page = await BioPage.findOne({
+        links: { $elemMatch: { link: link._id } },
+      });
+      return { ...link, bioPageSlug: page?.slug };
+    }),
+  );
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
@@ -210,7 +220,7 @@ export default async function Home({
         />
 
         <LinkContainer
-          links={links}
+          links={linksWithBioPageSlug}
           total={total}
           limit={filters.limit}
           page={filters.page}

@@ -1,4 +1,5 @@
-import { getUser } from "@/app/actions/userActions";
+import { getUserPlan } from "@/app/actions/stripeActions";
+import { getServerSession } from "@/lib/session";
 import { getClicks } from "@/utils/fetching-functions";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
@@ -11,12 +12,13 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const start = searchParams.get("start");
   const end = searchParams.get("end");
-  const session = await getUser();
+  const session = await getServerSession();
   const user = session?.user;
   if (!user) {
     return NextResponse.json({ success: false, clicks: [] }, { status: 403 });
   }
-  if (user.plan.subscription != "pro" && user.plan.subscription != "plus") {
+  const { plan } = await getUserPlan();
+  if (plan != "pro" && plan != "plus") {
     return NextResponse.json({ success: false, clicks: [] }, { status: 401 });
   }
   try {

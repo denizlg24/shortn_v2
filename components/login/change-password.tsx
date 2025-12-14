@@ -7,7 +7,6 @@ import z from "zod";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { recoverPassword } from "@/app/actions/userActions";
 import {
   Form,
   FormControl,
@@ -18,6 +17,8 @@ import {
 } from "../ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { authClient } from "@/lib/authClient";
+import { useRouter } from "@/i18n/navigation";
 
 const resetFormSchema = z
   .object({
@@ -45,13 +46,18 @@ export const ChangePassword = ({ token }: { token: string }) => {
       confirmPassword: "",
     },
   });
+  const router = useRouter();
 
   async function onSubmit(values: z.infer<typeof resetFormSchema>) {
     setLoading(1);
-    const { success, message } = await recoverPassword(token, values.password);
-    if (success) {
+    const { error } = await authClient.resetPassword({
+      newPassword: values.password,
+      token,
+    });
+    if (!error) {
       toast.success("Password updated, you can now login.");
-    } else if (message) {
+      router.push("/login");
+    } else {
       toast.error("There was a problem resetting your password.");
       form.reset();
     }

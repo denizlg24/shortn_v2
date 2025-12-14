@@ -14,7 +14,10 @@ import { ClickDataProvider } from "@/utils/ClickDataContext";
 import { LinkUtmParams } from "./link-utm-params";
 import { LinkUtmStats } from "./link-utm-stats";
 import { getClicks } from "@/utils/fetching-functions";
-import { getUser } from "@/app/actions/userActions";
+import { getServerSession } from "@/lib/session";
+import { forbidden } from "next/navigation";
+import { getUserPlan } from "@/app/actions/stripeActions";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 export const LinkDetails = async ({
   url,
@@ -23,7 +26,12 @@ export const LinkDetails = async ({
   url: IUrl;
   qr: IQRCode | undefined;
 }) => {
-  const { user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
+  if (!user) {
+    forbidden();
+  }
+  const { plan } = await getUserPlan();
   const clicks = await getClicks(url.urlCode, undefined, undefined);
   return (
     <>
@@ -36,48 +44,32 @@ export const LinkDetails = async ({
             </Link>
           </Button>
           <LinkDetailsCard currentLink={url} />
-          <LinkUtmParams
-            currentLink={url}
-            unlocked={user.plan.subscription == "pro"}
-          />
+          <LinkUtmParams currentLink={url} unlocked={plan == "pro"} />
           <LinkAdditionsCard
             qrCode={qr}
             url={url}
-            subscription={user.plan.subscription}
+            subscription={plan as SubscriptionsType}
           />
           <LinkTimeAnalytics
-            unlocked={
-              user.plan.subscription == "plus" ||
-              user.plan.subscription == "pro"
-            }
+            unlocked={plan == "plus" || plan == "pro"}
             createdAt={url.date}
             initialClicks={clicks}
           />
           <LinkTimeByDateData
-            unlocked={
-              user.plan.subscription == "plus" ||
-              user.plan.subscription == "pro"
-            }
+            unlocked={plan == "plus" || plan == "pro"}
             createdAt={url.date}
             initialClicks={clicks}
           />
           <LinkLocationAnalytics
             unlocked={
-              user.plan.subscription == "pro"
-                ? "all"
-                : user.plan.subscription == "plus"
-                  ? "location"
-                  : "none"
+              plan == "pro" ? "all" : plan == "plus" ? "location" : "none"
             }
             initialClicks={clicks}
           />
           <div className="w-full grid lg:grid-cols-2 grid-cols-1 gap-4">
-            <LinkSourceData
-              unlocked={user.plan.subscription == "pro"}
-              initialClicks={clicks}
-            />
+            <LinkSourceData unlocked={plan == "pro"} initialClicks={clicks} />
             <LinkStackedSourceData
-              unlocked={user.plan.subscription == "pro"}
+              unlocked={plan == "pro"}
               createdAt={url.date}
               initialClicks={clicks}
             />
@@ -85,7 +77,7 @@ export const LinkDetails = async ({
           {(url.utmLinks?.length ?? 0) > 0 && (
             <LinkUtmStats
               createdAt={url.date}
-              unlocked={user.plan.subscription == "pro"}
+              unlocked={plan == "pro"}
               initialClicks={clicks}
             />
           )}

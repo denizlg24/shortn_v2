@@ -33,8 +33,9 @@ export const StyledQRCode = ({
       if (setStyledCode) {
         setStyledCode(qr);
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+    }
 
     return () => {
       // eslint-disable-next-line react-hooks/exhaustive-deps

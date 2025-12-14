@@ -15,18 +15,14 @@ import {
   FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  authenticate,
-  githubAuthenticate,
-  googleAuthenticate,
-} from "@/app/actions/authenticate";
 import { useState } from "react";
-import { Eye, EyeOff, Loader2, XCircle } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { sendVerificationEmail } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
+import { authClient } from "@/lib/authClient";
+import { BASEURL } from "@/lib/utils";
 
 const loginFormSchema = z.object({
   email: z.string().min(1, {
@@ -49,83 +45,153 @@ export const LoginForm = () => {
   });
 
   const [showPassword, toggleShowPassword] = useState(false);
-  const router = useRouter();
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
-    setLoading(1);
-    const response = await authenticate(values);
-    if (response == true) {
-      router.push("/dashboard");
-      return;
-    } else {
-      const error = response;
-      if (error?.name == "CredentialsSignin") {
-        const message = error?.message?.split(".")[0];
-        if (!message) {
-          form.setError("root", {
-            type: "manual",
-            message: "Unknown authentication error.",
-          });
-          setLoading(0);
-        }
-        switch (message) {
-          case "email-password-missing":
-            form.setError("email", {
-              type: "manual",
-              message: "Email or password is missing.",
-            });
-            break;
-          case "no-account":
-            form.setError("email", {
-              type: "manual",
-              message: "No account found with that email or username.",
-            });
-            break;
-          case "wrong-password":
-            form.setError("password", {
-              type: "manual",
-              message: "Incorrect password.",
-            });
-            break;
-          case "not-verified":
-            const notVerifiedToast = toast(
-              <div className="w-full flex flex-col gap-2">
-                <div className="flex flex-row items-center justify-start gap-2">
-                  <XCircle className="text-destructive" />
-                  <p className="text-lg font-bold">Account not verified.</p>
-                </div>
-                <div className="w-full">
-                  <p className="text-sm">
-                    You still haven&apos;t verified your email. Please check
-                    your inbox and{" "}
-                    <Link
-                      onClick={async () => {
-                        await sendVerificationEmail(values.email, locale);
-                        toast.dismiss(notVerifiedToast);
-                      }}
-                      href={`/verification-sent/${values.email}`}
-                      className="underline text-primary font-semibold"
-                    >
-                      verify your account.
-                    </Link>
-                  </p>
-                </div>
-              </div>
-            );
-            break;
-          default:
+    const { email: identifier, password } = values;
+    if (identifier.includes("@")) {
+      await authClient.signIn.email(
+        {
+          email: identifier,
+          password: password,
+          callbackURL: `${BASEURL}/${locale}/dashboard`,
+          rememberMe: false,
+        },
+        {
+          onRequest: () => {
+            setLoading(1);
+          },
+          onSuccess: async () => {
+            const session = await authClient.getSession();
+
+            if (!session.data?.user || !session.data?.session) {
+              setLoading(0);
+              form.setError("root", {
+                type: "manual",
+                message: "Unable to retrieve user session",
+              });
+              await authClient.signOut();
+              return;
+            }
+
+            const user = session.data.user;
+
+            if (!user.emailVerified) {
+              setLoading(0);
+              form.setError("root", {
+                type: "manual",
+                message: "Please verify your email address before logging in",
+              });
+              await authClient.signOut();
+              return;
+            }
+            setLoading(0);
+          },
+          onError: (ctx) => {
+            console.log(ctx);
+            if (
+              ctx.error.code === "EMAIL_NOT_VERIFIED" ||
+              ctx.error.status === 403
+            ) {
+              toast.error(
+                <p className="text-xs flex flex-row flex-wrap gap-1">
+                  Please verify your email address before logging in.{" "}
+                  <Button
+                    onClick={async () => {
+                      await authClient.sendVerificationEmail(
+                        {
+                          email: identifier,
+                          callbackURL: `${BASEURL}/${locale}/dashboard`,
+                        },
+                        {
+                          onSuccess: () => {
+                            toast.success(
+                              "Verification email resent successfully.",
+                            );
+                          },
+                        },
+                      );
+                      toast.dismiss("not-verified-toast");
+                    }}
+                    variant={"link"}
+                    className="text-xs p-0! h-fit! w-fit!"
+                  >
+                    Resend verification email.
+                  </Button>
+                </p>,
+                { id: "not-verified-toast" },
+              );
+              setLoading(0);
+              return;
+            }
+            setLoading(0);
             form.setError("root", {
               type: "manual",
-              message: "Invalid credentials.",
+              message: ctx.error.message,
             });
-        }
-        setLoading(0);
-      } else {
-        form.setError("root", {
-          type: "manual",
-          message: "Unknown authentication error.",
-        });
-        setLoading(0);
-      }
+          },
+        },
+      );
+    } else {
+      await authClient.signIn.username(
+        {
+          username: identifier,
+          password: password,
+          callbackURL: `${BASEURL}/${locale}/dashboard`,
+          rememberMe: false,
+        },
+        {
+          onRequest: () => {
+            setLoading(1);
+          },
+          onSuccess: async () => {
+            const session = await authClient.getSession();
+
+            if (!session.data?.user || !session.data?.session) {
+              setLoading(0);
+              form.setError("root", {
+                type: "manual",
+                message: "Unable to retrieve user session",
+              });
+              await authClient.signOut();
+              return;
+            }
+
+            const user = session.data.user;
+
+            if (!user.emailVerified) {
+              setLoading(0);
+              form.setError("root", {
+                type: "manual",
+                message: "Please verify your email address before logging in",
+              });
+              await authClient.signOut();
+              return;
+            }
+            setLoading(0);
+          },
+          onError: (ctx) => {
+            console.log(ctx);
+            if (
+              ctx.error.code === "EMAIL_NOT_VERIFIED" ||
+              ctx.error.status === 403
+            ) {
+              toast.error(
+                <p className="text-xs flex flex-row flex-wrap gap-1">
+                  Your account isn't verified. Please login with your email to
+                  get a verification email.
+                </p>,
+                { id: "not-verified-toast" },
+              );
+              setLoading(0);
+              return;
+            }
+            setLoading(0);
+            form.setError("root", {
+              type: "manual",
+              message: ctx.error.message,
+            });
+          },
+        },
+      );
     }
   }
 
@@ -200,28 +266,22 @@ export const LoginForm = () => {
             type="button"
             className="w-full"
             onClick={async () => {
-              setLoading(2);
-              const response = await githubAuthenticate();
-              if (response.success && response.url) {
-                router.push(response.url);
-                return;
-              } else {
-                const error = response;
-                if (error?.name == "CredentialsSignin") {
-                  form.setError("email", {
-                    type: "manual",
-                    message:
-                      "Github account doesn't have a shortn account linked.",
-                  });
-                  setLoading(0);
-                } else {
-                  form.setError("root", {
-                    type: "manual",
-                    message: "Unknown authentication error.",
-                  });
-                  setLoading(0);
-                }
-              }
+              await authClient.signIn.social(
+                { provider: "github" },
+                {
+                  onRequest: () => {
+                    setLoading(2);
+                  },
+                  onError: (ctx) => {
+                    console.log(ctx);
+                    setLoading(0);
+                    form.setError("root", {
+                      type: "manual",
+                      message: ctx.error.message,
+                    });
+                  },
+                },
+              );
             }}
           >
             <GithubOriginal />
@@ -234,28 +294,22 @@ export const LoginForm = () => {
             type="button"
             className="w-full"
             onClick={async () => {
-              setLoading(3);
-              const response = await googleAuthenticate();
-              if (response.success && response.url) {
-                router.push(response.url);
-                return;
-              } else {
-                const error = response;
-                if (error?.name == "CredentialsSignin") {
-                  form.setError("email", {
-                    type: "manual",
-                    message:
-                      "Google account doesn't have a shortn account linked.",
-                  });
-                  setLoading(0);
-                } else {
-                  form.setError("root", {
-                    type: "manual",
-                    message: "Unknown authentication error.",
-                  });
-                  setLoading(0);
-                }
-              }
+              await authClient.signIn.social(
+                { provider: "google" },
+                {
+                  onRequest: () => {
+                    setLoading(3);
+                  },
+                  onError: (ctx) => {
+                    console.log(ctx);
+                    setLoading(0);
+                    form.setError("root", {
+                      type: "manual",
+                      message: ctx.error.message,
+                    });
+                  },
+                },
+              );
             }}
           >
             <GoogleOriginal />

@@ -8,7 +8,6 @@ import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
 import { Loader2, LockIcon, LucideLink, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useRef, useState } from "react";
@@ -44,8 +43,32 @@ import {
 } from "@/components/ui/hover-card";
 import { toast } from "sonner";
 import { uploadImage } from "@/app/actions/uploadImage";
+import { useEffect } from "react";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
+import { fetchApi } from "@/lib/utils";
 export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
-  const session = useUser();
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
 
   const [options, setOptions] = useState<Partial<Options>>({
     type: "svg",
@@ -136,12 +159,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
               <p>{linkToAttach.shortUrl.split("//")[1]}</p>
             </div>
           </div>
-          {getLinksLeft(
-            session.user?.plan.subscription ?? "free",
-            session.user?.qr_codes_this_month ?? 0,
-            true,
-            "text-xs",
-          )}
+          {getLinksLeft(plan, user?.qr_codes_this_month ?? 0, true, "text-xs")}
         </div>
         <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
           <div className="flex flex-col gap-2 items-start">
@@ -738,8 +756,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
             />
           </div>
           <div className="w-full flex flex-col gap-2 items-start">
-            {session.user?.plan.subscription != "pro" &&
-            session.user?.plan.subscription != "plus" ? (
+            {plan != "pro" && plan != "plus" ? (
               <HoverCard>
                 <HoverCardTrigger
                   className="px-1 rounded-none! h-fit flex flex-row items-baseline
@@ -777,10 +794,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
                 <Input
                   ref={logoRef}
                   disabled={
-                    !session.user ||
-                    (session.user.plan.subscription != "pro" &&
-                      session.user.plan.subscription != "plus") ||
-                    uploading
+                    !user || (plan != "pro" && plan != "plus") || uploading
                   }
                   onChange={handleChange}
                   type="file"

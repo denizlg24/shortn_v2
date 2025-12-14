@@ -15,17 +15,14 @@ import {
   FormRootError,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  githubAuthenticate,
-  googleAuthenticate,
-} from "@/app/actions/authenticate";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { createAccount } from "@/app/actions/userActions";
 import { useLocale } from "next-intl";
-
+import { authClient } from "@/lib/authClient";
+import { BASEURL } from "@/lib/utils";
+import Cookies from "js-cookie";
 const registerFormSchema = z
   .object({
     fullName: z
@@ -35,7 +32,7 @@ const registerFormSchema = z
     email: z.string().email("Must be a valid email address").min(1, {
       message: "Please fill out your email or username",
     }),
-    username: z
+    nickname: z
       .string()
       .min(1, "Please provide a username")
       .max(32, "Username must be at most 32 characters")
@@ -67,7 +64,7 @@ export const RegisterForm = () => {
     resolver: zodResolver(registerFormSchema),
     defaultValues: {
       fullName: "",
-      username: "",
+      nickname: "",
       email: "",
       password: "",
       confirmPassword: "",
@@ -76,46 +73,31 @@ export const RegisterForm = () => {
 
   async function onSubmit(values: z.infer<typeof registerFormSchema>) {
     setLoading(1);
-    const { success, error, token } = await createAccount({
-      displayName: values.fullName,
-      username: values.username,
-      email: values.email,
-      password: values.password,
-      locale,
-    });
-    console.log({ success, error, token });
-    if (success && token) {
-      router.push(`/verification-sent/${token}`);
-      return;
-    } else {
-      if (error) {
-        if (error == "email-taken") {
-          form.setError("email", {
-            type: "manual",
-            message: "That email is already in use.",
-          });
-        }
-        if (error == "username-taken") {
-          form.setError("username", {
-            type: "manual",
-            message: "That username is already in use.",
-          });
-        }
-        if (error == "verification-token") {
+    await authClient.signUp.email(
+      {
+        email: values.email,
+        password: values.password,
+        username: values.nickname,
+        name: values.fullName,
+        callbackURL: `${BASEURL}/${locale}/login`,
+      },
+      {
+        onSuccess() {
+          Cookies.set("flow_signup_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+          Cookies.set("flow_signup_email", values.email, { expires: 30 / 288 });
+          router.push("/verify/sent");
+        },
+        onError(context) {
           form.setError("root", {
             type: "manual",
-            message: "There was a problem sending the verification email.",
+            message:
+              context.error.message ||
+              "There was a problem creating your account.",
           });
-        }
-        if (error == "server-error") {
-          form.setError("root", {
-            type: "manual",
-            message: "There was an unexpected problem creating your account.",
-          });
-        }
-      }
-      setLoading(0);
-    }
+        },
+      },
+    );
+    setLoading(0);
   }
 
   return (
@@ -150,7 +132,7 @@ export const RegisterForm = () => {
           />
           <FormField
             control={form.control}
-            name="username"
+            name="nickname"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -256,22 +238,49 @@ export const RegisterForm = () => {
               type="button"
               className="w-full"
               onClick={async () => {
-                setLoading(2);
-                const response = await githubAuthenticate();
-                if (response.success && response.url) {
-                  router.push(response.url);
-                  return;
-                } else {
-                  const error = response;
-                  if (error?.name == "CredentialsSignin") {
-                    form.setError("email", {
-                      type: "manual",
-                      message:
-                        "Github account doesn't have a shortn account linked.",
-                    });
-                    setLoading(0);
-                  }
-                }
+                await authClient.signIn.social(
+                  { provider: "github" },
+                  {
+                    onRequest: () => {
+                      setLoading(2);
+                    },
+                    onSuccess: async () => {
+                      const session = await authClient.getSession();
+
+                      if (!session.data?.user || !session.data?.session) {
+                        setLoading(0);
+                        form.setError("root", {
+                          type: "manual",
+                          message: "Unable to retrieve user session",
+                        });
+                        await authClient.signOut();
+                        return;
+                      }
+
+                      const user = session.data.user;
+
+                      if (!user.emailVerified) {
+                        setLoading(0);
+                        form.setError("root", {
+                          type: "manual",
+                          message:
+                            "Please verify your email address before logging in",
+                        });
+                        await authClient.signOut();
+                        return;
+                      }
+                      setLoading(0);
+                    },
+                    onError: (ctx) => {
+                      console.log(ctx);
+                      setLoading(0);
+                      form.setError("root", {
+                        type: "manual",
+                        message: ctx.error.message,
+                      });
+                    },
+                  },
+                );
               }}
             >
               <GithubOriginal />
@@ -284,22 +293,49 @@ export const RegisterForm = () => {
               type="button"
               className="w-full"
               onClick={async () => {
-                setLoading(3);
-                const response = await googleAuthenticate();
-                if (response.success && response.url) {
-                  router.push(response.url);
-                  return;
-                } else {
-                  const error = response;
-                  if (error?.name == "CredentialsSignin") {
-                    form.setError("email", {
-                      type: "manual",
-                      message:
-                        "Google account doesn't have a shortn account linked.",
-                    });
-                    setLoading(0);
-                  }
-                }
+                await authClient.signIn.social(
+                  { provider: "google" },
+                  {
+                    onRequest: () => {
+                      setLoading(3);
+                    },
+                    onSuccess: async () => {
+                      const session = await authClient.getSession();
+
+                      if (!session.data?.user || !session.data?.session) {
+                        setLoading(0);
+                        form.setError("root", {
+                          type: "manual",
+                          message: "Unable to retrieve user session",
+                        });
+                        await authClient.signOut();
+                        return;
+                      }
+
+                      const user = session.data.user;
+
+                      if (!user.emailVerified) {
+                        setLoading(0);
+                        form.setError("root", {
+                          type: "manual",
+                          message:
+                            "Please verify your email address before logging in",
+                        });
+                        await authClient.signOut();
+                        return;
+                      }
+                      setLoading(0);
+                    },
+                    onError: (ctx) => {
+                      console.log(ctx);
+                      setLoading(0);
+                      form.setError("root", {
+                        type: "manual",
+                        message: ctx.error.message,
+                      });
+                    },
+                  },
+                );
               }}
             >
               <GoogleOriginal />

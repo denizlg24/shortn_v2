@@ -1,12 +1,13 @@
-import { getUser } from "@/app/actions/userActions";
+import { getUserPlan } from "@/app/actions/stripeActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "@/lib/session";
 import { Campaigns } from "@/models/url/Campaigns";
 import { LinkIcon, Rocket, Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 export default async function Home({
   params,
@@ -15,16 +16,18 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { success, user } = await getUser();
-  if (!success || !user) {
-    notFound();
+  const session = await getServerSession();
+  const user = session?.user;
+  if (!user) {
+    forbidden();
   }
-  if (user.plan.subscription != "pro") {
+  const { plan } = await getUserPlan();
+  if (plan != "pro") {
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <Card className="w-full max-w-3xl mx-auto">
           <CardHeader className="flex flex-row items-center gap-4">
-            <div className="p-2 rounded-md bg-gradient-to-tr from-yellow-100 to-yellow-50 text-yellow-700">
+            <div className="p-2 rounded-md bg-linear-to-tr from-yellow-100 to-yellow-50 text-yellow-700">
               <Star className="w-6 h-6" />
             </div>
             <div>

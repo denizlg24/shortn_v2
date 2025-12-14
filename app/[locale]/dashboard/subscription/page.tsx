@@ -1,10 +1,11 @@
-import { getUser } from "@/app/actions/userActions";
+import { getUserPlan } from "@/app/actions/stripeActions";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { getServerSession } from "@/lib/session";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { Check, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import React from "react";
 
 const plans = [
@@ -104,10 +105,12 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
   if (!user) {
-    notFound();
+    forbidden();
   }
+  const { plan: _plan } = await getUserPlan();
   return (
     <div className="max-w-7xl mx-auto w-full sm:mt-8 mt-4 px-4">
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -166,16 +169,16 @@ export default async function Home({
                 >
                   <Link
                     href={
-                      plan.id == user.plan.subscription
+                      plan.id == _plan
                         ? "/dashboard/settings/plan"
                         : `/dashboard/subscription/subscribe?tier=${plan.id}`
                     }
                   >
-                    {plan.id == user.plan.subscription
+                    {plan.id == _plan
                       ? plan.keep
                       : `${
                           getRelativeOrder(
-                            user.plan.subscription as SubscriptionsType,
+                            _plan as SubscriptionsType,
                             plan.id as SubscriptionsType,
                           ) > 0
                             ? `Upgrade to ${plan.name}`
@@ -236,16 +239,16 @@ export default async function Home({
               >
                 <Link
                   href={
-                    plan.id == user.plan.subscription
+                    plan.id == _plan
                       ? "/dashboard/settings/plan"
                       : `/dashboard/subscription/subscribe?tier=${plan.id}`
                   }
                 >
-                  {plan.id == user.plan.subscription
+                  {plan.id == _plan
                     ? plan.keep
                     : `${
                         getRelativeOrder(
-                          user.plan.subscription as SubscriptionsType,
+                          _plan as SubscriptionsType,
                           plan.id as SubscriptionsType,
                         ) > 0
                           ? `Upgrade to ${plan.name}`

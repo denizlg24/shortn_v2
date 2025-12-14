@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { loadFont } from "@/lib/fonts";
 import { Spinner } from "@/components/ui/spinner";
+import { default as NextImage } from "next/image";
 const BioHeader = ({
   header,
   preview,
@@ -349,165 +350,174 @@ export const BioPageDisplay = ({
       }}
       className="w-full h-full min-h-screen flex flex-col gap-2"
     >
-      <BioHeader
-        header={bio.theme?.header}
-        preview={preview}
-        bio={{
-          title: bio.title,
-          avatarUrl: bio.avatarUrl,
-          avatarShape: bio.avatarShape,
-          description: bio.description,
+      <div
+        style={{
+          background: bio.theme?.background || "#ffffff",
         }}
-      />
-      {!bio.theme?.header && (
-        <div
-          className={cn(
-            "w-full flex flex-col gap-1 items-center text-center mt-6 px-4",
-          )}
-        >
-          <h1
-            style={{
-              fontSize: bio.theme?.titleFontSize || "1.25rem",
-              fontWeight: bio.theme?.titleFontWeight || "900",
-            }}
-            className="mx-auto text-center"
+        className="w-full flex flex-col gap-2 sticky top-0"
+      >
+        <BioHeader
+          header={bio.theme?.header}
+          preview={preview}
+          bio={{
+            title: bio.title,
+            avatarUrl: bio.avatarUrl,
+            avatarShape: bio.avatarShape,
+            description: bio.description,
+          }}
+        />
+        {!bio.theme?.header && (
+          <div
+            className={cn(
+              "w-full flex flex-col gap-1 items-center text-center mt-6 px-4",
+            )}
           >
-            {bio.title}
-          </h1>
-          {bio.description && (
-            <h2
+            <h1
               style={{
-                color: bio.theme?.textColor || "#000000",
-                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
-                fontWeight: bio.theme?.descriptionFontWeight || "300",
+                fontSize: bio.theme?.titleFontSize || "1.25rem",
+                fontWeight: bio.theme?.titleFontWeight || "900",
               }}
-              className="opacity-75 text-center mx-auto truncate"
+              className="mx-auto text-center"
             >
-              {bio.description}
-            </h2>
-          )}
-        </div>
-      )}
-      {bio?.theme?.header?.headerStyle === "centered" && (
-        <div
-          className={cn(
-            "w-full flex flex-col gap-1 items-center text-center mt-6 px-4",
-            (bio.avatarUrl || preview) && "mt-12",
-          )}
-        >
-          <h1
-            style={{
-              fontSize: bio.theme?.titleFontSize || "1.25rem",
-              fontWeight: bio.theme?.titleFontWeight || "900",
-            }}
-            className="mx-auto text-center"
-          >
-            {bio.title}
-          </h1>
-          {bio.description && (
-            <h2
-              style={{
-                color: bio.theme?.textColor || "#000000",
-                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
-                fontWeight: bio.theme?.descriptionFontWeight || "300",
-              }}
-              className="opacity-75 text-center mx-auto truncate"
-            >
-              {bio.description}
-            </h2>
-          )}
-        </div>
-      )}
-      {bio.theme?.header?.headerStyle === "right-aligned" && (
-        <div
-          className={cn(
-            "w-full flex flex-col gap-1 items-end text-right mt-6 px-4",
-            (bio.avatarUrl || preview) && "mt-12",
-          )}
-        >
-          <h1
-            style={{
-              fontSize: bio.theme?.titleFontSize || "1.25rem",
-              fontWeight: bio.theme?.titleFontWeight || "900",
-            }}
-            className="text-right"
-          >
-            {bio.title}
-          </h1>
-          {bio.description && (
-            <h2
-              style={{
-                color: bio.theme?.textColor || "#000000",
-                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
-                fontWeight: bio.theme?.descriptionFontWeight || "300",
-              }}
-              className="opacity-75 text-right truncate w-full"
-            >
-              {bio.description}
-            </h2>
-          )}
-        </div>
-      )}
-      {bio.theme?.header?.headerStyle === "left-aligned" && (
-        <div
-          className={cn(
-            "w-full flex flex-col gap-1 items-start text-left mt-6 px-4",
-            (bio.avatarUrl || preview) && "mt-12",
-          )}
-        >
-          <h1
-            style={{
-              fontSize: bio.theme?.titleFontSize || "1.25rem",
-              fontWeight: bio.theme?.titleFontWeight || "900",
-            }}
-            className="text-left"
-          >
-            {bio.title}
-          </h1>
-          {bio.description && (
-            <h2
-              style={{
-                color: bio.theme?.textColor || "#000000",
-                fontSize: bio.theme?.descriptionFontSize || "0.875rem",
-                fontWeight: bio.theme?.descriptionFontWeight || "300",
-              }}
-              className="opacity-75 text-left truncate w-full"
-            >
-              {bio.description}
-            </h2>
-          )}
-        </div>
-      )}
-      {bio.socials && bio.socials.length > 0 && (
-        <div
-          className={cn(
-            "w-full grid grid-cols-[repeat(auto-fit,12.5%)] justify-center gap-0.55 max-w-2xs mx-auto",
-          )}
-        >
-          {bio.socials
-            .filter((s) => !!s.url)
-            .map((social) => (
-              <a
-                target="_blank"
-                key={social.platform}
-                href={
-                  social.url?.startsWith("http") ||
-                  social.url?.startsWith("https")
-                    ? social.url
-                    : `https://${social.url}`
-                }
-                className="col-span-1 w-full h-auto aspect-square flex items-center justify-center hover:scale-105 transition-transform"
+              {bio.title}
+            </h1>
+            {bio.description && (
+              <h2
+                style={{
+                  color: bio.theme?.textColor || "#000000",
+                  fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                  fontWeight: bio.theme?.descriptionFontWeight || "300",
+                }}
+                className="opacity-75 text-center mx-auto truncate"
               >
-                <GetSocialIcon
-                  platform={social.platform}
-                  color={
-                    bio.socialColor === "original" ? undefined : bio.socialColor
+                {bio.description}
+              </h2>
+            )}
+          </div>
+        )}
+        {bio?.theme?.header?.headerStyle === "centered" && (
+          <div
+            className={cn(
+              "w-full flex flex-col gap-1 items-center text-center mt-6 px-4",
+              (bio.avatarUrl || preview) && "mt-12",
+            )}
+          >
+            <h1
+              style={{
+                fontSize: bio.theme?.titleFontSize || "1.25rem",
+                fontWeight: bio.theme?.titleFontWeight || "900",
+              }}
+              className="mx-auto text-center"
+            >
+              {bio.title}
+            </h1>
+            {bio.description && (
+              <h2
+                style={{
+                  color: bio.theme?.textColor || "#000000",
+                  fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                  fontWeight: bio.theme?.descriptionFontWeight || "300",
+                }}
+                className="opacity-75 text-center mx-auto truncate"
+              >
+                {bio.description}
+              </h2>
+            )}
+          </div>
+        )}
+        {bio.theme?.header?.headerStyle === "right-aligned" && (
+          <div
+            className={cn(
+              "w-full flex flex-col gap-1 items-end text-right mt-6 px-4",
+              (bio.avatarUrl || preview) && "mt-12",
+            )}
+          >
+            <h1
+              style={{
+                fontSize: bio.theme?.titleFontSize || "1.25rem",
+                fontWeight: bio.theme?.titleFontWeight || "900",
+              }}
+              className="text-right"
+            >
+              {bio.title}
+            </h1>
+            {bio.description && (
+              <h2
+                style={{
+                  color: bio.theme?.textColor || "#000000",
+                  fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                  fontWeight: bio.theme?.descriptionFontWeight || "300",
+                }}
+                className="opacity-75 text-right truncate w-full"
+              >
+                {bio.description}
+              </h2>
+            )}
+          </div>
+        )}
+        {bio.theme?.header?.headerStyle === "left-aligned" && (
+          <div
+            className={cn(
+              "w-full flex flex-col gap-1 items-start text-left mt-6 px-4",
+              (bio.avatarUrl || preview) && "mt-12",
+            )}
+          >
+            <h1
+              style={{
+                fontSize: bio.theme?.titleFontSize || "1.25rem",
+                fontWeight: bio.theme?.titleFontWeight || "900",
+              }}
+              className="text-left"
+            >
+              {bio.title}
+            </h1>
+            {bio.description && (
+              <h2
+                style={{
+                  color: bio.theme?.textColor || "#000000",
+                  fontSize: bio.theme?.descriptionFontSize || "0.875rem",
+                  fontWeight: bio.theme?.descriptionFontWeight || "300",
+                }}
+                className="opacity-75 text-left truncate w-full"
+              >
+                {bio.description}
+              </h2>
+            )}
+          </div>
+        )}
+        {bio.socials && bio.socials.length > 0 && (
+          <div
+            className={cn(
+              "w-full grid grid-cols-[repeat(auto-fit,12.5%)] justify-center gap-0.55 max-w-2xs mx-auto",
+            )}
+          >
+            {bio.socials
+              .filter((s) => !!s.url)
+              .map((social) => (
+                <a
+                  target="_blank"
+                  key={social.platform}
+                  href={
+                    social.url?.startsWith("http") ||
+                    social.url?.startsWith("https")
+                      ? social.url
+                      : `https://${social.url}`
                   }
-                />
-              </a>
-            ))}
-        </div>
-      )}
+                  className="col-span-1 w-full h-auto aspect-square flex items-center justify-center hover:scale-105 transition-transform"
+                >
+                  <GetSocialIcon
+                    platform={social.platform}
+                    color={
+                      bio.socialColor === "original"
+                        ? undefined
+                        : bio.socialColor
+                    }
+                  />
+                </a>
+              ))}
+          </div>
+        )}
+      </div>
       <div
         className={cn(
           "w-full max-w-2xl mt-6 grid items-center grid-cols-1 gap-4 mx-auto px-4",
@@ -528,7 +538,9 @@ export const BioPageDisplay = ({
               className="flex items-center justify-center rounded-none hover:shadow hover:scale-[1.01] hover:cursor-pointer transition-transform break-all w-full h-auto aspect-square"
             >
               {link.image ? (
-                <img
+                <NextImage
+                  width={1024}
+                  height={1024}
                   src={link.image}
                   className="w-full h-auto aspect-square object-cover"
                   alt={link.title || "link image"}
@@ -554,7 +566,9 @@ export const BioPageDisplay = ({
               target="_blank"
             >
               {link.image && (
-                <img
+                <NextImage
+                  width={128}
+                  height={128}
                   src={link.image}
                   className="w-6 h-6 aspect-square rounded-full shadow object-cover absolute left-2"
                   alt={link.title || "link image"}

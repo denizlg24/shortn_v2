@@ -22,7 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
-import { useUser } from "@/utils/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -44,6 +43,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
+import { authClient } from "@/lib/authClient";
 
 const qrCodeFormSchema = z.object({
   title: z
@@ -54,7 +54,8 @@ const qrCodeFormSchema = z.object({
 });
 
 export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
 
   const router = useRouter();
 
@@ -74,12 +75,15 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
 
   const [tags, setTags] = useState<ITag[]>((qrCode.tags as ITag[]) || []);
 
-  const [notFound, setNotFound] = useState(false);
-  const [shouldShowAddTag, setExactTagMatch] = useState(true);
+  const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
+
+  const shouldShowAddTag =
+    input != "" && (!hasExactMatch || tagOptions.length === 0);
+
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -93,10 +97,10 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
       });
       return;
     }
-  }, [input, session.user]);
+  }, [input, user]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -105,10 +109,8 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
         fetchApi<{ tags: ITag[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
-            setNotFound(false);
           } else {
             setTagOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -116,25 +118,14 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
       fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
-          setNotFound(res.tags.length === 0);
         } else {
           setTagOptions([]);
-          setNotFound(true);
         }
       });
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || tagOptions.length === 0);
-
-    setExactTagMatch(_shouldShowAddTag);
-  }, [tagOptions, notFound, input]);
+  }, [input, user]);
 
   if (!qrCode) {
     return <Skeleton className="w-full col-span-full aspect-video h-auto" />;
@@ -215,7 +206,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                   key={tag.id}
                                   className={cn(
                                     "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                   )}
                                 >
                                   {tag.tagName}
@@ -252,13 +243,13 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               value={tag.tagName}
                               onSelect={async () => {
                                 const added = tags?.some(
-                                  (_tag) => _tag.id == tag.id
+                                  (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
                                     const index = n.findIndex(
-                                      (t) => t.id == tag.id
+                                      (t) => t.id == tag.id,
                                     );
                                     n.splice(index, 1);
                                     return n;
@@ -276,10 +267,10 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 className={cn(
                                   "ml-auto",
                                   tags?.some(
-                                    (_tag) => _tag.tagName == tag.tagName
+                                    (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -290,7 +281,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               key={input}
                               value={input}
                               onSelect={async () => {
-                                if (!session.user?.sub) return;
+                                if (!user?.sub) return;
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
@@ -355,7 +346,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                   key={tag.id}
                                   className={cn(
                                     "inline-flex items-center justify-center gap-1 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer"
+                                    "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 h-full! p-1! text-sm rounded-none! hover:cursor-pointer",
                                   )}
                                 >
                                   {tag.tagName}
@@ -390,13 +381,13 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               value={tag.tagName}
                               onSelect={async () => {
                                 const added = tags?.some(
-                                  (_tag) => _tag.id == tag.id
+                                  (_tag) => _tag.id == tag.id,
                                 );
                                 if (added) {
                                   setTags((prev) => {
                                     const n = [...prev];
                                     const index = n.findIndex(
-                                      (t) => t.id == tag.id
+                                      (t) => t.id == tag.id,
                                     );
                                     n.splice(index, 1);
                                     return n;
@@ -414,10 +405,10 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 className={cn(
                                   "ml-auto",
                                   tags?.some(
-                                    (_tag) => _tag.tagName == tag.tagName
+                                    (_tag) => _tag.tagName == tag.tagName,
                                   )
                                     ? "opacity-100"
-                                    : "opacity-0"
+                                    : "opacity-0",
                                 )}
                               />
                             </CommandItem>
@@ -428,7 +419,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                               key={input}
                               value={input}
                               onSelect={async () => {
-                                if (!session.user?.sub) return;
+                                if (!user?.sub) return;
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {

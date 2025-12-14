@@ -31,11 +31,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
-import { useUser } from "@/utils/UserContext";
 import { useState } from "react";
+import { authClient } from "@/lib/authClient";
 
 export const AppSidebar = () => {
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const session = data;
   const { toggleSidebar, state } = useSidebar();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const pathname = usePathname();

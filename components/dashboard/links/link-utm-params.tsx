@@ -26,10 +26,10 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
+import { authClient } from "@/lib/authClient";
 import { cn, fetchApi } from "@/lib/utils";
 import { ICampaign } from "@/models/url/Campaigns";
 import { TUrl } from "@/models/url/UrlV3";
-import { useUser } from "@/utils/UserContext";
 import {
   Check,
   CheckCircle,
@@ -43,7 +43,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-
 function buildUrl(
   link: string,
   utm?: {
@@ -100,13 +99,17 @@ export const LinkUtmParams = ({
   const [saving, setSaving] = useState(false);
   const [campaignOpen, campaignOpenChange] = useState(false);
   const [input, setInput] = useState("");
-  const [shouldShowAddCampaign, setExactCampaignMatch] = useState(true);
   const [campaignOptions, setCampaignOptions] = useState<ICampaign[]>([]);
-  const [notFound, setNotFound] = useState(false);
   const [collapsed, setCollapsed] = useState(-1);
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
+  const hasExactMatch = campaignOptions.some(
+    (campaign) => campaign.title === input,
+  );
+  const shouldShowAddCampaign =
+    input != "" && (!hasExactMatch || campaignOptions.length === 0);
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -115,10 +118,8 @@ export const LinkUtmParams = ({
         fetchApi<{ campaigns: ICampaign[] }>("campaigns").then((res) => {
           if (res.success) {
             setCampaignOptions(res.campaigns);
-            setNotFound(false);
           } else {
             setCampaignOptions([]);
-            setNotFound(true);
           }
         });
         return;
@@ -127,28 +128,15 @@ export const LinkUtmParams = ({
         (res) => {
           if (res.success) {
             setCampaignOptions(res.campaigns);
-            setNotFound(res.campaigns.length === 0);
           } else {
             setCampaignOptions([]);
-            setNotFound(true);
           }
         },
       );
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
-
-  useEffect(() => {
-    const hasExactMatch = campaignOptions.some(
-      (campaign) => campaign.title === input,
-    );
-
-    const _shouldShowAddTag =
-      input != "" && (!hasExactMatch || campaignOptions.length === 0);
-
-    setExactCampaignMatch(_shouldShowAddTag);
-  }, [campaignOptions, notFound, input]);
+  }, [input, user]);
 
   if (!unlocked) {
     return (

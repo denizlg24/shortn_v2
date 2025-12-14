@@ -1,13 +1,17 @@
 import {
   getCharges,
   getPaymentMethods,
+  getStripeExtraInfo,
   getTaxVerification,
   getUserAddress,
+  getUserPlan,
 } from "@/app/actions/stripeActions";
-import { getUser } from "@/app/actions/userActions";
+
 import { BillingCard } from "@/components/dashboard/settings/billing-card";
+import { getServerSession } from "@/lib/session";
+import { SubscriptionsType } from "@/utils/plan-utils";
 import { setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 
 export default async function Home({
   params,
@@ -16,18 +20,39 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { user } = await getUser();
+  const session = await getServerSession();
+  const user = session?.user;
   if (!user) {
-    notFound();
+    forbidden();
   }
-  const [address, verification,paymentMethods,chargeResponse] = await Promise.all([
-    getUserAddress(user.stripeId),
-    getTaxVerification(user.stripeId),
-    getPaymentMethods(user.stripeId),
-    getCharges(user.stripeId)
-  ]);
+  const extraInfo = await getStripeExtraInfo(user.stripeCustomerId);
+  const { plan, lastPaid } = await getUserPlan();
+  const [address, verification, paymentMethods, chargeResponse] =
+    await Promise.all([
+      getUserAddress(user.stripeCustomerId),
+      getTaxVerification(user.stripeCustomerId),
+      getPaymentMethods(user.stripeCustomerId),
+      getCharges(user.stripeCustomerId),
+    ]);
 
   return (
-    <BillingCard initialUser={user} initialAddress={address} initialVerification={verification} initialPaymentMethods={paymentMethods.methods} charges={chargeResponse.charges} hasMoreCharges={chargeResponse.has_more} />
+    <BillingCard
+      initialUser={{
+        tax_id: extraInfo.tax_ids?.data.length
+          ? extraInfo.tax_ids.data[0].value
+          : undefined,
+        phone_number: extraInfo.phone_number,
+        stripeId: user.stripeCustomerId,
+        plan: {
+          subscription: plan as SubscriptionsType,
+          lastPaid: lastPaid as Date,
+        },
+      }}
+      initialAddress={address}
+      initialVerification={verification}
+      initialPaymentMethods={paymentMethods.methods}
+      charges={chargeResponse.charges}
+      hasMoreCharges={chargeResponse.has_more}
+    />
   );
 }

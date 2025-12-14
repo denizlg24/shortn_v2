@@ -14,14 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn } from "@/lib/utils";
-import { useUser } from "@/utils/UserContext";
+import { cn, fetchApi } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
+import { Skeleton } from "@/components/ui/skeleton"; // Make sure to import Skeleton
 
 const urlFormSchema = z.object({
   destination: z
@@ -34,7 +36,7 @@ export const getLinksLeft = (
   subscription: string,
   thisMonth: number,
   qr?: boolean,
-  className?: string
+  className?: string,
 ) => {
   const allowedLinks = {
     free: 3,
@@ -73,7 +75,7 @@ export const getLinksLeft = (
       </p>
     );
   }
-  if (linksLeft < 0) {
+  if (linksLeft <= 0) {
     return (
       <p className={cn("text-sm font-semibold", className)}>
         You can&apos;t create any more {qr ? "QR Codes" : "Shortn Links"} this
@@ -87,7 +89,35 @@ export const getLinksLeft = (
 };
 
 export const QuickCreate = ({ className }: { className?: string }) => {
-  const { user } = useUser();
+  const { data, isPending, isRefetching } = authClient.useSession();
+  const user = data?.user;
+  const [plan, setPlan] = useState("free");
+
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // Only fetch plan if user is loaded
+    if (isPending || isRefetching || !user) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching, user]); // added user to dependency
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
@@ -104,9 +134,11 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   });
 
   const router = useRouter();
-
   const [linkLoading, setLinkLoading] = useState(false);
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
+
+  // Helper to determine if we should show the loader
+  const isLoading = !mounted || isPending || isRefetching;
 
   return (
     <Card
@@ -136,10 +168,13 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </div>
         <TabsContent value="link" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {getLinksLeft(
-              user?.plan.subscription ?? "free",
-              user?.links_this_month ?? 0
+            {/* FIX 2: Show Skeleton while loading or not mounted */}
+            {isLoading ? (
+              <Skeleton className="h-5 w-64 mb-1" />
+            ) : (
+              getLinksLeft(plan ?? "free", user?.links_this_month ?? 0)
             )}
+
             <Form {...urlForm}>
               <form
                 onSubmit={urlForm.handleSubmit(async (data) => {
@@ -149,10 +184,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/links/${response.data.shortUrl}/details`
+                      `/dashboard/links/${response.data.shortUrl}/details`,
                     );
                   } else if (response.existingUrl) {
-                    const existingToast = toast(
+                    toast(
                       <div className="w-full flex flex-col gap-2">
                         <div className="flex flex-row items-center justify-start gap-2">
                           <XCircle className="text-destructive" />
@@ -164,7 +199,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                             custom back-half.{" "}
                             <Link
                               onClick={async () => {
-                                toast.dismiss(existingToast);
+                                toast.dismiss("duplicate-shortn-toast");
                               }}
                               href={`/dashboard/links/${response.existingUrl}/details`}
                               className="underline text-primary font-semibold"
@@ -173,7 +208,8 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                             </Link>
                           </p>
                         </div>
-                      </div>
+                      </div>,
+                      { id: "duplicate-shortn-toast" },
                     );
                     setLinkLoading(false);
                   } else if (response.message) {
@@ -238,11 +274,13 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </TabsContent>
         <TabsContent value="qrcode" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {getLinksLeft(
-              user?.plan.subscription ?? "free",
-              user?.qr_codes_this_month ?? 0,
-              true
+            {/* FIX 3: Same Skeleton Logic for QR Codes */}
+            {isLoading ? (
+              <Skeleton className="h-5 w-64 mb-1" />
+            ) : (
+              getLinksLeft(plan ?? "free", user?.qr_codes_this_month ?? 0, true)
             )}
+
             <Form {...qrCodeForm}>
               <form
                 onSubmit={qrCodeForm.handleSubmit(async (data) => {
@@ -252,7 +290,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   });
                   if (response.success && response.data) {
                     router.push(
-                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`
+                      `/dashboard/qr-codes/${response.data.qrCodeId}/details`,
                     );
                   } else if (response.message) {
                     switch (response.message) {

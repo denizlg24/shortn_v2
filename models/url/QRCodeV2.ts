@@ -1,6 +1,23 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 import { tagSchema } from "./Tag";
 import { Options } from "qr-code-styling";
+
+export interface TQRCode {
+  _id: string;
+  sub?: string;
+  longUrl: string;
+  qrCodeId: string;
+  urlId: string;
+  attachedUrl?: string;
+  title?: string;
+  date: Date;
+  tags?: { id: string; tagName: string; sub: string; _id: unknown }[];
+  options: Partial<Options>;
+  clicks: {
+    total: number;
+    lastClick: Date | null;
+  };
+}
 export interface IQRCode extends Document {
   sub?: string;
   longUrl: string;

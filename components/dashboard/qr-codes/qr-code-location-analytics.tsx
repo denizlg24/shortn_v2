@@ -1,3 +1,4 @@
+"use client";
 import {
   HoverCard,
   HoverCardContent,
@@ -49,6 +50,8 @@ export const QRCodeLocationAnalytics = ({
     if (unlocked != "none")
       getScans(undefined, undefined, setClicks, setLoading);
   }, [getScans, unlocked]);
+
+  const dateToday = format(new Date(), "yyyy-MM-dd");
 
   if (unlocked == "none") {
     return (
@@ -220,7 +223,7 @@ export const QRCodeLocationAnalytics = ({
       </div>
       {clicks.length > 0 && (
         <DownloadButtonCSV
-          filename={`${urlCode}-scan-${selected}-data-${format(Date.now(), "dd-MM-yyyy")}`}
+          filename={`${urlCode}-scan-${selected}-data-${dateToday}`}
           data={data.map((val) => ({
             [String(selected).charAt(0).toUpperCase() +
             String(selected).slice(1)]:

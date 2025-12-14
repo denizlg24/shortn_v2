@@ -17,11 +17,9 @@ import {
   Settings,
 } from "lucide-react";
 import { Separator } from "./separator";
-import { Link, usePathname } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./locale-switcher";
-import { useUser } from "@/utils/UserContext";
-import { signOutUser } from "@/app/actions/signOut";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -38,16 +36,51 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { ScrollPopoverContent } from "./scroll-popover-content";
+import { authClient } from "@/lib/authClient";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 export const DashboardHeaderClient = () => {
-  const session = useUser();
-  const user = session.user;
+  const { isPending, isRefetching, data } = authClient.useSession();
+  const [plan, setPlan] = useState<string>("free");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchPlan = async () => {
+      try {
+        const res = await fetchApi<{
+          plan: SubscriptionsType;
+          lastPaid?: Date;
+        }>("auth/user/subscription");
+
+        if (isMounted) {
+          if (res.success) {
+            console.log("Fetched plan:", res.plan);
+            setPlan(res.plan);
+          } else {
+            setPlan("free");
+          }
+        }
+      } catch (_error) {
+        if (isMounted) setPlan("free");
+      }
+    };
+
+    fetchPlan();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isRefetching, isPending]);
+  const user = data?.user;
   const [open, setOpen] = useState(false);
   const [hamburguerOpen, setHamburguerOpen] = useState(false);
   const [createdNewOpen, createNewOpenChange] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
   return (
     <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-85 transition-shadow flex flex-row justify-between gap-4">
       <div className="md:block hidden"></div>
@@ -275,11 +308,11 @@ export const DashboardHeaderClient = () => {
                   <Avatar className="h-full! w-auto! aspect-square! rounded-full!">
                     <AvatarImage
                       className="object-cover"
-                      src={user.profilePicture}
-                      alt={user.displayName}
+                      src={user.image ?? undefined}
+                      alt={user.name}
                     />
                     <AvatarFallback>
-                      {user.displayName
+                      {user.name
                         .trim()
                         .split(/\s+/)
                         .filter(Boolean)
@@ -288,22 +321,22 @@ export const DashboardHeaderClient = () => {
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
-                  <p className="truncate">{user.displayName}</p>
+                  <p className="truncate">{user.name}</p>
                   <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
                 </Button>
               </PopoverTrigger>
               <ScrollPopoverContent className="w-[300px] p-0 z-99">
                 <div className="w-full p-4 flex flex-row gap-2 items-stretch justify-start">
                   <Avatar className="h-full! w-auto! max-h-10 aspect-square! rounded-full!">
-                    {user.profilePicture && (
+                    {user.image && (
                       <AvatarImage
                         className="object-cover"
-                        src={user.profilePicture}
-                        alt={user.displayName}
+                        src={user.image}
+                        alt={user.name}
                       />
                     )}
                     <AvatarFallback className="w-auto! h-10 aspect-square! rounded-full!">
-                      {user.displayName
+                      {user.name
                         .trim()
                         .split(/\s+/)
                         .filter(Boolean)
@@ -313,7 +346,7 @@ export const DashboardHeaderClient = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex flex-col h-full grow justify-between">
-                    <p className="text-sm font-semibold">{user.displayName}</p>
+                    <p className="text-sm font-semibold">{user.name}</p>
                     <p className="text-xs">{user.email}</p>
                   </div>
                 </div>
@@ -321,28 +354,28 @@ export const DashboardHeaderClient = () => {
                 <div className="w-full p-4 flex flex-row gap-2 items-start justify-between">
                   <div className="flex flex-col gap-0 items-start">
                     <p className="text-sm">{user.sub.split("|")[1]}</p>
-                    {user.plan.subscription == "pro" && (
+                    {plan == "pro" && (
                       <p className="text-xs text-muted-foreground">
                         Pro Account
                       </p>
                     )}
-                    {user.plan.subscription == "plus" && (
+                    {plan == "plus" && (
                       <p className="text-xs text-muted-foreground">
                         Plus Account
                       </p>
                     )}
-                    {user.plan.subscription == "basic" && (
+                    {plan == "basic" && (
                       <p className="text-xs text-muted-foreground">
                         Basic Account
                       </p>
                     )}
-                    {user.plan.subscription == "free" && (
+                    {plan == "free" && (
                       <p className="text-xs text-muted-foreground">
                         Free Account
                       </p>
                     )}
                   </div>
-                  {user.plan.subscription != "pro" && (
+                  {plan != "pro" && (
                     <Button
                       onClick={() => {
                         setOpen(false);
@@ -387,9 +420,15 @@ export const DashboardHeaderClient = () => {
                 <Separator />
                 <div className="w-full py-2 flex flex-col gap-0">
                   <Button
-                    onClick={() => {
+                    onClick={async () => {
                       setOpen(false);
-                      signOutUser("/");
+                      await authClient.signOut({
+                        fetchOptions: {
+                          onSuccess: () => {
+                            router.push("/");
+                          },
+                        },
+                      });
                     }}
                     className="rounded-none justify-start"
                     variant="ghost"

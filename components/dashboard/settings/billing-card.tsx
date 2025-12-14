@@ -6,7 +6,7 @@ import {
 } from "postcode-validator";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { useEffect, useState } from "react";
+import { useState } from "react"; // Removed useEffect
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle, ClockFading, Loader2 } from "lucide-react";
 import {
@@ -20,7 +20,6 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod";
-import { useUser } from "@/utils/UserContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getTaxVerification,
@@ -39,6 +38,7 @@ import {
 import { CountryDropdown } from "@/components/ui/country-dropdown";
 import { Card } from "@/components/ui/card";
 import { addMonths, format } from "date-fns";
+import { authClient } from "@/lib/authClient";
 
 const updateBillingSchema = z
   .object({
@@ -63,7 +63,9 @@ const updateBillingSchema = z
   })
   .refine(
     (data) => {
-      if (!postcodeValidatorExistsForCountry(data.country)) return false;
+      // Safety check: ensure country exists before validating postcode
+      if (!data.country || !postcodeValidatorExistsForCountry(data.country))
+        return true;
       return postcodeValidator(data.postal_code, data.country);
     },
     {
@@ -78,12 +80,13 @@ export const BillingCard = ({
   initialVerification,
   initialPaymentMethods,
   charges,
-  hasMoreCharges,
+  hasMoreCharges: _hasMoreCharges,
 }: {
   initialUser: {
     tax_id: string | undefined;
     phone_number: string | undefined;
     stripeId: string;
+    sub?: string; // Added optional sub if available on initialUser for tracking
     plan: {
       subscription: string;
       lastPaid: Date;
@@ -95,28 +98,36 @@ export const BillingCard = ({
   charges: Stripe.Charge[];
   hasMoreCharges: boolean;
 }) => {
-  console.log(hasMoreCharges);
-  const { refresh, loading, user: sessionUser } = useUser();
+  const {
+    data: session,
+    isPending,
+    refetch: refresh,
+    isRefetching,
+  } = authClient.useSession();
+
+  const sessionUser = session?.user;
   const [changesLoading, setChangesLoading] = useState(false);
+
   const [user, setUser] = useState(initialUser);
   const [address, setAddress] = useState(initialAddress);
   const [verification, setVerification] = useState(initialVerification);
+
   const updateBillingForm = useForm<z.infer<typeof updateBillingSchema>>({
     resolver: zodResolver(updateBillingSchema),
     defaultValues: {
-      "tax-id": user.tax_id || "",
-      line1: address?.line1 || "",
-      line2: address?.line2 || "",
-      city: address?.city || "",
-      postal_code: address?.postal_code || "",
-      country: address?.country || "",
+      "tax-id": initialUser.tax_id || "",
+      line1: initialAddress?.line1 || "",
+      line2: initialAddress?.line2 || "",
+      city: initialAddress?.city || "",
+      postal_code: initialAddress?.postal_code || "",
+      country: initialAddress?.country || "",
     },
   });
 
+  const { isDirty } = updateBillingForm.formState;
+
   async function onSubmit(values: z.infer<typeof updateBillingSchema>) {
-    if (!user || !sessionUser) {
-      return;
-    }
+    if (!user) return;
     setChangesLoading(true);
 
     const updateField = async (
@@ -132,16 +143,17 @@ export const BillingCard = ({
       const { success, message } = await updater(user.stripeId, values[field]);
 
       if (success) {
-        const accountActivity = {
-          sub: sessionUser.sub,
-          type: "tax-id-changed",
-          success: true,
-        };
-        fetch("/api/auth/track-activity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(accountActivity),
-        });
+        if (sessionUser?.sub) {
+          fetch("/api/auth/track-activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sub: sessionUser.sub,
+              type: "tax-id-changed",
+              success: true,
+            }),
+          });
+        }
         return true;
       }
 
@@ -167,59 +179,84 @@ export const BillingCard = ({
       updated["tax-id"] = true;
     }
 
-    const { success: addrSuccess, message: addrMessage } =
-      await updateUserAddress(user.stripeId, {
-        line1: values.line1,
-        line2: values.line2,
-        country: values.country,
-        postal_code: values.postal_code,
-        city: values.city,
-      });
+    const addressFields = [
+      "line1",
+      "line2",
+      "city",
+      "country",
+      "postal_code",
+    ] as const;
+    const isAddressDirty = addressFields.some(
+      (f) => updateBillingForm.getFieldState(f).isDirty,
+    );
 
-    if (addrSuccess) {
-      const accountActivity = {
-        sub: sessionUser.sub,
-        type: "address-changed",
-        success: true,
-      };
-      fetch("/api/auth/track-activity", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(accountActivity),
-      });
-      updated["address"] = true;
-    } else {
-      updateBillingForm.setError("line1", {
-        type: "manual",
-        message:
-          addrMessage === "server-error"
-            ? "There was a problem updating your address."
-            : "Please provide a valid address for your country.",
-      });
+    if (isAddressDirty) {
+      const { success: addrSuccess, message: addrMessage } =
+        await updateUserAddress(user.stripeId, {
+          line1: values.line1,
+          line2: values.line2,
+          country: values.country,
+          postal_code: values.postal_code,
+          city: values.city,
+        });
+
+      if (addrSuccess) {
+        if (sessionUser?.sub) {
+          fetch("/api/auth/track-activity", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sub: sessionUser.sub,
+              type: "address-changed",
+              success: true,
+            }),
+          });
+        }
+        updated["address"] = true;
+      } else {
+        updateBillingForm.setError("line1", {
+          type: "manual",
+          message:
+            addrMessage === "server-error"
+              ? "There was a problem updating your address."
+              : "Please provide a valid address for your country.",
+        });
+      }
     }
 
     if (Object.keys(updated).length > 0) {
       toast.success("Your profile has been updated!");
       await refresh();
+
+      let newVerification = verification;
+      const newUser = { ...user };
+      const newAddress = { ...address };
+
       if (updated["tax-id"]) {
-        setUser((prev) => ({
-          ...prev,
-          tax_id: values["tax-id"],
-        }));
-        const newVerification = await getTaxVerification(user.stripeId);
-        setVerification(newVerification);
+        newUser.tax_id = values["tax-id"];
+        newVerification = await getTaxVerification(user.stripeId);
       }
-      if (updated["address"]) {
-        setAddress((prev) => ({
-          ...prev,
-          line1: values.line1,
-          line2: values.line2 || null,
-          country: values.country,
-          postal_code: values.postal_code,
-          city: values.city,
-          state: null,
-        }));
+
+      if (updated["address"] || isAddressDirty) {
+        newAddress!.line1 = values.line1;
+        newAddress!.line2 = values.line2 || null;
+        newAddress!.country = values.country;
+        newAddress!.postal_code = values.postal_code;
+        newAddress!.city = values.city;
       }
+
+      setUser(newUser);
+      setVerification(newVerification);
+      setAddress(newAddress as Stripe.Address);
+
+      updateBillingForm.reset({
+        "tax-id": newUser.tax_id || "",
+        line1: newAddress?.line1 || "",
+        line2: newAddress?.line2 || "",
+        city: newAddress?.city || "",
+        postal_code: newAddress?.postal_code || "",
+        country: newAddress?.country || "",
+      });
     }
     setChangesLoading(false);
   }
@@ -228,26 +265,7 @@ export const BillingCard = ({
     initialPaymentMethods,
   );
 
-  useEffect(() => {
-    updateBillingForm.reset(
-      {
-        "tax-id": user.tax_id,
-        line1: address?.line1 || "",
-        line2: address?.line2 || "",
-        city: address?.city || "",
-        postal_code: address?.postal_code || "",
-        country: address?.country || "",
-      },
-      {
-        keepErrors: true,
-        keepDirty: false,
-        keepTouched: false,
-        keepDirtyValues: false,
-      },
-    );
-  }, [user, address, updateBillingForm]);
-
-  if (loading) {
+  if ((isPending || isRefetching) && !user) {
     return (
       <div className="w-full flex flex-col">
         <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
@@ -258,30 +276,13 @@ export const BillingCard = ({
         </h2>
         <Separator className="my-4" />
         <div className="grid sm:grid-cols-2 grid-cols-1 max-w-xl gap-x-8 gap-y-4 w-full my-4 items-start">
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
-          <div className="flex flex-col gap-1 w-full col-span-1">
-            <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
-            <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
-          </div>
+          {/* Skeleton Items */}
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="flex flex-col gap-1 w-full col-span-1">
+              <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />
+              <Skeleton className="w-full col-span-1 h-8 rounded bg-muted-foreground!" />
+            </div>
+          ))}
         </div>
         <Separator className="my-4" />
         <div className="w-full grid grid-col-2 max-w-xl gap-x-4 gap-y-6">
@@ -426,7 +427,7 @@ export const BillingCard = ({
             )}
           />
           <div className="grid xs:grid-cols-2 grid-cols-1 w-full col-span-full gap-6 gap-y-2">
-            {updateBillingForm.formState.isDirty && (
+            {isDirty && (
               <>
                 <Button disabled={changesLoading}>
                   {changesLoading ? (
@@ -441,7 +442,14 @@ export const BillingCard = ({
                 <Button
                   type="button"
                   onClick={() => {
-                    updateBillingForm.reset();
+                    updateBillingForm.reset({
+                      "tax-id": user.tax_id || "",
+                      line1: address?.line1 || "",
+                      line2: address?.line2 || "",
+                      city: address?.city || "",
+                      postal_code: address?.postal_code || "",
+                      country: address?.country || "",
+                    });
                   }}
                   variant={"outline"}
                 >

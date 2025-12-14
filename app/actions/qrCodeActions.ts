@@ -1,8 +1,7 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
-import { User } from "@/models/auth/User";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
@@ -14,6 +13,8 @@ import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { headers } from "next/headers";
 import { deletePicture } from "./deletePicture";
+import { User } from "@/models/auth/User";
+import { getUserPlan } from "./stripeActions";
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
@@ -69,7 +70,7 @@ export async function createQrCode({
   try {
     await connectDB();
 
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -106,15 +107,10 @@ export async function createQrCode({
       }
     }
 
-    const dbUser = await User.findOne({ sub: user.sub });
-    if (!dbUser) {
-      return {
-        success: false,
-        message: "no-user",
-      };
-    }
-    const links = dbUser.qr_codes_this_month;
-    if (dbUser.plan.subscription === "free") {
+    const { plan } = await getUserPlan();
+
+    const links = user.qr_codes_this_month;
+    if (plan === "free") {
       if (links >= 3) {
         return {
           success: false,
@@ -122,7 +118,7 @@ export async function createQrCode({
         };
       }
     }
-    if (dbUser.plan.subscription === "basic") {
+    if (plan === "basic") {
       if (links >= 25) {
         return {
           success: false,
@@ -130,7 +126,7 @@ export async function createQrCode({
         };
       }
     }
-    if (dbUser.plan.subscription === "plus") {
+    if (plan === "plus") {
       if (links >= 50) {
         return {
           success: false,
@@ -192,7 +188,7 @@ export async function createQrCode({
 
     const updatedUser = await User.findOneAndUpdate(
       { sub: user.sub },
-      { qr_codes_this_month: links + 1 },
+      { $inc: { qr_codes_this_month: 1 } },
     );
 
     if (!updatedUser) {
@@ -224,7 +220,7 @@ export const updateQRCodeOptions = async (
   options: Partial<Options>,
 ) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -256,7 +252,7 @@ export const updateQRCodeData = async ({
   applyToLink: boolean;
 }) => {
   try {
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -294,7 +290,7 @@ export const updateQRCodeData = async ({
 export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
   try {
     await connectDB();
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -323,7 +319,7 @@ export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
 export const deleteQRCode = async (qrCodeId: string) => {
   try {
     await connectDB();
-    const session = await auth();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {

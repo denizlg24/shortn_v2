@@ -1,12 +1,13 @@
-import { getUser } from "@/app/actions/userActions";
+import { getUserPlan } from "@/app/actions/stripeActions";
 import { connectDB } from "@/lib/mongodb";
+import { getServerSession } from "@/lib/session";
 import Clicks, { ClickEntry } from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 
 export const getShortn = async (urlCode: string) => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -51,7 +52,8 @@ export const getClicks = async (
   endDate: Date | undefined,
 ) => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
+    const { plan } = await getUserPlan();
     const user = session?.user;
     if (!user) {
       return [];
@@ -71,7 +73,7 @@ export const getClicks = async (
     }
     const clicks = await Clicks.find(query).lean();
     let filtered: ClickEntry[] = [];
-    switch (user.plan.subscription) {
+    switch (plan) {
       case "free":
       case "basic":
         filtered = [];
@@ -109,7 +111,8 @@ export const getScans = async (
   endDate: Date | undefined,
 ) => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
+    const { plan } = await getUserPlan();
     const user = session?.user;
     if (!user) {
       return {
@@ -136,7 +139,7 @@ export const getScans = async (
     }
     const clicks = await Clicks.find(query).lean();
     let filtered: ClickEntry[] = [];
-    switch (user.plan.subscription) {
+    switch (plan) {
       case "free":
       case "basic":
         filtered = [];
@@ -170,7 +173,7 @@ export const getScans = async (
 
 export const getQRCode = async (codeID: string) => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -199,7 +202,7 @@ export const getQRCode = async (codeID: string) => {
 
 export const getActiveLinks = async () => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {
@@ -223,7 +226,7 @@ export const getActiveLinks = async () => {
 
 export const getActiveCodes = async () => {
   try {
-    const session = await getUser();
+    const session = await getServerSession();
     const user = session?.user;
 
     if (!user) {

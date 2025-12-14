@@ -42,6 +42,9 @@ export const TaxIdInput: React.FC<TaxIdInputProps> = ({
   const initialCountry = value?.slice(0, 2).toLowerCase() || "pt";
   const initialId = value?.slice(2) || "";
   const [loading, setLoading] = React.useState(true);
+
+  const [countryCode, setCountryCode] = React.useState(initialCountry);
+  const [input, setInput] = React.useState(initialId);
   React.useEffect(() => {
     if (loading && value) {
       setCountryCode(value?.slice(0, 2).toLowerCase() || "pt");
@@ -49,9 +52,6 @@ export const TaxIdInput: React.FC<TaxIdInputProps> = ({
       setLoading(false);
     }
   }, [value, loading]);
-
-  const [countryCode, setCountryCode] = React.useState(initialCountry);
-  const [input, setInput] = React.useState(initialId);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -130,7 +130,7 @@ const CountrySelect = ({
               setSearchValue(value);
               setTimeout(() => {
                 const viewport = scrollAreaRef.current?.querySelector(
-                  "[data-radix-scroll-area-viewport]"
+                  "[data-radix-scroll-area-viewport]",
                 );
                 if (viewport) viewport.scrollTop = 0;
               }, 0);

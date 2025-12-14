@@ -34,7 +34,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
-import { useUser } from "@/utils/UserContext";
 import { format, parse } from "date-fns";
 import {
   CalendarIcon,
@@ -47,6 +46,7 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { DateRange } from "react-day-picker";
+import { authClient } from "@/lib/authClient";
 
 export const LinkFilterBar = () => {
   const [open, setOpen] = useState(false);
@@ -57,7 +57,8 @@ export const LinkFilterBar = () => {
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
 
-  const session = useUser();
+  const { data } = authClient.useSession();
+  const user = data?.user;
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -102,7 +103,7 @@ export const LinkFilterBar = () => {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
     readTags();
@@ -116,10 +117,10 @@ export const LinkFilterBar = () => {
       });
       return;
     }
-  }, [input, readTags, session.user]);
+  }, [input, readTags, user]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
 
@@ -144,7 +145,7 @@ export const LinkFilterBar = () => {
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [input, session.user]);
+  }, [input, user]);
 
   useEffect(() => {
     if (moreFiltersOpen) {
@@ -153,7 +154,7 @@ export const LinkFilterBar = () => {
   }, [moreFiltersOpen, readTags]);
 
   useEffect(() => {
-    if (!session.user) {
+    if (!user) {
       return;
     }
     const params = new URLSearchParams(searchParams.toString());
@@ -177,7 +178,7 @@ export const LinkFilterBar = () => {
 
     getTagsFromId();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, searchParams.toString(), session.user]);
+  }, [pathname, searchParams.toString(), user]);
 
   const applyFilters = ({
     override_query,
