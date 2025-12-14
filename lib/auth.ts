@@ -32,7 +32,6 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY);
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 export const auth = betterAuth({
-  baseURL: BASEURL,
   database: mongodbAdapter(db, {
     client,
   }),
