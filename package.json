@@ -93,7 +93,7 @@
     "jsvat": "^2.5.4",
     "libaddress-validator": "^0.1.5",
     "lint-staged": "^16.2.7",
-    "lucide-react": "^0.556.0",
+    "lucide-react": "^0.561.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
     "nanoid": "^5.1.6",
