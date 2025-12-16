@@ -333,6 +333,12 @@ export const subscriptionCreatedTemplate = (params: {
   features: string[];
   amount?: string;
   subtotal?: string;
+  discount?: {
+    name: string;
+    code?: string;
+    amount: string;
+    percentOff?: number;
+  };
   tax?: string;
   total?: string;
   nextBillingDate?: string;
@@ -389,6 +395,18 @@ export const subscriptionCreatedTemplate = (params: {
             <tr>
               <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Subtotal</td>
               <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right;">${params.subtotal}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.discount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">
+                Discount${params.discount.code ? ` (${params.discount.code})` : ""}${params.discount.percentOff ? ` - ${params.discount.percentOff}% off` : ""}
+              </td>
+              <td style="padding: 8px 0; font-size: 14px; color: #10b981; text-align: right;">-${params.discount.amount}</td>
             </tr>
             `
                 : ""
@@ -546,6 +564,12 @@ export const subscriptionUpgradedTemplate = (params: {
   newFeatures: string[];
   amount?: string;
   subtotal?: string;
+  discount?: {
+    name: string;
+    code?: string;
+    amount: string;
+    percentOff?: number;
+  };
   tax?: string;
   total?: string;
   proratedCredit?: string;
@@ -630,6 +654,18 @@ export const subscriptionUpgradedTemplate = (params: {
             <tr>
               <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Prorated credit</td>
               <td style="padding: 8px 0; font-size: 14px; color: #10b981; text-align: right;">-${params.proratedCredit}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.discount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">
+                Discount${params.discount.code ? ` (${params.discount.code})` : ""}${params.discount.percentOff ? ` - ${params.discount.percentOff}% off` : ""}
+              </td>
+              <td style="padding: 8px 0; font-size: 14px; color: #10b981; text-align: right;">-${params.discount.amount}</td>
             </tr>
             `
                 : ""
@@ -1024,6 +1060,575 @@ export const paymentFailedTemplate = (params: {
     ${divider()}
     <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
       Need assistance? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Renewal Receipt Email Template
+ * Sent when a recurring payment is successfully processed
+ */
+export const subscriptionRenewalTemplate = (params: {
+  userName: string;
+  planName: string;
+  dashboardLink: string;
+  amount: string;
+  subtotal?: string;
+  discount?: {
+    name: string;
+    code?: string;
+    amount: string;
+    percentOff?: number;
+  };
+  tax?: string;
+  total: string;
+  nextBillingDate?: string;
+  billingPeriod?: string;
+  cardLast4?: string;
+  cardBrand?: string;
+  billingEmail?: string;
+  invoiceNumber?: string;
+  invoicePdfUrl?: string;
+  transactionDate?: string;
+  taxId?: string;
+  companyName?: string;
+  billingAddress?: string;
+  phoneNumber?: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Payment Receipt
+    </h2>
+    <p style="margin: 0 0 5px 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+      ${params.transactionDate || new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+    </p>
+    ${
+      params.invoiceNumber
+        ? `
+    <p style="margin: 0 0 25px 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+      Invoice #${params.invoiceNumber}
+    </p>
+    `
+        : '<p style="margin: 0 0 25px 0;"></p>'
+    }
+    
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Thank you for your continued subscription. Your <strong>${params.planName}</strong> has been successfully renewed.
+    </p>
+    
+    <!-- Payment Summary -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; border: 1px solid ${baseStyles.border}; border-radius: 6px;">
+      <tr>
+        <td style="padding: 20px; background-color: #fafbfc;">
+          <p style="margin: 0 0 15px 0; font-size: 13px; font-weight: 600; color: ${baseStyles.textPrimary}; text-transform: uppercase; letter-spacing: 0.5px;">
+            Payment Summary
+          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Description</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.planName}${params.billingPeriod ? ` - ${params.billingPeriod}` : ""}</td>
+            </tr>
+            ${
+              params.subtotal
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Subtotal</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right;">${params.subtotal}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.discount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">
+                Discount${params.discount.code ? ` (${params.discount.code})` : ""}${params.discount.percentOff ? ` - ${params.discount.percentOff}% off` : ""}
+              </td>
+              <td style="padding: 8px 0; font-size: 14px; color: #10b981; text-align: right;">-${params.discount.amount}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.tax
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Tax</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right;">${params.tax}</td>
+            </tr>
+            `
+                : ""
+            }
+            <tr style="border-top: 1px solid ${baseStyles.border};">
+              <td style="padding: 12px 0 8px 0; font-size: 15px; color: ${baseStyles.textPrimary}; font-weight: 600;">Total</td>
+              <td style="padding: 12px 0 8px 0; font-size: 15px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 600;">${params.total}</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Billing Information -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; border: 1px solid ${baseStyles.border}; border-radius: 6px;">
+      <tr>
+        <td style="padding: 20px; background-color: #fafbfc;">
+          <p style="margin: 0 0 15px 0; font-size: 13px; font-weight: 600; color: ${baseStyles.textPrimary}; text-transform: uppercase; letter-spacing: 0.5px;">
+            Billing Information
+          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            ${
+              params.cardBrand && params.cardLast4
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Payment method</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.cardBrand} •••• ${params.cardLast4}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.billingEmail
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Billing email</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.billingEmail}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.nextBillingDate
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Next billing date</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.nextBillingDate}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.amount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Billing amount</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.amount}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.companyName
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Company name</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.companyName}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.taxId
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Tax ID</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.taxId}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.billingAddress
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Billing address</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.billingAddress}</td>
+            </tr>
+            `
+                : ""
+            }
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    ${
+      params.invoicePdfUrl
+        ? `
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin: 20px 0;">
+      <tr>
+        <td>
+          <a href="${params.invoicePdfUrl}" target="_blank" style="font-size: 14px; color: ${baseStyles.primary}; text-decoration: underline;">
+            Download Invoice PDF
+          </a>
+        </td>
+      </tr>
+    </table>
+    `
+        : ""
+    }
+
+    ${button(params.dashboardLink, "View Subscription")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions about your subscription? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Trial Ending Soon Email Template
+ */
+export const trialEndingTemplate = (params: {
+  userName: string;
+  planName: string;
+  trialEndDate: string;
+  daysRemaining: number;
+  dashboardLink: string;
+  features: string[];
+  amount?: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your Trial Ends Soon
+    </h2>
+    <p style="margin: 0 0 25px 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+      ${params.daysRemaining} day${params.daysRemaining !== 1 ? "s" : ""} remaining
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Your free trial of <strong>${params.planName}</strong> will end on <strong>${params.trialEndDate}</strong>. 
+      ${params.amount ? `After your trial, you'll be charged ${params.amount}.` : ""}
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            To continue enjoying your ${params.planName} features without interruption, make sure your payment method is up to date.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Features you'll keep -->
+    <p style="margin: 25px 0 12px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      What you'll keep with ${params.planName}:
+    </p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      ${params.features
+        .map(
+          (feature) => `
+        <tr>
+          <td style="padding: 6px 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            ✓ ${feature}
+          </td>
+        </tr>
+      `,
+        )
+        .join("")}
+    </table>
+
+    ${button(params.dashboardLink, "Manage Subscription")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Trial Ended Email Template
+ */
+export const trialEndedTemplate = (params: {
+  userName: string;
+  planName: string;
+  dashboardLink: string;
+  wasConverted: boolean;
+  newPlan?: string;
+}) => {
+  const content = params.wasConverted
+    ? `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your Trial Has Ended
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Your free trial of <strong>${params.planName}</strong> has ended and your subscription is now active. 
+      Thank you for continuing with Shortn!
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #f0fdf4; border-left: 3px solid ${baseStyles.success}; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            Your ${params.newPlan || params.planName} subscription is now active. You'll receive a receipt for your first payment shortly.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "Go to Dashboard")}
+  `
+    : `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your Trial Has Ended
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Your free trial of <strong>${params.planName}</strong> has ended. Your account has been moved to our Free plan.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #f7fafc; border-left: 3px solid ${baseStyles.border}; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            You can still use Shortn with our Free plan features. Upgrade anytime to unlock more capabilities.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "Upgrade Now")}
+  `;
+  return emailWrapper(
+    content +
+      `
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `,
+  );
+};
+
+/**
+ * Refund Processed Email Template
+ */
+export const refundProcessedTemplate = (params: {
+  userName: string;
+  refundAmount: string;
+  refundReason?: string;
+  originalAmount?: string;
+  planName?: string;
+  refundDate?: string;
+  cardLast4?: string;
+  cardBrand?: string;
+  dashboardLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Refund Processed
+    </h2>
+    <p style="margin: 0 0 25px 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+      ${params.refundDate || new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      We've processed a refund for your account. The details are below.
+    </p>
+    
+    <!-- Refund Details -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; border: 1px solid ${baseStyles.border}; border-radius: 6px;">
+      <tr>
+        <td style="padding: 20px; background-color: #f0fdf4;">
+          <p style="margin: 0 0 15px 0; font-size: 13px; font-weight: 600; color: ${baseStyles.success}; text-transform: uppercase; letter-spacing: 0.5px;">
+            Refund Details
+          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Refund amount</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.success}; text-align: right; font-weight: 600;">${params.refundAmount}</td>
+            </tr>
+            ${
+              params.originalAmount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Original payment</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.originalAmount}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.planName
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Plan</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.planName}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.cardBrand && params.cardLast4
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Refund to</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.cardBrand} •••• ${params.cardLast4}</td>
+            </tr>
+            `
+                : ""
+            }
+            ${
+              params.refundReason
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Reason</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.refundReason}</td>
+            </tr>
+            `
+                : ""
+            }
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #f7fafc; border-left: 3px solid ${baseStyles.border}; border-radius: 4px;">
+          <p style="margin: 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            Please allow 5-10 business days for the refund to appear on your statement, depending on your bank.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "View Account")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Downgrade Email Template
+ * Sent when a user downgrades their plan
+ */
+export const subscriptionDowngradedTemplate = (params: {
+  userName: string;
+  oldPlan: string;
+  newPlan: string;
+  dashboardLink: string;
+  effectiveDate: string;
+  newFeatures: string[];
+  lostFeatures?: string[];
+  newAmount?: string;
+  billingPeriod?: string;
+  cardLast4?: string;
+  cardBrand?: string;
+  billingEmail?: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Subscription Downgraded
+    </h2>
+    <p style="margin: 0 0 25px 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+      ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 20px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Your subscription has been changed from <strong>${params.oldPlan}</strong> to <strong>${params.newPlan}</strong>.
+    </p>
+    
+    <!-- Plan Change Details -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 25px 0; border: 1px solid ${baseStyles.border}; border-radius: 6px;">
+      <tr>
+        <td style="padding: 20px; background-color: #fafbfc;">
+          <p style="margin: 0 0 15px 0; font-size: 13px; font-weight: 600; color: ${baseStyles.textPrimary}; text-transform: uppercase; letter-spacing: 0.5px;">
+            Plan Change
+          </p>
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Previous plan</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary}; text-align: right; text-decoration: line-through;">${params.oldPlan}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">New plan</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.newPlan}${params.billingPeriod ? ` - ${params.billingPeriod}` : ""}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">Effective date</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.effectiveDate}</td>
+            </tr>
+            ${
+              params.newAmount
+                ? `
+            <tr>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textSecondary};">New billing amount</td>
+              <td style="padding: 8px 0; font-size: 14px; color: ${baseStyles.textPrimary}; text-align: right; font-weight: 500;">${params.newAmount}</td>
+            </tr>
+            `
+                : ""
+            }
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    ${
+      params.lostFeatures && params.lostFeatures.length > 0
+        ? `
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 4px;">
+          <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">
+            Features no longer available:
+          </p>
+          <ul style="margin: 0; padding-left: 20px;">
+            ${params.lostFeatures.map((f) => `<li style="margin: 5px 0; font-size: 13px; color: ${baseStyles.textSecondary};">${f}</li>`).join("")}
+          </ul>
+        </td>
+      </tr>
+    </table>
+    `
+        : ""
+    }
+
+    <!-- New Plan Features -->
+    <p style="margin: 25px 0 12px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your ${params.newPlan} includes:
+    </p>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      ${params.newFeatures
+        .map(
+          (feature) => `
+        <tr>
+          <td style="padding: 6px 0; font-size: 14px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            • ${feature}
+          </td>
+        </tr>
+      `,
+        )
+        .join("")}
+    </table>
+
+    ${button(params.dashboardLink, "Manage Subscription")}
+    ${divider()}
+    <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Changed your mind? You can upgrade anytime from your dashboard.
+    </p>
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
     </p>
   `;
   return emailWrapper(content);
