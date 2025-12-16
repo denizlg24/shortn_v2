@@ -32,7 +32,6 @@ const stripeClient = new Stripe(env.STRIPE_SECRET_KEY);
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 export const auth = betterAuth({
-  baseURL: BASEURL,
   database: mongodbAdapter(db, {
     client,
   }),
@@ -76,10 +75,14 @@ export const auth = betterAuth({
     user: {
       update: {
         after: async (user, ctx) => {
-          if (user.email !== ctx?.context.session?.user.email) {
+          if (
+            ctx?.context.session?.user.email &&
+            user.email !== ctx?.context.session?.user.email
+          ) {
             console.log(
               `Email changed for user ${user.id}. Revoking all sessions.`,
             );
+            await connectDB();
             await Session.deleteMany({ userId: user.id });
           }
         },
@@ -226,9 +229,9 @@ export const auth = betterAuth({
           status: "active",
           stripeCustomerId: stripeCustomer.id,
           stripeSubscriptionId: subscription.id,
-          periodStart: new Date(subscription.start_date),
+          periodStart: new Date(),
           periodEnd: new Date(
-            subscription.start_date + 30 * 24 * 60 * 60 * 1000,
+            subscription.cancel_at ? subscription.cancel_at : 0,
           ),
           createdAt: new Date(),
           updatedAt: new Date(),

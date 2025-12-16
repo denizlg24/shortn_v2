@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Separator } from "../ui/separator";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { useLocale } from "next-intl";
 import { authClient } from "@/lib/authClient";
@@ -36,6 +36,7 @@ const loginFormSchema = z.object({
 export const LoginForm = () => {
   const locale = useLocale();
   const [loading, setLoading] = useState(0);
+  const router = useRouter();
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
@@ -83,6 +84,7 @@ export const LoginForm = () => {
               await authClient.signOut();
               return;
             }
+            router.push("/dashboard");
             setLoading(0);
           },
           onError: (ctx) => {
@@ -166,6 +168,7 @@ export const LoginForm = () => {
               await authClient.signOut();
               return;
             }
+            router.push("/dashboard");
             setLoading(0);
           },
           onError: (ctx) => {
