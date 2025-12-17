@@ -35,6 +35,9 @@ export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
   }),
+  advanced: {
+    cookiePrefix: "shortn_auth_",
+  },
   user: {
     changeEmail: {
       enabled: true,

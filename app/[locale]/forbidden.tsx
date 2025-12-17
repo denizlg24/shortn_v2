@@ -2,7 +2,7 @@ import Image from "next/image";
 import illust from "@/public/404_illustration.svg";
 import { Link } from "@/i18n/navigation";
 
-export default function Forbidden() {
+export default async function Forbidden() {
   return (
     <main className="w-full flex flex-col items-center max-w-7xl px-4 mx-auto">
       <div className="w-full max-w-4xl md:grid flex flex-col grid-cols-3 my-12 md:gap-4 gap-6">
