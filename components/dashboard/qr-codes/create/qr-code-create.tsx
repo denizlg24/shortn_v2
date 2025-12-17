@@ -4,7 +4,7 @@ import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { useEffect, useRef, useState } from "react";
 import { Options } from "qr-code-styling";
 import { Skeleton } from "@/components/ui/skeleton";
-import z from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { BASEURL, cn } from "@/lib/utils";

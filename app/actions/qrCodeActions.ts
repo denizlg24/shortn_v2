@@ -245,11 +245,13 @@ export const updateQRCodeData = async ({
   title,
   tags,
   applyToLink,
+  longUrl,
 }: {
   qrCodeId: string;
   title: string;
   tags: ITag[];
   applyToLink: boolean;
+  longUrl: string;
 }) => {
   try {
     const session = await getServerSession();
@@ -264,22 +266,37 @@ export const updateQRCodeData = async ({
 
     const sub = user.sub;
     await connectDB();
-    const qr = await QRCodeV2.findOneAndUpdate(
-      { sub, qrCodeId },
-      { title, tags },
-    );
-    if (applyToLink && qr?.attachedUrl) {
+    const qr = await QRCodeV2.findOne({ sub, qrCodeId });
+    const { plan } = await getUserPlan();
+    if (
+      qr &&
+      longUrl !== qr.longUrl &&
+      ((plan === "plus" && user.qr_code_redirects_this_month >= 10) ||
+        (plan !== "pro" && plan !== "plus"))
+    ) {
+      return { success: false, message: "redirect-plan-limit" };
+    }
+    const updated = qr
+      ? await QRCodeV2.findOneAndUpdate(
+          { sub, qrCodeId },
+          { title, tags, longUrl },
+        )
+      : undefined;
+    const redirectorUpdated = updated
+      ? await UrlV3.findOneAndUpdate({ sub, urlCode: qr!.urlId }, { longUrl })
+      : undefined;
+    if (applyToLink && qr?.attachedUrl && redirectorUpdated) {
       const urlCode = qr.attachedUrl;
       const updatedURL = await UrlV3.findOneAndUpdate(
         { sub, urlCode },
-        { title, tags },
+        { title, tags, longUrl },
       );
       if (updatedURL) {
         return { success: true };
       }
       return { success: false };
     }
-    if (qr) return { success: true };
+    if (redirectorUpdated) return { success: true };
     return { success: false };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

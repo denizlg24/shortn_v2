@@ -23,7 +23,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";
@@ -69,6 +69,9 @@ const urlFormSchema = z.object({
     ])
     .optional(),
   applyToQR: z.boolean().default(false).optional(),
+  longUrl: z
+    .string()
+    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
 });
 
 export const LinksEditContent = ({ url }: { url: IUrl }) => {
@@ -103,6 +106,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
       title: url.title || "",
       custom_code: url.urlCode,
       applyToQR: false,
+      longUrl: url.longUrl,
     },
   });
 
@@ -184,6 +188,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                 tags: tags,
                 applyToQRCode: data.applyToQR ?? false,
                 custom_code: data.custom_code ? data.custom_code : undefined,
+                longUrl: data.longUrl,
               });
               if (response.success) {
                 router.push(`/dashboard/links/${response.urlCode}/details`);
@@ -207,6 +212,13 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                       type: "manual",
                       message:
                         "You are not allowed to use custom back halves without a PRO account.",
+                    });
+                    break;
+                  case "redirect-plan-limit":
+                    urlForm.setError("longUrl", {
+                      type: "manual",
+                      message:
+                        "You have reached the redirect limit for your plan.",
                     });
                     break;
                   default:
@@ -538,6 +550,66 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                 </Popover>
               )}
             </div>
+            <FormField
+              control={urlForm.control}
+              name="longUrl"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    {" "}
+                    Change destination{" "}
+                    {plan === "pro" ? (
+                      <span className="text-muted-foreground">
+                        (
+                        {plan === "pro"
+                          ? "Unlimited "
+                          : Math.max(
+                              10 - (user?.redirects_this_month ?? 0),
+                              0,
+                            )}{" "}
+                        left)
+                      </span>
+                    ) : (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <LockIcon className="w-3! h-3!" />
+                        </HoverCardTrigger>
+                        <HoverCardContent asChild>
+                          <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                            <p className="text-sm font-bold">
+                              Unlock redirects
+                            </p>
+                            <p>
+                              <Link
+                                href={`/dashboard/subscription`}
+                                className="underline hover:cursor-pointer"
+                              >
+                                Upgrade
+                              </Link>{" "}
+                              to change destination URL.
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={
+                        ((user?.redirects_this_month ?? 0) >= 10 &&
+                          plan == "plus") ||
+                        (plan != "pro" && plan != "plus")
+                      }
+                      className="w-full"
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {url.qrCodeId && (
               <FormField
                 control={urlForm.control}
