@@ -311,12 +311,14 @@ export const updateShortnData = async ({
   tags,
   custom_code,
   applyToQRCode,
+  longUrl,
 }: {
   urlCode: string;
   title: string;
   tags: ITag[];
   custom_code?: string;
   applyToQRCode: boolean;
+  longUrl: string;
 }) => {
   try {
     const session = await getServerSession();
@@ -345,12 +347,24 @@ export const updateShortnData = async ({
     if (custom_code && plan != "pro") {
       return { success: false, message: "custom-restricted" };
     }
+    const foundUrl = await UrlV3.findOne({ sub, urlCode });
+    if (!foundUrl) {
+      return { success: false, message: "url-not-found" };
+    }
+    if (
+      longUrl !== foundUrl.longUrl &&
+      ((plan === "plus" && user.redirects_this_month >= 10) ||
+        (plan !== "pro" && plan !== "plus"))
+    ) {
+      return { success: false, message: "redirect-plan-limit" };
+    }
     const headersList = await headers();
     const domain = headersList.get("host");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateQuery: Record<string, any> = {};
     updateQuery.title = title;
     updateQuery.tags = tags;
+    updateQuery.longUrl = longUrl;
     let updateCode: false | string = false;
     if (custom_code) {
       updateQuery.urlCode = custom_code;
@@ -364,6 +378,11 @@ export const updateShortnData = async ({
       new: true,
     });
     if (updateCode) {
+      if (longUrl !== foundUrl.longUrl) {
+        await User.findByIdAndUpdate(session.user.id, {
+          $inc: { redirects_this_month: 1 },
+        });
+      }
       await Clicks.updateMany(
         { type: "click", urlCode },
         { urlCode: custom_code },
@@ -373,10 +392,21 @@ export const updateShortnData = async ({
       const qrCodeId = url.qrCodeId;
       const updatedQR = await QRCodeV2.findOneAndUpdate(
         { sub, qrCodeId },
-        { title, tags },
+        { title, tags, longUrl },
       );
+      const qrUrl = updatedQR?.urlId;
+      if (updateCode && qrUrl) {
+        await UrlV3.findOneAndUpdate(
+          {
+            sub,
+            urlCode: qrUrl,
+            isQrCode: true,
+          },
+          { longUrl },
+        );
+      }
       if (updatedQR) {
-        return { success: true };
+        return { success: true, urlCode: url.urlCode };
       }
       return { success: false };
     }

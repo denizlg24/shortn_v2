@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
@@ -29,7 +29,7 @@ import z from "zod";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";
-import { Check, ChevronsUpDown, X } from "lucide-react";
+import { Check, ChevronsUpDown, LockIcon, X } from "lucide-react";
 import { createTag } from "@/app/actions/tagActions";
 import { ITag } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
@@ -44,6 +44,12 @@ import {
 } from "@/components/ui/dialog";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { authClient } from "@/lib/authClient";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { SubscriptionsType } from "@/utils/plan-utils";
 
 const qrCodeFormSchema = z.object({
   title: z
@@ -51,11 +57,33 @@ const qrCodeFormSchema = z.object({
     .min(3, "Your title must be at least 3 characters long.")
     .max(52, "Your title can't be longer than 52 characters."),
   applyToLink: z.boolean().default(false).optional(),
+  longUrl: z
+    .string()
+    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
 });
 
 export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
-  const { data } = authClient.useSession();
+  const { data, isPending, isRefetching } = authClient.useSession();
   const user = data?.user;
+  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  useEffect(() => {
+    if (isPending || isRefetching) {
+      return;
+    }
+    const fetchPlan = async () => {
+      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
+        "auth/user/subscription",
+      );
+
+      if (res.success) {
+        console.log("Fetched plan:", res.plan);
+        setPlan(res.plan);
+      } else {
+        setPlan("free");
+      }
+    };
+    fetchPlan();
+  }, [isPending, isRefetching]);
 
   const router = useRouter();
 
@@ -66,6 +94,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
     defaultValues: {
       title: qrCode.title,
       applyToLink: false,
+      longUrl: qrCode.longUrl,
     },
   });
 
@@ -145,20 +174,31 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
           <form
             onSubmit={qrCodeForm.handleSubmit(async (data) => {
               setCreating(true);
-              const response = await updateQRCodeData({
+              const { success, message } = await updateQRCodeData({
                 qrCodeId: qrCode.qrCodeId,
                 title: data.title,
                 tags: tags,
                 applyToLink: data.applyToLink ?? false,
+                longUrl: data.longUrl,
               });
-              if (response.success) {
+              if (success) {
                 router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
                 return;
               } else {
-                qrCodeForm.setError("title", {
-                  type: "manual",
-                  message: "There was a problem updating your QR Code.",
-                });
+                switch (message) {
+                  case "redirect-plan-limit":
+                    qrCodeForm.setError("longUrl", {
+                      type: "manual",
+                      message:
+                        "You have reached the redirect limit for your plan.",
+                    });
+                    break;
+                  default:
+                    qrCodeForm.setError("title", {
+                      type: "manual",
+                      message: "There was a problem updating your QR Code.",
+                    });
+                }
               }
               setCreating(false);
             })}
@@ -440,6 +480,64 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                 </Popover>
               )}
             </div>
+            <FormField
+              control={qrCodeForm.control}
+              name="longUrl"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>
+                    Change destination{" "}
+                    {plan === "pro" ? (
+                      <span className="text-muted-foreground">
+                        (
+                        {plan === "pro"
+                          ? "Unlimited "
+                          : Math.max(
+                              10 - (user?.qr_code_redirects_this_month ?? 0),
+                              0,
+                            )}{" "}
+                        left)
+                      </span>
+                    ) : (
+                      <HoverCard>
+                        <HoverCardTrigger>
+                          <LockIcon className="w-3! h-3!" />
+                        </HoverCardTrigger>
+                        <HoverCardContent asChild>
+                          <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
+                            <p className="text-sm font-bold">
+                              Unlock redirects
+                            </p>
+                            <p>
+                              <Link
+                                href={`/dashboard/subscription`}
+                                className="underline hover:cursor-pointer"
+                              >
+                                Upgrade
+                              </Link>{" "}
+                              to change destination URL.
+                            </p>
+                          </div>
+                        </HoverCardContent>
+                      </HoverCard>
+                    )}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      disabled={
+                        ((user?.qr_code_redirects_this_month ?? 0) >= 10 &&
+                          plan == "plus") ||
+                        (plan != "pro" && plan != "plus")
+                      }
+                      className="w-full"
+                      placeholder=""
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             {qrCode.attachedUrl && (
               <FormField
                 control={qrCodeForm.control}

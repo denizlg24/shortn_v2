@@ -35,7 +35,9 @@ export async function proxy(request: NextRequest) {
     );
   }
 
-  const sessionCookie = getSessionCookie(request);
+  const sessionCookie = getSessionCookie(request, {
+    cookiePrefix: "shortn_auth_",
+  });
   const isLoggedIn = !!sessionCookie;
   const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
   const isDashboard = request.nextUrl.pathname.startsWith(
