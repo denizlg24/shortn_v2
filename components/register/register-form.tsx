@@ -139,7 +139,7 @@ export const RegisterForm = () => {
                   Username<span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input autoComplete="username" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -154,7 +154,7 @@ export const RegisterForm = () => {
                   Email<span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input autoComplete="email" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
