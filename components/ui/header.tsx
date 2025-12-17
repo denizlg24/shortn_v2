@@ -78,7 +78,10 @@ export const Header = () => {
           <NavigationMenuList className="gap-4">
             <NavigationMenuItem>
               <NavigationMenuTrigger
-                className={cn("p-0!", !isScrolled && "bg-transparent!")}
+                className={cn(
+                  "p-0! hover:bg-transparent!",
+                  !isScrolled && "bg-transparent!",
+                )}
               >
                 Platform
               </NavigationMenuTrigger>
@@ -186,7 +189,7 @@ export const Header = () => {
               <NavigationMenuLink
                 asChild
                 className={cn(
-                  "p-0!",
+                  "p-0! hover:bg-transparent!",
                   !isScrolled && "bg-transparent!",
                   navigationMenuTriggerStyle(),
                 )}
@@ -196,7 +199,10 @@ export const Header = () => {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuTrigger
-                className={cn("p-0!", !isScrolled && "bg-transparent!")}
+                className={cn(
+                  "p-0! hover:bg-transparent!",
+                  !isScrolled && "bg-transparent!",
+                )}
               >
                 Resources
               </NavigationMenuTrigger>

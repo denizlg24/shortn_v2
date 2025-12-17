@@ -33,7 +33,6 @@ export default function Home({
           />
         </div>
       </div>
-
       <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
         <div className="rounded-full py-1.5 px-4 bg-muted border shadow flex items-center justify-center gap-2 text-muted-foreground">
           <Zap className="w-4 h-4" />
@@ -147,7 +146,7 @@ export default function Home({
         <RotatingSubtitle
           texts={[
             "Link shortener",
-            "QR Code creator",
+            "QR Code generator",
             "Marketing platform",
             "Analytics dashboard",
             "Personal page",

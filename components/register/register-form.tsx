@@ -132,11 +132,11 @@ export const RegisterForm = () => {
           />
           <FormField
             control={form.control}
-            name="nickname"
+            name="email"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Username<span className="text-destructive text-xs">*</span>
+                  Email<span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input autoComplete="username" placeholder="" {...field} />
@@ -147,19 +147,24 @@ export const RegisterForm = () => {
           />
           <FormField
             control={form.control}
-            name="email"
+            name="nickname"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Email<span className="text-destructive text-xs">*</span>
+                  Username
+                  <span className="text-muted-foreground text-xs -ml-1">
+                    (alternative log in)
+                  </span>
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input autoComplete="email" placeholder="" {...field} />
+                  <Input autoComplete="nickname" placeholder="" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           <FormField
             control={form.control}
             name="password"
