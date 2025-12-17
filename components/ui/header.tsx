@@ -74,11 +74,11 @@ export const Header = () => {
             className="w-auto h-full aspect-square rounded shadow"
           />
         </Link>
-        <NavigationMenu className="border-l w-full h-full sm:flex hidden">
-          <NavigationMenuList>
+        <NavigationMenu className="border-l w-full h-full sm:flex hidden pl-4">
+          <NavigationMenuList className="gap-4">
             <NavigationMenuItem>
               <NavigationMenuTrigger
-                className={cn("", !isScrolled && "bg-transparent!")}
+                className={cn("p-0!", !isScrolled && "bg-transparent!")}
               >
                 Platform
               </NavigationMenuTrigger>
@@ -186,7 +186,7 @@ export const Header = () => {
               <NavigationMenuLink
                 asChild
                 className={cn(
-                  "",
+                  "p-0!",
                   !isScrolled && "bg-transparent!",
                   navigationMenuTriggerStyle(),
                 )}
@@ -196,7 +196,7 @@ export const Header = () => {
             </NavigationMenuItem>
             <NavigationMenuItem>
               <NavigationMenuTrigger
-                className={cn("", !isScrolled && "bg-transparent!")}
+                className={cn("p-0!", !isScrolled && "bg-transparent!")}
               >
                 Resources
               </NavigationMenuTrigger>
@@ -272,10 +272,10 @@ export const Header = () => {
                 </div>
               </NavigationMenuContent>
             </NavigationMenuItem>
-
+            <div className="w-px h-7 bg-border"></div>
             <NavigationMenuItem asChild>
               <Button
-                className="rounded-full h-auto w-fit p-2! border shadow-xs aspect-square!"
+                className="rounded-full h-auto w-fit p-2! -mr-3 border shadow-xs aspect-square!"
                 variant={"default"}
                 asChild
               >

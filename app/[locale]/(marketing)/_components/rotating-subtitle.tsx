@@ -8,7 +8,7 @@ export const RotatingSubtitle = ({ texts }: { texts: string[] }) => {
     <div className="inline-block transition-all overflow-hidden px-6">
       <LayoutGroup>
         <motion.p
-          className={"flex items-center gap-1 sm:text-2xl text-lg"}
+          className={"flex items-center gap-2 sm:text-2xl text-lg"}
           layout
         >
           <motion.span
