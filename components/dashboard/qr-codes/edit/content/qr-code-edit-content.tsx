@@ -25,7 +25,7 @@ import { IQRCode } from "@/models/url/QRCodeV2";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import z from "zod";
+import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";

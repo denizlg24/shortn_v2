@@ -27,7 +27,7 @@ import { deletePicture } from "@/app/actions/deletePicture";
 import { Spinner } from "@/components/ui/spinner";
 import { useHasObjectChanges } from "@/lib/use-has-changes";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import z from "zod";
+import { z } from "zod";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Sortable,

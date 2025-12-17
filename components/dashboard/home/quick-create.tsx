@@ -20,7 +20,7 @@ import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
+import { z } from "zod";
 import { authClient } from "@/lib/authClient";
 import { SubscriptionsType } from "@/utils/plan-utils";
 import { Skeleton } from "@/components/ui/skeleton"; // Make sure to import Skeleton
