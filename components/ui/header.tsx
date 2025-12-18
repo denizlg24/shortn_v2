@@ -19,6 +19,7 @@ import {
   Contact,
   HelpCircle,
   LinkIcon,
+  LogIn,
   NotepadText,
   QrCode,
   Users,
@@ -57,11 +58,12 @@ export const Header = () => {
   return (
     <header
       className={cn(
-        "fixed top-0 p-2 w-full sm:h-16 h-12 bg-background backdrop-blur-3xl z-90 transition-shadow flex flex-row",
-        isScrolled && "shadow-md"
+        "fixed sm:top-4 top-0 sm:w-fit w-full sm:h-16 h-12 backdrop-blur-3xl bg-background/50 z-90 transition-all flex flex-row sm:rounded-full sm:p-4 p-2 sm:px-6 px-4 shadow-xs border",
+        isScrolled && "shadow-md bg-background",
+        isOpen && "shadow-none bg-background backdrop-none border-0",
       )}
     >
-      <div className="max-w-7xl mx-auto flex flex-row justify-between w-full">
+      <div className="max-w-7xl mx-auto flex flex-row justify-between w-full gap-4">
         <Link href="/" className="h-full">
           <Image
             src="/logo.png"
@@ -72,10 +74,17 @@ export const Header = () => {
             className="w-auto h-full aspect-square rounded shadow"
           />
         </Link>
-        <NavigationMenu className="w-full h-full sm:flex hidden">
-          <NavigationMenuList>
+        <NavigationMenu className="border-l w-full h-full sm:flex hidden pl-4">
+          <NavigationMenuList className="gap-4">
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Platform</NavigationMenuTrigger>
+              <NavigationMenuTrigger
+                className={cn(
+                  "p-0! hover:bg-transparent!",
+                  !isScrolled && "bg-transparent!",
+                )}
+              >
+                Platform
+              </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
@@ -179,13 +188,24 @@ export const Header = () => {
             <NavigationMenuItem>
               <NavigationMenuLink
                 asChild
-                className={navigationMenuTriggerStyle()}
+                className={cn(
+                  "p-0! hover:bg-transparent!",
+                  !isScrolled && "bg-transparent!",
+                  navigationMenuTriggerStyle(),
+                )}
               >
                 <Link href="/pricing">Pricing</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavigationMenuTrigger>Resources</NavigationMenuTrigger>
+              <NavigationMenuTrigger
+                className={cn(
+                  "p-0! hover:bg-transparent!",
+                  !isScrolled && "bg-transparent!",
+                )}
+              >
+                Resources
+              </NavigationMenuTrigger>
               <NavigationMenuContent>
                 <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
@@ -258,14 +278,16 @@ export const Header = () => {
                 </div>
               </NavigationMenuContent>
             </NavigationMenuItem>
+            <div className="w-px h-7 bg-border"></div>
             <NavigationMenuItem asChild>
-              <Button asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-            </NavigationMenuItem>
-            <NavigationMenuItem asChild>
-              <Button variant={"outline"} asChild>
-                <Link href="/register">Register</Link>
+              <Button
+                className="rounded-full h-auto w-fit p-2! -mr-3 border shadow-xs aspect-square!"
+                variant={"default"}
+                asChild
+              >
+                <Link href="/login">
+                  <LogIn />
+                </Link>
               </Button>
             </NavigationMenuItem>
             <NavigationMenuItem>
@@ -485,14 +507,18 @@ export const Header = () => {
                     </Accordion>
                   </NavigationMenuItem>
                   <NavigationMenuItem asChild>
-                    <Button asChild>
-                      <Link href="/login">Login</Link>
-                    </Button>
+                    <SheetClose asChild>
+                      <Button asChild>
+                        <Link href="/login">Login</Link>
+                      </Button>
+                    </SheetClose>
                   </NavigationMenuItem>
                   <NavigationMenuItem asChild>
-                    <Button variant={"outline"} asChild>
-                      <Link href="/register">Register</Link>
-                    </Button>
+                    <SheetClose asChild>
+                      <Button variant={"outline"} asChild>
+                        <Link href="/register">Register</Link>
+                      </Button>
+                    </SheetClose>
                   </NavigationMenuItem>
                 </NavigationMenuList>
               </NavigationMenu>

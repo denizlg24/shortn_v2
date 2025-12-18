@@ -6,18 +6,26 @@ export const Footer = () => {
     <footer className="bg-accent p-4 sm:py-12 py-6 w-full flex flex-col items-center mt-auto">
       <div className="w-full sm:grid sm:gap-4 flex flex-col grid-cols-3 max-w-7xl mx-auto">
         <div className="flex flex-col gap-4 text-sm ">
-          <h3 className="font-semibold">Section 1</h3>
-          <Link href={"#"}>Link1</Link>
+          <h3 className="font-semibold">Shortn.at</h3>
+          <Link href={"/"}>Home</Link>
+          <Link href={"/pricing"}>Plans & Pricing</Link>
+          <Link href={"/login"}>Login</Link>
+          <Link href={"/register"}>Register</Link>
         </div>
         <Separator className="sm:hidden block my-6 w-full h-[1px] bg-accent-foreground/25" />
         <div className="flex flex-col gap-4 text-sm">
-          <h3 className="font-semibold">Section 2</h3>
-          <Link href={"#"}>Link2</Link>
+          <h3 className="font-semibold">Platform & Products</h3>
+          <Link href={"/products/url-shortener"}>URL Shortener</Link>
+          <Link href={"/products/qr-code"}>QR Code Generator</Link>
+          <Link href={"/products/pages"}>Pages</Link>
+          <Link href={"/products/analytics"}>Analytics</Link>
         </div>
         <Separator className="sm:hidden block my-6 w-full h-[1px] bg-accent-foreground/25" />
         <div className="flex flex-col gap-4 text-sm">
-          <h3 className="font-semibold">Section 3</h3>
-          <Link href={"#"}>Link3</Link>
+          <h3 className="font-semibold">Help & Resources</h3>
+          <Link href={"/help"}>Help Center</Link>
+          <Link href={"/contact"}>Contact Us</Link>
+          <Link href={"/about"}>About Us</Link>
         </div>
       </div>
       <Separator className="mt-6 mb-6 w-full h-[1px] bg-accent-foreground/25 max-w-7xl" />
