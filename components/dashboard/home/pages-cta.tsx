@@ -11,7 +11,10 @@ import { Link } from "@/i18n/navigation";
 export const PagesCTA = ({ className }: { className?: string }) => {
   return (
     <Card
-      className={cn("p-4 w-full flex flex-row gap-4 items-center", className)}
+      className={cn(
+        "p-4 w-full flex flex-row gap-4 items-center h-full",
+        className,
+      )}
     >
       <Image
         src={ctaImg}

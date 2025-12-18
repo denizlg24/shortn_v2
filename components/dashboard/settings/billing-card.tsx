@@ -63,7 +63,6 @@ const updateBillingSchema = z
   })
   .refine(
     (data) => {
-      // Safety check: ensure country exists before validating postcode
       if (!data.country || !postcodeValidatorExistsForCountry(data.country))
         return true;
       return postcodeValidator(data.postal_code, data.country);

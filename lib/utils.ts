@@ -89,7 +89,7 @@ export async function fetchApi<T>(
         requestHeaders["Cookie"] = cookie;
       }
     } catch (_error) {
-      // Ignored: Happens if fetchApi is called outside a request context (e.g. static generation)
+      //
     }
   }
   const fetchOptions: RequestInit = {

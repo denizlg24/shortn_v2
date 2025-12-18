@@ -731,3 +731,187 @@ export async function deleteCampaign({
     return { success: false, message: "server-error" };
   }
 }
+
+export async function createCampaign({ title }: { title: string }) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const existingCampaign = await Campaigns.findOne({ sub, title });
+    if (existingCampaign) {
+      return { success: false, message: "duplicate" };
+    }
+
+    const newCampaign = await Campaigns.create({
+      title,
+      sub,
+      links: [],
+    });
+
+    return {
+      success: true,
+      campaign: {
+        _id: (newCampaign._id as string).toString(),
+        title: newCampaign.title,
+        links: [],
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function getUserCampaigns() {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user", campaigns: [] };
+    }
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
+      return { success: false, message: "plan-restricted", campaigns: [] };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaigns = await Campaigns.find({ sub }).lean();
+
+    return {
+      success: true,
+      campaigns: campaigns.map((c) => ({
+        _id: c._id.toString(),
+        title: c.title,
+        linksCount: c.links.length,
+      })),
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error", campaigns: [] };
+  }
+}
+
+export async function searchUserLinks({
+  query,
+  excludeCampaign,
+  limit = 10,
+}: {
+  query?: string;
+  excludeCampaign?: string;
+  limit?: number;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user", links: [] };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const filter: Record<string, any> = { sub, isQrCode: false };
+
+    if (query && query.trim()) {
+      filter.$or = [
+        { title: { $regex: query, $options: "i" } },
+        { urlCode: { $regex: query, $options: "i" } },
+        { longUrl: { $regex: query, $options: "i" } },
+      ];
+    }
+
+    if (excludeCampaign) {
+      filter["utmLinks.campaign.title"] = { $ne: excludeCampaign };
+    }
+
+    const links = await UrlV3.find(filter)
+      .sort({ date: -1 })
+      .limit(limit)
+      .lean();
+
+    return {
+      success: true,
+      links: links.map((link) => ({
+        _id: link._id.toString(),
+        urlCode: link.urlCode,
+        title: link.title,
+        shortUrl: link.shortUrl,
+        longUrl: link.longUrl,
+      })),
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error", links: [] };
+  }
+}
+
+export async function addLinkToCampaign({
+  urlCode,
+  campaignTitle,
+}: {
+  urlCode: string;
+  campaignTitle: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan != "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const foundUrl = await UrlV3.findOne({ sub, urlCode });
+    if (!foundUrl) {
+      return { success: false, message: "url-not-found" };
+    }
+
+    const alreadyInCampaign = foundUrl.utmLinks?.some(
+      (utm) => utm.campaign?.title === campaignTitle,
+    );
+    if (alreadyInCampaign) {
+      return { success: false, message: "already-in-campaign" };
+    }
+
+    let campaign = await Campaigns.findOne({ sub, title: campaignTitle });
+    if (!campaign) {
+      campaign = await Campaigns.create({
+        title: campaignTitle,
+        sub,
+        links: [],
+      });
+    }
+
+    const newUtmEntry = {
+      campaign: {
+        _id: campaign._id,
+        title: campaignTitle,
+      },
+    };
+
+    await UrlV3.findOneAndUpdate(
+      { sub, urlCode },
+      { $push: { utmLinks: newUtmEntry } },
+    );
+
+    await Campaigns.findOneAndUpdate(
+      { _id: campaign._id },
+      { $addToSet: { links: foundUrl._id } },
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}

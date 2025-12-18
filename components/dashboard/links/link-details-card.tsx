@@ -255,7 +255,10 @@ export const LinkDetailsCard = ({
                 <Ellipsis />
               </Button>
             </PopoverTrigger>
-            <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+            <ScrollPopoverContent
+              align="end"
+              className="w-[200px] flex flex-col px-0! py-1 gap-1"
+            >
               <Button
                 onClick={async () => {
                   const response = await deleteShortn(currentLink.urlCode);
@@ -629,7 +632,10 @@ export const LinkDetailsCard = ({
               <Ellipsis />
             </Button>
           </PopoverTrigger>
-          <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+          <ScrollPopoverContent
+            align="start"
+            className="w-[200px] flex flex-col px-0! py-1 gap-1"
+          >
             <Button
               variant={"outline"}
               onClick={async () => {

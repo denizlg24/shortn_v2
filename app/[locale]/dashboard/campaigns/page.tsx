@@ -5,9 +5,10 @@ import { Link } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
 import { Campaigns } from "@/models/url/Campaigns";
-import { LinkIcon, Rocket, Star } from "lucide-react";
+import { LinkIcon, Plus, Rocket, Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
+import { AddCampaignDialog } from "./add-campaign-dialog";
 
 export default async function Home({
   params,
@@ -72,9 +73,18 @@ export default async function Home({
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
         {campaigns.length > 0 && (
-          <h1 className="col-span-full lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-            Your Campaigns
-          </h1>
+          <div className="w-full col-span-full flex flex-row items-center gap-2 justify-between">
+            <h1 className="col-span-full lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
+              Your Campaigns
+            </h1>
+            <AddCampaignDialog
+              trigger={
+                <Button variant={"outline"} size={"icon"}>
+                  <Plus />
+                </Button>
+              }
+            />
+          </div>
         )}
         {campaigns.length == 0 && (
           <Card className="w-full max-w-3xl col-span-full mx-auto">
@@ -108,9 +118,7 @@ export default async function Home({
               </p>
 
               <div className="flex justify-center pt-2 w-full">
-                <Button className="w-full" asChild>
-                  <Link href="/dashboard/links">Go to your Shortn&apos;s</Link>
-                </Button>
+                <AddCampaignDialog />
               </div>
             </CardContent>
           </Card>
