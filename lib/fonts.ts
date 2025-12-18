@@ -12,16 +12,13 @@ export interface GoogleFont {
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_FONTS_API_KEY;
 const API_URL = "https://www.googleapis.com/webfonts/v1/webfonts";
 
-// Cache for loaded font stylesheets
 const loadedFonts = new Set<string>();
 
-// Cache for the Google Fonts API response
 let fontsCache: GoogleFont[] | null = null;
 let fontsCacheTimestamp: number | null = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
 export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
-  // Check if we have a valid cache
   if (
     fontsCache &&
     fontsCacheTimestamp &&
@@ -44,7 +41,6 @@ export async function fetchGoogleFonts(): Promise<GoogleFont[]> {
     fontsCacheTimestamp = Date.now();
     return data.items;
   } catch (error) {
-    // If fetch fails and we have a cache, return it even if expired
     if (fontsCache) {
       return fontsCache;
     }

@@ -21,7 +21,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { countries } from "jsvat";
 
-// Only include countries you want to support
 const COUNTRY_LIST = countries.map((country) => ({
   label: country.name,
   value: country.codes[0],

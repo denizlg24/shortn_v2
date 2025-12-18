@@ -27,7 +27,6 @@ export const EmailChangeRequestConfirm = () => {
   const [status, setStatus] = useState<Status>({ kind: "idle" });
   const [redirectIn, setRedirectIn] = useState<number | null>(null);
 
-  // Determine effective status based on missing parameters
   const effectiveStatus: Status =
     !token || !oldEmail || !newEmail
       ? {

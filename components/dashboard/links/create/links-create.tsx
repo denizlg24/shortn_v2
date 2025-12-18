@@ -602,7 +602,7 @@ export const LinksCreate = () => {
                 <Loader2 className="animate-spin" /> Creating...
               </>
             ) : (
-              <>Create your code</>
+              <>Shorten your link</>
             )}
           </Button>
         </div>

@@ -9,29 +9,16 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
-import { cn, fetchApi } from "@/lib/utils";
-import { ICampaign } from "@/models/url/Campaigns";
 import { TUrl } from "@/models/url/UrlV3";
 import {
-  Check,
   CheckCircle,
   ChevronDown,
   Copy,
@@ -41,8 +28,9 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { CampaignSelectorDialog } from "./campaign-selector-dialog";
 function buildUrl(
   link: string,
   utm?: {
@@ -97,46 +85,7 @@ export const LinkUtmParams = ({
     (currentLink.utmLinks?.length ?? 0) > 0,
   );
   const [saving, setSaving] = useState(false);
-  const [campaignOpen, campaignOpenChange] = useState(false);
-  const [input, setInput] = useState("");
-  const [campaignOptions, setCampaignOptions] = useState<ICampaign[]>([]);
   const [collapsed, setCollapsed] = useState(-1);
-  const { data } = authClient.useSession();
-  const user = data?.user;
-  const hasExactMatch = campaignOptions.some(
-    (campaign) => campaign.title === input,
-  );
-  const shouldShowAddCampaign =
-    input != "" && (!hasExactMatch || campaignOptions.length === 0);
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    const delayDebounce = setTimeout(() => {
-      if (input.trim() === "") {
-        fetchApi<{ campaigns: ICampaign[] }>("campaigns").then((res) => {
-          if (res.success) {
-            setCampaignOptions(res.campaigns);
-          } else {
-            setCampaignOptions([]);
-          }
-        });
-        return;
-      }
-      fetchApi<{ campaigns: ICampaign[] }>(`campaigns?q=${input}`).then(
-        (res) => {
-          if (res.success) {
-            setCampaignOptions(res.campaigns);
-          } else {
-            setCampaignOptions([]);
-          }
-        },
-      );
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
-  }, [input, user]);
 
   if (!unlocked) {
     return (
@@ -144,7 +93,7 @@ export const LinkUtmParams = ({
         <div className="w-full flex flex-col gap-1 items-start text-left">
           <CardTitle className="flex flex-row items-center gap-2">
             <Switch disabled />
-            UTM Parameters
+            UTM Parameters (Campaigns)
             <HoverCard>
               <HoverCardTrigger asChild>
                 <LockIcon className="w-3.5 h-3.5 shrink-0" />
@@ -204,7 +153,7 @@ export const LinkUtmParams = ({
               }
             }}
           />
-          UTM Parameters
+          UTM Parameters (Campaigns)
         </CardTitle>
         <CardDescription>
           These are special campaigns added to your links that you can use to
@@ -278,134 +227,41 @@ export const LinkUtmParams = ({
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Campaign</p>
                     </div>
-                    {collapsed == indx && (
-                      <div className="xs:col-span-3 col-span-2">
-                        <Popover
-                          open={campaignOpen}
-                          onOpenChange={campaignOpenChange}
-                        >
-                          <PopoverTrigger asChild>
-                            <div className="w-full relative">
-                              <Input
-                                readOnly
-                                value={
-                                  utmSection.campaign?.title ??
-                                  "Select or create a campaign"
-                                }
-                                className="text-left pl-6 cursor-pointer"
-                              />
-                              <ChevronDown className="w-4 h-4 left-1.5 top-1/2 -translate-y-1/2 absolute" />
-                            </div>
-                          </PopoverTrigger>
-                          <ScrollPopoverContent
-                            align="start"
-                            side="bottom"
-                            className="w-full min-w-[250px] p-0"
-                          >
-                            <Command className="w-full">
-                              <CommandInput
-                                value={input}
-                                aria-invalid={
-                                  !/^[A-Za-z0-9 _-]*$/.test(
-                                    utmSection.campaign?.title ?? "",
-                                  )
-                                }
-                                onValueChange={(e) => {
-                                  const value = e;
-                                  if (!/^[A-Za-z0-9 _-]*$/.test(value)) return;
-                                  setInput(value);
-                                }}
-                                className="w-full has-[aria-invalid=true]:border-destructive"
-                                placeholder="ex: Black friday 2025"
-                              />
-                              <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                                <CommandGroup className="w-full">
-                                  {campaignOptions.map((campaign) => (
-                                    <CommandItem
-                                      className="w-full! max-w-full! justify-center gap-1"
-                                      key={campaign._id as string}
-                                      value={campaign.title}
-                                      onSelect={async () => {
-                                        const added =
-                                          utmSection.campaign?.title ==
-                                          campaign.title;
-                                        if (added) {
-                                          updateUtm((prev) =>
-                                            prev.map((pUTM, pIndx) =>
-                                              pIndx == indx
-                                                ? {
-                                                    ...pUTM,
-                                                    campaign: {
-                                                      _id: undefined,
-                                                      title: "",
-                                                    },
-                                                  }
-                                                : pUTM,
-                                            ),
-                                          );
-                                          campaignOpenChange(false);
-                                          return;
+                    <div className="xs:col-span-3 col-span-2">
+                      <CampaignSelectorDialog
+                        selectedCampaign={utmSection.campaign}
+                        onSelect={(campaign) => {
+                          updateUtm((prev) =>
+                            prev.map((pUTM, pIndx) =>
+                              pIndx == indx
+                                ? {
+                                    ...pUTM,
+                                    campaign: campaign
+                                      ? {
+                                          _id: campaign._id,
+                                          title: campaign.title,
                                         }
-                                        updateUtm((prev) =>
-                                          prev.map((pUTM, pIndx) =>
-                                            pIndx == indx
-                                              ? {
-                                                  ...pUTM,
-                                                  campaign: {
-                                                    _id: campaign?._id,
-                                                    title: campaign.title,
-                                                  },
-                                                }
-                                              : pUTM,
-                                          ),
-                                        );
-                                        campaignOpenChange(false);
-                                      }}
-                                    >
-                                      {campaign.title}
-                                      <Check
-                                        className={cn(
-                                          "ml-auto",
-                                          utm[indx].campaign?.title ==
-                                            campaign.title
-                                            ? "opacity-100"
-                                            : "opacity-0",
-                                        )}
-                                      />
-                                    </CommandItem>
-                                  ))}
-                                  {shouldShowAddCampaign && (
-                                    <CommandItem
-                                      className="w-full! max-w-full! justify-center gap-1"
-                                      key={input}
-                                      value={input}
-                                      onSelect={async () => {
-                                        updateUtm((prev) =>
-                                          prev.map((pUTM, pIndx) =>
-                                            pIndx == indx
-                                              ? {
-                                                  ...pUTM,
-                                                  campaign: {
-                                                    _id: pUTM.campaign?._id,
-                                                    title: input,
-                                                  },
-                                                }
-                                              : pUTM,
-                                          ),
-                                        );
-                                        campaignOpenChange(false);
-                                      }}
-                                    >
-                                      Create &quot;{input}&quot;
-                                    </CommandItem>
-                                  )}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </ScrollPopoverContent>
-                        </Popover>
-                      </div>
-                    )}
+                                      : { _id: undefined, title: "" },
+                                  }
+                                : pUTM,
+                            ),
+                          );
+                        }}
+                        trigger={
+                          <div className="w-full relative cursor-pointer">
+                            <Input
+                              readOnly
+                              value={
+                                utmSection.campaign?.title ||
+                                "Select or create a campaign"
+                              }
+                              className="text-left pl-6 cursor-pointer"
+                            />
+                            <ChevronDown className="w-4 h-4 left-1.5 top-1/2 -translate-y-1/2 absolute" />
+                          </div>
+                        }
+                      />
+                    </div>
 
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Source</p>

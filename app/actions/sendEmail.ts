@@ -28,7 +28,7 @@ export async function sendEmail({
   }
 }
 
-// Legacy support for React emails (can be removed once migration is complete)
+// Legacy support for React emails
 export async function sendReactEmail({
   from,
   to,

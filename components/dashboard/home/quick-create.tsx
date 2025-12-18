@@ -101,7 +101,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   }, []);
 
   useEffect(() => {
-    // Only fetch plan if user is loaded
     if (isPending || isRefetching || !user) {
       return;
     }
@@ -117,7 +116,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
       }
     };
     fetchPlan();
-  }, [isPending, isRefetching, user]); // added user to dependency
+  }, [isPending, isRefetching, user]);
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
@@ -137,7 +136,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   const [linkLoading, setLinkLoading] = useState(false);
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
 
-  // Helper to determine if we should show the loader
   const isLoading = !mounted || isPending || isRefetching;
 
   return (

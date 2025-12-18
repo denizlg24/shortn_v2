@@ -387,7 +387,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                 <Ellipsis />
               </Button>
             </PopoverTrigger>
-            <ScrollPopoverContent className="w-[200px] flex flex-col px-0! py-1 gap-1">
+            <ScrollPopoverContent
+              align="start"
+              className="w-[200px] flex flex-col px-0! py-1 gap-1"
+            >
               {currentQrCode.attachedUrl ? (
                 <Button
                   asChild

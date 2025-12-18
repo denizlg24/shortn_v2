@@ -373,7 +373,6 @@ export async function getDiscountInfo(
 export async function getInvoiceDiscounts(
   invoice: Stripe.Invoice,
 ): Promise<DiscountInfo | undefined> {
-  // Check for total discount amounts
   if (
     invoice.total_discount_amounts &&
     invoice.total_discount_amounts.length > 0
@@ -405,7 +404,6 @@ export async function getInvoiceDiscounts(
     }
   }
 
-  // Fallback to discounts array
   const invoiceDiscounts = invoice.discounts;
   if (invoiceDiscounts && invoiceDiscounts.length > 0) {
     const firstDiscount = invoiceDiscounts[0];
@@ -453,7 +451,6 @@ export async function getUpcomingInvoice(
   subscriptionId?: string,
 ): Promise<UpcomingInvoiceData | null> {
   try {
-    // Use listLineItems with upcoming=true alternative approach
     const subscription = subscriptionId
       ? await stripe.subscriptions.retrieve(subscriptionId)
       : null;
@@ -462,7 +459,6 @@ export async function getUpcomingInvoice(
       return null;
     }
 
-    // Get subscription item for pricing info
     const subItem = subscription.items.data[0];
     if (!subItem) {
       return null;
@@ -487,7 +483,6 @@ export async function getUpcomingInvoice(
       },
     ];
 
-    // Check for discount on subscription
     let discount: DiscountInfo | undefined;
     const subscriptionDiscounts = subscription.discounts;
     if (subscriptionDiscounts && subscriptionDiscounts.length > 0) {
@@ -543,7 +538,7 @@ export async function getPaymentFailureData(
   const inv = invoice;
   const charge = inv.payments?.data?.[0].payment.charge;
   const paymentIntent = inv.payments?.data?.[0].payment.payment_intent;
-  // Try to get failure reason from charge
+
   if (charge) {
     const chargeId = typeof charge === "string" ? charge : charge.id;
 
@@ -556,7 +551,6 @@ export async function getPaymentFailureData(
     }
   }
 
-  // Try to get failure reason from payment intent
   if (!failureMessage && paymentIntent) {
     const piId =
       typeof paymentIntent === "string" ? paymentIntent : paymentIntent.id;
@@ -571,7 +565,6 @@ export async function getPaymentFailureData(
     }
   }
 
-  // Calculate next retry date
   const nextRetryDate = invoice.next_payment_attempt
     ? formatDate(invoice.next_payment_attempt)
     : formatDate(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000));
