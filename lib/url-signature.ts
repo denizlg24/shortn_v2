@@ -8,7 +8,7 @@ export function signUrlData(
   urlCode: string,
   expiryTimestamp: number,
 ): string {
-  // We sign the destination, the code, and the time it expires
+  //
   const data = `${longUrl}:${urlCode}:${expiryTimestamp}`;
   return createHmac("sha256", SECRET).update(data).digest("hex");
 }
@@ -21,7 +21,6 @@ export function verifyUrlData(
 ): boolean {
   const expectedSignature = signUrlData(longUrl, urlCode, expiryTimestamp);
 
-  // Use timingSafeEqual to prevent timing attacks
   const source = Buffer.from(signature, "hex");
   const target = Buffer.from(expectedSignature, "hex");
 

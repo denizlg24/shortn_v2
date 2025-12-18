@@ -24,7 +24,6 @@ export const VerifiedPage = () => {
   const [status, setStatus] = useState<Status>({ kind: "verifying" });
   const [redirectIn, setRedirectIn] = useState<number | null>(null);
 
-  // If token is missing, treat it as a derived failure state.
   const effectiveStatus: Status =
     token === null
       ? {

@@ -1,11 +1,11 @@
-import { LinkContainer } from "@/components/dashboard/links/link-container";
+import { CampaignLinkContainer } from "@/components/dashboard/campaigns/campaign-link-container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { Campaigns } from "@/models/url/Campaigns";
 import { IUrl } from "@/models/url/UrlV3";
-import { Star } from "lucide-react";
+import { Plus, Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
@@ -13,6 +13,7 @@ import { DownloadButtonCSV } from "@/components/dashboard/links/download-csv-but
 import Clicks from "@/models/url/Click";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/stripeActions";
+import { AddLinkToCampaignDialog } from "@/components/dashboard/campaigns/add-link-to-campaign-dialog";
 
 export default async function Home({
   params,
@@ -94,8 +95,15 @@ export default async function Home({
     urlCode: { $in: campaign.links.map((link) => (link as IUrl).urlCode) },
     "queryParams.utm_campaign": { $exists: true, $eq: campaign.title },
   })
-    .select("-_id -__v -sub -urlCode -type -ip -queryParams")
+    .select("-_id -__v -sub -type -ip -queryParams")
     .lean();
+
+  const clicksMap: Record<string, number> = {};
+  for (const click of clicks) {
+    const code = click.urlCode as string;
+    clicksMap[code] = (clicksMap[code] || 0) + 1;
+  }
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
@@ -116,8 +124,19 @@ export default async function Home({
               />
             </div>
             <div className="flex flex-col gap-2 items-start">
-              <div className="w-full flex xs:flex-row flex-col gap-2 xs:items-center xs:justify-between items-start">
-                <h2 className="font-bold text-base">Grouped Links</h2>
+              <div className="w-full flex xs:flex-row flex-col gap-2 xs:items-center xs:justify-between items-start border-b pb-2">
+                <div className="w-full flex flex-row items-center gap-2 justify-between">
+                  <h2 className="font-bold text-base">Grouped Links</h2>
+                  <AddLinkToCampaignDialog
+                    campaignTitle={campaign.title ?? ""}
+                    trigger={
+                      <Button variant={"outline"} size={"icon"}>
+                        <Plus />
+                      </Button>
+                    }
+                  />
+                </div>
+
                 {clicks.length > 0 && (
                   <DownloadButtonCSV
                     className="xs:w-fit! w-full"
@@ -128,40 +147,22 @@ export default async function Home({
                 )}
               </div>
 
-              <div className="bg-muted w-full p-2">
-                <LinkContainer
-                  hideEndTag
-                  links={(
-                    campaign.links.slice(
-                      (filters.page - 1) * filters.limit,
-                      (filters.page - 1) * filters.limit + filters.limit,
-                    ) as IUrl[]
-                  ).map((link) => ({
-                    ...link,
-                    _id: (link._id as string).toString(),
-                    tags: link.tags?.map((tag) => ({
-                      ...tag,
-                      _id: (tag._id as string).toString(),
-                    })),
-                    utmLinks: link.utmLinks?.map((link) => ({
-                      ...link,
-                      _id: (link._id as string).toString(),
-                      ...(link.campaign?.title
-                        ? {
-                            campaign: {
-                              title: link.campaign.title,
-                              _id: (link.campaign._id as string).toString(),
-                            },
-                          }
-                        : {}),
-                    })),
-                  }))}
-                  total={campaign.links.length}
-                  limit={filters.limit}
-                  page={filters.page}
-                  tags={[]}
-                />
-              </div>
+              <CampaignLinkContainer
+                links={(
+                  campaign.links.slice(
+                    (filters.page - 1) * filters.limit,
+                    (filters.page - 1) * filters.limit + filters.limit,
+                  ) as IUrl[]
+                ).map((link) => ({
+                  ...link,
+                  _id: (link._id as string).toString(),
+                  utmLinks: [],
+                }))}
+                total={campaign.links.length}
+                limit={filters.limit}
+                clicksMap={clicksMap}
+                campaignTitle={campaign.title ?? ""}
+              />
             </div>
           </div>
         </div>
