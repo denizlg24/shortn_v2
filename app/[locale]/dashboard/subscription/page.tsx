@@ -8,7 +8,7 @@ import { setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
 import React from "react";
 
-const plans = [
+export const plans = [
   {
     id: "free",
     name: "Free",
@@ -64,7 +64,7 @@ const plans = [
   },
 ];
 
-const features = {
+export const features = {
   "Shortn.at Links": {
     "Short Links": ["3", "25", "50", "Unlimited"],
     Redirects: ["-", "-", "10", "Unlimited"],
@@ -92,11 +92,21 @@ const features = {
     "Referer data": [0, 0, 0, 1],
     "Export to CSV file": [0, 0, 0, 1],
   },
+  Campaigns: {
+    "Group Links by Campaigns": [0, 0, 0, 1],
+    "UTM Builder": [0, 0, 0, 1],
+    "Campaign Tracking": [0, 0, 0, 1],
+  },
+  Pages: {
+    "Custom Landing Page": [0, 0, 0, "Multiple"],
+    "Multiple Links on Page": [0, 0, 0, 1],
+    "Full Page Customization": [0, 0, 0, 1],
+  },
 };
 
-type Features = typeof features;
-type SectionKey = keyof Features;
-type TitleKey<S extends SectionKey> = keyof Features[S];
+export type Features = typeof features;
+export type SectionKey = keyof Features;
+export type TitleKey<S extends SectionKey> = keyof Features[S];
 
 export default async function Home({
   params,
