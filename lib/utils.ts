@@ -98,7 +98,6 @@ export async function fetchApi<T>(
     credentials: "include",
   };
   const res = await fetch(`${BASEURL}/api/${path}`, fetchOptions);
-  console.log("fetchApi", path, res.status);
   if (!res.ok) {
     if (res.status === 403 || res.status === 401) {
       console.error("Auth failed for path:", path);
