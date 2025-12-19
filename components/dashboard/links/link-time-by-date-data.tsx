@@ -672,10 +672,12 @@ export const LinkTimeByDateData = ({
             const date = val.date;
             const newVal: { date?: string } = { ...val };
             delete newVal["date"];
-            return {
-              Date: date,
-              ...newVal,
-            };
+            if (new Date(date) >= createdAt) {
+              return {
+                Date: date,
+                ...newVal,
+              };
+            }
           })}
         />
       )}

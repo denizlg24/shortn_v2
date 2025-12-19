@@ -652,10 +652,14 @@ export const QRCodeTimeAnalytics = ({
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-scan-date-data-${dateToday}`}
-          data={groupedData.map((val) => ({
-            Date: val.date,
-            Scans: val.scans,
-          }))}
+          data={groupedData.map((val) => {
+            if (new Date(val.date) >= createdAt) {
+              return {
+                Date: val.date,
+                Scans: val.scans,
+              };
+            }
+          })}
         />
       )}
     </div>
