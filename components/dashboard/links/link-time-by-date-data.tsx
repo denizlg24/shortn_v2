@@ -668,17 +668,20 @@ export const LinkTimeByDateData = ({
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-time-date-data-${dateToday}`}
-          data={groupedData.map((val) => {
-            const date = val.date;
-            const newVal: { date?: string } = { ...val };
-            delete newVal["date"];
-            if (new Date(date) >= createdAt) {
-              return {
-                Date: date,
-                ...newVal,
-              };
-            }
-          })}
+          data={groupedData
+            .map((val) => {
+              const date = val.date;
+              const newVal: { date?: string } = { ...val };
+              delete newVal["date"];
+              if (new Date(date) >= createdAt) {
+                return {
+                  Date: date,
+                  ...newVal,
+                };
+              }
+              return null;
+            })
+            .filter((val) => val !== null)}
         />
       )}
     </div>

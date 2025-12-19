@@ -710,14 +710,17 @@ export const LinkTimeAnalytics = ({
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-date-data-${dateToday}`}
-          data={groupedData.map((val) => {
-            if (new Date(val.date) > createdAt) {
-              return {
-                Date: val.date,
-                Clicks: val.scans,
-              };
-            }
-          })}
+          data={groupedData
+            .map((val) => {
+              if (new Date(val.date) > createdAt) {
+                return {
+                  Date: val.date,
+                  Clicks: val.scans,
+                };
+              }
+              return null;
+            })
+            .filter((val) => val !== null)}
         />
       )}
     </div>
