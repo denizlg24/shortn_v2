@@ -16,6 +16,7 @@ import { parse } from "json2csv";
 import { Campaigns } from "@/models/url/Campaigns";
 import { getUserPlan } from "./stripeActions";
 import { User } from "@/models/auth/User";
+import { format } from "date-fns";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -526,7 +527,22 @@ export async function generateCSV({
     if (!clicks) {
       return { success: false, url: "" };
     }
-    const csv = parse(clicks);
+    const mappedClicks: Record<string, string>[] = clicks.map((click) => {
+      return {
+        Country: click.country || "",
+        Region: click.region || "",
+        City: click.city || "",
+        Timezone: click.timezone || "",
+        Language: click.language || "",
+        Browser: click.browser || "",
+        OS: click.os || "",
+        "Device Type": click.deviceType || "",
+        Referrer: click.referrer || "",
+        Pathname: click.pathname?.split("?")[1] || "",
+        Date: format(click.timestamp, "yyyy-MM-dd HH:mm:ss"),
+      };
+    });
+    const csv = parse(mappedClicks);
 
     const base64 = Buffer.from(csv).toString("base64");
 
