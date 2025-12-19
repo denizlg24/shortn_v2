@@ -49,6 +49,7 @@ export const DownloadButtonCSV = ({
       onClick={async () => {
         toast.promise<{ success: boolean; url: string }>(
           async () => {
+            console.log("Data to be converted to CSV:", data);
             const response = await generateCSVFromClicks({
               clicks: data,
             });
