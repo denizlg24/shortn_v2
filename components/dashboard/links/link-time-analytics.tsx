@@ -712,7 +712,16 @@ export const LinkTimeAnalytics = ({
           filename={`${urlCode}-date-data-${dateToday}`}
           data={groupedData
             .map((val) => {
-              if (new Date(val.date) > createdAt) {
+              console.log(
+                "Todays date: ",
+                new Date(val.date).toDateString(),
+                " Create Date ",
+                createdAt.toDateString(),
+              );
+              if (
+                new Date(new Date(val.date).toDateString()) >=
+                new Date(createdAt.toDateString())
+              ) {
                 return {
                   Date: val.date,
                   Clicks: val.scans,
