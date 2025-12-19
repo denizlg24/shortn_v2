@@ -669,15 +669,29 @@ export const LinkStackedSourceData = ({
       {clicks.length > 0 && (
         <DownloadButtonCSV
           filename={`${urlCode}-stacked-referrer-data-${dateToday}`}
-          data={groupedData.map((val) => {
-            const date = val.date;
-            const newVal: { date?: string } = { ...val };
-            delete newVal["date"];
-            return {
-              Date: date,
-              ...newVal,
-            };
-          })}
+          data={groupedData
+            .map((val) => {
+              const date = val.date;
+              const newVal: { date?: string } = { ...val };
+              delete newVal["date"];
+              console.log(
+                "Todays date: ",
+                new Date(date).toDateString(),
+                " Create Date ",
+                createdAt.toDateString(),
+              );
+              if (
+                new Date(new Date(date).toDateString()) >=
+                new Date(createdAt.toDateString())
+              ) {
+                return {
+                  Date: date,
+                  ...newVal,
+                };
+              }
+              return null;
+            })
+            .filter((val) => val !== null)}
         />
       )}
     </div>
