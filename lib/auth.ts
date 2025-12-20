@@ -265,6 +265,90 @@ export const auth = betterAuth({
 
           onSubscriptionActive: async (payload) => {
             console.log("Subscription active:", payload.data.id);
+
+            // Check for pending downgrades that should be executed
+            try {
+              const { connectDB } = await import("@/lib/mongodb");
+              const ScheduledChange = (
+                await import("@/models/subscription/ScheduledChange")
+              ).default;
+
+              await connectDB();
+
+              const pendingDowngrade = await ScheduledChange.findOne({
+                subscriptionId: payload.data.id,
+                changeType: "downgrade",
+                status: "pending",
+              });
+
+              if (pendingDowngrade) {
+                const scheduledFor = new Date(pendingDowngrade.scheduledFor);
+                const now = new Date();
+
+                // Execute if the scheduled time has passed
+                if (scheduledFor <= now) {
+                  console.log(
+                    `Executing pending downgrade for subscription ${payload.data.id}`,
+                  );
+
+                  try {
+                    // Get the target product ID from the database
+                    const targetProductId =
+                      pendingDowngrade.targetPlan === "pro"
+                        ? env.PRO_PLAN_ID
+                        : pendingDowngrade.targetPlan === "plus"
+                          ? env.PLUS_PLAN_ID
+                          : pendingDowngrade.targetPlan === "basic"
+                            ? env.BASIC_PLAN_ID
+                            : null;
+
+                    if (
+                      targetProductId &&
+                      payload.data.productId !== targetProductId
+                    ) {
+                      // Execute the downgrade
+                      await polarClient.subscriptions.update({
+                        id: payload.data.id,
+                        subscriptionUpdate: {
+                          productId: targetProductId,
+                          prorationBehavior: "invoice",
+                          cancelAtPeriodEnd: false,
+                        },
+                      });
+
+                      // Mark as executed
+                      await ScheduledChange.findByIdAndUpdate(
+                        pendingDowngrade._id,
+                        {
+                          status: "executed",
+                        },
+                      );
+
+                      console.log(
+                        `Successfully executed downgrade to ${pendingDowngrade.targetPlan}`,
+                      );
+                    } else {
+                      // Already on the target product, mark as executed
+                      await ScheduledChange.findByIdAndUpdate(
+                        pendingDowngrade._id,
+                        {
+                          status: "executed",
+                        },
+                      );
+                      console.log(
+                        `Subscription already on target product ${pendingDowngrade.targetPlan}`,
+                      );
+                    }
+                  } catch (error) {
+                    console.error("Error executing pending downgrade:", error);
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error checking for pending downgrades:", error);
+            }
+
+            // Send activation email
             try {
               const { sendSubscriptionActiveEmail } = await import(
                 "@/lib/subscription-email-helpers"
@@ -295,22 +379,35 @@ export const auth = betterAuth({
               if (!user) return;
 
               const subscription = payload.data.subscription;
-              const orderData = payload.data as unknown as {
-                amount: number;
-                currency: string;
-                invoice_url?: string;
-              };
+              const orderData = payload.data;
+
+              const amount = orderData.totalAmount;
+              const isInvoiceGenerated = orderData.isInvoiceGenerated;
+              if (!isInvoiceGenerated) {
+                try {
+                  await polarClient.orders.generateInvoice({
+                    id: orderData.id,
+                  });
+                } catch (error) {
+                  console.log("Error generating invoice:", error);
+                  //probably because no billing info.
+                }
+              }
+
+              const invoice = await polarClient.orders.invoice({
+                id: orderData.id,
+              });
 
               await sendPaymentSuccessfulEmail({
                 userEmail: user.email,
                 userName: user.name || "User",
                 planName: payload.data.product?.name || "Premium",
-                amount: orderData.amount,
+                amount: amount,
                 currency: orderData.currency,
                 nextBillingDate: subscription?.currentPeriodEnd
                   ? new Date(subscription.currentPeriodEnd)
                   : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                invoiceUrl: orderData.invoice_url,
+                invoiceUrl: invoice?.url || undefined,
               });
             } catch (error) {
               console.error("Error sending payment successful email:", error);

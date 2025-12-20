@@ -3,6 +3,8 @@ import { setRequestLocale } from "next-intl/server";
 import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   getSubscriptionDetails,
   getCheckoutSessionDetails,
@@ -119,9 +121,11 @@ export default async function SubscriptionSuccessPage({
                   What You Get
                 </h2>
                 <div className="rounded-lg border bg-card p-4">
-                  <p className="text-sm text-muted-foreground">
-                    {product.description}
-                  </p>
+                  <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {product.description}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               </div>
             )}
@@ -300,9 +304,11 @@ export default async function SubscriptionSuccessPage({
                 What You Get
               </h2>
               <div className="rounded-lg border bg-card p-4">
-                <p className="text-sm text-muted-foreground">
-                  {subscription.product.description}
-                </p>
+                <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {subscription.product.description}
+                  </ReactMarkdown>
+                </div>
               </div>
             </div>
           )}

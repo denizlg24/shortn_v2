@@ -99,27 +99,41 @@ export async function POST(req: Request) {
             subscription.product.name.toLowerCase() as SubscriptionsType;
         }
 
-        // Initialize QStash client
-        const { qstashClient } = await import("@/lib/qstash");
-
         // Calculate delay in seconds
         const executeAt = new Date(subscription.currentPeriodEnd);
         const delayInSeconds = Math.floor(
           (executeAt.getTime() - Date.now()) / 1000,
         );
 
-        // Schedule the downgrade with QStash
-        const result = await qstashClient.publishJSON({
-          retries: 1,
-          body: {
-            subscriptionId: id,
-            newProductId,
-            customerId: subscription.customerId,
-            targetPlan: parsed.data.slug,
-          },
-          url: `${getBaseUrl()}/api/polar/execute-downgrade`,
-          delay: Math.max(0, delayInSeconds), // Ensure delay is not negative
-        });
+        // QStash has a max delay of 7 days (604800 seconds)
+        const QSTASH_MAX_DELAY = 604800; // 7 days in seconds
+        let qstashMessageId: string | undefined;
+
+        // Only schedule with QStash if delay is within the limit
+        if (delayInSeconds <= QSTASH_MAX_DELAY && delayInSeconds > 0) {
+          // Initialize QStash client
+          const { qstashClient } = await import("@/lib/qstash");
+
+          // Schedule the downgrade with QStash
+          const result = await qstashClient.publishJSON({
+            retries: 1,
+            body: {
+              subscriptionId: id,
+              newProductId,
+              customerId: subscription.customerId,
+              targetPlan: parsed.data.slug,
+            },
+            url: `${getBaseUrl()}/api/polar/execute-downgrade`,
+            delay: delayInSeconds,
+          });
+
+          qstashMessageId = result.messageId;
+          console.log(`Scheduled downgrade with QStash: ${result.messageId}`);
+        } else {
+          console.log(
+            `Delay exceeds QStash limit (${delayInSeconds}s > ${QSTASH_MAX_DELAY}s). Will rely on period end webhook.`,
+          );
+        }
 
         // Save the scheduled change to database
         const scheduledChange = await ScheduledChange.create({
@@ -129,13 +143,12 @@ export async function POST(req: Request) {
           currentPlan,
           targetPlan: parsed.data.slug as SubscriptionsType,
           scheduledFor: executeAt,
-          qstashMessageId: result.messageId,
+          qstashMessageId,
           status: "pending",
         });
 
         console.log(`Scheduled downgrade for subscription ${id}`);
         console.log(`Will execute at: ${executeAt.toISOString()}`);
-        console.log(`QStash message ID: ${result.messageId}`);
         console.log(`Saved to database with ID: ${scheduledChange._id}`);
 
         return NextResponse.json({
@@ -147,7 +160,7 @@ export async function POST(req: Request) {
           signature: signSubscriptionId(subscription.id),
           isDowngrade: true,
           scheduledFor: executeAt.toISOString(),
-          qstashMessageId: result.messageId,
+          qstashMessageId,
           changeId: scheduledChange._id,
         });
       }
