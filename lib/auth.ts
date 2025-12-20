@@ -295,22 +295,35 @@ export const auth = betterAuth({
               if (!user) return;
 
               const subscription = payload.data.subscription;
-              const orderData = payload.data as unknown as {
-                amount: number;
-                currency: string;
-                invoice_url?: string;
-              };
+              const orderData = payload.data;
+
+              const amount = orderData.totalAmount * 100;
+              const isInvoiceGenerated = orderData.isInvoiceGenerated;
+              if (!isInvoiceGenerated) {
+                try {
+                  await polarClient.orders.generateInvoice({
+                    id: orderData.id,
+                  });
+                } catch (error) {
+                  console.log("Error generating invoice:", error);
+                  //probably because no billing info.
+                }
+              }
+
+              const invoice = await polarClient.orders.invoice({
+                id: orderData.id,
+              });
 
               await sendPaymentSuccessfulEmail({
                 userEmail: user.email,
                 userName: user.name || "User",
                 planName: payload.data.product?.name || "Premium",
-                amount: orderData.amount,
+                amount: amount,
                 currency: orderData.currency,
                 nextBillingDate: subscription?.currentPeriodEnd
                   ? new Date(subscription.currentPeriodEnd)
                   : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                invoiceUrl: orderData.invoice_url,
+                invoiceUrl: invoice?.url || undefined,
               });
             } catch (error) {
               console.error("Error sending payment successful email:", error);
