@@ -16,7 +16,7 @@ import { LinkUtmStats } from "./link-utm-stats";
 import { getClicks } from "@/utils/fetching-functions";
 import { getServerSession } from "@/lib/session";
 import { forbidden } from "next/navigation";
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { SubscriptionsType } from "@/utils/plan-utils";
 
 export const LinkDetails = async ({

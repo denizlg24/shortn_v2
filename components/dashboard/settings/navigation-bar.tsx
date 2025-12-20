@@ -18,7 +18,7 @@ export const NavigationBar = () => {
         <NavigationMenuItem className="relative mx-auto">
           <Link
             className={cn(
-              pathname.endsWith(`/settings`) && "font-semibold text-primary"
+              pathname.endsWith(`/settings`) && "font-semibold text-primary",
             )}
             href={`${prefix}/settings`}
           >
@@ -33,7 +33,7 @@ export const NavigationBar = () => {
         <NavigationMenuItem className="relative mx-auto">
           <Link
             className={cn(
-              pathname.endsWith(`/security`) && "font-semibold text-primary"
+              pathname.endsWith(`/security`) && "font-semibold text-primary",
             )}
             href={`${prefix}/settings/security`}
           >
@@ -48,28 +48,13 @@ export const NavigationBar = () => {
         <NavigationMenuItem className="relative mx-auto">
           <Link
             className={cn(
-              pathname.endsWith(`/plan`) && "font-semibold text-primary"
+              pathname.endsWith(`/plan`) && "font-semibold text-primary",
             )}
             href={`${prefix}/settings/plan`}
           >
-            Plan
+            Plan & Billing
           </Link>
           {pathname.endsWith(`/plan`) && (
-            <div className="absolute w-full flex flex-col items-center gap-0 top-5">
-              <ChevronUp className="text-primary w-4 h-4  " />
-            </div>
-          )}
-        </NavigationMenuItem>
-        <NavigationMenuItem className="relative mx-auto">
-          <Link
-            className={cn(
-              pathname.endsWith(`/billing`) && "font-semibold text-primary"
-            )}
-            href={`${prefix}/settings/billing`}
-          >
-            Billing
-          </Link>
-          {pathname.endsWith(`/billing`) && (
             <div className="absolute w-full flex flex-col items-center gap-0 top-5">
               <ChevronUp className="text-primary w-4 h-4  " />
             </div>

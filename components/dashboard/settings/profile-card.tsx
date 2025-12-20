@@ -26,7 +26,6 @@ import pt from "react-phone-number-input/locale/pt";
 import es from "react-phone-number-input/locale/es";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { updatePhone } from "@/app/actions/stripeActions";
 import {
   Dialog,
   DialogContent,
@@ -83,11 +82,7 @@ const updateProfileFormSchema = z.object({
   ),
 });
 
-export const ProfileCard = ({
-  initialUser,
-}: {
-  initialUser: ServerUser & { phone_number?: string; stripeCustomerId: string };
-}) => {
+export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
   const locale = useLocale();
   const localeMap = {
     en: en,
@@ -103,9 +98,6 @@ export const ProfileCard = ({
   const [removing, setRemoving] = useState(false);
   const [user, setUser] = useState(initialUser);
 
-  /*const [verification, setVerification] = useState<
-    Stripe.TaxId.Verification | undefined
-  >(undefined);*/
   const handleClick = () => {
     inputRef.current?.click();
   };
@@ -215,21 +207,20 @@ export const ProfileCard = ({
     }
     setChangesLoading(true);
 
-    const updateField = async (
-      field: "phone",
-      updater: (
-        stripeId: string,
-        value: string,
-      ) => Promise<{ success: boolean; message: string | null }>,
-      errorMessages: { invalid: string; server: string },
-    ) => {
-      if (!form.getFieldState(field).isDirty) return false;
+    const updated = [0, 0, 0];
+    const updateFields: Record<string, string> = {};
 
-      const { success, message } = await updater(
-        user.stripeCustomerId,
-        values[field],
+    // Update phone number
+    if (form.getFieldState("phone").isDirty) {
+      const { error } = await authClient.updateUser(
+        {
+          phone_number: values.phone,
+        },
+        { disableSignal: true },
       );
-      if (success) {
+      if (!error) {
+        updateFields["phone_number"] = values.phone;
+        updated[2] = 1;
         const accountActivity = {
           sub: user.sub,
           type: "phone-changed",
@@ -240,42 +231,16 @@ export const ProfileCard = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(accountActivity),
         });
-        return true;
+      } else {
+        form.setError("phone", {
+          type: "manual",
+          message:
+            error.message || "There was a problem updating your phone number.",
+        });
       }
-
-      form.setError(field, {
-        type: "manual",
-        message:
-          message === "server-error"
-            ? errorMessages.server
-            : errorMessages.invalid,
-      });
-
-      return false;
-    };
-
-    const updated = [0, 0, 0];
-
-    {
-      /*if (
-      await updateField("tax-id", updateTaxId, {
-        invalid: "Your tax ID is not valid.",
-        server: "There was a problem updating your tax ID.",
-      })
-    ) {
-      updated++;
-    }*/
     }
-    const updateFields: Record<string, string> = {};
-    if (
-      await updateField("phone", updatePhone, {
-        invalid: "Your phone number is not valid.",
-        server: "There was a problem updating your phone number.",
-      })
-    ) {
-      updateFields["phone_number"] = values.phone;
-      updated[2] = 1;
-    }
+
+    // Update username
     if (form.getFieldState("username").isDirty) {
       const { error } = await authClient.updateUser(
         {
@@ -294,6 +259,8 @@ export const ProfileCard = ({
         });
       }
     }
+
+    // Update display name
     if (form.getFieldState("name").isDirty) {
       const { error } = await authClient.updateUser(
         { name: values.name },

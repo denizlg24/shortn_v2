@@ -1,8 +1,14 @@
 "use client";
-import { downgradeSubscription } from "@/app/actions/stripeActions";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Link, useRouter } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
 import { SubscriptionsType } from "@/utils/plan-utils";
 import {
   ArrowDown,
@@ -10,24 +16,16 @@ import {
   CornerLeftDown,
   CornerRightDown,
   Loader2,
+  AlertCircle,
+  TrendingDown,
 } from "lucide-react";
 import React, { useState } from "react";
-import { toast } from "sonner";
 
 const plans = [
   {
-    id: "free",
-    name: "Free",
-    price: "€0",
-    cadence: "/mo",
-    highlights: ["3 shortn.at links / month", "3 QR Codes / month"],
-    keep: "Stay with Free",
-    featured: false,
-  },
-  {
     id: "basic",
     name: "Basic",
-    price: "€5",
+    price: "$5",
     cadence: "/mo",
     highlights: [
       "25 shortn.at links / month",
@@ -40,7 +38,7 @@ const plans = [
   {
     id: "plus",
     name: "Plus",
-    price: "€15",
+    price: "$15",
     cadence: "/mo",
     highlights: [
       "50 shortn.at links / month",
@@ -55,7 +53,7 @@ const plans = [
   {
     id: "pro",
     name: "Pro",
-    price: "€25",
+    price: "$25",
     cadence: "/mo",
     highlights: [
       "Unlimited shortn.at links and QR Codes",
@@ -77,9 +75,51 @@ export const DowngradeForm = ({
   tier: SubscriptionsType;
   currentPlan: SubscriptionsType;
 }) => {
-  const { refetch } = authClient.useSession();
   const router = useRouter();
-  const [changing, setChanging] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDowngrade = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/polar/create-update-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ slug: tier, downgrade: true }),
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        setOpen(false);
+        // Redirect to success page with signed subscription ID
+        router.push(
+          `/dashboard/subscription/success?sid=${data.subscription.id}&sig=${data.signature}&action=downgrade`,
+        );
+      } else if (data.paymentFailed) {
+        // Payment failed - redirect to failure page
+        setOpen(false);
+        router.push(`/dashboard/subscription/success?status=payment_failed`);
+      } else {
+        // Handle other API error responses
+        setError(
+          data.message || "Failed to update subscription. Please try again.",
+        );
+      }
+    } catch (error) {
+      console.error("Failed to downgrade subscription:", error);
+      setError(
+        "An unexpected error occurred. Please try again or contact support.",
+      );
+    }
+    setLoading(false);
+  };
+
+  const targetPlan = plans.find((p) => p.id === tier);
+
   return (
     <div className="max-w-7xl mx-auto w-full sm:mt-8 mt-4 px-4">
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -232,42 +272,78 @@ export const DowngradeForm = ({
                     })}
                   </ul>
                   <Button
-                    onClick={async () => {
-                      setChanging(true);
-                      const result = await downgradeSubscription({
-                        downgrade: tier,
-                      });
-                      if (result.success && result.token) {
-                        router.push(
-                          `/dashboard/subscription/downgraded?token=${result.token}`,
-                        );
-                        refetch();
-                      } else {
-                        toast.error(
-                          "There was a problem updating your plan. Try again later.",
-                        );
-                      }
-                      setChanging(false);
-                    }}
-                    disabled={changing}
+                    onClick={() => setOpen(true)}
                     className="self-end place-self-end w-full mt-auto"
                     variant={"secondary"}
                   >
-                    {changing ? (
-                      <>
-                        <Loader2 className="animate-spin" /> Updating...
-                      </>
-                    ) : plan.id != "free" ? (
-                      `Change to ${plan.name}`
-                    ) : (
-                      "Cancel subscription"
-                    )}
+                    Change to {plan.name}
                   </Button>
                 </article>
               );
             })}
         </div>
       </section>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+              <TrendingDown className="h-6 w-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center text-xl">
+              Confirm Downgrade
+            </DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              You're about to downgrade to the{" "}
+              <span className="font-semibold text-foreground">
+                {targetPlan?.name}
+              </span>{" "}
+              plan. Your subscription will be prorated and the downgrade will
+              take effect at the end of your current billing period. You'll
+              receive a credit for the unused time.
+            </DialogDescription>
+          </DialogHeader>
+
+          {error && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="mt-6 flex flex-col gap-3">
+            <Button
+              onClick={handleDowngrade}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Downgrade"
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setOpen(false)}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              Cancel
+            </Button>
+          </div>
+
+          <p className="mt-4 text-center text-xs text-muted-foreground">
+            Your downgrade will be scheduled for the end of your current billing
+            period.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

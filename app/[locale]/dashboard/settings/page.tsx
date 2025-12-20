@@ -1,4 +1,3 @@
-import { getStripeExtraInfo } from "@/app/actions/stripeActions";
 import { ProfileCard } from "@/components/dashboard/settings/profile-card";
 import { getServerSession } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
@@ -16,8 +15,5 @@ export default async function Home({
   if (!user) {
     notFound();
   }
-  const { phone_number } = user.stripeCustomerId
-    ? await getStripeExtraInfo(user?.stripeCustomerId)
-    : { phone_number: "" };
-  return <ProfileCard initialUser={{ ...user, phone_number }} />;
+  return <ProfileCard initialUser={user} />;
 }

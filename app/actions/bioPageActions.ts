@@ -8,7 +8,7 @@ import UrlV3 from "@/models/url/UrlV3";
 import { revalidatePath } from "next/cache";
 import { deletePicture } from "./deletePicture";
 import { getServerSession } from "@/lib/session";
-import { getUserPlan } from "./stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 
 export async function createBioPage({
   title,

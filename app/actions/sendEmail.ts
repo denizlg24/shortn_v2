@@ -7,11 +7,16 @@ export async function sendEmail({
   to,
   subject,
   html,
+  attachments,
 }: {
   from: string;
   to: string;
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string | Buffer;
+  }>;
 }) {
   try {
     const resend = new Resend(env.RESEND_API_KEY);
@@ -20,6 +25,7 @@ export async function sendEmail({
       to: [to],
       subject: subject,
       html: html,
+      attachments,
     });
     return true;
   } catch (error) {

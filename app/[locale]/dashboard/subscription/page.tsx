@@ -1,4 +1,7 @@
-import { getUserPlan } from "@/app/actions/stripeActions";
+import {
+  getUserPlan,
+  getPendingScheduledChange,
+} from "@/app/actions/polarActions";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { getServerSession } from "@/lib/session";
@@ -7,34 +10,44 @@ import { Check, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
 import React from "react";
+import { CheckoutSessionButton } from "./checkout-session-button";
+import { UpgradeSessionButton } from "./upgrade-plan-button";
+import { CancelSubscriptionButton } from "./cancel-subscription-button";
+import { RevertScheduledChangeButton } from "./revert-scheduled-change-button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export const plans = [
   {
     id: "free",
     name: "Free",
-    price: "€0",
+    price: "$0",
     cadence: "/mo",
     highlights: ["3 shortn.at links / month", "3 QR Codes / month"],
-    keep: "Stay with Free",
+    keep: "Manage usage",
     featured: false,
   },
   {
     id: "basic",
     name: "Basic",
-    price: "€5",
+    price: "$5",
     cadence: "/mo",
     highlights: [
       "25 shortn.at links / month",
       "25 QR Codes / month",
       "Click and scan count",
     ],
-    keep: "Manage plan",
+    keep: "Manage usage",
     featured: false,
   },
   {
     id: "plus",
     name: "Plus",
-    price: "€15",
+    price: "$15",
     cadence: "/mo",
     highlights: [
       "50 shortn.at links / month",
@@ -43,13 +56,13 @@ export const plans = [
       "Time and date based analytics",
       "City level location data",
     ],
-    keep: "Manage plan",
+    keep: "Manage usage",
     featured: false,
   },
   {
     id: "pro",
     name: "Pro",
-    price: "€25",
+    price: "$25",
     cadence: "/mo",
     highlights: [
       "Unlimited shortn.at links and QR Codes",
@@ -59,7 +72,7 @@ export const plans = [
       "Browser, Device and OS insights",
       "Referer information",
     ],
-    keep: "Manage plan",
+    keep: "Manage usage",
     featured: true,
   },
 ];
@@ -121,6 +134,8 @@ export default async function Home({
     forbidden();
   }
   const { plan: _plan } = await getUserPlan();
+  const pendingChange = await getPendingScheduledChange();
+
   return (
     <div className="max-w-7xl mx-auto w-full sm:mt-8 mt-4 px-4">
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -134,6 +149,37 @@ export default async function Home({
           </p>
         </div>
       </header>
+
+      {pendingChange && (
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="font-semibold text-amber-900">
+                {pendingChange.changeType === "cancellation"
+                  ? "Subscription Cancellation Scheduled"
+                  : `Downgrade to ${pendingChange.targetPlan} Scheduled`}
+              </h3>
+              <p className="text-sm text-amber-800 mt-1">
+                Your {pendingChange.changeType} will take effect on{" "}
+                {new Date(pendingChange.scheduledFor).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}
+                . You can revert this change at any time before then.
+              </p>
+            </div>
+            <RevertScheduledChangeButton pendingChange={pendingChange}>
+              <Button variant="outline" size="sm">
+                Revert
+              </Button>
+            </RevertScheduledChangeButton>
+          </div>
+        </div>
+      )}
 
       <section className="lg:mt-12 sm:mt-6 mt-4 grid xl:grid-cols-4 lg:grid-cols-2 gap-6">
         {plans.map((plan) => {
@@ -172,30 +218,68 @@ export default async function Home({
                 </div>
               </div>
               <div className="mt-6 flex flex-col items-start gap-1">
-                <Button
-                  className="w-full"
-                  asChild
-                  variant={plan.featured ? "default" : "outline"}
-                >
-                  <Link
-                    href={
-                      plan.id == _plan
-                        ? "/dashboard/settings/plan"
-                        : `/dashboard/subscription/subscribe?tier=${plan.id}`
+                {plan.id === _plan ? (
+                  <Button className="w-full" variant="secondary" asChild>
+                    <Link href="/dashboard/settings/plan">{plan.keep}</Link>
+                  </Button>
+                ) : _plan === "free" ? (
+                  <CheckoutSessionButton
+                    className="w-full"
+                    text={`Upgrade to ${plan.name}`}
+                    slug={plan.id as "pro" | "plus" | "basic"}
+                    variant={plan.featured ? "default" : "outline"}
+                  />
+                ) : plan.id === "free" ? (
+                  pendingChange?.changeType === "cancellation" ? (
+                    <RevertScheduledChangeButton pendingChange={pendingChange}>
+                      <Button className="w-full" variant="outline">
+                        Keep Current Plan
+                      </Button>
+                    </RevertScheduledChangeButton>
+                  ) : (
+                    <CancelSubscriptionButton>
+                      <Button className="w-full" variant="destructive">
+                        Cancel Plan
+                      </Button>
+                    </CancelSubscriptionButton>
+                  )
+                ) : pendingChange && pendingChange.targetPlan === plan.id ? (
+                  <RevertScheduledChangeButton pendingChange={pendingChange}>
+                    <Button className="w-full" variant="outline">
+                      Keep Current Plan
+                    </Button>
+                  </RevertScheduledChangeButton>
+                ) : pendingChange ? (
+                  <Button
+                    className="capitalize w-full"
+                    variant="outline"
+                    disabled
+                  >
+                    Pending Change
+                  </Button>
+                ) : (
+                  <UpgradeSessionButton
+                    slug={plan.id as "pro" | "plus" | "basic"}
+                    downgrade={
+                      getRelativeOrder(
+                        _plan as SubscriptionsType,
+                        plan.id as SubscriptionsType,
+                      ) < 0
                     }
                   >
-                    {plan.id == _plan
-                      ? plan.keep
-                      : `${
-                          getRelativeOrder(
-                            _plan as SubscriptionsType,
-                            plan.id as SubscriptionsType,
-                          ) > 0
-                            ? `Upgrade to ${plan.name}`
-                            : `Downgrade to ${plan.name}`
-                        }`}
-                  </Link>
-                </Button>
+                    <Button
+                      className="capitalize w-full"
+                      variant={plan.featured ? "default" : "outline"}
+                    >
+                      {getRelativeOrder(
+                        _plan as SubscriptionsType,
+                        plan.id as SubscriptionsType,
+                      ) > 0
+                        ? `Upgrade to ${plan.name}`
+                        : `Downgrade to ${plan.name}`}
+                    </Button>
+                  </UpgradeSessionButton>
+                )}
                 <Button
                   variant={"link"}
                   asChild
@@ -225,10 +309,10 @@ export default async function Home({
         })}
       </section>
 
-      <div className="w-full grid grid-cols-5 gap-0 mt-16 mb-12">
-        <div className="col-span-1 top-0 bg-background h-full"></div>
-        {plans.map((plan) => {
-          return (
+      <div className="w-full max-w-7xl px-2 mx-auto mt-16 mb-12">
+        <div className="hidden sm:grid grid-cols-5 gap-0">
+          <div className="col-span-1 top-0 h-full"></div>
+          {plans.map((plan) => (
             <div
               key={plan.id}
               className="col-span-1 border shadow p-2 flex flex-col items-center sm:gap-2 gap-0.5 sm:top-14 top-12 bg-background"
@@ -242,93 +326,142 @@ export default async function Home({
                 </span>
                 {plan.cadence}
               </h2>
-              <Button
-                className="w-full lg:flex hidden"
-                asChild
-                variant={"outline"}
-              >
-                <Link
-                  href={
-                    plan.id == _plan
-                      ? "/dashboard/settings/plan"
-                      : `/dashboard/subscription/subscribe?tier=${plan.id}`
-                  }
-                >
-                  {plan.id == _plan
-                    ? plan.keep
-                    : `${
-                        getRelativeOrder(
-                          _plan as SubscriptionsType,
-                          plan.id as SubscriptionsType,
-                        ) > 0
-                          ? `Upgrade to ${plan.name}`
-                          : `Downgrade to ${plan.name}`
-                      }`}
-                </Link>
-              </Button>
             </div>
-          );
-        })}
-        {Object.keys(features).map((sectionKey, i) => {
-          const section = sectionKey as SectionKey;
-          const sectionData = features[section];
+          ))}
+          {Object.keys(features).map((sectionKey, i) => {
+            const section = sectionKey as SectionKey;
+            const sectionData = features[section];
+            return (
+              <React.Fragment key={section}>
+                <div
+                  id={i == 0 ? "compare" : ""}
+                  className="col-span-full bg-muted p-3 border"
+                >
+                  <h3 className="text-base font-bold text-primary text-left">
+                    {section}
+                  </h3>
+                </div>
+                {Object.keys(sectionData).map((titleKey) => {
+                  const title = titleKey as TitleKey<typeof section>;
+                  const values = sectionData[title] as string[] | number[];
+                  return (
+                    <React.Fragment key={title}>
+                      <h2 className="bg-background p-3 text-left text-sm font-semibold col-span-1 border">
+                        {title}
+                      </h2>
+                      {values.map((value, i) => {
+                        if (typeof value === "number") {
+                          return (
+                            <div
+                              key={i}
+                              className="col-span-1 bg-background w-full p-3 text-center flex items-center justify-center border"
+                            >
+                              {value === 1 ? (
+                                <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
+                              ) : (
+                                <X className="w-3.5 h-3.5 shrink-0 text-primary" />
+                              )}
+                            </div>
+                          );
+                        }
+                        if (typeof value === "string") {
+                          return (
+                            <div
+                              key={i}
+                              className="col-span-1 w-full bg-background p-3 text-center flex items-center justify-center text-sm border"
+                            >
+                              {value}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })}
+                    </React.Fragment>
+                  );
+                })}
+              </React.Fragment>
+            );
+          })}
+        </div>
 
-          return (
-            <React.Fragment key={section}>
-              {/* Section title */}
-              <div
-                id={i == 0 ? "compare" : ""}
-                className="col-span-full bg-muted p-3 border"
-              >
-                <h3 className="text-base font-bold text-primary text-left">
-                  {section}
-                </h3>
+        <div className="sm:hidden flex flex-col gap-4">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className="border rounded-lg shadow bg-background"
+            >
+              <div className="flex items-center justify-between px-4 py-3">
+                <div>
+                  <h2 className="font-semibold text-lg text-primary">
+                    {plan.name}
+                  </h2>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-xl font-bold text-primary">
+                      {plan.price}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {plan.cadence}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {Object.keys(sectionData).map((titleKey) => {
-                const title = titleKey as TitleKey<typeof section>;
-                const values = sectionData[title] as string[] | number[];
-
-                return (
-                  <React.Fragment key={title}>
-                    <h2 className="bg-background p-3 text-left text-sm font-semibold col-span-1 border">
-                      {title}
-                    </h2>
-                    {values.map((value, i) => {
-                      if (typeof value === "number") {
-                        return (
-                          <div
-                            key={i}
-                            className="col-span-1 w-full p-3 text-center flex items-center justify-center border"
-                          >
-                            {value === 1 ? (
-                              <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
-                            ) : (
-                              <X className="w-3.5 h-3.5 shrink-0 text-primary" />
-                            )}
-                          </div>
-                        );
-                      }
-
-                      if (typeof value === "string") {
-                        return (
-                          <div
-                            key={i}
-                            className="col-span-1 w-full p-3 text-center flex items-center justify-center text-sm border"
-                          >
-                            {value}
-                          </div>
-                        );
-                      }
-
-                      return null;
-                    })}
-                  </React.Fragment>
-                );
-              })}
-            </React.Fragment>
-          );
-        })}
+              <div className="border-t">
+                <Accordion type="single" collapsible>
+                  {Object.keys(features).map((sectionKey) => {
+                    const section = sectionKey as SectionKey;
+                    const sectionData = features[section];
+                    return (
+                      <AccordionItem
+                        className="px-4"
+                        key={section}
+                        value={section}
+                      >
+                        <AccordionTrigger>{section}</AccordionTrigger>
+                        <AccordionContent>
+                          <ul className="flex flex-col gap-2">
+                            {Object.keys(sectionData).map((titleKey) => {
+                              const title = titleKey as TitleKey<
+                                typeof section
+                              >;
+                              const values = sectionData[title] as
+                                | string[]
+                                | number[];
+                              // Find the index of this plan in the plans array
+                              const planIdx = plans.findIndex(
+                                (p) => p.id === plan.id,
+                              );
+                              const value = values[planIdx];
+                              return (
+                                <li
+                                  key={title}
+                                  className="flex items-center justify-between text-sm py-1 border-b last:border-b-0"
+                                >
+                                  <span>{title}</span>
+                                  <span>
+                                    {typeof value === "number" ? (
+                                      value === 1 ? (
+                                        <Check className="w-4 h-4 text-primary inline" />
+                                      ) : (
+                                        <X className="w-4 h-4 text-primary inline" />
+                                      )
+                                    ) : (
+                                      value
+                                    )}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </AccordionContent>
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

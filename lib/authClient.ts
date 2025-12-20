@@ -3,14 +3,13 @@ import {
   inferAdditionalFields,
   usernameClient,
 } from "better-auth/client/plugins";
-import { stripeClient } from "@better-auth/stripe/client";
 import type { auth } from "@/lib/auth";
+import { polarClient } from "@polar-sh/better-auth";
+import { CustomerStateSubscription } from "@polar-sh/sdk/models/components/customerstatesubscription.js";
 export const authClient = createAuthClient({
   plugins: [
     usernameClient(),
-    stripeClient({
-      subscription: true,
-    }),
+    polarClient(),
     inferAdditionalFields<typeof auth>(),
   ],
 });
@@ -22,14 +21,15 @@ export async function getClientSession() {
   return authClient.getSession();
 }
 
-export async function getClientSubscription() {
-  const { data, error } = await authClient.subscription.list();
-  if (error || !data) {
-    return "free";
-  }
-  const active = data.filter((sub) => sub.status === "active");
-  if (active.length > 0) {
-    return active[0].plan;
-  }
-  return "free";
+export function getPlanFromSubscription({
+  subscriptions,
+}: {
+  subscriptions: CustomerStateSubscription[];
+}) {
+  if (subscriptions.length === 0) return "free";
+  const subscription = subscriptions.filter(
+    (sub) => sub.status === "active" || sub.status === "trialing",
+  )[0];
+  if (!subscription) return "free";
+  return subscription.metadata?.plan || "free";
 }
