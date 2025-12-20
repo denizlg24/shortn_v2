@@ -95,8 +95,17 @@ export async function POST(req: Request) {
         // Determine current plan
         let currentPlan: SubscriptionsType = "free";
         if (subscription.product?.name) {
-          currentPlan =
-            subscription.product.name.toLowerCase() as SubscriptionsType;
+          switch (subscription.product.id) {
+            case env.PRO_PLAN_ID:
+              currentPlan = "pro";
+              break;
+            case env.PLUS_PLAN_ID:
+              currentPlan = "plus";
+              break;
+            case env.BASIC_PLAN_ID:
+              currentPlan = "basic";
+              break;
+          }
         }
 
         // Calculate delay in seconds
