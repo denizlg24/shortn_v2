@@ -29,6 +29,8 @@ jobs:
       LEVEL_TWO_UPGRADE_ID: ${{secrets.LEVEL_TWO_UPGRADE_ID || 'dependabot'}},
       EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}},
       RESEND_API_KEY: ${{secrets.RESEND_API_KEY || 'dependabot'}},
+      QSTASH_CURRENT_SIGNING_KEY: ${{secrets.QSTASH_CURRENT_SIGNING_KEY||'dependabot'}},
+      QSTASH_NEXT_SIGNING_KEY: ${{secrets.QSTASH_NEXT_SIGNING_KEY||'dependabot'}},
       
     steps:
       - name: Checkout repository
