@@ -14,7 +14,6 @@ export interface IDBUser extends Document {
   qr_codes_this_month: number;
   redirects_this_month: number;
   qr_code_redirects_this_month: number;
-  stripeCustomerId?: string | null;
 }
 
 const userSchema = new Schema<IDBUser>(
@@ -31,7 +30,6 @@ const userSchema = new Schema<IDBUser>(
     qr_codes_this_month: { type: Number, default: 0 },
     redirects_this_month: { type: Number, default: 0 },
     qr_code_redirects_this_month: { type: Number, default: 0 },
-    stripeCustomerId: { type: String, default: null },
   },
   {
     collection: "user",

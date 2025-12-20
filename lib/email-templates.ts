@@ -1633,3 +1633,352 @@ export const subscriptionDowngradedTemplate = (params: {
   `;
   return emailWrapper(content);
 };
+
+/**
+ * Subscription Created Email Template
+ */
+export const subscriptionCreatedEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  planFeatures: string[];
+  dashboardLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Welcome to Shortn ${params.planName}! 🎉
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Thank you for subscribing to Shortn ${params.planName}! Your subscription has been created and you'll have access to all premium features once your payment is processed.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 20px; background-color: #f0fdf4; border-left: 3px solid ${baseStyles.success}; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">Your ${params.planName} plan includes:</p>
+          ${params.planFeatures
+            .map(
+              (feature) => `
+            <p style="margin: 4px 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+              ✓ ${feature}
+            </p>
+          `,
+            )
+            .join("")}
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "Go to Dashboard")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Need help? Contact us at support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Active Email Template
+ */
+export const subscriptionActiveEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  nextBillingDate: string;
+  dashboardLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your subscription is now active! ✓
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Great news! Your Shortn ${params.planName} subscription is now active. You now have full access to all premium features.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #f7fafc; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 500; color: ${baseStyles.textPrimary};">Subscription Details</p>
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            Plan: <strong>${params.planName}</strong><br/>
+            Next billing date: <strong>${params.nextBillingDate}</strong>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "Start Creating Links")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      You can manage your subscription anytime from your dashboard.
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Payment Successful Email Template
+ */
+export const paymentSuccessfulEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  amount: string;
+  currency: string;
+  nextBillingDate: string;
+  invoiceUrl?: string;
+  manageSubscriptionLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Payment Received
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Thank you! We've successfully processed your payment for Shortn ${params.planName}.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td style="padding-bottom: 10px;">
+                <p style="margin: 0; font-size: 13px; color: ${baseStyles.textSecondary};">Amount paid</p>
+                <p style="margin: 4px 0 0 0; font-size: 24px; font-weight: 600; color: ${baseStyles.textPrimary};">
+                  ${params.currency} ${params.amount}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 10px; border-top: 1px solid #bbf7d0;">
+                <p style="margin: 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+                  Plan: <strong>${params.planName}</strong><br/>
+                  Next billing: <strong>${params.nextBillingDate}</strong>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    ${
+      params.invoiceUrl
+        ? `
+    <p style="margin: 0 0 15px 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Your invoice has been attached to this email. You can also <a href="${params.invoiceUrl}" style="color: ${baseStyles.primary}; text-decoration: underline;">download it here</a>.
+    </p>
+    `
+        : ""
+    }
+
+    ${button(params.manageSubscriptionLink, "Manage Subscription", false)}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions about your billing? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Canceled Email Template
+ */
+export const subscriptionCanceledEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  endDate: string;
+  feedbackLink: string;
+  manageSubscriptionLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Subscription Cancellation Confirmed
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      We've processed your request to cancel your Shortn ${params.planName} subscription.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 20px; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">Important Information</p>
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            You'll continue to have access to your ${params.planName} features until <strong>${params.endDate}</strong>. After that, your account will revert to the free plan.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      We're sorry to see you go! If you have a moment, we'd love to know why you're canceling so we can improve.
+    </p>
+
+    ${button(params.feedbackLink, "Share Feedback", false)}
+    ${divider()}
+    <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Changed your mind? You can <a href="${params.manageSubscriptionLink}" style="color: ${baseStyles.primary}; text-decoration: underline;">reactivate your subscription</a> anytime before ${params.endDate}.
+    </p>
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Uncanceled (Reactivated) Email Template
+ */
+export const subscriptionUncanceledEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  nextBillingDate: string;
+  dashboardLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Welcome back! 🎉
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Great news! Your Shortn ${params.planName} subscription has been reactivated. We're glad to have you back!
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 20px; background-color: #f0fdf4; border-left: 3px solid ${baseStyles.success}; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 600; color: ${baseStyles.textPrimary};">Subscription Active</p>
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            Your ${params.planName} subscription will continue automatically.<br/>
+            Next billing date: <strong>${params.nextBillingDate}</strong>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.dashboardLink, "Go to Dashboard")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Subscription Revoked (Ended) Email Template
+ */
+export const subscriptionRevokedEmailTemplate = (params: {
+  userName: string;
+  planName: string;
+  resubscribeLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Your subscription has ended
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Your Shortn ${params.planName} subscription has ended. Your account has been moved to the free plan.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #f7fafc; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 14px; font-weight: 500; color: ${baseStyles.textPrimary};">What happens now?</p>
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            • Your existing links and QR codes will continue to work<br/>
+            • You can still access your dashboard and analytics<br/>
+            • Free plan limits will apply to new links and QR codes<br/>
+            • Your data will be retained for 90 days
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Want to continue where you left off? Resubscribe anytime to regain access to all premium features.
+    </p>
+
+    ${button(params.resubscribeLink, "Resubscribe Now")}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};
+
+/**
+ * Order Refunded Email Template
+ */
+export const orderRefundedEmailTemplate = (params: {
+  userName: string;
+  amount: string;
+  currency: string;
+  refundReason?: string;
+  supportLink: string;
+}) => {
+  const content = `
+    <h2 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 600; color: ${baseStyles.textPrimary};">
+      Refund Processed
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      Hi ${params.userName},
+    </p>
+    <p style="margin: 0 0 15px 0; font-size: 15px; line-height: 24px; color: ${baseStyles.textSecondary};">
+      A refund has been processed for your Shortn payment.
+    </p>
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 20px; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px;">
+          <p style="margin: 0 0 8px 0; font-size: 13px; color: ${baseStyles.textSecondary};">Refund amount</p>
+          <p style="margin: 0; font-size: 24px; font-weight: 600; color: ${baseStyles.textPrimary};">
+            ${params.currency} ${params.amount}
+          </p>
+          ${
+            params.refundReason
+              ? `
+          <p style="margin: 12px 0 0 0; font-size: 13px; color: ${baseStyles.textSecondary};">
+            Reason: ${params.refundReason}
+          </p>
+          `
+              : ""
+          }
+        </td>
+      </tr>
+    </table>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="padding: 15px; background-color: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 6px;">
+          <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+            The refund will appear on your original payment method within 5-10 business days, depending on your bank or card issuer.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    ${button(params.supportLink, "Contact Support", false)}
+    ${divider()}
+    <p style="margin: 0; font-size: 13px; line-height: 20px; color: ${baseStyles.textSecondary};">
+      Questions about this refund? Contact support@shortn.at
+    </p>
+  `;
+  return emailWrapper(content);
+};

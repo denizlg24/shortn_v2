@@ -1,4 +1,4 @@
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { getServerSession } from "@/lib/session";
 import { getScans } from "@/utils/fetching-functions";
 import { endOfDay, startOfDay } from "date-fns";

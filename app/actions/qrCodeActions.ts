@@ -14,7 +14,7 @@ import Clicks from "@/models/url/Click";
 import { headers } from "next/headers";
 import { deletePicture } from "./deletePicture";
 import { User } from "@/models/auth/User";
-import { getUserPlan } from "./stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
