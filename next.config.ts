@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
     },
     authInterrupts: true,
   },
+  //cacheComponents: true,
   images: {
     remotePatterns: [
       new URL("https://sapphire-high-sailfish-380.mypinata.cloud/ipfs/**"),

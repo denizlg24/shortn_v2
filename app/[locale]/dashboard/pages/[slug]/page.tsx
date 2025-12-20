@@ -7,7 +7,7 @@ import { forbidden, notFound } from "next/navigation";
 import { ManageLinksPage } from "./manage-links-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 
 export default async function Page({
   params,

@@ -8,7 +8,7 @@ import { QRCodeLocationAnalytics } from "./qr-code-location-analytics";
 import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 import { ScanDataProvider } from "@/utils/ScanDataContext";
 import { getServerSession } from "@/lib/session";
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { forbidden } from "next/navigation";
 
 export const QRCodeDetails = async ({ qr }: { qr: IQRCode }) => {

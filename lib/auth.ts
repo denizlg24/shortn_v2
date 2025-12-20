@@ -12,13 +12,17 @@ import {
   updateEmailVerificationTemplate,
   confirmEmailChangeTemplate,
 } from "@/lib/email-templates";
-import { stripe } from "@better-auth/stripe";
-import Stripe from "stripe";
-import { subscribeToFreePlan } from "@/app/actions/stripeActions";
 import { BASEURL } from "./utils";
 import { connectDB } from "./mongodb";
-import { Subscription } from "@/models/auth/Subscription";
 import { Session } from "@/models/auth/Session";
+import {
+  checkout,
+  polar,
+  portal,
+  usage,
+  webhooks,
+} from "@polar-sh/better-auth";
+import { polarClient } from "./polar";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -28,9 +32,9 @@ const generateRandomString = () => {
     .join("");
 };
 
-const stripeClient = new Stripe(env.STRIPE_SECRET_KEY);
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
+
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
     client,
@@ -63,6 +67,11 @@ export const auth = betterAuth({
         unique: true,
         input: false,
       },
+      phone_number: {
+        type: "string",
+        defaultValue: null,
+        input: true,
+      },
       links_this_month: { type: "number", defaultValue: 0, input: false },
       qr_codes_this_month: { type: "number", defaultValue: 0, input: false },
       redirects_this_month: { type: "number", defaultValue: 0, input: false },
@@ -71,7 +80,6 @@ export const auth = betterAuth({
         defaultValue: 0,
         input: false,
       },
-      stripeCustomerId: { type: "string", defaultValue: null, input: false },
     },
   },
   databaseHooks: {
@@ -207,124 +215,251 @@ export const auth = betterAuth({
         );
       },
     }),
-    stripe({
-      schema: {
-        subscription: {
-          modelName: "subscription",
-        },
-      },
-      stripeClient,
-      stripeWebhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    polar({
+      client: polarClient,
       createCustomerOnSignUp: true,
-      onCustomerCreate: async (data) => {
-        const { user, stripeCustomer } = data;
-        await connectDB();
-        const subscription = await subscribeToFreePlan({
-          customer_id: stripeCustomer.id,
-          userId: user.id,
-        });
-        if (!subscription) {
-          throw new Error("Failed to create subscription");
-        }
-        await Subscription.create({
-          referenceId: user.id,
-          plan: "free",
-          status: "active",
-          stripeCustomerId: stripeCustomer.id,
-          stripeSubscriptionId: subscription.id,
-          periodStart: new Date(),
-          periodEnd: new Date(
-            subscription.cancel_at ? subscription.cancel_at : 0,
-          ),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-      },
-      subscription: {
-        enabled: true,
-        plans: [
-          {
-            name: "free",
-            priceId: env.FREE_PLAN_ID,
-            limits: {
-              links: 3,
-              custom_back_half: 0,
-              link_redirects: 0,
-              codes: 3,
-              code_redirects: 0,
-              code_logo: 0,
-              click_count: 0,
-              scan_count: 0,
-              time_date_analytics: 0,
-              city_level_analytics: 0,
-              device_os_browser_analytics: 0,
-              referer_date: 0,
-              export_clicks: 0,
-              bioPages: 0,
+      use: [
+        checkout({
+          products: [
+            {
+              productId: env.PRO_PLAN_ID,
+              slug: "pro",
             },
-          },
-          {
-            name: "basic",
-            priceId: env.BASIC_PLAN_ID,
-            limits: {
-              links: 25,
-              custom_back_half: 0,
-              link_redirects: 0,
-              codes: 25,
-              code_redirects: 0,
-              code_logo: 0,
-              click_count: 1,
-              scan_count: 1,
-              time_date_analytics: 0,
-              city_level_analytics: 0,
-              device_os_browser_analytics: 0,
-              referer_date: 0,
-              export_clicks: 0,
-              bioPages: 0,
+            {
+              productId: env.PLUS_PLAN_ID,
+              slug: "plus",
             },
-          },
-          {
-            name: "plus",
-            priceId: env.PLUS_PLAN_ID,
-            limits: {
-              links: 50,
-              custom_back_half: 0,
-              link_redirects: 10,
-              codes: 50,
-              code_redirects: 10,
-              code_logo: 0,
-              click_count: 1,
-              scan_count: 1,
-              time_date_analytics: 1,
-              city_level_analytics: 1,
-              device_os_browser_analytics: 1,
-              referer_date: 0,
-              export_clicks: 0,
-              bioPages: 0,
+            {
+              productId: env.BASIC_PLAN_ID,
+              slug: "basic",
             },
+          ],
+          successUrl: `${BASEURL}/dashboard/subscription/success?checkout_id={CHECKOUT_ID}`,
+          authenticatedUsersOnly: true,
+        }),
+        portal({
+          returnUrl: `${BASEURL}/dashboard/settings/plan`,
+        }),
+        usage(),
+        webhooks({
+          secret: env.POLAR_WEBHOOK_SECRET!,
+
+          onSubscriptionCreated: async (payload) => {
+            console.log("Subscription created:", payload.data.id);
+            try {
+              const { sendSubscriptionCreatedEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              await sendSubscriptionCreatedEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+              });
+            } catch (error) {
+              console.error("Error sending subscription created email:", error);
+            }
           },
-          {
-            name: "pro",
-            priceId: env.PRO_PLAN_ID,
-            limits: {
-              links: "unlimited",
-              custom_back_half: 1,
-              link_redirects: "unlimited",
-              codes: "unlimited",
-              code_redirects: "unlimited",
-              code_logo: 1,
-              click_count: 1,
-              scan_count: 1,
-              time_date_analytics: 1,
-              city_level_analytics: 1,
-              device_os_browser_analytics: 1,
-              referer_date: 1,
-              export_clicks: 1,
-              bioPages: 1,
-            },
+
+          onSubscriptionActive: async (payload) => {
+            console.log("Subscription active:", payload.data.id);
+            try {
+              const { sendSubscriptionActiveEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              await sendSubscriptionActiveEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+                nextBillingDate: payload.data.currentPeriodEnd
+                  ? new Date(payload.data.currentPeriodEnd)
+                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              });
+            } catch (error) {
+              console.error("Error sending subscription active email:", error);
+            }
           },
-        ],
-      },
+
+          onOrderPaid: async (payload) => {
+            console.log("Order paid:", payload.data.id);
+            try {
+              const { sendPaymentSuccessfulEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              const subscription = payload.data.subscription;
+              const orderData = payload.data as unknown as {
+                amount: number;
+                currency: string;
+                invoice_url?: string;
+              };
+
+              await sendPaymentSuccessfulEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+                amount: orderData.amount,
+                currency: orderData.currency,
+                nextBillingDate: subscription?.currentPeriodEnd
+                  ? new Date(subscription.currentPeriodEnd)
+                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                invoiceUrl: orderData.invoice_url,
+              });
+            } catch (error) {
+              console.error("Error sending payment successful email:", error);
+            }
+          },
+
+          onSubscriptionCanceled: async (payload) => {
+            console.log("Subscription canceled:", payload.data.id);
+            try {
+              const { sendSubscriptionCanceledEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              const endDate =
+                payload.data.currentPeriodEnd || payload.data.endedAt;
+              if (!endDate) return;
+
+              await sendSubscriptionCanceledEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+                endDate: new Date(endDate),
+              });
+            } catch (error) {
+              console.error(
+                "Error sending subscription canceled email:",
+                error,
+              );
+            }
+          },
+
+          onSubscriptionUncanceled: async (payload) => {
+            console.log("Subscription uncanceled:", payload.data.id);
+
+            try {
+              const { connectDB } = await import("@/lib/mongodb");
+              const ScheduledChange = (
+                await import("@/models/subscription/ScheduledChange")
+              ).default;
+              const { qstashClient } = await import("@/lib/qstash");
+
+              await connectDB();
+
+              const pendingChange = await ScheduledChange.findOne({
+                subscriptionId: payload.data.id,
+                status: "pending",
+              });
+
+              if (pendingChange) {
+                console.log(
+                  `Found pending change to revert: ${pendingChange._id}`,
+                );
+
+                if (pendingChange.qstashMessageId) {
+                  try {
+                    await qstashClient.messages.delete(
+                      pendingChange.qstashMessageId,
+                    );
+                    console.log(
+                      `Deleted QStash message: ${pendingChange.qstashMessageId}`,
+                    );
+                  } catch (error) {
+                    console.error("Failed to delete QStash message:", error);
+                  }
+                }
+
+                pendingChange.status = "reverted";
+                await pendingChange.save();
+
+                console.log(
+                  `Successfully reverted scheduled change for subscription: ${payload.data.id}`,
+                );
+              }
+            } catch (error) {
+              console.error("Error handling scheduled change revert:", error);
+            }
+
+            try {
+              const { sendSubscriptionUncanceledEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              await sendSubscriptionUncanceledEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+                nextBillingDate: payload.data.currentPeriodEnd
+                  ? new Date(payload.data.currentPeriodEnd)
+                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              });
+            } catch (error) {
+              console.error(
+                "Error sending subscription uncanceled email:",
+                error,
+              );
+            }
+          },
+
+          onSubscriptionRevoked: async (payload) => {
+            console.log("Subscription revoked:", payload.data.id);
+            try {
+              const { sendSubscriptionRevokedEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              await sendSubscriptionRevokedEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                planName: payload.data.product?.name || "Premium",
+              });
+            } catch (error) {
+              console.error("Error sending subscription revoked email:", error);
+            }
+          },
+
+          onOrderRefunded: async (payload) => {
+            console.log("Order refunded:", payload.data.id);
+            try {
+              const { sendOrderRefundedEmail } = await import(
+                "@/lib/subscription-email-helpers"
+              );
+              const user = payload.data.customer;
+              if (!user) return;
+
+              const orderData = payload.data as unknown as {
+                amount: number;
+                currency: string;
+                refund_reason?: string;
+              };
+
+              await sendOrderRefundedEmail({
+                userEmail: user.email,
+                userName: user.name || "User",
+                amount: orderData.amount,
+                currency: orderData.currency,
+                refundReason: orderData.refund_reason,
+              });
+            } catch (error) {
+              console.error("Error sending order refunded email:", error);
+            }
+          },
+        }),
+      ],
     }),
     nextCookies(),
   ],

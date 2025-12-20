@@ -80,7 +80,7 @@ Built on a modern, scalable tech stack:
 
 - **Next.js** for a fast, SEO-friendly frontend
 - **MongoDB** for flexible, high-performance data storage
-- **Stripe** integration for seamless subscription management
+- **Polar** integration for seamless subscription management
 - **Advanced caching** for sub-50ms response times
 - **Real-time analytics** processing millions of events
 
@@ -146,8 +146,8 @@ To provide businesses and creators with enterprise-grade link management tools t
 
 - Node.js
 - MongoDB with Mongoose
-- NextAuth.js for authentication
-- Stripe for payments
+- Better Auth for authentication
+- Polar for payments
 
 **Infrastructure**
 
@@ -180,7 +180,7 @@ Shortn takes security seriously:
 
 - End-to-end encryption for sensitive data
 - GDPR-compliant analytics
-- Secure payment processing via Stripe
+- Secure payment processing via Polar
 - Regular security audits
 - Optional password protection for links
 

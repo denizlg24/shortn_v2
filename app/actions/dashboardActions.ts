@@ -4,7 +4,7 @@ import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import UrlV3, { TUrl } from "@/models/url/UrlV3";
 import QRCodeV2, { TQRCode } from "@/models/url/QRCodeV2";
-import { getUserPlan } from "./stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 
 interface DashboardStats {
   totalLinks: number;

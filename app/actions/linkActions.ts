@@ -14,7 +14,7 @@ import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
 import { Campaigns } from "@/models/url/Campaigns";
-import { getUserPlan } from "./stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { User } from "@/models/auth/User";
 import { format } from "date-fns";
 

@@ -1,29 +1,25 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import crypto from "crypto";
+import env from "@/utils/env";
 
-const SECRET =
-  process.env.REDIRECT_SECRET || "change-this-to-a-strong-env-variable";
-
-export function signUrlData(
-  longUrl: string,
-  urlCode: string,
-  expiryTimestamp: number,
-): string {
-  //
-  const data = `${longUrl}:${urlCode}:${expiryTimestamp}`;
-  return createHmac("sha256", SECRET).update(data).digest("hex");
+/**
+ * Signs a subscription ID with HMAC-SHA256 for secure URL transmission
+ */
+export function signSubscriptionId(subscriptionId: string): string {
+  const hmac = crypto.createHmac("sha256", env.AUTH_SECRET);
+  hmac.update(subscriptionId);
+  return hmac.digest("hex");
 }
 
-export function verifyUrlData(
-  longUrl: string,
-  urlCode: string,
-  expiryTimestamp: number,
+/**
+ * Verifies a subscription ID signature
+ */
+export function verifySubscriptionId(
+  subscriptionId: string,
   signature: string,
 ): boolean {
-  const expectedSignature = signUrlData(longUrl, urlCode, expiryTimestamp);
-
-  const source = Buffer.from(signature, "hex");
-  const target = Buffer.from(expectedSignature, "hex");
-
-  if (source.length !== target.length) return false;
-  return timingSafeEqual(source, target);
+  const expectedSignature = signSubscriptionId(subscriptionId);
+  return crypto.timingSafeEqual(
+    Buffer.from(signature, "hex"),
+    Buffer.from(expectedSignature, "hex"),
+  );
 }
