@@ -23,15 +23,14 @@ import { Switch } from "@/components/ui/switch";
 import { Link, useRouter } from "@/i18n/navigation";
 import { BASEURL, cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { InfinityIcon, Loader2, LockIcon } from "lucide-react";
+import { InfinityIcon, Loader2, LockIcon, Eye, EyeOff } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { getLinksLeft } from "../../home/quick-create";
 import { authClient } from "@/lib/authClient";
-import { fetchApi } from "@/lib/utils";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 const linkFormSchema = z.object({
   destination: z
@@ -52,30 +51,25 @@ const linkFormSchema = z.object({
       z.literal(""),
     ])
     .optional(),
+  password: z
+    .union([
+      z
+        .string()
+        .min(6, "Password must be at least 6 characters long")
+        .max(100, "Password can't be longer than 100 characters"),
+      z.literal(""),
+    ])
+    .optional(),
+  passwordHint: z
+    .string()
+    .max(100, "Hint can't be longer than 100 characters")
+    .optional(),
 });
 
 export const LinksCreate = () => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
   const router = useRouter();
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 
@@ -121,10 +115,13 @@ export const LinksCreate = () => {
       destination: "",
       title: "",
       customCode: "",
+      password: "",
+      passwordHint: "",
     },
   });
 
   const [addQR, setAddQR] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
@@ -227,8 +224,101 @@ export const LinksCreate = () => {
                 />
               </div>
             </div>
+
+            <div className="w-full border-t pt-6 flex flex-col gap-4">
+              <div className="flex flex-row items-center justify-between">
+                <div className="flex flex-col gap-1">
+                  <div className="flex flex-row items-center gap-2">
+                    <LockIcon className="w-4 h-4" />
+                    <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
+                      Password Protection
+                    </h2>
+                    {plan !== "pro" && (
+                      <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-medium">
+                        PRO
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-muted-foreground sm:text-sm text-xs">
+                    {plan === "pro"
+                      ? "Require a password to access this link"
+                      : "Upgrade to Pro to protect your links with passwords"}
+                  </p>
+                </div>
+                {plan !== "pro" && (
+                  <Link href="/dashboard/settings/billing">
+                    <Button variant="outline" size="sm">
+                      Upgrade
+                    </Button>
+                  </Link>
+                )}
+              </div>
+
+              {plan === "pro" && (
+                <div className="flex flex-col gap-4">
+                  <FormField
+                    control={linkForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem className="w-full relative">
+                        <FormLabel className="text-sm font-medium">
+                          Password (optional)
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Enter password (min 6 characters)"
+                              className="pr-10"
+                              {...field}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowPassword(!showPassword)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                              tabIndex={-1}
+                            >
+                              {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                              ) : (
+                                <Eye className="h-4 w-4" />
+                              )}
+                            </button>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={linkForm.control}
+                    name="passwordHint"
+                    render={({ field }) => (
+                      <FormItem className="w-full relative">
+                        <FormLabel className="text-sm font-medium">
+                          Password Hint (optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="e.g., Company name + year"
+                            {...field}
+                          />
+                        </FormControl>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          This hint will be shown to users when they try to
+                          access the link
+                        </p>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
+            </div>
           </form>
         </Form>
+
         <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
           Ways to share
         </h2>
@@ -293,7 +383,7 @@ export const LinksCreate = () => {
                       presetChosen == 0 && "border-2 border-primary",
                     )}
                   >
-                    <div className="w-full h-full rounded-full bg-[#000]"></div>
+                    <div className="w-full h-full rounded-full bg-black"></div>
                   </Button>
                   <Button
                     variant={"outline"}
@@ -443,6 +533,8 @@ export const LinksCreate = () => {
                   longUrl: data.destination,
                   title: data.title,
                   customCode: data.customCode,
+                  password: data.password,
+                  passwordHint: data.passwordHint,
                 });
                 if (!firstLinkResponse.success) {
                   switch (firstLinkResponse.message) {
@@ -473,6 +565,14 @@ export const LinksCreate = () => {
                       linkForm.setError("destination", {
                         type: "manual",
                         message: "You have reached your plan's link limit.",
+                      });
+                      setCreating(false);
+                      return;
+                    case "password-pro-only":
+                      linkForm.setError("password", {
+                        type: "manual",
+                        message:
+                          "Password protection is only available for Pro accounts.",
                       });
                       setCreating(false);
                       return;
@@ -543,6 +643,8 @@ export const LinksCreate = () => {
                   longUrl: data.destination,
                   title: data.title,
                   customCode: data.customCode,
+                  password: data.password,
+                  passwordHint: data.passwordHint,
                 });
                 if (!firstLinkResponse.success) {
                   switch (firstLinkResponse.message) {
@@ -573,6 +675,14 @@ export const LinksCreate = () => {
                       linkForm.setError("destination", {
                         type: "manual",
                         message: "You have reached your plan's link limit.",
+                      });
+                      setCreating(false);
+                      return;
+                    case "password-pro-only":
+                      linkForm.setError("password", {
+                        type: "manual",
+                        message:
+                          "Password protection is only available for Pro accounts.",
                       });
                       setCreating(false);
                       return;

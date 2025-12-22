@@ -69,7 +69,6 @@ export const CancelSubscriptionButton = ({
       if (data.success) {
         console.log("Scheduled cancellation:", data);
         setOpen(false);
-        // Redirect to cancellation success page
         router.push(
           `/dashboard/subscription/canceled?scheduled=${data.scheduledFor}`,
         );
@@ -107,7 +106,6 @@ export const CancelSubscriptionButton = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Reason Selection */}
           <div className="space-y-2">
             <Label htmlFor="reason">
               Reason for cancellation <span className="text-red-500">*</span>
@@ -126,7 +124,6 @@ export const CancelSubscriptionButton = ({
             </Select>
           </div>
 
-          {/* Comment/Feedback */}
           <div className="space-y-2">
             <Label htmlFor="comment">Additional feedback (optional)</Label>
             <Textarea

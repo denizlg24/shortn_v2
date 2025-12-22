@@ -12,15 +12,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
-import { BASEURL, fetchApi } from "@/lib/utils";
+import { BASEURL } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
-import { SubscriptionsType } from "@/utils/plan-utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { usePlan } from "@/hooks/use-plan";
 
 const pageFormSchema = z.object({
   title: z
@@ -38,25 +37,7 @@ const pageFormSchema = z.object({
 });
 
 export const CreatePage = ({ url }: { url?: IUrl }) => {
-  const { isPending, isRefetching } = authClient.useSession();
-  const [plan, setPlan] = useState("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
   const [creating, setCreating] = useState(false);
   const pageForm = useForm<z.infer<typeof pageFormSchema>>({
     resolver: zodResolver(pageFormSchema),

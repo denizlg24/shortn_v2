@@ -60,31 +60,13 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  const { plan } = usePlan();
   const [currentQrCode, setCurrentQrCode] = useState<TQRCode>(qrCode);
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);

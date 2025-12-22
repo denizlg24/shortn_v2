@@ -84,12 +84,11 @@ export async function POST(req: Request) {
         }
       }
 
-      // Set the subscription to cancel at period end
       const subscription = await polarClient.subscriptions.update({
         id,
         subscriptionUpdate: {
           cancelAtPeriodEnd: true,
-          // Store reason and comment in metadata if provided
+
           ...(parsed.data.reason || parsed.data.comment
             ? {
                 metadata: {
@@ -105,7 +104,6 @@ export async function POST(req: Request) {
         },
       });
 
-      // Save the scheduled change to database
       const scheduledChange = await ScheduledChange.create({
         userId: data.user.id,
         subscriptionId: id,

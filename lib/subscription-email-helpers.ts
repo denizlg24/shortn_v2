@@ -150,7 +150,6 @@ export async function sendPaymentSuccessfulEmail(params: {
     manageSubscriptionLink: `${BASEURL}/dashboard/settings/plan`,
   });
 
-  // Fetch invoice attachment if URL provided
   let attachments:
     | Array<{ filename: string; content: string | Buffer }>
     | undefined;

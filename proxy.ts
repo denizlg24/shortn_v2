@@ -26,6 +26,7 @@ const PUBLIC_PATHS = [
   "contact",
   "dashboard",
   "url-not-found",
+  "authenticate",
 ];
 const LOCALES = routing.locales;
 
@@ -64,7 +65,9 @@ export async function proxy(request: NextRequest) {
   const isLogin = request.nextUrl.pathname.startsWith(`/${locale}/login`);
   const isRegister = request.nextUrl.pathname.startsWith(`/${locale}/register`);
   const isUrlNotFound = request.nextUrl.pathname === `/${locale}/url-not-found`;
-
+  const isAuthenticate = request.nextUrl.pathname.startsWith(
+    `/${locale}/authenticate`,
+  );
   if (isDashboard && !isLoggedIn) {
     const response = NextResponse.redirect(
       new URL(`/${locale}/login`, request.nextUrl),
@@ -79,7 +82,7 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  if (!isDashboard && !isUrlNotFound && isLoggedIn) {
+  if (!isDashboard && !isUrlNotFound && !isAuthenticate && isLoggedIn) {
     const response = NextResponse.redirect(
       new URL(`/${locale}/dashboard`, request.nextUrl),
     );

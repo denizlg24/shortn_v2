@@ -3,12 +3,10 @@
 import { generateCSVFromClicks } from "@/app/actions/linkActions";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { Download, Lock } from "lucide-react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 export const DownloadButtonCSV = ({
   filename,
@@ -23,26 +21,7 @@ export const DownloadButtonCSV = ({
   lockedTitle?: string;
   title?: string;
 }) => {
-  const { isPending, isRefetching } = authClient.useSession();
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
   return plan == "pro" ? (
     <Button
       className={cn("min-[420px]:text-sm text-xs", className)}

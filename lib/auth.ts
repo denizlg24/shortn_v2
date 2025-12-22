@@ -316,7 +316,6 @@ export const auth = betterAuth({
           onSubscriptionActive: async (payload) => {
             console.log("Subscription active:", payload.data.id);
 
-            // Check for pending downgrades that should be executed
             try {
               const { connectDB } = await import("@/lib/mongodb");
               const ScheduledChange = (
@@ -335,14 +334,12 @@ export const auth = betterAuth({
                 const scheduledFor = new Date(pendingDowngrade.scheduledFor);
                 const now = new Date();
 
-                // Execute if the scheduled time has passed
                 if (scheduledFor <= now) {
                   console.log(
                     `Executing pending downgrade for subscription ${payload.data.id}`,
                   );
 
                   try {
-                    // Get the target product ID from the database
                     const targetProductId =
                       pendingDowngrade.targetPlan === "pro"
                         ? env.PRO_PLAN_ID
@@ -356,7 +353,6 @@ export const auth = betterAuth({
                       targetProductId &&
                       payload.data.productId !== targetProductId
                     ) {
-                      // Execute the downgrade
                       await polarClient.subscriptions.update({
                         id: payload.data.id,
                         subscriptionUpdate: {
@@ -366,7 +362,6 @@ export const auth = betterAuth({
                         },
                       });
 
-                      // Mark as executed
                       await ScheduledChange.findByIdAndUpdate(
                         pendingDowngrade._id,
                         {
@@ -378,7 +373,6 @@ export const auth = betterAuth({
                         `Successfully executed downgrade to ${pendingDowngrade.targetPlan}`,
                       );
                     } else {
-                      // Already on the target product, mark as executed
                       await ScheduledChange.findByIdAndUpdate(
                         pendingDowngrade._id,
                         {
@@ -398,7 +392,6 @@ export const auth = betterAuth({
               console.error("Error checking for pending downgrades:", error);
             }
 
-            // Send activation email
             try {
               const { sendSubscriptionActiveEmail } = await import(
                 "@/lib/subscription-email-helpers"
@@ -460,7 +453,6 @@ export const auth = betterAuth({
               if (!endDate) return;
 
               if (!existingScheduledChange && endDate > new Date()) {
-                // End date is in the future, create a scheduled cancellation
                 const scheduledChange = await ScheduledChange.create({
                   userId: user.externalId,
                   subscriptionId: payload.data.id,
