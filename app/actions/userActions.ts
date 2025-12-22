@@ -7,7 +7,6 @@ import { sendEmail, sendReactEmail } from "./sendEmail";
 import { resetPasswordEmailTemplate } from "@/lib/email-templates";
 import { ReactNode } from "react";
 
-// Keep legacy function for backward compatibility
 export async function sendReactEmailLegacy({
   react,
   email,

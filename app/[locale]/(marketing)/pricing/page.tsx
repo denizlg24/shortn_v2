@@ -259,7 +259,6 @@ export default function Home({
                               const values = sectionData[title] as
                                 | string[]
                                 | number[];
-                              // Find the index of this plan in the plans array
                               const planIdx = plans.findIndex(
                                 (p) => p.id === plan.id,
                               );

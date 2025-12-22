@@ -29,13 +29,13 @@ export function groupClicksByDateAndTimeBuckets(
   clicks: ClickEntry[],
   bucketSizeHours = 6,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): TimeOfDayStackBarData[] {
   const defaultEnd = endOfDay(new Date());
   const defaultStart = new Date(
     new Date().getFullYear(),
     new Date().getMonth() - 2,
-    1
+    1,
   );
 
   const rangeStart = startDate ? startOfDay(startDate) : defaultStart;
@@ -43,7 +43,6 @@ export function groupClicksByDateAndTimeBuckets(
 
   const bucketsPerDay = Math.ceil(24 / bucketSizeHours);
 
-  // grouped data: { [date]: { [bucket]: count } }
   const grouped: Record<string, Record<string, number>> = {};
 
   const getBucketLabel = (hour: number) => {
@@ -102,7 +101,7 @@ function generateChartConfig(data: TimeOfDayStackBarData[]) {
           color: `var(--chart-${(i % 5) + 1})`,
         },
       ];
-    })
+    }),
   ) satisfies ChartConfig;
 }
 
@@ -120,7 +119,7 @@ export function TimeOfDayStackedBarChart({
         if (k !== "date") acc.add(k);
       });
       return acc;
-    }, new Set<string>())
+    }, new Set<string>()),
   );
   const chartConfig = generateChartConfig(chartData);
   return (

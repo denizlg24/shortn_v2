@@ -43,32 +43,12 @@ import {
 } from "@/components/ui/hover-card";
 import { toast } from "sonner";
 import { uploadImage } from "@/app/actions/uploadImage";
-import { useEffect } from "react";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
-import { fetchApi } from "@/lib/utils";
+import { usePlan } from "@/hooks/use-plan";
 export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
 
   const [options, setOptions] = useState<Partial<Options>>({
     type: "svg",

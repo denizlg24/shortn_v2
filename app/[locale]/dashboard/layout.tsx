@@ -11,6 +11,7 @@ import { DashboardHeaderClient } from "@/components/ui/dasboard-header-client";
 import { AbortControllerProvider } from "@/utils/AbortContext";
 import ScrollToTop from "@/utils/ScrollToTop";
 import { getServerSession } from "@/lib/session";
+import { PlanProvider } from "@/hooks/use-plan";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -72,12 +73,14 @@ export default async function RootLayout({
         <AbortControllerProvider>
           <ScrollToTop />
           <NextIntlClientProvider>
-            <SidebarProvider defaultOpen={defaultOpen}>
-              <AppSidebar />
-              <DashboardHeaderClient />
-              {children}
-              <Toaster position="top-center" />
-            </SidebarProvider>
+            <PlanProvider>
+              <SidebarProvider defaultOpen={defaultOpen}>
+                <AppSidebar />
+                <DashboardHeaderClient />
+                {children}
+                <Toaster position="top-center" />
+              </SidebarProvider>
+            </PlanProvider>
           </NextIntlClientProvider>
         </AbortControllerProvider>
       </body>

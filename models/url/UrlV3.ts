@@ -27,6 +27,9 @@ export interface IUrl extends Document {
     term?: string;
     content?: string;
   }[];
+  passwordProtected: boolean;
+  passwordHash?: string;
+  passwordHint?: string;
   recordClick: () => Promise<IUrl>;
 }
 
@@ -57,6 +60,9 @@ export interface TUrl {
     term?: string;
     content?: string;
   }[];
+  passwordProtected: boolean;
+  passwordHash?: string;
+  passwordHint?: string;
 }
 
 const UrlSchema = new Schema<IUrl>({
@@ -89,6 +95,9 @@ const UrlSchema = new Schema<IUrl>({
     total: { type: Number, default: 0 },
     lastClick: { type: Date, default: null },
   },
+  passwordProtected: { type: Boolean, default: false, index: true },
+  passwordHash: { type: String },
+  passwordHint: { type: String, maxlength: 100 },
 });
 
 UrlSchema.methods.recordClick = async function () {

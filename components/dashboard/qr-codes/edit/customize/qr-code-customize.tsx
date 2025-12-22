@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { Loader2, LockIcon, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
 import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
@@ -40,35 +40,13 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
-import { fetchApi } from "@/lib/utils";
+import { usePlan } from "@/hooks/use-plan";
 
 export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
   const [options, setOptions] = useState<Partial<Options>>(qrCode.options);
 
   const router = useRouter();
-  const { isPending, isRefetching } = authClient.useSession();
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
 
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
 

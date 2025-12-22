@@ -58,7 +58,7 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import QRCodeStyling from "qr-code-styling";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 export const QRCodeCard = ({
   qrCode,
@@ -71,28 +71,9 @@ export const QRCodeCard = ({
   removeTag: (tagId: string) => void;
   tags: string[];
 }) => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
 
   const allowedLinks = {
     free: 3,

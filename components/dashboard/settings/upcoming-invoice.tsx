@@ -107,7 +107,6 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Billing Date */}
         {invoice.nextBillingDate && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -122,7 +121,6 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
 
         <Separator />
 
-        {/* Current Plan Amount */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Current Plan</span>
@@ -136,7 +134,6 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
           </div>
         </div>
 
-        {/* Scheduled Change Notice */}
         {willBeCanceled && (
           <>
             <Separator />
@@ -229,7 +226,6 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
           </>
         )}
 
-        {/* Regular next invoice (no scheduled changes) */}
         {!hasScheduledChange && !invoice.cancelAtPeriodEnd && (
           <>
             <Separator />
@@ -242,7 +238,6 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
           </>
         )}
 
-        {/* Info about billing */}
         <div className="pt-2 space-y-2">
           <p className="text-xs text-muted-foreground">
             {invoice.status === "trialing"

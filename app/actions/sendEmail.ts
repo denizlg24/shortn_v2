@@ -34,7 +34,6 @@ export async function sendEmail({
   }
 }
 
-// Legacy support for React emails
 export async function sendReactEmail({
   from,
   to,

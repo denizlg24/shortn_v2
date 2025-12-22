@@ -19,7 +19,7 @@ import {
 import { Separator } from "./separator";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { LocaleSwitcher } from "./locale-switcher";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Sheet,
   SheetContent,
@@ -36,44 +36,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./dialog";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ScrollPopoverContent } from "./scroll-popover-content";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 export const DashboardHeaderClient = () => {
-  const { isPending, isRefetching, data } = authClient.useSession();
-  const [plan, setPlan] = useState<string>("free");
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchPlan = async () => {
-      try {
-        const res = await fetchApi<{
-          plan: SubscriptionsType;
-          lastPaid?: Date;
-        }>("auth/user/subscription");
-
-        if (isMounted) {
-          if (res.success) {
-            console.log("Fetched plan:", res.plan);
-            setPlan(res.plan);
-          } else {
-            setPlan("free");
-          }
-        }
-      } catch (_error) {
-        if (isMounted) setPlan("free");
-      }
-    };
-
-    fetchPlan();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isRefetching, isPending]);
+  const { data } = authClient.useSession();
+  const { plan } = usePlan();
   const user = data?.user;
   const [open, setOpen] = useState(false);
   const [hamburguerOpen, setHamburguerOpen] = useState(false);

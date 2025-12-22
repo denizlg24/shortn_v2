@@ -6,7 +6,7 @@ import { TUrl } from "@/models/url/UrlV3";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { DashboardStats } from "./dashboard-stats";
 import { RecentActivity } from "./recent-activity";
-import { SubscriptionsType } from "@/utils/plan-utils";
+import { usePlan } from "@/hooks/use-plan";
 
 interface DashboardData {
   totalLinks: number;
@@ -22,24 +22,17 @@ interface DashboardData {
 export const DashboardOverview = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
+  const { plan } = usePlan();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [dashboardResponse, planResponse] = await Promise.all([
-          fetchApi<{ data: DashboardData }>("dashboard/stats"),
-          fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-            "auth/user/subscription",
-          ),
-        ]);
+        const dashboardResponse = await fetchApi<{ data: DashboardData }>(
+          "dashboard/stats",
+        );
 
         if (dashboardResponse.success) {
           setData(dashboardResponse.data);
-        }
-
-        if (planResponse.success) {
-          setPlan(planResponse.plan);
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);

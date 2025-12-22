@@ -17,6 +17,7 @@ import { Campaigns } from "@/models/url/Campaigns";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { User } from "@/models/auth/User";
 import { format } from "date-fns";
+import bcrypt from "bcryptjs";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -24,6 +25,8 @@ interface CreateUrlInput {
   tags?: string[];
   customCode?: string;
   qrCodeId?: string;
+  password?: string;
+  passwordHint?: string;
 }
 
 async function fetchPageTitle(url: string): Promise<string | null> {
@@ -52,6 +55,8 @@ export async function createShortn({
   tags = [],
   customCode,
   qrCodeId,
+  password,
+  passwordHint,
 }: CreateUrlInput) {
   try {
     const session = await getServerSession();
@@ -64,6 +69,14 @@ export async function createShortn({
     }
     const sub = user?.sub;
     const { plan } = await getUserPlan();
+
+    if (password && plan !== "pro") {
+      return {
+        success: false,
+        message: "password-pro-only",
+      };
+    }
+
     await connectDB();
     const headersList = await headers();
     const host = headersList.get("host");
@@ -155,6 +168,11 @@ export async function createShortn({
       }
     }
 
+    let passwordHash: string | undefined = undefined;
+    if (password) {
+      passwordHash = await bcrypt.hash(password, 10);
+    }
+
     const newUrl = await UrlV3.create({
       sub,
       urlCode,
@@ -164,6 +182,9 @@ export async function createShortn({
       title: resolvedTitle,
       tags: finalTags,
       qrCodeId,
+      passwordProtected: !!password,
+      passwordHash,
+      passwordHint: passwordHint || undefined,
     });
 
     const updated = await User.findByIdAndUpdate(session.user.id, {
@@ -182,6 +203,7 @@ export async function createShortn({
         shortUrl: newUrl.urlCode,
         longUrl: newUrl.longUrl,
         title: newUrl.title,
+        passwordProtected: !!password,
       },
     };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -313,6 +335,9 @@ export const updateShortnData = async ({
   custom_code,
   applyToQRCode,
   longUrl,
+  password,
+  passwordHint,
+  removePassword,
 }: {
   urlCode: string;
   title: string;
@@ -320,6 +345,9 @@ export const updateShortnData = async ({
   custom_code?: string;
   applyToQRCode: boolean;
   longUrl: string;
+  password?: string;
+  passwordHint?: string;
+  removePassword?: boolean;
 }) => {
   try {
     const session = await getServerSession();
@@ -332,6 +360,15 @@ export const updateShortnData = async ({
       };
     }
     const sub = user?.sub;
+    const { plan } = await getUserPlan();
+
+    if ((password || passwordHint) && plan !== "pro") {
+      return {
+        success: false,
+        message: "password-pro-only",
+      };
+    }
+
     await connectDB();
     if (custom_code && urlCode != custom_code) {
       const existing = await UrlV3.findOne({ urlCode: custom_code });
@@ -344,7 +381,6 @@ export const updateShortnData = async ({
       }
     }
 
-    const { plan } = await getUserPlan();
     if (custom_code && plan != "pro") {
       return { success: false, message: "custom-restricted" };
     }
@@ -366,6 +402,21 @@ export const updateShortnData = async ({
     updateQuery.title = title;
     updateQuery.tags = tags;
     updateQuery.longUrl = longUrl;
+
+    if (removePassword) {
+      updateQuery.passwordProtected = false;
+      updateQuery.passwordHash = undefined;
+      updateQuery.passwordHint = undefined;
+    } else if (password) {
+      updateQuery.passwordProtected = true;
+      updateQuery.passwordHash = await bcrypt.hash(password, 10);
+      updateQuery.passwordHint = passwordHint || undefined;
+    } else if (passwordHint !== undefined) {
+      if (foundUrl.passwordProtected) {
+        updateQuery.passwordHint = passwordHint || undefined;
+      }
+    }
+
     let updateCode: false | string = false;
     if (custom_code) {
       updateQuery.urlCode = custom_code;
