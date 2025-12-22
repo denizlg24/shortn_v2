@@ -23,7 +23,6 @@ export async function GET(
       const accessCookie = request.cookies.get(`link_access_${slug}`);
 
       if (!accessCookie) {
-        console.log(`${url.origin}/authenticate/${slug}`);
         return NextResponse.redirect(`${url.origin}/authenticate/${slug}`, 302);
       }
 
