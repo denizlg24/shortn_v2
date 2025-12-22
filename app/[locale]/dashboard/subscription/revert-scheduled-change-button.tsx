@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface PendingChange {
-  id: string;
+  _id: string;
   changeType: "cancellation" | "downgrade";
   currentPlan: string;
   targetPlan: string;
@@ -27,9 +27,11 @@ interface PendingChange {
 export const RevertScheduledChangeButton = ({
   children,
   pendingChange,
+  onRevertSuccess,
 }: {
   children: React.ReactNode;
   pendingChange: PendingChange;
+  onRevertSuccess?: () => void;
 }) => {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -53,6 +55,10 @@ export const RevertScheduledChangeButton = ({
       if (data.success) {
         console.log("Reverted scheduled change:", data);
         setOpen(false);
+        // Call the success callback if provided
+        if (onRevertSuccess) {
+          onRevertSuccess();
+        }
         // Refresh the page to show updated state
         router.refresh();
       } else {
