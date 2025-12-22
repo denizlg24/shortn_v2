@@ -599,7 +599,7 @@ export default async function TermsPage({
             <p>
               <strong>Email:</strong>{" "}
               <a
-                href="mailto:legal@shortn.at"
+                href="mailto:geral@shortn.at"
                 className="text-primary hover:underline"
               >
                 geral@shortn.at
