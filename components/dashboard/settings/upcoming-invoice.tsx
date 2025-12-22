@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, TrendingDown, XCircle } from "lucide-react";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getUpcomingInvoice } from "@/app/actions/polarActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RevertScheduledChangeButton } from "@/app/[locale]/dashboard/subscription/revert-scheduled-change-button";
@@ -38,7 +38,7 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchInvoice = async () => {
+  const fetchInvoice = useCallback(async () => {
     try {
       setLoading(true);
       const result = await getUpcomingInvoice();
@@ -54,11 +54,11 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchInvoice();
-  }, []);
+  }, [fetchInvoice]);
 
   if (loading) {
     return (
