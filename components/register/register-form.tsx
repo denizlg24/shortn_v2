@@ -250,33 +250,6 @@ export const RegisterForm = () => {
                     onRequest: () => {
                       setLoading(2);
                     },
-                    onSuccess: async () => {
-                      const session = await authClient.getSession();
-
-                      if (!session.data?.user || !session.data?.session) {
-                        setLoading(0);
-                        form.setError("root", {
-                          type: "manual",
-                          message: "Unable to retrieve user session",
-                        });
-                        await authClient.signOut();
-                        return;
-                      }
-
-                      const user = session.data.user;
-
-                      if (!user.emailVerified) {
-                        setLoading(0);
-                        form.setError("root", {
-                          type: "manual",
-                          message:
-                            "Please verify your email address before logging in",
-                        });
-                        await authClient.signOut();
-                        return;
-                      }
-                      setLoading(0);
-                    },
                     onError: (ctx) => {
                       console.log(ctx);
                       setLoading(0);
@@ -304,33 +277,6 @@ export const RegisterForm = () => {
                   {
                     onRequest: () => {
                       setLoading(3);
-                    },
-                    onSuccess: async () => {
-                      const session = await authClient.getSession();
-
-                      if (!session.data?.user || !session.data?.session) {
-                        setLoading(0);
-                        form.setError("root", {
-                          type: "manual",
-                          message: "Unable to retrieve user session",
-                        });
-                        await authClient.signOut();
-                        return;
-                      }
-
-                      const user = session.data.user;
-
-                      if (!user.emailVerified) {
-                        setLoading(0);
-                        form.setError("root", {
-                          type: "manual",
-                          message:
-                            "Please verify your email address before logging in",
-                        });
-                        await authClient.signOut();
-                        return;
-                      }
-                      setLoading(0);
                     },
                     onError: (ctx) => {
                       console.log(ctx);

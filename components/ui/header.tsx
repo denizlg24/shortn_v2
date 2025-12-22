@@ -78,7 +78,7 @@ export const Header = () => {
         <NavigationMenu className="border-l w-full h-full sm:flex hidden pl-4">
           <NavigationMenuList className="gap-4">
             <Popover>
-              <PopoverTrigger asChild>
+              <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
                     "p-0! hover:bg-transparent! border-0! shadow-none! text-primary!",
