@@ -270,6 +270,7 @@ export const LinksCreate = () => {
                               type={showPassword ? "text" : "password"}
                               placeholder="Enter password (min 6 characters)"
                               className="pr-10"
+                              minLength={6}
                               {...field}
                             />
                             <button
