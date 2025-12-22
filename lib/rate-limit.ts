@@ -1,122 +1,154 @@
-/**
- * In-memory rate limiting implementation for password verification
- * This is a simple, free solution that doesn't require external APIs
- */
+import RateLimit from "@/models/RateLimit";
+import { connectDB } from "./mongodb";
 
-interface RateLimitEntry {
-  attempts: number;
-  resetTime: number;
+interface RateLimitResult {
+  allowed: boolean;
+  attemptsRemaining: number;
+  resetTime?: Date;
+  blockedUntil?: Date;
 }
 
-class RateLimiter {
-  private attempts: Map<string, RateLimitEntry> = new Map();
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private readonly maxAttempts: number;
-  private readonly windowMs: number;
+interface RateLimitConfig {
+  maxAttempts: number;
+  windowMs: number;
+  blockDurationMs: number;
+}
 
-  constructor(maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000) {
-    this.maxAttempts = maxAttempts;
-    this.windowMs = windowMs;
+const DEFAULT_CONFIG: RateLimitConfig = {
+  maxAttempts: 5,
+  windowMs: 15 * 60 * 1000,
+  blockDurationMs: 60 * 60 * 1000,
+};
 
-    // Start cleanup interval to prevent memory leaks
-    this.startCleanup();
-  }
+/**
+ * Check and update rate limit for a given identifier
+ * @param identifier - Unique identifier (e.g., IP + urlCode)
+ * @param config - Rate limit configuration
+ * @returns RateLimitResult indicating if request is allowed
+ */
+export async function checkRateLimit(
+  identifier: string,
+  config: Partial<RateLimitConfig> = {},
+): Promise<RateLimitResult> {
+  await connectDB();
 
-  /**
-   * Check if a request should be rate limited
-   * @param identifier - Unique identifier for the request (e.g., IP address or urlCode)
-   * @returns Object with success status and remaining attempts
-   */
-  check(identifier: string): {
-    success: boolean;
-    remaining: number;
-    resetTime: number;
-  } {
-    const now = Date.now();
-    const entry = this.attempts.get(identifier);
+  const finalConfig = { ...DEFAULT_CONFIG, ...config };
+  const now = new Date();
 
-    // If no entry exists or the window has expired, allow the request
-    if (!entry || now >= entry.resetTime) {
-      this.attempts.set(identifier, {
-        attempts: 1,
-        resetTime: now + this.windowMs,
-      });
+  let rateLimitDoc = await RateLimit.findOne({ identifier });
 
-      return {
-        success: true,
-        remaining: this.maxAttempts - 1,
-        resetTime: now + this.windowMs,
-      };
-    }
+  if (!rateLimitDoc) {
+    rateLimitDoc = await RateLimit.create({
+      identifier,
+      attempts: 1,
+      lastAttempt: now,
+    });
 
-    // If under the limit, increment and allow
-    if (entry.attempts < this.maxAttempts) {
-      entry.attempts++;
-      this.attempts.set(identifier, entry);
-
-      return {
-        success: true,
-        remaining: this.maxAttempts - entry.attempts,
-        resetTime: entry.resetTime,
-      };
-    }
-
-    // Over the limit, deny the request
     return {
-      success: false,
-      remaining: 0,
-      resetTime: entry.resetTime,
+      allowed: true,
+      attemptsRemaining: finalConfig.maxAttempts - 1,
     };
   }
 
-  /**
-   * Reset the rate limit for a specific identifier
-   * Useful for clearing attempts after successful authentication
-   */
-  reset(identifier: string): void {
-    this.attempts.delete(identifier);
+  if (rateLimitDoc.blockedUntil && rateLimitDoc.blockedUntil > now) {
+    return {
+      allowed: false,
+      attemptsRemaining: 0,
+      blockedUntil: rateLimitDoc.blockedUntil,
+    };
   }
 
-  /**
-   * Clean up expired entries to prevent memory leaks
-   */
-  private cleanup(): void {
-    const now = Date.now();
-    for (const [key, entry] of this.attempts.entries()) {
-      if (now >= entry.resetTime) {
-        this.attempts.delete(key);
-      }
-    }
+  const windowExpired =
+    now.getTime() - rateLimitDoc.lastAttempt.getTime() > finalConfig.windowMs;
+
+  if (windowExpired) {
+    rateLimitDoc.attempts = 1;
+    rateLimitDoc.lastAttempt = now;
+    rateLimitDoc.blockedUntil = undefined;
+    await rateLimitDoc.save();
+
+    return {
+      allowed: true,
+      attemptsRemaining: finalConfig.maxAttempts - 1,
+    };
   }
 
-  /**
-   * Start periodic cleanup
-   */
-  private startCleanup(): void {
-    // Clean up expired entries every 5 minutes
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+  rateLimitDoc.attempts += 1;
+  rateLimitDoc.lastAttempt = now;
 
-    // Ensure cleanup doesn't prevent Node.js from exiting
-    if (this.cleanupInterval.unref) {
-      this.cleanupInterval.unref();
-    }
+  if (rateLimitDoc.attempts > finalConfig.maxAttempts) {
+    rateLimitDoc.blockedUntil = new Date(
+      now.getTime() + finalConfig.blockDurationMs,
+    );
+    await rateLimitDoc.save();
+
+    return {
+      allowed: false,
+      attemptsRemaining: 0,
+      blockedUntil: rateLimitDoc.blockedUntil,
+    };
   }
 
-  /**
-   * Stop the cleanup interval (for testing or shutdown)
-   */
-  stopCleanup(): void {
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-  }
+  await rateLimitDoc.save();
+
+  return {
+    allowed: true,
+    attemptsRemaining: finalConfig.maxAttempts - rateLimitDoc.attempts,
+  };
 }
 
-// Create a singleton instance for password verification
-// 5 attempts per 15 minutes
-export const passwordRateLimiter = new RateLimiter(5, 15 * 60 * 1000);
+/**
+ * Reset rate limit for a given identifier (e.g., after successful authentication)
+ * @param identifier - Unique identifier
+ */
+export async function resetRateLimit(identifier: string): Promise<void> {
+  await connectDB();
+  await RateLimit.deleteOne({ identifier });
+}
 
-export default RateLimiter;
+/**
+ * Get client IP address from request headers
+ * @param request - Next.js request object
+ * @returns IP address string
+ */
+export function getClientIp(request: Request): string {
+  const headers = request.headers;
+
+  const forwardedFor = headers.get("x-forwarded-for");
+  if (forwardedFor) {
+    return forwardedFor.split(",")[0].trim();
+  }
+
+  const realIp = headers.get("x-real-ip");
+  if (realIp) {
+    return realIp;
+  }
+
+  const cfConnectingIp = headers.get("cf-connecting-ip");
+  if (cfConnectingIp) {
+    return cfConnectingIp;
+  }
+
+  return "unknown";
+}
+
+/**
+ * Format time remaining until unblock
+ * @param blockedUntil - Date when user will be unblocked
+ * @returns Human-readable string
+ */
+export function formatBlockedTime(blockedUntil: Date): string {
+  const now = new Date();
+  const diff = blockedUntil.getTime() - now.getTime();
+
+  if (diff <= 0) return "now";
+
+  const minutes = Math.ceil(diff / (60 * 1000));
+
+  if (minutes < 60) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
+  }
+
+  const hours = Math.ceil(minutes / 60);
+  return `${hours} hour${hours > 1 ? "s" : ""}`;
+}

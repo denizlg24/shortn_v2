@@ -13,6 +13,9 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(
+    null,
+  );
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,6 +40,11 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
       if (data.success) {
         router.push(`/${slug}`);
       } else {
+        // Update attempts remaining if provided
+        if (typeof data.attemptsRemaining === "number") {
+          setAttemptsRemaining(data.attemptsRemaining);
+        }
+
         setError(data.message || "Incorrect password. Please try again.");
       }
     } catch (err) {
@@ -81,7 +89,15 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>
+            {error}
+            {attemptsRemaining !== null && attemptsRemaining > 0 && (
+              <span className="block mt-1 text-xs">
+                {attemptsRemaining}{" "}
+                {attemptsRemaining === 1 ? "attempt" : "attempts"} remaining
+              </span>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 

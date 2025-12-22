@@ -4,7 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import env from "@/utils/env";
-import { passwordRateLimiter } from "@/lib/rate-limit";
+import {
+  checkRateLimit,
+  resetRateLimit,
+  getClientIp,
+  formatBlockedTime,
+} from "@/lib/rate-limit";
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 
@@ -19,39 +24,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get IP address for rate limiting
-    const ip =
-      request.headers.get("x-forwarded-for") ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
+    const clientIp = getClientIp(request);
+    const rateLimitIdentifier = `password_verify:${urlCode}:${clientIp}`;
 
-    // Create a unique identifier combining IP and urlCode
-    // This prevents an attacker from rate limiting legitimate users
-    const rateLimitKey = `${ip}:${urlCode}`;
+    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, {
+      maxAttempts: 5,
+      windowMs: 15 * 60 * 1000,
+      blockDurationMs: 60 * 60 * 1000,
+    });
 
-    // Check rate limit
-    const rateLimitResult = passwordRateLimiter.check(rateLimitKey);
-
-    if (!rateLimitResult.success) {
-      const resetTime = new Date(rateLimitResult.resetTime);
-      const minutesUntilReset = Math.ceil(
-        (rateLimitResult.resetTime - Date.now()) / 60000,
-      );
+    if (!rateLimitResult.allowed) {
+      const timeRemaining = rateLimitResult.blockedUntil
+        ? formatBlockedTime(rateLimitResult.blockedUntil)
+        : "some time";
 
       return NextResponse.json(
         {
           success: false,
-          message: `Too many failed attempts. Please try again in ${minutesUntilReset} minute${minutesUntilReset > 1 ? "s" : ""}.`,
+          message: `Too many failed attempts. Please try again in ${timeRemaining}.`,
+          blockedUntil: rateLimitResult.blockedUntil,
         },
-        {
-          status: 429,
-          headers: {
-            "X-RateLimit-Limit": "5",
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": resetTime.toISOString(),
-            "Retry-After": String(Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)),
-          },
-        },
+        { status: 429 },
       );
     }
 
@@ -80,18 +73,13 @@ export async function POST(request: NextRequest) {
         {
           success: false,
           message: "Incorrect password",
+          attemptsRemaining: rateLimitResult.attemptsRemaining,
         },
-        {
-          status: 401,
-          headers: {
-            "X-RateLimit-Remaining": String(rateLimitResult.remaining - 1),
-          },
-        },
+        { status: 401 },
       );
     }
 
-    // Password is correct - reset rate limit for this identifier
-    passwordRateLimiter.reset(rateLimitKey);
+    await resetRateLimit(rateLimitIdentifier);
 
     const token = await new SignJWT({ urlCode })
       .setProtectedHeader({ alg: "HS256" })
