@@ -1,10 +1,14 @@
 import { connectDB } from "@/lib/mongodb";
 import UrlV3 from "@/models/url/UrlV3";
 import { geolocation, ipAddress } from "@vercel/functions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { jwtVerify } from "jose";
+import env from "@/utils/env";
+
+const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const url = new URL(request.url);
@@ -14,6 +18,21 @@ export async function GET(
     const urlDoc = await UrlV3.findOne({ urlCode: slug });
     if (!urlDoc)
       return NextResponse.redirect(`${url.origin}/en/url-not-found`, 302);
+
+    if (urlDoc.passwordProtected) {
+      const accessCookie = request.cookies.get(`link_access_${slug}`);
+
+      if (!accessCookie) {
+        return NextResponse.redirect(`${url.origin}/authenticate/${slug}`, 302);
+      }
+
+      try {
+        await jwtVerify(accessCookie.value, SECRET_KEY);
+      } catch (error) {
+        console.error("Invalid or expired access token:", error);
+        return NextResponse.redirect(`${url.origin}/authenticate/${slug}`, 302);
+      }
+    }
 
     const clickData = {
       slug,

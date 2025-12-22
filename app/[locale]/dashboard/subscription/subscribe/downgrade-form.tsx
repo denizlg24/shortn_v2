@@ -95,16 +95,14 @@ export const DowngradeForm = ({
 
       if (data.success) {
         setOpen(false);
-        // Redirect to success page with signed subscription ID
+
         router.push(
           `/dashboard/subscription/success?sid=${data.subscription.id}&sig=${data.signature}&action=downgrade`,
         );
       } else if (data.paymentFailed) {
-        // Payment failed - redirect to failure page
         setOpen(false);
         router.push(`/dashboard/subscription/success?status=payment_failed`);
       } else {
-        // Handle other API error responses
         setError(
           data.message || "Failed to update subscription. Please try again.",
         );

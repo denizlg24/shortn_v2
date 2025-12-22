@@ -59,16 +59,14 @@ export const UpgradeSessionButton = ({
         const subscription = data.subscription as Subscription;
         console.log("Updated subscription:", subscription);
         setOpen(false);
-        // Redirect to success page with signed subscription ID
+
         router.push(
           `/dashboard/subscription/success?sid=${subscription.id}&sig=${data.signature}&action=upgrade`,
         );
       } else if (data.paymentFailed) {
-        // Payment failed - redirect to failure page
         setOpen(false);
         router.push(`/dashboard/subscription/success?status=payment_failed`);
       } else {
-        // Handle other API error responses
         setError(
           data.message || "Failed to update subscription. Please try again.",
         );

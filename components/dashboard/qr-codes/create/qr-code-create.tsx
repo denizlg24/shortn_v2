@@ -1,7 +1,7 @@
 "use client";
 
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Options } from "qr-code-styling";
 import { Skeleton } from "@/components/ui/skeleton";
 import { z } from "zod";
@@ -64,8 +64,7 @@ import { toast } from "sonner";
 import { uploadImage } from "@/app/actions/uploadImage";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
-import { fetchApi } from "@/lib/utils";
+import { usePlan } from "@/hooks/use-plan";
 
 const qrCodeFormSchema = z.object({
   destination: z
@@ -95,27 +94,9 @@ export const QRCodeCreate = ({
   state: "configure" | "customize";
   setState: (arg0: "configure" | "customize") => void;
 }) => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
   const allowedLinks = {
     free: 3,
     basic: 25,

@@ -1,5 +1,9 @@
 "use client";
-import { deleteShortn, generateCSV } from "@/app/actions/linkActions";
+import {
+  deleteShortn,
+  generateCSV,
+  updateShortnData,
+} from "@/app/actions/linkActions";
 import {
   addTagToLink,
   createAndAddTagToUrl,
@@ -32,12 +36,10 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { authClient } from "@/lib/authClient";
 import { cn, fetchApi } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
-import { SubscriptionsType } from "@/utils/plan-utils";
 
 import {
   Calendar,
@@ -46,7 +48,10 @@ import {
   CopyCheck,
   Edit2,
   Ellipsis,
+  Eye,
+  EyeOff,
   FileChartColumn,
+  KeyRound,
   LockIcon,
   PlusCircle,
   Share2,
@@ -67,33 +72,15 @@ import {
 } from "next-share";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { usePlan } from "@/hooks/use-plan";
 
 export const LinkDetailsCard = ({
   currentLink: initialLink,
 }: {
   currentLink: TUrl;
 }) => {
-  const { isPending, isRefetching } = authClient.useSession();
   const [currentLink, setCurrentLink] = useState<TUrl>(initialLink);
-  const [plan, setPlan] = useState<SubscriptionsType>("free");
-  useEffect(() => {
-    if (isPending || isRefetching) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        console.log("Fetched plan:", res.plan);
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching]);
+  const { plan } = usePlan();
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);
@@ -103,6 +90,14 @@ export const LinkDetailsCard = ({
     input != "" && (!hasExactMatch || tagOptions.length === 0);
 
   const [justCopied, setJustCopied] = useState(false);
+
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [passwordHint, setPasswordHint] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+
+  const isPro = plan === "pro";
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -130,6 +125,81 @@ export const LinkDetailsCard = ({
 
   const router = useRouter();
 
+  const handlePasswordSubmit = async () => {
+    if (!isPro) {
+      toast.error("Password protection is only available for Pro users.");
+      return;
+    }
+
+    setIsPasswordLoading(true);
+    try {
+      const response = await updateShortnData({
+        urlCode: currentLink.urlCode,
+        title: currentLink.title || "",
+        tags: (currentLink.tags || []) as ITag[],
+        applyToQRCode: false,
+        longUrl: currentLink.longUrl,
+        password: password,
+        passwordHint: passwordHint || undefined,
+      });
+
+      if (response.success) {
+        toast.success("Password protection enabled successfully!");
+        setCurrentLink((prev) => ({
+          ...prev,
+          passwordProtected: true,
+          passwordHint: passwordHint || undefined,
+        }));
+        setPasswordDialogOpen(false);
+        setPassword("");
+        setPasswordHint("");
+        router.refresh();
+      } else {
+        toast.error("Failed to enable password protection.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while updating the link.");
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
+  const handlePasswordRemove = async () => {
+    setIsPasswordLoading(true);
+    try {
+      const response = await updateShortnData({
+        urlCode: currentLink.urlCode,
+        title: currentLink.title || "",
+        tags: (currentLink.tags || []) as ITag[],
+        applyToQRCode: false,
+        longUrl: currentLink.longUrl,
+        removePassword: true,
+      });
+
+      if (response.success) {
+        toast.success("Password protection removed successfully!");
+        setCurrentLink((prev) => ({
+          ...prev,
+          passwordProtected: false,
+          passwordHash: undefined,
+          passwordHint: undefined,
+        }));
+        setPasswordDialogOpen(false);
+        setPassword("");
+        setPasswordHint("");
+        router.refresh();
+      } else {
+        toast.error("Failed to remove password protection.");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("An error occurred while updating the link.");
+    } finally {
+      setIsPasswordLoading(false);
+    }
+  };
+
   if (!currentLink) {
     return null;
   }
@@ -137,9 +207,24 @@ export const LinkDetailsCard = ({
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
       <div className="w-full flex flex-row items-start justify-between">
-        <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
-          {currentLink.title}
-        </h1>
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-row items-center gap-2">
+            <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
+              {currentLink.title}
+            </h1>
+            {currentLink.passwordProtected && (
+              <div className="flex flex-row items-center gap-1 text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
+                <LockIcon className="w-3 h-3" />
+                <span className="text-xs font-medium">Protected</span>
+              </div>
+            )}
+          </div>
+          {currentLink.passwordProtected && (
+            <p className="text-xs text-muted-foreground">
+              This link requires a password to access
+            </p>
+          )}
+        </div>
         <div className="md:flex hidden flex-row items-center gap-2">
           <Button
             onClick={async () => {
@@ -249,6 +334,149 @@ export const LinkDetailsCard = ({
               <Edit2 />
             </Link>
           </Button>
+
+          <Dialog
+            open={passwordDialogOpen}
+            onOpenChange={setPasswordDialogOpen}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "p-2! aspect-square!",
+                  currentLink.passwordProtected &&
+                    "border-primary bg-secondary",
+                )}
+              >
+                <KeyRound
+                  className={cn(
+                    currentLink.passwordProtected && "text-primary",
+                  )}
+                />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {currentLink.passwordProtected
+                    ? "Manage Password Protection"
+                    : "Add Password Protection"}
+                </DialogTitle>
+                <DialogDescription>
+                  {currentLink.passwordProtected
+                    ? "This link is currently password protected. You can remove the password below."
+                    : isPro
+                      ? "Protect your link with a password. Only users with the password can access it."
+                      : "Password protection is a Pro feature. Upgrade to enable this feature."}
+                </DialogDescription>
+              </DialogHeader>
+
+              {!isPro ? (
+                <div className="flex flex-col gap-4">
+                  <div className="p-4 bg-secondary rounded-lg border">
+                    <p className="text-sm text-secondary-foreground">
+                      Upgrade to Pro to protect your links with passwords.
+                    </p>
+                  </div>
+                  <Button asChild>
+                    <Link href="/dashboard/subscription">
+                      <LockIcon className="w-4 h-4 mr-2" />
+                      Upgrade to Pro
+                    </Link>
+                  </Button>
+                </div>
+              ) : currentLink.passwordProtected ? (
+                <div className="flex flex-col gap-4">
+                  <div className="p-4 bg-secondary rounded-lg border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <LockIcon className="w-4 h-4 text-secondary-foreground" />
+                      <p className="text-sm font-semibold text-secondary-foreground">
+                        Password Protected
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      This link is currently protected. Users must enter the
+                      password to access it.
+                    </p>
+                    {currentLink.passwordHint && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        <strong>Hint:</strong> {currentLink.passwordHint}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={handlePasswordRemove}
+                    disabled={isPasswordLoading}
+                  >
+                    {isPasswordLoading
+                      ? "Removing..."
+                      : "Remove Password Protection"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <label htmlFor="password" className="text-sm font-medium">
+                      Password
+                    </label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter password"
+                        className="pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="passwordHint"
+                      className="text-sm font-medium"
+                    >
+                      Password Hint (Optional)
+                    </label>
+                    <Input
+                      id="passwordHint"
+                      type="text"
+                      value={passwordHint}
+                      onChange={(e) => setPasswordHint(e.target.value)}
+                      placeholder="e.g., Your birthday"
+                      maxLength={100}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      This hint will be shown to users who need to enter the
+                      password.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={handlePasswordSubmit}
+                    disabled={!password || isPasswordLoading}
+                  >
+                    {isPasswordLoading
+                      ? "Enabling..."
+                      : "Enable Password Protection"}
+                  </Button>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
           <Popover>
             <PopoverTrigger asChild>
               <Button variant={"outline"} className="p-2! aspect-square!">
@@ -623,6 +851,20 @@ export const LinkDetailsCard = ({
             <Edit2 />
           </Link>
         </Button>
+
+        <Button
+          variant={"outline"}
+          className={cn(
+            "p-1.5! h-fit! aspect-square!",
+            currentLink.passwordProtected && "border-primary bg-secondary",
+          )}
+          onClick={() => setPasswordDialogOpen(true)}
+        >
+          <KeyRound
+            className={cn(currentLink.passwordProtected && "text-primary")}
+          />
+        </Button>
+
         <Popover>
           <PopoverTrigger asChild>
             <Button

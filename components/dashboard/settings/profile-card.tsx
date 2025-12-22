@@ -187,7 +187,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
         body: JSON.stringify(accountActivity),
       });
       await signOutUser();
-      Cookies.set("flow_request_change_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+      Cookies.set("flow_request_change_success", "true", { expires: 30 / 288 });
       Cookies.set("flow_request_change_email", values.email, {
         expires: 30 / 288,
       });
@@ -210,7 +210,6 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
     const updated = [0, 0, 0];
     const updateFields: Record<string, string> = {};
 
-    // Update phone number
     if (form.getFieldState("phone").isDirty) {
       const { error } = await authClient.updateUser(
         {
@@ -240,7 +239,6 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       }
     }
 
-    // Update username
     if (form.getFieldState("username").isDirty) {
       const { error } = await authClient.updateUser(
         {
@@ -260,7 +258,6 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       }
     }
 
-    // Update display name
     if (form.getFieldState("name").isDirty) {
       const { error } = await authClient.updateUser(
         { name: values.name },

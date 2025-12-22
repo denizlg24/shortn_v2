@@ -31,7 +31,6 @@ export default async function SubscriptionCanceledPage({
   return (
     <div className="flex w-full pt-12 justify-center px-4 pb-12">
       <div className="w-full max-w-2xl space-y-8">
-        {/* Header */}
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center">
             <CalendarX className="h-16 w-16 text-amber-600" />
@@ -47,9 +46,7 @@ export default async function SubscriptionCanceledPage({
           </div>
         </div>
 
-        {/* Cancellation Details */}
         <div className="space-y-6">
-          {/* Main Details Section */}
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Cancellation Details
@@ -78,7 +75,6 @@ export default async function SubscriptionCanceledPage({
             </div>
           </div>
 
-          {/* What Happens Next Section */}
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               What Happens Next
@@ -117,7 +113,6 @@ export default async function SubscriptionCanceledPage({
           </div>
         </div>
 
-        {/* Information Banner */}
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <h3 className="text-sm font-semibold text-amber-900 mb-2">
             Changed your mind?
@@ -134,7 +129,6 @@ export default async function SubscriptionCanceledPage({
           </Button>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg">
             <Link href="/dashboard">
@@ -144,7 +138,6 @@ export default async function SubscriptionCanceledPage({
           </Button>
         </div>
 
-        {/* Feedback Section */}
         <div className="rounded-lg border bg-muted/30 p-4 text-center">
           <p className="text-sm text-muted-foreground">
             We appreciate your feedback. If you have any questions or concerns,

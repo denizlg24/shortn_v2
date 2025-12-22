@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -22,8 +22,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { authClient } from "@/lib/authClient";
-import { SubscriptionsType } from "@/utils/plan-utils";
 import { Skeleton } from "@/components/ui/skeleton"; // Make sure to import Skeleton
+import { usePlan } from "@/hooks/use-plan";
 
 const urlFormSchema = z.object({
   destination: z
@@ -89,9 +89,9 @@ export const getLinksLeft = (
 };
 
 export const QuickCreate = ({ className }: { className?: string }) => {
-  const { data, isPending, isRefetching } = authClient.useSession();
+  const { data } = authClient.useSession();
   const user = data?.user;
-  const [plan, setPlan] = useState("free");
+  const { plan } = usePlan();
 
   const [mounted, setMounted] = useState(false);
 
@@ -99,24 +99,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (isPending || isRefetching || !user) {
-      return;
-    }
-    const fetchPlan = async () => {
-      const res = await fetchApi<{ plan: SubscriptionsType; lastPaid?: Date }>(
-        "auth/user/subscription",
-      );
-
-      if (res.success) {
-        setPlan(res.plan);
-      } else {
-        setPlan("free");
-      }
-    };
-    fetchPlan();
-  }, [isPending, isRefetching, user]);
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
     resolver: zodResolver(urlFormSchema),
@@ -136,7 +118,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   const [linkLoading, setLinkLoading] = useState(false);
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
 
-  const isLoading = !mounted || isPending || isRefetching;
+  const isLoading = !mounted;
 
   return (
     <Card

@@ -36,7 +36,6 @@ export async function getSubscriptionDetails(
   subscriptionId: string,
   signature: string,
 ) {
-  // Verify the signature
   if (!verifySubscriptionId(subscriptionId, signature)) {
     return {
       success: false,
@@ -167,7 +166,6 @@ export async function getCheckoutSessionDetails(checkoutId: string) {
  */
 export async function getPolarPortalUrl() {
   try {
-    // Get the current user's session
     const {
       result: { items: subscriptions },
     } = await auth.api.subscriptions({
@@ -182,7 +180,6 @@ export async function getPolarPortalUrl() {
       };
     }
 
-    // Get the customer ID from the first subscription
     const subscription = subscriptions[0];
     const customerId = subscription.customerId;
 
@@ -193,7 +190,6 @@ export async function getPolarPortalUrl() {
       };
     }
 
-    // Create a customer portal session
     const portalSession = await polarClient.customerSessions.create({
       customerId,
     });
@@ -233,10 +229,8 @@ export async function getUpcomingInvoice() {
       };
     }
 
-    // Get subscription details
     const subscription = await polarClient.subscriptions.get({ id });
 
-    // Get pending scheduled change
     const pendingChange = await getPendingScheduledChange();
 
     const upcomingInvoice = {
@@ -251,7 +245,6 @@ export async function getUpcomingInvoice() {
       status: subscription.status,
     };
 
-    // Add scheduled change information if exists
     if (pendingChange) {
       return {
         success: true,
@@ -263,8 +256,7 @@ export async function getUpcomingInvoice() {
             type: pendingChange.changeType,
             targetPlan: pendingChange.targetPlan,
             scheduledFor: pendingChange.scheduledFor,
-            // If it's a cancellation, next invoice will be $0
-            // If it's a downgrade, we need to fetch the target plan price
+
             willBeCanceled: pendingChange.changeType === "cancellation",
           },
         },

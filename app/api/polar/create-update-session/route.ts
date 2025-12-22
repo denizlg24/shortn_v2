@@ -57,12 +57,9 @@ export async function POST(req: Request) {
             ? env.PLUS_PLAN_ID
             : env.BASIC_PLAN_ID;
 
-      // Connect to database
       await connectDB();
 
-      // Handle downgrade differently - schedule with QStash
       if (parsed.data.downgrade) {
-        // Check if there's already a pending change for this subscription
         const existingChange = await ScheduledChange.findOne({
           subscriptionId: id,
           status: "pending",
@@ -79,7 +76,6 @@ export async function POST(req: Request) {
           );
         }
 
-        // Fetch current subscription to get period end date
         const subscription = await polarClient.subscriptions.get({ id });
 
         if (!subscription.currentPeriodEnd) {
@@ -92,7 +88,6 @@ export async function POST(req: Request) {
           );
         }
 
-        // Determine current plan
         let currentPlan: SubscriptionsType = "free";
         if (subscription.product?.name) {
           switch (subscription.product.id) {
@@ -108,22 +103,17 @@ export async function POST(req: Request) {
           }
         }
 
-        // Calculate delay in seconds
         const executeAt = new Date(subscription.currentPeriodEnd);
         const delayInSeconds = Math.floor(
           (executeAt.getTime() - Date.now()) / 1000,
         );
 
-        // QStash has a max delay of 7 days (604800 seconds)
-        const QSTASH_MAX_DELAY = 604800; // 7 days in seconds
+        const QSTASH_MAX_DELAY = 604800;
         let qstashMessageId: string | undefined;
 
-        // Only schedule with QStash if delay is within the limit
         if (delayInSeconds <= QSTASH_MAX_DELAY && delayInSeconds > 0) {
-          // Initialize QStash client
           const { qstashClient } = await import("@/lib/qstash");
 
-          // Schedule the downgrade with QStash
           const result = await qstashClient.publishJSON({
             retries: 1,
             body: {
@@ -144,7 +134,6 @@ export async function POST(req: Request) {
           );
         }
 
-        // Save the scheduled change to database
         const scheduledChange = await ScheduledChange.create({
           userId: data.user.id,
           subscriptionId: id,
@@ -174,14 +163,12 @@ export async function POST(req: Request) {
         });
       }
 
-      // Handle upgrade - check if there's a pending cancellation and reactivate if needed
       const pendingChange = await ScheduledChange.findOne({
         subscriptionId: id,
         status: "pending",
       });
 
       if (pendingChange) {
-        // Reactivate the subscription if it's set to cancel
         const currentSubscription = await polarClient.subscriptions.get({ id });
         if (currentSubscription.cancelAtPeriodEnd) {
           await polarClient.subscriptions.update({
@@ -191,7 +178,6 @@ export async function POST(req: Request) {
             },
           });
 
-          // Mark the scheduled change as reverted
           pendingChange.status = "reverted";
           await pendingChange.save();
 
@@ -199,12 +185,11 @@ export async function POST(req: Request) {
         }
       }
 
-      // Handle upgrade - apply immediately with invoice
       const subscription = await polarClient.subscriptions.update({
         id,
         subscriptionUpdate: {
           productId: newProductId,
-          // Upgrade: "invoice" charges immediately for prorated difference
+
           prorationBehavior: "invoice",
           cancelAtPeriodEnd: false,
         },
