@@ -1,13 +1,11 @@
-import { getStripeExtraInfo, getUserPlan } from "@/app/actions/stripeActions";
 import { redirect } from "@/i18n/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden, notFound } from "next/navigation";
-import { SubscribeForm } from "./subscribe-form";
 
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
-import { UpgradeForm } from "./upgrade-form";
 import { DowngradeForm } from "./downgrade-form";
 import { getServerSession } from "@/lib/session";
+import { getUserPlan } from "@/app/actions/polarActions";
 
 export default async function Home({
   params,
@@ -28,11 +26,9 @@ export default async function Home({
   if (!user) {
     forbidden();
   }
-  const stripeCustomer = await getStripeExtraInfo(
-    session.user.stripeCustomerId,
-  );
+
   const response = await getUserPlan();
-  if (!response.success || !response.plan) {
+  if (!response.plan) {
     notFound();
   }
   if (tier == response.plan) {
@@ -40,51 +36,29 @@ export default async function Home({
   }
 
   if (response.plan == "free") {
-    return (
-      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
-        <SubscribeForm
-          user={{
-            ...session.user,
-            tax_ids: stripeCustomer.tax_ids?.data || [],
-            phone_number: stripeCustomer.phone_number,
-          }}
-          address={stripeCustomer.address}
-          tier={tier as "basic" | "plus" | "pro"}
-        />
-      </main>
-    );
+    redirect({ href: "/dashboard/subscription", locale });
   }
   const relativeOrder = getRelativeOrder(
-    response.plan,
+    response.plan as SubscriptionsType,
     tier as SubscriptionsType,
   );
   if (relativeOrder == 0) {
     redirect({ href: "/dashboard/settings/plan", locale });
   }
   if (relativeOrder < 0) {
+    if (tier === "free") {
+      redirect({ href: "/dashboard/settings/plan", locale });
+    }
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
         <DowngradeForm
           tier={tier as SubscriptionsType}
-          currentPlan={response.plan}
+          currentPlan={response.plan as SubscriptionsType}
         />
       </main>
     );
   }
   if (relativeOrder > 0) {
-    return (
-      <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
-        <UpgradeForm
-          user={{
-            ...session.user,
-            tax_ids: stripeCustomer.tax_ids?.data || [],
-            phone_number: stripeCustomer.phone_number,
-          }}
-          address={stripeCustomer.address}
-          tier={tier as "basic" | "plus" | "pro"}
-          upgradeLevel={relativeOrder}
-        />
-      </main>
-    );
+    redirect({ href: "/dashboard/subscription", locale });
   }
 }

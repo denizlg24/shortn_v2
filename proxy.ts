@@ -24,6 +24,8 @@ const PUBLIC_PATHS = [
   "privacy",
   "terms",
   "contact",
+  "dashboard",
+  "url-not-found",
 ];
 const LOCALES = routing.locales;
 
@@ -31,27 +33,31 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const path = pathname.replace(/^\/+/, "");
   const segments = path.split("/");
-  if (PUBLIC_PATHS.some((prefix) => path.startsWith(prefix))) {
-    return NextResponse.next();
-  }
-  const first =
-    segments[0] !== ""
-      ? segments[0]
-      : request.cookies.get("NEXT_LOCALE")?.value || "en";
+  const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
+  const first = segments[0] !== "" ? segments[0] : locale;
   const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
   if (!isLocale) {
-    const slug = first;
+    if (segments.length === 1 && !PUBLIC_PATHS.includes(first)) {
+      const slug = first;
 
-    return NextResponse.rewrite(
-      new URL(`/api/get-long-url/${slug}`, request.nextUrl),
-    );
+      return NextResponse.rewrite(
+        new URL(`/api/get-long-url/${slug}`, request.nextUrl),
+      );
+    } else {
+      return NextResponse.redirect(
+        new URL(
+          `/${locale}${pathname}?${request.nextUrl.searchParams.toString()}`,
+          request.nextUrl,
+        ),
+      );
+    }
   }
 
   const sessionCookie = getSessionCookie(request, {
     cookiePrefix: "shortn_auth_",
   });
   const isLoggedIn = !!sessionCookie;
-  const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
+
   const isDashboard = request.nextUrl.pathname.startsWith(
     `/${locale}/dashboard`,
   );

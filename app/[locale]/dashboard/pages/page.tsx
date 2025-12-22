@@ -10,7 +10,7 @@ import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PagesContainer } from "./pages-container";
 import { getServerSession } from "@/lib/session";
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { forbidden } from "next/navigation";
 
 export default async function Home({

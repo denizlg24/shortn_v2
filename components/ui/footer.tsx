@@ -1,5 +1,7 @@
 import { Link } from "@/i18n/navigation";
 import { Separator } from "@radix-ui/react-separator";
+import { TodaysDate } from "./todays-date";
+import { Suspense } from "react";
 
 export const Footer = () => {
   return (
@@ -30,7 +32,13 @@ export const Footer = () => {
       </div>
       <Separator className="mt-6 mb-6 w-full h-[1px] bg-accent-foreground/25 max-w-7xl" />
       <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
-        <p>&copy; {new Date().getFullYear()} Shortn.at</p>
+        <p>
+          &copy;{" "}
+          <Suspense fallback={<>2025</>}>
+            <TodaysDate />
+          </Suspense>{" "}
+          Shortn.at
+        </p>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
         <Link href={"/terms"}>Terms & conditions</Link>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>

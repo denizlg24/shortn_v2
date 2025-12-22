@@ -79,6 +79,7 @@ export const RegisterForm = () => {
         password: values.password,
         username: values.nickname,
         name: values.fullName,
+        phone_number: "",
         callbackURL: `${BASEURL}/${locale}/login`,
       },
       {

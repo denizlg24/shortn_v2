@@ -1,4 +1,4 @@
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
 import Clicks, { ClickEntry } from "@/models/url/Click";

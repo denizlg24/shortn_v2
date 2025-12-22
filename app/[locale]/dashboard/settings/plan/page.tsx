@@ -1,4 +1,4 @@
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan, getPolarPortalUrl } from "@/app/actions/polarActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -13,9 +13,11 @@ import {
   allowed_qr_codes,
 } from "@/utils/plan-utils";
 import { endOfMonth, format, startOfMonth } from "date-fns";
-import { Check, X } from "lucide-react";
+import { Check, ExternalLink, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
+import { redirect } from "next/navigation";
+import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
 
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
@@ -44,10 +46,10 @@ export default async function Home({
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Plan details
+        Plan & Billing
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Consult your plan&apos;s usage report and features.
+        Manage your subscription plan, usage, and billing details.
       </h2>
       <Separator className="my-4" />
       <div className="max-w-xl flex flex-col gap-4 w-full my-4">
@@ -242,6 +244,35 @@ export default async function Home({
                 </div>
               </TabsContent>
             </Tabs>
+          </Card>
+        </div>
+        {plan !== "free" && <UpcomingInvoice />}
+        <div className="w-full flex flex-col gap-2">
+          <h1 className="sm:text-base text-sm font-semibold">
+            Billing Management
+          </h1>
+          <Card className="w-full p-0 gap-0!">
+            <CardContent className="p-4 flex flex-col gap-3">
+              <p className="text-sm text-muted-foreground">
+                Manage your payment methods, view invoices, update billing
+                information, and access your complete billing history through
+                our secure billing portal.
+              </p>
+              <form
+                action={async () => {
+                  "use server";
+                  const result = await getPolarPortalUrl();
+                  if (result.success && result.url) {
+                    redirect(result.url);
+                  }
+                }}
+              >
+                <Button type="submit" className="w-full sm:w-auto">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Open Billing Portal
+                </Button>
+              </form>
+            </CardContent>
           </Card>
         </div>
       </div>

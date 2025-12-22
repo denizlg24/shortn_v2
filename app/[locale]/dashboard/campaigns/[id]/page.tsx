@@ -12,7 +12,7 @@ import { DeleteCampaignButton } from "./delete-campaign-button";
 import { DownloadButtonCSV } from "@/components/dashboard/links/download-csv-button";
 import Clicks from "@/models/url/Click";
 import { getServerSession } from "@/lib/session";
-import { getUserPlan } from "@/app/actions/stripeActions";
+import { getUserPlan } from "@/app/actions/polarActions";
 import { AddLinkToCampaignDialog } from "@/components/dashboard/campaigns/add-link-to-campaign-dialog";
 
 export default async function Home({
