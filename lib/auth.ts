@@ -86,27 +86,22 @@ export const auth = betterAuth({
     user: {
       update: {
         after: async (user, ctx) => {
-          // Handle email change - revoke all sessions
-          if (
-            ctx?.context.session?.user.email &&
-            user.email !== ctx?.context.session?.user.email
-          ) {
-            console.log(
-              `Email changed for user ${user.id}. Revoking all sessions.`,
-            );
-            await connectDB();
-            await Session.deleteMany({ userId: user.id });
-          }
-
-          // Update Polar customer if email or name changed
           const emailChanged =
             ctx?.context.session?.user.email &&
             user.email !== ctx?.context.session?.user.email;
+
           const nameChanged =
             ctx?.context.session?.user.name &&
             user.name !== ctx?.context.session?.user.name;
 
           if (emailChanged || nameChanged) {
+            if (emailChanged) {
+              console.log(
+                `Email changed for user ${user.id}. Revoking all sessions.`,
+              );
+              await connectDB();
+              await Session.deleteMany({ userId: user.id });
+            }
             try {
               console.log(
                 `Updating Polar customer for user ${user.id} (sub: ${user.sub})`,
