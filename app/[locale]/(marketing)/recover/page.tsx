@@ -12,7 +12,7 @@ export default function Home({
   setRequestLocale(locale);
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 mb-16">
-      <div className="w-full flex flex-col max-w-lg p-4 gap-6 sm:pt-8">
+      <div className="w-full flex flex-col max-w-lg px-4 py-6 gap-6 sm:pt-16">
         <RecoverPassword />
       </div>
     </main>

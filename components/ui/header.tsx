@@ -2,11 +2,9 @@
 import { Link } from "@/i18n/navigation";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "./navigation-menu";
 import Image from "next/image";
@@ -16,6 +14,7 @@ import Hamburger from "hamburger-react";
 
 import {
   BarChart,
+  ChevronDown,
   Contact,
   HelpCircle,
   LinkIcon,
@@ -42,6 +41,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "./accordion";
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -76,17 +77,21 @@ export const Header = () => {
         </Link>
         <NavigationMenu className="border-l w-full h-full sm:flex hidden pl-4">
           <NavigationMenuList className="gap-4">
-            <NavigationMenuItem>
-              <NavigationMenuTrigger
-                className={cn(
-                  "p-0! hover:bg-transparent!",
-                  !isScrolled && "bg-transparent!",
-                )}
-              >
-                Platform
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  className={cn(
+                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary!",
+                    !isScrolled && "bg-transparent!",
+                    navigationMenuTriggerStyle(),
+                  )}
+                >
+                  Platform
+                  <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="center" asChild>
+                <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4 z-99">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
                     <h1 className="font-semibold uppercase text-muted-foreground">
                       Products
@@ -98,22 +103,24 @@ export const Header = () => {
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/products/url-shortener"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-accent flex items-center justify-center p-2">
-                        <LinkIcon className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          URL Shortener
-                        </h2>
-                        <p className="text-xs">
-                          Customize, share and track links
-                        </p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/products/url-shortener"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-accent flex items-center justify-center p-2">
+                          <LinkIcon className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            URL Shortener
+                          </h2>
+                          <p className="text-xs">
+                            Customize, share and track links
+                          </p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
 
                   <Button
@@ -121,70 +128,76 @@ export const Header = () => {
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/products/qr-code"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
-                        <QrCode className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          QR Code Generator
-                        </h2>
-                        <p className="text-xs">
-                          Dynamic solutions to fit every business need
-                        </p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/products/qr-code"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
+                          <QrCode className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            QR Code Generator
+                          </h2>
+                          <p className="text-xs">
+                            Dynamic solutions to fit every business need
+                          </p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
                   <Button
                     asChild
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/products/pages"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
-                        <NotepadText className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          Pages
-                        </h2>
-                        <p className="text-xs">
-                          Mobile-friendly, no-code landing pages
-                        </p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/products/pages"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
+                          <NotepadText className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            Pages
+                          </h2>
+                          <p className="text-xs">
+                            Mobile-friendly, no-code landing pages
+                          </p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
                   <Button
                     asChild
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/products/analytics"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
-                        <BarChart className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          Analytics
-                        </h2>
-                        <p className="text-xs">
-                          A central place to track performance
-                        </p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/products/analytics"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
+                          <BarChart className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            Analytics
+                          </h2>
+                          <p className="text-xs">
+                            A central place to track performance
+                          </p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
                 </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+              </PopoverContent>
+            </Popover>
             <NavigationMenuItem>
               <NavigationMenuLink
                 asChild
@@ -197,17 +210,21 @@ export const Header = () => {
                 <Link href="/pricing">Pricing</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavigationMenuTrigger
-                className={cn(
-                  "p-0! hover:bg-transparent!",
-                  !isScrolled && "bg-transparent!",
-                )}
-              >
-                Resources
-              </NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4">
+            <Popover>
+              <PopoverTrigger className="group" asChild>
+                <Button
+                  className={cn(
+                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary!",
+                    !isScrolled && "bg-transparent!",
+                    navigationMenuTriggerStyle(),
+                  )}
+                >
+                  Resources
+                  <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="center" asChild>
+                <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4 z-99">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
                     <h1 className="font-semibold uppercase text-muted-foreground">
                       Find Answers
@@ -219,20 +236,22 @@ export const Header = () => {
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/help"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-accent flex items-center justify-center p-2">
-                        <HelpCircle className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          Help Center
-                        </h2>
-                        <p className="text-xs">Get help for our products.</p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/help"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-accent flex items-center justify-center p-2">
+                          <HelpCircle className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            Help Center
+                          </h2>
+                          <p className="text-xs">Get help for our products.</p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
 
                   <Button
@@ -240,44 +259,48 @@ export const Header = () => {
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/contact"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
-                        <Contact className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          Contact Us
-                        </h2>
-                        <p className="text-xs">Get in touch with our team.</p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/contact"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
+                          <Contact className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            Contact Us
+                          </h2>
+                          <p className="text-xs">Get in touch with our team.</p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
                   <Button
                     asChild
                     variant={"ghost"}
                     className="h-full! p-2! -ml-2!"
                   >
-                    <Link
-                      href={"/about"}
-                      className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
-                    >
-                      <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
-                        <Users className="text-primary w-full h-auto aspect-square" />
-                      </div>
-                      <div className="flex flex-col gap-0 w-full">
-                        <h2 className="text-primary font-semibold text-sm">
-                          About Us
-                        </h2>
-                        <p className="text-xs">Find out more about shortn.</p>
-                      </div>
-                    </Link>
+                    <PopoverClose asChild>
+                      <Link
+                        href={"/about"}
+                        className="flex flex-row gap-2 items-stretch col-span-1 hover:bg-border/65"
+                      >
+                        <div className="h-full w-auto aspect-square rounded bg-muted flex items-center justify-center p-2">
+                          <Users className="text-primary w-full h-auto aspect-square" />
+                        </div>
+                        <div className="flex flex-col gap-0 w-full">
+                          <h2 className="text-primary font-semibold text-sm">
+                            About Us
+                          </h2>
+                          <p className="text-xs">Find out more about shortn.</p>
+                        </div>
+                      </Link>
+                    </PopoverClose>
                   </Button>
                 </div>
-              </NavigationMenuContent>
-            </NavigationMenuItem>
+              </PopoverContent>
+            </Popover>
             <div className="w-px h-7 bg-border"></div>
             <NavigationMenuItem asChild>
               <Button

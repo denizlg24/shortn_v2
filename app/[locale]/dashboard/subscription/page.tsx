@@ -275,7 +275,6 @@ export default async function Home({
 
           return (
             <React.Fragment key={section}>
-              {/* Section title */}
               <div
                 id={i == 0 ? "compare" : ""}
                 className="col-span-full bg-muted p-3 border"

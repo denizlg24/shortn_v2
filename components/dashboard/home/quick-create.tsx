@@ -166,7 +166,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </div>
         <TabsContent value="link" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {/* FIX 2: Show Skeleton while loading or not mounted */}
             {isLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (
@@ -272,7 +271,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </TabsContent>
         <TabsContent value="qrcode" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {/* FIX 3: Same Skeleton Logic for QR Codes */}
             {isLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (

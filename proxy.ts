@@ -12,6 +12,18 @@ const PUBLIC_PATHS = [
   "robots.txt",
   "sitemap.xml",
   "b",
+  "pricing",
+  "help",
+  "about",
+  "products",
+  "login",
+  "register",
+  "recover",
+  "reset",
+  "verify",
+  "privacy",
+  "terms",
+  "contact",
 ];
 const LOCALES = routing.locales;
 

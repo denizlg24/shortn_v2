@@ -275,7 +275,6 @@ export const BillingCard = ({
         </h2>
         <Separator className="my-4" />
         <div className="grid sm:grid-cols-2 grid-cols-1 max-w-xl gap-x-8 gap-y-4 w-full my-4 items-start">
-          {/* Skeleton Items */}
           {[...Array(6)].map((_, i) => (
             <div key={i} className="flex flex-col gap-1 w-full col-span-1">
               <Skeleton className="w-[25%] col-span-1 h-4 rounded bg-muted-foreground!" />

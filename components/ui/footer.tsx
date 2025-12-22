@@ -30,11 +30,11 @@ export const Footer = () => {
       </div>
       <Separator className="mt-6 mb-6 w-full h-[1px] bg-accent-foreground/25 max-w-7xl" />
       <div className="w-full max-w-7xl text-sm flex sm:flex-row flex-col gap-2 sm:items-center">
-        <p>&copy; {new Date().getFullYear()} Ocean Informatix</p>
+        <p>&copy; {new Date().getFullYear()} Shortn.at</p>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>Terms & conditions</Link>
+        <Link href={"/terms"}>Terms & conditions</Link>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>Privacy</Link>
+        <Link href={"/privacy"}>Privacy</Link>
       </div>
     </footer>
   );
