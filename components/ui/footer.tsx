@@ -37,12 +37,12 @@ export const Footer = () => {
           <Suspense fallback={<>2025</>}>
             <TodaysDate />
           </Suspense>{" "}
-          Ocean Informatix
+          Shortn.at
         </p>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>Terms & conditions</Link>
+        <Link href={"/terms"}>Terms & conditions</Link>
         <div className="w-[2px] h-[2px] bg-accent-foreground rounded-full sm:block hidden"></div>
-        <Link href={""}>Privacy</Link>
+        <Link href={"/privacy"}>Privacy</Link>
       </div>
     </footer>
   );

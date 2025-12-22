@@ -41,9 +41,9 @@ export default function Home({
           message and we'll respond as soon as possible.
         </h2>
       </div>
-      <div className="w-full py-12 px-2 bg-muted border-b-2">
+      <div className="w-full pb-12 px-2">
         <div className="w-full max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 text-left w-full gap-6 bg-background border rounded-lg p-6">
+          <div className="grid grid-cols-2 text-left w-full gap-6 bg-background border rounded-lg p-6 drop-shadow-xl">
             <ContactForm className="col-span-full w-full" />
           </div>
         </div>

@@ -94,7 +94,7 @@ export default function Home({
               95%
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              More affordable
+              More <br className="xs:hidden block" /> affordable
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
@@ -102,23 +102,29 @@ export default function Home({
               99%
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Uptime SLA
+              Uptime <br className="xs:hidden block" /> SLA
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              5K+
+              5K
+              <span className="text-sm xs:text-base sm:text-lg md:text-xl">
+                +
+              </span>
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Links shortened
+              Links <br className="xs:hidden block" /> shortened
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              35+
+              35
+              <span className="text-sm xs:text-base sm:text-lg md:text-xl">
+                +
+              </span>
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Countries reached
+              Countries <br className="xs:hidden block" /> reached
             </span>
           </div>
         </div>
