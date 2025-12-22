@@ -93,7 +93,7 @@ export async function getPendingScheduledChange() {
     const change = scheduledChange;
 
     return {
-      id: change._id.toString(),
+      _id: change._id.toString(),
       changeType: change.changeType as "cancellation" | "downgrade",
       currentPlan: change.currentPlan as string,
       targetPlan: change.targetPlan as string,
@@ -214,6 +214,75 @@ export async function getPolarPortalUrl() {
     return {
       success: false,
       error: "Failed to generate portal URL",
+    };
+  }
+}
+
+/**
+ * Get upcoming invoice for the current subscription
+ * Includes information about scheduled changes (downgrades/cancellations)
+ */
+export async function getUpcomingInvoice() {
+  try {
+    const { id } = await getUserPlan();
+
+    if (!id) {
+      return {
+        success: false,
+        error: "No active subscription found",
+      };
+    }
+
+    // Get subscription details
+    const subscription = await polarClient.subscriptions.get({ id });
+
+    // Get pending scheduled change
+    const pendingChange = await getPendingScheduledChange();
+
+    const upcomingInvoice = {
+      subscriptionId: subscription.id,
+      currentPlan: subscription.product.name,
+      currentPriceAmount: subscription.amount || 0,
+      currency: subscription.currency || "USD",
+      nextBillingDate: subscription.currentPeriodEnd
+        ? new Date(subscription.currentPeriodEnd)
+        : null,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd || false,
+      status: subscription.status,
+    };
+
+    // Add scheduled change information if exists
+    if (pendingChange) {
+      return {
+        success: true,
+        invoice: {
+          ...upcomingInvoice,
+          hasScheduledChange: true,
+          scheduledChange: {
+            _id: pendingChange._id.toString(),
+            type: pendingChange.changeType,
+            targetPlan: pendingChange.targetPlan,
+            scheduledFor: pendingChange.scheduledFor,
+            // If it's a cancellation, next invoice will be $0
+            // If it's a downgrade, we need to fetch the target plan price
+            willBeCanceled: pendingChange.changeType === "cancellation",
+          },
+        },
+      };
+    }
+
+    return {
+      success: true,
+      invoice: {
+        ...upcomingInvoice,
+        hasScheduledChange: false,
+      },
+    };
+  } catch (error) {
+    console.error("Failed to get upcoming invoice:", error);
+    return {
+      success: false,
+      error: "Failed to fetch upcoming invoice",
     };
   }
 }

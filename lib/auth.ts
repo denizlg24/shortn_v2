@@ -86,6 +86,7 @@ export const auth = betterAuth({
     user: {
       update: {
         after: async (user, ctx) => {
+          // Handle email change - revoke all sessions
           if (
             ctx?.context.session?.user.email &&
             user.email !== ctx?.context.session?.user.email
@@ -95,6 +96,60 @@ export const auth = betterAuth({
             );
             await connectDB();
             await Session.deleteMany({ userId: user.id });
+          }
+
+          // Update Polar customer if email or name changed
+          const emailChanged =
+            ctx?.context.session?.user.email &&
+            user.email !== ctx?.context.session?.user.email;
+          const nameChanged =
+            ctx?.context.session?.user.name &&
+            user.name !== ctx?.context.session?.user.name;
+
+          if (emailChanged || nameChanged) {
+            try {
+              console.log(
+                `Updating Polar customer for user ${user.id} (sub: ${user.sub})`,
+              );
+
+              const customer = await polarClient.customers.getExternal({
+                externalId: user.id,
+              });
+
+              if (customer) {
+                const customerUpdate: { email?: string; name?: string } = {};
+
+                if (emailChanged && user.email) {
+                  customerUpdate.email = user.email;
+                  console.log(
+                    `Updating Polar customer email to: ${user.email}`,
+                  );
+                }
+
+                if (nameChanged && user.name) {
+                  customerUpdate.name = user.name;
+                  console.log(`Updating Polar customer name to: ${user.name}`);
+                }
+
+                await polarClient.customers.update({
+                  id: customer.id,
+                  customerUpdate,
+                });
+
+                console.log(
+                  `Successfully updated Polar customer ${customer.id}`,
+                );
+              } else {
+                console.log(
+                  `No Polar customer found for user ${user.id} (sub: ${user.sub})`,
+                );
+              }
+            } catch (error) {
+              console.error(
+                `Failed to update Polar customer for user ${user.id}:`,
+                error,
+              );
+            }
           }
         },
       },
@@ -369,63 +424,69 @@ export const auth = betterAuth({
             }
           },
 
-          onOrderPaid: async (payload) => {
-            console.log("Order paid:", payload.data.id);
-            try {
-              const { sendPaymentSuccessfulEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
-              const user = payload.data.customer;
-              if (!user) return;
-
-              const subscription = payload.data.subscription;
-              const orderData = payload.data;
-
-              const amount = orderData.totalAmount;
-              const isInvoiceGenerated = orderData.isInvoiceGenerated;
-              if (!isInvoiceGenerated) {
-                try {
-                  await polarClient.orders.generateInvoice({
-                    id: orderData.id,
-                  });
-                } catch (error) {
-                  console.log("Error generating invoice:", error);
-                  //probably because no billing info.
-                }
-              }
-
-              const invoice = await polarClient.orders.invoice({
-                id: orderData.id,
-              });
-
-              await sendPaymentSuccessfulEmail({
-                userEmail: user.email,
-                userName: user.name || "User",
-                planName: payload.data.product?.name || "Premium",
-                amount: amount,
-                currency: orderData.currency,
-                nextBillingDate: subscription?.currentPeriodEnd
-                  ? new Date(subscription.currentPeriodEnd)
-                  : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                invoiceUrl: invoice?.url || undefined,
-              });
-            } catch (error) {
-              console.error("Error sending payment successful email:", error);
-            }
-          },
-
           onSubscriptionCanceled: async (payload) => {
             console.log("Subscription canceled:", payload.data.id);
             try {
               const { sendSubscriptionCanceledEmail } = await import(
                 "@/lib/subscription-email-helpers"
               );
+
               const user = payload.data.customer;
               if (!user) return;
-
+              const { connectDB } = await import("@/lib/mongodb");
+              const ScheduledChange = (
+                await import("@/models/subscription/ScheduledChange")
+              ).default;
+              await connectDB();
+              const existingScheduledChange =
+                await ScheduledChange.findOneAndUpdate(
+                  {
+                    subscriptionId: payload.data.id,
+                    status: "pending",
+                    changeType: "downgrade",
+                  },
+                  { targetPlan: "free", changeType: "cancellation" },
+                );
+              if (
+                existingScheduledChange &&
+                existingScheduledChange.qstashMessageId
+              ) {
+                const { qstashClient } = await import("@/lib/qstash");
+                await qstashClient.messages.delete(
+                  existingScheduledChange.qstashMessageId,
+                );
+                console.log(
+                  `Deleted QStash message: ${existingScheduledChange.qstashMessageId}`,
+                );
+              }
               const endDate =
                 payload.data.currentPeriodEnd || payload.data.endedAt;
+
               if (!endDate) return;
+
+              if (!existingScheduledChange && endDate > new Date()) {
+                // End date is in the future, create a scheduled cancellation
+                const scheduledChange = await ScheduledChange.create({
+                  userId: user.externalId,
+                  subscriptionId: payload.data.id,
+                  changeType: "cancellation",
+                  currentPlan:
+                    payload.data.productId == env.PRO_PLAN_ID
+                      ? "pro"
+                      : payload.data.productId == env.PLUS_PLAN_ID
+                        ? "plus"
+                        : "basic",
+                  targetPlan: "free",
+                  scheduledFor: endDate,
+                  reason: payload.data.customerCancellationReason,
+                  comment: payload.data.customerCancellationComment || "",
+                  status: "pending",
+                });
+
+                console.log(
+                  `Created scheduled cancellation for subscription ${payload.data.id} with ID: ${scheduledChange._id}`,
+                );
+              }
 
               await sendSubscriptionCanceledEmail({
                 userEmail: user.email,

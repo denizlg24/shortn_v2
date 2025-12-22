@@ -17,6 +17,7 @@ import { Check, ExternalLink, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
 import { redirect } from "next/navigation";
+import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
 
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
@@ -245,6 +246,7 @@ export default async function Home({
             </Tabs>
           </Card>
         </div>
+        {plan !== "free" && <UpcomingInvoice />}
         <div className="w-full flex flex-col gap-2">
           <h1 className="sm:text-base text-sm font-semibold">
             Billing Management

@@ -5,9 +5,11 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { polarClient } from "@/lib/polar";
 import {
   getSubscriptionDetails,
   getCheckoutSessionDetails,
+  getPendingScheduledChange,
 } from "@/app/actions/polarActions";
 
 export default async function SubscriptionSuccessPage({
@@ -196,33 +198,68 @@ export default async function SubscriptionSuccessPage({
     );
   }
 
-  // Handle update flow with subscription data
   if (!sid || !sig || !action) {
     redirect({ href: "/dashboard", locale });
   }
 
-  // Type-safe at this point since we checked above
   const result = await getSubscriptionDetails(sid as string, sig as string);
 
   if (!result.success || !result.subscription) {
     redirect({ href: "/dashboard", locale });
   }
 
-  // Type-safe at this point since we checked above
   const subscription = result.subscription!;
   const isUpgrade = action === "upgrade";
-  const planName = subscription.product?.name || "Unknown Plan";
-  const amount = subscription.amount || 0;
-  const currency = subscription.currency || "USD";
-  const interval = subscription.recurringInterval || "month";
 
-  // Format price
+  let displayPlanName = subscription.product?.name || "Unknown Plan";
+  let displayAmount = subscription.amount || 0;
+  let displayCurrency = subscription.currency || "USD";
+  let displayInterval = subscription.recurringInterval || "month";
+  let displayDescription = subscription.product?.description || null;
+
+  if (!isUpgrade) {
+    const pendingChange = await getPendingScheduledChange();
+
+    if (pendingChange && pendingChange.targetPlan) {
+      try {
+        const productsResponse = await polarClient.products.list({
+          page: 1,
+          limit: 100,
+        });
+        const products = productsResponse.result?.items || [];
+        const targetProduct = products.find((p) =>
+          p.name.toLowerCase().includes(pendingChange.targetPlan.toLowerCase()),
+        );
+
+        if (targetProduct) {
+          displayPlanName = targetProduct.name;
+          displayDescription = targetProduct.description;
+
+          if (targetProduct.prices && targetProduct.prices.length > 0) {
+            const price = targetProduct.prices[0];
+
+            if ("priceAmount" in price && price.priceAmount !== undefined) {
+              displayAmount = price.priceAmount;
+            }
+            if ("priceCurrency" in price && price.priceCurrency) {
+              displayCurrency = price.priceCurrency;
+            }
+            if ("recurringInterval" in price && price.recurringInterval) {
+              displayInterval = price.recurringInterval;
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch target product details:", error);
+      }
+    }
+  }
+
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: currency,
-  }).format(amount / 100);
+    currency: displayCurrency,
+  }).format(displayAmount / 100);
 
-  // Calculate proration info if available
   const currentPeriodEnd = subscription.currentPeriodEnd
     ? new Date(subscription.currentPeriodEnd)
     : null;
@@ -239,7 +276,6 @@ export default async function SubscriptionSuccessPage({
   return (
     <div className="flex w-full pt-12 justify-center px-4 pb-12">
       <div className="w-full max-w-2xl space-y-8">
-        {/* Header */}
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center">
             <CheckCircle2 className="h-16 w-16 text-green-600" />
@@ -256,9 +292,7 @@ export default async function SubscriptionSuccessPage({
           </div>
         </div>
 
-        {/* Receipt-like Details */}
         <div className="space-y-6">
-          {/* Subscription Details Section */}
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
               Subscription Details
@@ -266,21 +300,25 @@ export default async function SubscriptionSuccessPage({
             <div className="rounded-lg border bg-card">
               <div className="divide-y">
                 <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">Plan</span>
-                  <span className="text-sm font-semibold">{planName}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {isUpgrade ? "Plan" : "New Plan"}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {displayPlanName}
+                  </span>
                 </div>
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">Status</span>
                   <span className="text-sm font-semibold capitalize">
-                    {subscription.status || "Active"}
+                    {isUpgrade ? subscription.status || "Active" : "Scheduled"}
                   </span>
                 </div>
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">
-                    Billing Amount
+                    {isUpgrade ? "Billing Amount" : "New Billing Amount"}
                   </span>
                   <span className="text-sm font-semibold">
-                    {formattedPrice}/{interval}
+                    {formattedPrice}/{displayInterval}
                   </span>
                 </div>
                 {currentPeriodEnd && (
@@ -297,16 +335,15 @@ export default async function SubscriptionSuccessPage({
             </div>
           </div>
 
-          {/* Product Description */}
-          {subscription.product?.description && (
+          {displayDescription && (
             <div className="space-y-2">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                What You Get
+                {isUpgrade ? "What You Get" : "What's Included"}
               </h2>
               <div className="rounded-lg border bg-card p-4">
                 <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {subscription.product.description}
+                    {displayDescription}
                   </ReactMarkdown>
                 </div>
               </div>
@@ -314,7 +351,6 @@ export default async function SubscriptionSuccessPage({
           )}
         </div>
 
-        {/* Information Banner */}
         {isUpgrade && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <h3 className="text-sm font-semibold text-blue-900 mb-2">
@@ -345,7 +381,6 @@ export default async function SubscriptionSuccessPage({
           </div>
         )}
 
-        {/* Action Button */}
         <div className="flex justify-center pt-4">
           <Button asChild size="lg">
             <Link href="/dashboard">

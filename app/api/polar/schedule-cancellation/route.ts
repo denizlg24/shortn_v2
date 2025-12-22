@@ -6,6 +6,7 @@ import ScheduledChange from "@/models/subscription/ScheduledChange";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { SubscriptionsType } from "@/utils/plan-utils";
+import env from "@/utils/env";
 
 const scheduleCancellationDTO = z.object({
   reason: z.string().optional(),
@@ -71,13 +72,13 @@ export async function POST(req: Request) {
       let currentPlan: SubscriptionsType = "free";
       if (currentSubscription.product.id) {
         switch (currentSubscription.product.id) {
-          case process.env.PRO_PLAN_ID:
+          case env.PRO_PLAN_ID:
             currentPlan = "pro";
             break;
-          case process.env.PLUS_PLAN_ID:
+          case env.PLUS_PLAN_ID:
             currentPlan = "plus";
             break;
-          case process.env.BASIC_PLAN_ID:
+          case env.BASIC_PLAN_ID:
             currentPlan = "basic";
             break;
         }
