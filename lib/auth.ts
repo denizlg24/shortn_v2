@@ -445,7 +445,7 @@ export const auth = betterAuth({
                     status: "pending",
                     changeType: "downgrade",
                   },
-                  { targetPlan: "free" },
+                  { targetPlan: "free", changeType: "cancellation" },
                 );
               if (
                 existingScheduledChange &&
