@@ -15,7 +15,9 @@ export default async function AuthenticateLinkPage({
   setRequestLocale(locale);
 
   await connectDB();
-  const urlDoc = await UrlV3.findOne({ urlCode: slug }).lean();
+  const urlDoc = await UrlV3.findOne({ urlCode: slug })
+    .select("-passwordHash")
+    .lean();
 
   if (!urlDoc) {
     redirect("/");
