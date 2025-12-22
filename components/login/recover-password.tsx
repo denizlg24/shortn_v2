@@ -57,7 +57,7 @@ export const RecoverPassword = () => {
   }
   return (
     <>
-      <div className="flex flex-col gap-0 w-full">
+      <div className="flex flex-col gap-0 w-full items-center text-center">
         <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
           Forgot your password?
         </h1>

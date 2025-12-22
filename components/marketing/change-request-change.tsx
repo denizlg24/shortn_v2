@@ -15,7 +15,6 @@ export function ChangeRequestSent({ initialEmail }: { initialEmail?: string }) {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Success icon visual */}
       <motion.div
         className="flex justify-center"
         initial={{ scale: 0.8, opacity: 0 }}

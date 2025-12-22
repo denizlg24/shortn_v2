@@ -169,7 +169,6 @@ export const RecentActivity = ({
 
   return (
     <>
-      {/* Recent Links */}
       <Card className={cn("p-4 flex flex-col gap-4", className)}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -207,7 +206,6 @@ export const RecentActivity = ({
         )}
       </Card>
 
-      {/* Top Performers */}
       <Card className={cn("p-4 flex flex-col gap-4", className)}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" />
@@ -235,7 +233,6 @@ export const RecentActivity = ({
         )}
       </Card>
 
-      {/* Recent QR Codes */}
       {recentQRCodes && recentQRCodes.length > 0 && (
         <Card className={cn("p-4 flex flex-col gap-4", className)}>
           <div className="flex items-center justify-between">

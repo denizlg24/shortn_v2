@@ -66,7 +66,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
 
   return (
     <>
-      <div className="flex flex-col gap-0 w-full">
+      <div className="flex flex-col gap-0 w-full text-center items-center">
         <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
           Update your password
         </h1>

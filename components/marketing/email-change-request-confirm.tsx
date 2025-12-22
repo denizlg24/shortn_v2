@@ -95,7 +95,6 @@ export const EmailChangeRequestConfirm = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            {/* Confirmation icon visual */}
             <motion.div
               className="flex justify-center"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -168,7 +167,6 @@ export const EmailChangeRequestConfirm = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            {/* Spinner icon visual */}
             <motion.div
               className="flex justify-center"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -214,7 +212,6 @@ export const EmailChangeRequestConfirm = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            {/* Success icon visual */}
             <motion.div
               className="flex justify-center"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -306,7 +303,6 @@ export const EmailChangeRequestConfirm = () => {
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            {/* Error icon visual */}
             <motion.div
               className="flex justify-center"
               initial={{ scale: 0.8, opacity: 0 }}
