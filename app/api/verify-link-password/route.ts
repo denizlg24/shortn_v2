@@ -27,27 +27,6 @@ export async function POST(request: NextRequest) {
     const clientIp = getClientIp(request);
     const rateLimitIdentifier = `password_verify:${urlCode}:${clientIp}`;
 
-    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, {
-      maxAttempts: 5,
-      windowMs: 15 * 60 * 1000,
-      blockDurationMs: 60 * 60 * 1000,
-    });
-
-    if (!rateLimitResult.allowed) {
-      const timeRemaining = rateLimitResult.blockedUntil
-        ? formatBlockedTime(rateLimitResult.blockedUntil)
-        : "some time";
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Too many failed attempts. Please try again in ${timeRemaining}.`,
-          blockedUntil: rateLimitResult.blockedUntil,
-        },
-        { status: 429 },
-      );
-    }
-
     await connectDB();
 
     const urlDoc = await UrlV3.findOne({ urlCode });
@@ -69,6 +48,27 @@ export async function POST(request: NextRequest) {
     const isPasswordValid = await bcrypt.compare(password, urlDoc.passwordHash);
 
     if (!isPasswordValid) {
+      const rateLimitResult = await checkRateLimit(rateLimitIdentifier, {
+        maxAttempts: 5,
+        windowMs: 15 * 60 * 1000,
+        blockDurationMs: 60 * 60 * 1000,
+      });
+
+      if (!rateLimitResult.allowed) {
+        const timeRemaining = rateLimitResult.blockedUntil
+          ? formatBlockedTime(rateLimitResult.blockedUntil)
+          : "some time";
+
+        return NextResponse.json(
+          {
+            success: false,
+            message: `Too many failed attempts. Please try again in ${timeRemaining}.`,
+            blockedUntil: rateLimitResult.blockedUntil,
+          },
+          { status: 429 },
+        );
+      }
+
       return NextResponse.json(
         {
           success: false,
