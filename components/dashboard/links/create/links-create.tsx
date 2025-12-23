@@ -246,7 +246,7 @@ export const LinksCreate = () => {
                   </p>
                 </div>
                 {plan !== "pro" && (
-                  <Link href="/dashboard/settings/billing">
+                  <Link href="/dashboard/settings/plan">
                     <Button variant="outline" size="sm">
                       Upgrade
                     </Button>
