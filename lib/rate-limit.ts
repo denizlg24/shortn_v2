@@ -35,10 +35,7 @@ export async function checkRateLimit(
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   const now = new Date();
 
-  let rateLimitDoc = await RateLimit.findOneAndUpdate(
-    { identifier },
-    { $inc: { attempts: 1 }, $set: { lastAttempt: now } },
-  );
+  let rateLimitDoc = await RateLimit.findOne({ identifier });
 
   if (!rateLimitDoc) {
     rateLimitDoc = await RateLimit.create({
@@ -67,7 +64,7 @@ export async function checkRateLimit(
   if (windowExpired) {
     await RateLimit.findOneAndUpdate(
       { identifier },
-      { attempts: 1, lastAttempt: now, blockedUntil: undefined },
+      { $set: { attempts: 1, lastAttempt: now }, $unset: { blockedUntil: "" } },
     );
 
     return {
@@ -76,22 +73,39 @@ export async function checkRateLimit(
     };
   }
 
-  if (rateLimitDoc.attempts > finalConfig.maxAttempts) {
+  const newAttempts = rateLimitDoc.attempts + 1;
+
+  if (newAttempts > finalConfig.maxAttempts) {
+    const newBlockedUntil = new Date(
+      now.getTime() + finalConfig.blockDurationMs,
+    );
+
     await RateLimit.findOneAndUpdate(
       { identifier },
-      { blockedUntil: new Date(now.getTime() + finalConfig.blockDurationMs) },
+      {
+        $set: {
+          attempts: newAttempts,
+          lastAttempt: now,
+          blockedUntil: newBlockedUntil,
+        },
+      },
     );
 
     return {
       allowed: false,
       attemptsRemaining: 0,
-      blockedUntil: rateLimitDoc.blockedUntil,
+      blockedUntil: newBlockedUntil,
     };
   }
 
+  await RateLimit.findOneAndUpdate(
+    { identifier },
+    { $set: { attempts: newAttempts, lastAttempt: now } },
+  );
+
   return {
     allowed: true,
-    attemptsRemaining: finalConfig.maxAttempts - rateLimitDoc.attempts,
+    attemptsRemaining: finalConfig.maxAttempts - newAttempts,
   };
 }
 
