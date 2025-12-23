@@ -62,10 +62,10 @@ export async function checkRateLimit(
     now.getTime() - rateLimitDoc.lastAttempt.getTime() > finalConfig.windowMs;
 
   if (windowExpired) {
-    rateLimitDoc.attempts = 1;
-    rateLimitDoc.lastAttempt = now;
-    rateLimitDoc.blockedUntil = undefined;
-    await rateLimitDoc.save();
+    await RateLimit.findOneAndUpdate(
+      { identifier },
+      { $set: { attempts: 1, lastAttempt: now }, $unset: { blockedUntil: "" } },
+    );
 
     return {
       allowed: true,
@@ -73,27 +73,39 @@ export async function checkRateLimit(
     };
   }
 
-  rateLimitDoc.attempts += 1;
-  rateLimitDoc.lastAttempt = now;
+  const newAttempts = rateLimitDoc.attempts + 1;
 
-  if (rateLimitDoc.attempts > finalConfig.maxAttempts) {
-    rateLimitDoc.blockedUntil = new Date(
+  if (newAttempts > finalConfig.maxAttempts) {
+    const newBlockedUntil = new Date(
       now.getTime() + finalConfig.blockDurationMs,
     );
-    await rateLimitDoc.save();
+
+    await RateLimit.findOneAndUpdate(
+      { identifier },
+      {
+        $set: {
+          attempts: newAttempts,
+          lastAttempt: now,
+          blockedUntil: newBlockedUntil,
+        },
+      },
+    );
 
     return {
       allowed: false,
       attemptsRemaining: 0,
-      blockedUntil: rateLimitDoc.blockedUntil,
+      blockedUntil: newBlockedUntil,
     };
   }
 
-  await rateLimitDoc.save();
+  await RateLimit.findOneAndUpdate(
+    { identifier },
+    { $set: { attempts: newAttempts, lastAttempt: now } },
+  );
 
   return {
     allowed: true,
-    attemptsRemaining: finalConfig.maxAttempts - rateLimitDoc.attempts,
+    attemptsRemaining: finalConfig.maxAttempts - newAttempts,
   };
 }
 
