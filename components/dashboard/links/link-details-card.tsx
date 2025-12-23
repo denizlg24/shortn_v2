@@ -206,8 +206,8 @@ export const LinkDetailsCard = ({
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
-      <div className="w-full flex flex-row items-start justify-between">
-        <div className="flex flex-col gap-1">
+      <div className="w-full flex flex-row items-start justify-between gap-2">
+        <div className="flex flex-col gap-1 w-full truncate">
           <div className="flex flex-row items-center gap-2">
             <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
               {currentLink.title}
@@ -225,7 +225,7 @@ export const LinkDetailsCard = ({
             </p>
           )}
         </div>
-        <div className="md:flex hidden flex-row items-center gap-2">
+        <div className="md:flex hidden flex-row items-center gap-2 shrink-0">
           <Button
             onClick={async () => {
               await navigator.clipboard.writeText(currentLink.shortUrl);
