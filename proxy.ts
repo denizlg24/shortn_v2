@@ -38,6 +38,13 @@ export async function proxy(request: NextRequest) {
   const first = segments[0] !== "" ? segments[0] : locale;
   const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
   if (!isLocale) {
+    //LEGACY QR CODE SUPPORT
+    if (segments.length === 2 && segments[0] === "qr") {
+      const slug = segments[1];
+      return NextResponse.rewrite(
+        new URL(`/api/get-long-url/${slug}`, request.nextUrl),
+      );
+    }
     if (segments.length === 1 && !PUBLIC_PATHS.includes(first)) {
       const slug = first;
 
