@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import env from "@/utils/env";
+import {
+  checkRateLimit,
+  resetRateLimit,
+  getClientIp,
+  formatBlockedTime,
+} from "@/lib/rate-limit";
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 
@@ -15,6 +21,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
         { status: 400 },
+      );
+    }
+
+    const clientIp = getClientIp(request);
+    const rateLimitIdentifier = `password_verify:${urlCode}:${clientIp}`;
+
+    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, {
+      maxAttempts: 5,
+      windowMs: 15 * 60 * 1000,
+      blockDurationMs: 60 * 60 * 1000,
+    });
+
+    if (!rateLimitResult.allowed) {
+      const timeRemaining = rateLimitResult.blockedUntil
+        ? formatBlockedTime(rateLimitResult.blockedUntil)
+        : "some time";
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Too many failed attempts. Please try again in ${timeRemaining}.`,
+          blockedUntil: rateLimitResult.blockedUntil,
+        },
+        { status: 429 },
       );
     }
 
@@ -40,10 +70,16 @@ export async function POST(request: NextRequest) {
 
     if (!isPasswordValid) {
       return NextResponse.json(
-        { success: false, message: "Incorrect password" },
+        {
+          success: false,
+          message: "Incorrect password",
+          attemptsRemaining: rateLimitResult.attemptsRemaining,
+        },
         { status: 401 },
       );
     }
+
+    await resetRateLimit(rateLimitIdentifier);
 
     const token = await new SignJWT({ urlCode })
       .setProtectedHeader({ alg: "HS256" })
