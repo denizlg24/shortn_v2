@@ -44,8 +44,8 @@ export const AddCampaignDialog = ({
       toast.success(`Campaign "${title}" created successfully`);
       setOpen(false);
       setTitle("");
+      setCreating(false);
       router.push(`/dashboard/campaigns/${result.campaign._id}`);
-      router.refresh();
     } else {
       switch (result.message) {
         case "duplicate":
@@ -57,8 +57,8 @@ export const AddCampaignDialog = ({
         default:
           setError("Failed to create campaign");
       }
+      setCreating(false);
     }
-    setCreating(false);
   };
 
   const handleOpenChange = (newOpen: boolean) => {

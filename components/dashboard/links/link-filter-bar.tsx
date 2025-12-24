@@ -296,9 +296,12 @@ export const LinkFilterBar = () => {
       <div className="relative w-full lg:max-w-[375px] md:max-w-[300px]">
         <Input
           type="text"
-          name="query"
-          id="query"
+          name="link-search"
+          id="link-search"
           placeholder="Search links"
+          autoComplete="off"
+          data-form-type="other"
+          data-lpignore="true"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
