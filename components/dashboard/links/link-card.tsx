@@ -411,12 +411,16 @@ export const LinkCard = ({
               ) : (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
-                    <label htmlFor="password" className="text-sm font-medium">
+                    <label
+                      htmlFor="link-authorization"
+                      className="text-sm font-medium"
+                    >
                       Password
                     </label>
                     <div className="relative">
                       <Input
-                        id="password"
+                        id="link-authorization"
+                        autoComplete="off"
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}

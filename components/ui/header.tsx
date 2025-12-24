@@ -16,6 +16,7 @@ import {
   BarChart,
   ChevronDown,
   Contact,
+  ExternalLink,
   HelpCircle,
   LinkIcon,
   LogIn,
@@ -43,11 +44,15 @@ import {
 } from "./accordion";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import { PopoverClose } from "@radix-ui/react-popover";
+import { authClient } from "@/lib/authClient";
+import { Avatar, AvatarImage } from "./avatar";
+import { AvatarFallback } from "@radix-ui/react-avatar";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setOpen] = useState(false);
-
+  const { data } = authClient.useSession();
+  const user = data?.user;
   useEffect(() => {
     const onScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -81,7 +86,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary!",
+                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}
@@ -214,7 +219,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary!",
+                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}
@@ -303,15 +308,38 @@ export const Header = () => {
             </Popover>
             <div className="w-px h-7 bg-border"></div>
             <NavigationMenuItem asChild>
-              <Button
-                className="rounded-full h-auto w-fit p-2! -mr-3 border shadow-xs aspect-square!"
-                variant={"default"}
-                asChild
-              >
-                <Link href="/login">
-                  <LogIn />
-                </Link>
-              </Button>
+              {user ? (
+                <Button
+                  className="rounded-full h-auto w-fit p-0! -mr-3 border shadow-xs aspect-square!"
+                  variant={"outline"}
+                  asChild
+                >
+                  <Link href="/dashboard">
+                    <Avatar className="w-8 h-8 rounded-full">
+                      {user.image && (
+                        <AvatarImage
+                          src={user.image}
+                          className="object-cover rounded-full"
+                        />
+                      )}
+                      <AvatarFallback>
+                        {user.name?.charAt(0)}
+                        {user.name?.charAt(1)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  className="rounded-full h-auto w-fit p-2! -mr-3 border shadow-xs aspect-square!"
+                  variant={"default"}
+                  asChild
+                >
+                  <Link href="/login">
+                    <LogIn />
+                  </Link>
+                </Button>
+              )}
             </NavigationMenuItem>
             <NavigationMenuItem>
               <LocaleSwitcher />
@@ -329,7 +357,7 @@ export const Header = () => {
                   <SheetTitle>Hamburguer Menu</SheetTitle>
                 </SheetHeader>
               </div>
-              <NavigationMenu className="flex flex-col w-full max-w-full! px-4 py-4 items-stretch relative justify-start">
+              <NavigationMenu className="flex flex-col w-full max-w-full! px-4 py-4 items-stretch relative justify-start border-t">
                 <NavigationMenuList className="flex flex-col w-full items-stretch">
                   <NavigationMenuItem>
                     <Accordion type="single" collapsible className="w-full">
@@ -529,20 +557,34 @@ export const Header = () => {
                       </AccordionItem>
                     </Accordion>
                   </NavigationMenuItem>
-                  <NavigationMenuItem asChild>
-                    <SheetClose asChild>
-                      <Button asChild>
-                        <Link href="/login">Login</Link>
-                      </Button>
-                    </SheetClose>
-                  </NavigationMenuItem>
-                  <NavigationMenuItem asChild>
-                    <SheetClose asChild>
-                      <Button variant={"outline"} asChild>
-                        <Link href="/register">Register</Link>
-                      </Button>
-                    </SheetClose>
-                  </NavigationMenuItem>
+                  {user ? (
+                    <NavigationMenuItem asChild>
+                      <SheetClose asChild>
+                        <Button asChild>
+                          <Link href="/dashboard">
+                            Dashboard <ExternalLink />
+                          </Link>
+                        </Button>
+                      </SheetClose>
+                    </NavigationMenuItem>
+                  ) : (
+                    <>
+                      <NavigationMenuItem asChild>
+                        <SheetClose asChild>
+                          <Button asChild>
+                            <Link href="/login">Login</Link>
+                          </Button>
+                        </SheetClose>
+                      </NavigationMenuItem>
+                      <NavigationMenuItem asChild>
+                        <SheetClose asChild>
+                          <Button variant={"outline"} asChild>
+                            <Link href="/register">Register</Link>
+                          </Button>
+                        </SheetClose>
+                      </NavigationMenuItem>
+                    </>
+                  )}
                 </NavigationMenuList>
               </NavigationMenu>
               <SheetFooter>

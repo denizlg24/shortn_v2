@@ -32,7 +32,7 @@ export default function Home({
         </div>
       </div>
 
-      <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
+      <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16 text-center  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
           Get in touch
         </h1>

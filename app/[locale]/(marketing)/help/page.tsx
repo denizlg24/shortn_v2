@@ -38,7 +38,7 @@ export default function Home({
         </div>
       </div>
 
-      <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
+      <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16 text-center  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
           How can we help you?
         </h1>
@@ -121,7 +121,7 @@ export default function Home({
 
       <div className="w-full max-w-6xl mx-auto px-4 space-y-12 my-16">
         <section className="space-y-6">
-          <h2 className="text-3xl font-bold">Popular Articles</h2>
+          <h2 className="text-3xl font-bold text-center">Popular Articles</h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/help/articles/getting-started"
@@ -204,10 +204,10 @@ export default function Home({
         <Separator />
 
         <section className="space-y-6">
-          <h2 className="text-3xl font-bold">All Categories</h2>
+          <h2 className="text-3xl font-bold text-center">All Categories</h2>
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="space-y-3">
+          <div className="grid md:grid-cols-3 xs:grid-cols-2 gap-6 items-center">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">Links</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -237,7 +237,7 @@ export default function Home({
               </ul>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">QR Codes</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -259,7 +259,7 @@ export default function Home({
               </ul>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">Bio Pages</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -281,7 +281,7 @@ export default function Home({
               </ul>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">Analytics</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -295,7 +295,7 @@ export default function Home({
               </ul>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">Campaigns</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -309,7 +309,7 @@ export default function Home({
               </ul>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 mx-auto text-center">
               <h3 className="text-xl font-semibold">Billing</h3>
               <ul className="space-y-2 text-sm">
                 <li>
