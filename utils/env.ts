@@ -27,8 +27,8 @@ const envSchema = z.object({
   QSTASH_TOKEN: z.string().nonempty().optional(),
   QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty().optional(),
   QSTASH_NEXT_SIGNING_KEY: z.string().nonempty().optional(),
-  ATLAS_SEARCH_INDEX_LINKS: z.string().nonempty(),
-  ATLAS_SEARCH_INDEX_QR_CODES: z.string().nonempty(),
+  ATLAS_SEARCH_INDEX_LINKS: z.string().nonempty().optional(),
+  ATLAS_SEARCH_INDEX_QR_CODES: z.string().nonempty().optional(),
 });
 
 export default envSchema.parse(process.env);

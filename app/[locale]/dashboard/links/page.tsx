@@ -79,7 +79,7 @@ const getFilteredLinks = async (
   if (filters.query.trim()) {
     pipeline.push({
       $search: {
-        index: env.ATLAS_SEARCH_INDEX_LINKS,
+        index: env.ATLAS_SEARCH_INDEX_LINKS || "dev-urlv3",
         text: {
           query: filters.query.trim(),
           path: ["title", "longUrl", "tags.tagName"],

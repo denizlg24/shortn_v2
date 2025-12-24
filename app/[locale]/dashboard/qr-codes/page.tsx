@@ -74,7 +74,7 @@ const getFilteredQRCodes = async (
   if (filters.query.trim()) {
     pipeline.push({
       $search: {
-        index: env.ATLAS_SEARCH_INDEX_QR_CODES,
+        index: env.ATLAS_SEARCH_INDEX_QR_CODES || "dev-qrcodev2",
         text: {
           query: filters.query.trim(),
           path: ["title", "longUrl", "tags.tagName"],
