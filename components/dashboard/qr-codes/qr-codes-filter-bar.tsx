@@ -290,10 +290,13 @@ export const QRCodesFilterBar = () => {
       <div className="relative w-full lg:max-w-[375px] md:max-w-[300px]">
         <Input
           type="text"
-          name="query"
-          id="query"
+          name="qr-code-search"
+          id="qr-code-search"
           placeholder="Search codes"
           value={query}
+          autoComplete="off"
+          data-form-type="other"
+          data-lpignore="true"
           onChange={(e) => {
             setQuery(e.target.value);
           }}

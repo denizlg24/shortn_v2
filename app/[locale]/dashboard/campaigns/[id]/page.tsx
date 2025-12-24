@@ -78,21 +78,42 @@ export default async function Home({
   await connectDB();
   const filters = {
     page: parseInt(searchP.page || "1", 10),
-    limit: parseInt(searchP.limit || "10", 3),
+    limit: parseInt(searchP.limit || "10", 10),
   };
   const skip = (filters.page - 1) * filters.limit;
-  const campaign = await Campaigns.findOne({ sub: user.sub, _id: id })
-    .populate<IUrl>({
-      path: "links",
-      options: { limit: filters.limit, skip },
-    })
-    .lean();
+
+  const campaign = await Campaigns.findOne({ sub: user.sub, _id: id }).lean();
+
   if (!campaign) {
     notFound();
   }
 
+  const totalLinks = campaign.links.length;
+
+  const populatedCampaign =
+    totalLinks > 0
+      ? await Campaigns.findOne({ sub: user.sub, _id: id })
+          .populate({
+            path: "links",
+            options: { limit: filters.limit, skip },
+          })
+          .lean()
+      : undefined;
+
+  const links = (populatedCampaign?.links || []) as IUrl[];
+
+  const serializedLinks = links.map((link) => ({
+    ...link,
+    _id: (link._id as string).toString(),
+    date: link.date,
+    tags: link.tags?.map((tag) => ({
+      ...tag,
+      _id: tag._id?.toString(),
+    })),
+  }));
+
   const clicks = await Clicks.find({
-    urlCode: { $in: campaign.links.map((link) => (link as IUrl).urlCode) },
+    urlCode: { $in: links.map((link) => link.urlCode) },
     "queryParams.utm_campaign": { $exists: true, $eq: campaign.title },
   })
     .select("-_id -__v -sub -type -ip -queryParams")
@@ -115,7 +136,7 @@ export default async function Home({
                   {campaign.title}
                 </h1>
                 <p className="text-xs font-semibold text-muted-foreground underline">
-                  {campaign.links.length} links
+                  {totalLinks} links
                 </p>
               </div>
               <DeleteCampaignButton
@@ -148,17 +169,11 @@ export default async function Home({
               </div>
 
               <CampaignLinkContainer
-                links={(
-                  campaign.links.slice(
-                    (filters.page - 1) * filters.limit,
-                    (filters.page - 1) * filters.limit + filters.limit,
-                  ) as IUrl[]
-                ).map((link) => ({
+                links={serializedLinks.map((link) => ({
                   ...link,
-                  _id: (link._id as string).toString(),
                   utmLinks: [],
                 }))}
-                total={campaign.links.length}
+                total={totalLinks}
                 limit={filters.limit}
                 clicksMap={clicksMap}
                 campaignTitle={campaign.title ?? ""}
