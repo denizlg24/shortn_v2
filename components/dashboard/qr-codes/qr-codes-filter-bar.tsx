@@ -45,7 +45,7 @@ import {
   X,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 export const QRCodesFilterBar = () => {
@@ -64,6 +64,7 @@ export const QRCodesFilterBar = () => {
   const pathname = usePathname();
 
   const [query, setQuery] = useState(searchParams.get("query") || "");
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [attachedQR, setAttachedQR] = useState(
     searchParams.get("attachedQR") || "all",
@@ -176,6 +177,28 @@ export const QRCodesFilterBar = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, searchParams.toString(), user]);
 
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    const urlQuery = searchParams.get("query") || "";
+    if (query === urlQuery) {
+      return;
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      applyFilters({ override_query: query });
+    }, 500);
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
   const applyFilters = ({
     override_query,
     override_attachedQR,
@@ -272,10 +295,6 @@ export const QRCodesFilterBar = () => {
           placeholder="Search codes"
           value={query}
           onChange={(e) => {
-            if (e.target.value == "") {
-              clearQuery();
-              return;
-            }
             setQuery(e.target.value);
           }}
           className="bg-background pl-7 w-full"
@@ -954,17 +973,6 @@ export const QRCodesFilterBar = () => {
               </div>
             </ScrollPopoverContent>
           </Popover>
-        )}
-
-        {query && (
-          <Button
-            className="md:w-auto w-full"
-            onClick={() => {
-              applyFilters({});
-            }}
-          >
-            Search
-          </Button>
         )}
       </div>
     </div>

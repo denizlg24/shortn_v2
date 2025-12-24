@@ -7,6 +7,8 @@ import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
 import { setRequestLocale } from "next-intl/server";
+import env from "@/utils/env";
+
 interface IFilters {
   tags: string[];
   attachedQR: "all" | "on" | "off";
@@ -72,11 +74,22 @@ const getFilteredQRCodes = async (
   if (filters.query.trim()) {
     pipeline.push({
       $search: {
-        index: "qr-code-text-search",
+        index: env.ATLAS_SEARCH_INDEX_QR_CODES || "dev-qrcodev2",
         text: {
           query: filters.query.trim(),
           path: ["title", "longUrl", "tags.tagName"],
         },
+      },
+    });
+    pipeline.push({
+      $addFields: {
+        searchScore: { $meta: "searchScore" },
+      },
+    });
+
+    pipeline.push({
+      $match: {
+        searchScore: { $gte: 0.5 },
       },
     });
   }
@@ -84,18 +97,23 @@ const getFilteredQRCodes = async (
   pipeline.push({ $match: matchStage });
 
   let sortStage: Record<string, 1 | -1> = {};
+
+  if (filters.query.trim()) {
+    sortStage = { searchScore: -1 };
+  }
+
   switch (filters.sortBy) {
     case "date_asc":
-      sortStage = { date: 1 };
+      sortStage = { ...sortStage, date: 1 };
       break;
     case "date_desc":
-      sortStage = { date: -1 };
+      sortStage = { ...sortStage, date: -1 };
       break;
     case "clicks_asc":
-      sortStage = { "clicks.total": 1 };
+      sortStage = { ...sortStage, "clicks.total": 1 };
       break;
     case "clicks_desc":
-      sortStage = { "clicks.total": -1 };
+      sortStage = { ...sortStage, "clicks.total": -1 };
       break;
   }
   pipeline.push({ $sort: sortStage });
@@ -182,9 +200,16 @@ export default async function Home({
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
-        <h1 className="col-span-full lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-          Your QR Codes
-        </h1>
+        <div className="col-span-full flex flex-col gap-1">
+          <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
+            Your QR Codes
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            {total > 0
+              ? `Displaying ${(filters.page - 1) * filters.limit + 1}-${Math.min(filters.page * filters.limit, total)} of ${total} QR code${total !== 1 ? "s" : ""}`
+              : "No QR codes found"}
+          </p>
+        </div>
         <QRCodesFilterBar />
         <SortingControls
           label="Sort codes by"
