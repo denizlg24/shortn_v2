@@ -108,7 +108,7 @@ export function HelpSearch() {
   }, [query]);
 
   return (
-    <div className="w-full relative">
+    <div className="w-full relative text-left!">
       <div className="relative flex items-center">
         <Input
           placeholder="Search for help articles..."

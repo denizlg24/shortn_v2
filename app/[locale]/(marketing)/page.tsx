@@ -37,7 +37,7 @@ export default function Home({
         <div className="rounded-full py-1.5 px-4 bg-muted border shadow flex items-center justify-center gap-2 text-muted-foreground">
           <Zap className="w-4 h-4" />
           <span className="text-sm font-medium">
-            95% cheaper than competitors
+            85% cheaper than competitors
           </span>
         </div>
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
@@ -91,7 +91,7 @@ export default function Home({
         <div className="w-full max-w-7xl mx-auto grid grid-cols-4 text-center">
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              95%
+              85%
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
               More <br className="xs:hidden block" /> affordable

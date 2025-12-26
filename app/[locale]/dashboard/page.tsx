@@ -1,8 +1,35 @@
 import { QuickCreate } from "@/components/dashboard/home/quick-create";
 import { QuickActions } from "@/components/dashboard/home/quick-actions";
 import { DashboardOverview } from "@/components/dashboard/home/dashboard-overview";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("dashboard.title"),
+    description: t("dashboard.description"),
+    keywords: t("dashboard.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("dashboard.title"),
+      description: t("dashboard.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("dashboard.title"),
+      description: t("dashboard.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export default function Home({
   params,

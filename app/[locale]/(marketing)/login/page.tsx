@@ -1,6 +1,29 @@
 import { LoginForm } from "@/components/login/login-form";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("login.title"),
+    description: t("login.description"),
+    keywords: t("login.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("login.title"),
+      description: t("login.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("login.title"),
+      description: t("login.description"),
+    },
+  };
+}
 
 export default function Home({
   params,

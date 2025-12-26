@@ -21,20 +21,25 @@ export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
   return {
-    title: t("home.title"),
-    description: t("home.description"),
-    keywords: t("home.keywords")
+    title: t("dashboard.title"),
+    description: t("dashboard.description"),
+    keywords: t("dashboard.keywords")
       .split(",")
       .map((k) => k.trim()),
     openGraph: {
-      title: t("home.title"),
-      description: t("home.description"),
+      title: t("dashboard.title"),
+      description: t("dashboard.description"),
       type: "website",
+      siteName: "Shortn",
     },
     twitter: {
       card: "summary_large_image",
-      title: t("home.title"),
-      description: t("home.description"),
+      title: t("dashboard.title"),
+      description: t("dashboard.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
     },
   };
 }

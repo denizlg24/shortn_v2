@@ -1,5 +1,28 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("terms.title"),
+    description: t("terms.description"),
+    keywords: t("terms.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("terms.title"),
+      description: t("terms.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("terms.title"),
+      description: t("terms.description"),
+    },
+  };
+}
 
 export default async function TermsPage({
   params,

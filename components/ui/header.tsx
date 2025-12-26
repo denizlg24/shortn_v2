@@ -322,7 +322,7 @@ export const Header = () => {
                           className="object-cover rounded-full"
                         />
                       )}
-                      <AvatarFallback>
+                      <AvatarFallback className="bg-muted flex items-center justify-center text-center w-full h-full aspect-square">
                         {user.name?.charAt(0)}
                         {user.name?.charAt(1)}
                       </AvatarFallback>

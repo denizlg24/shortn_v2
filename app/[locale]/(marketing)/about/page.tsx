@@ -2,8 +2,31 @@ import DotGrid from "@/components/DotGrid";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { Globe, MoveRight, Target } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("about.title"),
+    description: t("about.description"),
+    keywords: t("about.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("about.title"),
+      description: t("about.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("about.title"),
+      description: t("about.description"),
+    },
+  };
+}
 
 export default function Home({
   params,
@@ -63,7 +86,7 @@ export default function Home({
           <p className="xs:text-base text-sm text-muted-foreground">
             We knew there was a better way. By building efficient infrastructure
             and focusing on what matters, we created a platform that offers
-            enterprise features at 95% lower prices without compromising on
+            enterprise features at 85% lower prices without compromising on
             quality or reliability.
           </p>
         </div>

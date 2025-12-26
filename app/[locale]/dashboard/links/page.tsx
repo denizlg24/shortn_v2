@@ -7,8 +7,35 @@ import { BioPage } from "@/models/link-in-bio/BioPage";
 import { TagT } from "@/models/url/Tag";
 import UrlV3, { IUrl, TUrl } from "@/models/url/UrlV3";
 import { addDays, parse } from "date-fns";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import env from "@/utils/env";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("links.title"),
+    description: t("links.description"),
+    keywords: t("links.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("links.title"),
+      description: t("links.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("links.title"),
+      description: t("links.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 interface IFilters {
   tags: string[];
