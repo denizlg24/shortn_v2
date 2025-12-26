@@ -6,9 +6,36 @@ import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
 import { Campaigns } from "@/models/url/Campaigns";
 import { LinkIcon, Plus, Rocket, Star } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
 import { AddCampaignDialog } from "./add-campaign-dialog";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("campaigns.title"),
+    description: t("campaigns.description"),
+    keywords: t("campaigns.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("campaigns.title"),
+      description: t("campaigns.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("campaigns.title"),
+      description: t("campaigns.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export default async function Home({
   params,
@@ -89,7 +116,7 @@ export default async function Home({
         {campaigns.length == 0 && (
           <Card className="w-full max-w-3xl col-span-full mx-auto">
             <CardHeader className="flex flex-row items-center gap-4">
-              <div className="p-2 rounded-md bg-gradient-to-tr from-green-100 to-green-50 text-green-700">
+              <div className="p-2 rounded-md bg-linear-to-tr from-green-100 to-green-50 text-green-700">
                 <Rocket className="w-6 h-6" />
               </div>
               <div>

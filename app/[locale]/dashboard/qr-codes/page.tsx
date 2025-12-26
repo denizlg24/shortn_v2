@@ -6,8 +6,35 @@ import { getServerSession } from "@/lib/session";
 import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import env from "@/utils/env";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("qrCodes.title"),
+    description: t("qrCodes.description"),
+    keywords: t("qrCodes.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("qrCodes.title"),
+      description: t("qrCodes.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("qrCodes.title"),
+      description: t("qrCodes.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 interface IFilters {
   tags: string[];

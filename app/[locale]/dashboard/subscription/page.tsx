@@ -7,7 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { getServerSession } from "@/lib/session";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { Check, X } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { forbidden } from "next/navigation";
 import React from "react";
 import { CheckoutSessionButton } from "./checkout-session-button";
@@ -20,6 +20,33 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("subscription.title"),
+    description: t("subscription.description"),
+    keywords: t("subscription.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("subscription.title"),
+      description: t("subscription.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("subscription.title"),
+      description: t("subscription.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export const plans = [
   {
@@ -188,7 +215,7 @@ export default async function Home({
               key={plan.id}
               className={`relative rounded-2xl p-4 border border-primary/10 shadow-xl ${
                 plan.featured
-                  ? "bg-gradient-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
+                  ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
                   : "bg-white"
               }`}
             >

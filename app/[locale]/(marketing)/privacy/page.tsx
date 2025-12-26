@@ -1,5 +1,28 @@
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import Link from "next/link";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("privacy.title"),
+    description: t("privacy.description"),
+    keywords: t("privacy.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("privacy.title"),
+      description: t("privacy.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("privacy.title"),
+      description: t("privacy.description"),
+    },
+  };
+}
 
 export default async function PrivacyPage({
   params,

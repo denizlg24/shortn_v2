@@ -1,9 +1,99 @@
 {
   "metadata": {
     "home": {
-      "title": "Inicio | Your Website",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "keywords": "test,test,test,test"
+      "title": "Shortn - Acortador de URL, Códigos QR y Gestión de Enlaces | Herramienta Gratuita",
+      "description": "Acorte URLs, cree códigos QR personalizados y gestione enlaces con análisis potentes. Acortador de URL gratuito con enlaces personalizados, páginas bio, seguimiento de campañas y análisis detallados.",
+      "keywords": "acortador de url, acortar enlace, url corta, url personalizada, generador de código qr, gestión de enlaces, análisis, bio link, enlace en bio, seguimiento utm, gestión de campañas, enlaces personalizados, acortador gratuito"
+    },
+    "about": {
+      "title": "Acerca de Shortn - Plataforma Moderna de Gestión de Enlaces",
+      "description": "Conoce Shortn, la plataforma completa de gestión de enlaces que ayuda a empresas y creadores a optimizar su presencia online con acortamiento de URL, códigos QR y análisis.",
+      "keywords": "acerca de shortn, gestión de enlaces, plataforma acortadora, herramientas de marketing digital, análisis de enlaces"
+    },
+    "pricing": {
+      "title": "Planes y Precios - Acortador Shortn | Opciones Gratuitas y Premium",
+      "description": "Elige el plan perfecto para tus necesidades. Comienza gratis con acortamiento básico o actualiza a Pro con enlaces ilimitados, dominios personalizados, análisis avanzados y soporte prioritario.",
+      "keywords": "precios, planes, acortador gratuito, planes premium, suscripción, dominio personalizado, enlaces ilimitados, análisis"
+    },
+    "products": {
+      "title": "Características - Acortador de URL, Códigos QR y Análisis | Shortn",
+      "description": "Descubre características potentes incluyendo acortamiento de URL, códigos QR dinámicos, páginas enlace-en-bio, seguimiento de campañas, análisis de clics y herramientas de personalización.",
+      "keywords": "características, características del acortador, generador de código qr, análisis de enlaces, página bio, seguimiento de campañas, enlaces personalizados"
+    },
+    "contact": {
+      "title": "Contacto - Soporte Shortn | Obtén Ayuda y Solicita Funciones",
+      "description": "Ponte en contacto con el equipo de soporte de Shortn. ¿Necesitas ayuda, quieres reportar un error o tienes sugerencias? Estamos aquí para ayudarte.",
+      "keywords": "contacto, soporte, ayuda, atención al cliente, comentarios, reportar error, solicitud de función"
+    },
+    "help": {
+      "title": "Centro de Ayuda - Documentación y Tutoriales Shortn | Aprende a Usar",
+      "description": "Guía completa para usar Shortn. Encuentra tutoriales, preguntas frecuentes y documentación sobre acortamiento de URL, creación de códigos QR, análisis, campañas y más.",
+      "keywords": "ayuda, documentación, tutoriales, guías, preguntas frecuentes, cómo usar, artículos de soporte, manual de usuario"
+    },
+    "privacy": {
+      "title": "Política de Privacidad - Shortn | Seguridad y Privacidad de Datos",
+      "description": "Aprende cómo Shortn recopila, usa y protege tus datos. Nuestro compromiso con la privacidad del usuario y seguridad de datos explicado en detalle.",
+      "keywords": "política de privacidad, protección de datos, privacidad del usuario, seguridad de datos, rgpd, información personal"
+    },
+    "terms": {
+      "title": "Términos de Servicio - Shortn | Términos y Condiciones de Uso",
+      "description": "Lee los términos de servicio y condiciones de uso de Shortn. Comprende tus derechos y responsabilidades al usar nuestra plataforma de acortamiento de URL y gestión de enlaces.",
+      "keywords": "términos de servicio, términos y condiciones, política de uso, acuerdo del usuario, términos legales"
+    },
+    "login": {
+      "title": "Iniciar Sesión - Accede a tu Panel Shortn | Login",
+      "description": "Inicia sesión en tu cuenta Shortn para gestionar tus URLs acortadas, códigos QR, páginas bio y ver análisis detallados. Login seguro con Google o correo electrónico.",
+      "keywords": "login, iniciar sesión, acceso de usuario, acceso a cuenta, login del panel"
+    },
+    "register": {
+      "title": "Regístrate Gratis - Crea tu Cuenta Shortn | Acortador Gratuito",
+      "description": "Crea tu cuenta Shortn gratuita y comienza a acortar URLs, generar códigos QR y rastrear clics hoy. Sin necesidad de tarjeta de crédito en el plan gratuito.",
+      "keywords": "registro, registrarse, crear cuenta, cuenta gratuita, nuevo usuario, comenzar"
+    },
+    "dashboard": {
+      "title": "Panel - Shortn | Gestiona tus Enlaces y Análisis",
+      "description": "Accede a tu panel Shortn para ver todas tus URLs acortadas, códigos QR, análisis y rendimiento de campañas en un solo lugar.",
+      "keywords": "panel, panel de usuario, gestión de enlaces, panel de análisis, panel de control"
+    },
+    "links": {
+      "title": "Mis Enlaces - Gestiona URLs Acortadas | Panel Shortn",
+      "description": "Visualiza, edita y organiza todas tus URLs acortadas. Filtra por etiquetas, fechas y campañas. Rastrea clics y rendimiento de cada enlace.",
+      "keywords": "mis enlaces, urls acortadas, lista de enlaces, gestionar enlaces, gestión de url"
+    },
+    "qrCodes": {
+      "title": "Códigos QR - Crea y Gestiona Códigos QR | Panel Shortn",
+      "description": "Crea, personaliza y rastrea códigos QR dinámicos. Monitorea escaneos, edita URLs de destino y descarga imágenes de alta calidad.",
+      "keywords": "códigos qr, generador de código qr, códigos qr dinámicos, gestión de códigos qr, análisis de qr"
+    },
+    "createQR": {
+      "title": "Crear Código QR - Generador Gratuito de Código QR | Shortn",
+      "description": "Genera códigos QR personalizados con logo, colores e identidad visual. Crea códigos QR dinámicos que pueden editarse después de imprimirse.",
+      "keywords": "crear código qr, generador de qr, código qr personalizado, código qr con marca, código qr dinámico"
+    },
+    "bioPages": {
+      "title": "Páginas Bio - Herramienta Enlace en Bio | Panel Shortn",
+      "description": "Crea y gestiona tus páginas enlace-en-bio. Añade múltiples enlaces, personaliza el diseño y rastrea el engagement de visitantes de redes sociales.",
+      "keywords": "páginas bio, enlace en bio, enlaces de redes sociales, bio de instagram, alternativa a link tree"
+    },
+    "createBioPage": {
+      "title": "Crear Página Bio - Herramienta Gratuita Enlace en Bio | Shortn",
+      "description": "Construye tu página bio personalizada con enlaces ilimitados, iconos sociales y análisis. Perfecto para Instagram, TikTok y perfiles de redes sociales.",
+      "keywords": "crear página bio, creador de enlace en bio, página de destino para redes sociales, enlace bio personalizado"
+    },
+    "campaigns": {
+      "title": "Campañas - Rastrea Rendimiento de Marketing | Panel Shortn",
+      "description": "Organiza enlaces en campañas y rastrea análisis agregados. Monitorea parámetros UTM y mide la efectividad de campañas de marketing.",
+      "keywords": "campañas, campañas de marketing, seguimiento utm, análisis de campañas, rendimiento de marketing"
+    },
+    "settings": {
+      "title": "Configuración - Gestiona tu Cuenta Shortn | Preferencias de Usuario",
+      "description": "Configura los ajustes de tu cuenta Shortn, gestiona perfil, seguridad, integraciones y preferencias.",
+      "keywords": "configuración, configuración de cuenta, preferencias de usuario, configuración de perfil, configuración de seguridad"
+    },
+    "subscription": {
+      "title": "Suscripción - Gestiona tu Plan | Facturación Shortn",
+      "description": "Visualiza y gestiona tu suscripción Shortn. Actualiza, degrada o cancela tu plan. Accede a historial de facturación y facturas.",
+      "keywords": "suscripción, facturación, gestión de plan, actualizar plan, pago, facturas"
     }
   }
 }

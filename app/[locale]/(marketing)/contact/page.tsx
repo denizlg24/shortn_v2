@@ -1,10 +1,33 @@
 import DotGrid from "@/components/DotGrid";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 import { ContactForm } from "./contact-form";
 import { FaXTwitter } from "react-icons/fa6";
 import { Facebook, Instagram, Mail, PhoneCall } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("contact.title"),
+    description: t("contact.description"),
+    keywords: t("contact.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("contact.title"),
+      description: t("contact.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("contact.title"),
+      description: t("contact.description"),
+    },
+  };
+}
 
 export default function Home({
   params,
