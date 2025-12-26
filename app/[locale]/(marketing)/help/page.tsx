@@ -8,9 +8,32 @@ import {
   MoveRight,
   ScrollText,
 } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 import { HelpSearch } from "@/components/marketing/help-search";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("help.title"),
+    description: t("help.description"),
+    keywords: t("help.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("help.title"),
+      description: t("help.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("help.title"),
+      description: t("help.description"),
+    },
+  };
+}
 
 export default function Home({
   params,

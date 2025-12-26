@@ -2,7 +2,7 @@ import { Link } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EmptyBiosCard } from "./empty-bios-card";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,33 @@ import { PagesContainer } from "./pages-container";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { forbidden } from "next/navigation";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("bioPages.title"),
+    description: t("bioPages.description"),
+    keywords: t("bioPages.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("bioPages.title"),
+      description: t("bioPages.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("bioPages.title"),
+      description: t("bioPages.description"),
+    },
+    robots: {
+      index: false,
+      follow: false,
+    },
+  };
+}
 
 export default async function Home({
   params,

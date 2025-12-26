@@ -1,6 +1,29 @@
 import { RegisterForm } from "@/components/register/register-form";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("register.title"),
+    description: t("register.description"),
+    keywords: t("register.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("register.title"),
+      description: t("register.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("register.title"),
+      description: t("register.description"),
+    },
+  };
+}
 
 export default function Home({
   params,

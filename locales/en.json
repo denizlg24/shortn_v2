@@ -1,9 +1,99 @@
 {
   "metadata": {
     "home": {
-      "title": "Home | Your Website",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "keywords": "test,test,test,test"
+      "title": "Shortn - URL Shortener, QR Codes & Link Management | Free URL Shortening Tool",
+      "description": "Shorten URLs, create custom QR codes, and manage links with powerful analytics. Free URL shortener with branded links, bio pages, campaign tracking, and detailed click analytics.",
+      "keywords": "url shortener, link shortener, short url, custom url, qr code generator, link management, analytics, bio link, link in bio, utm tracking, campaign management, branded links, free url shortener, shorten link"
+    },
+    "about": {
+      "title": "About Shortn - Modern Link Management Platform",
+      "description": "Learn about Shortn, the comprehensive link management platform that helps businesses and creators optimize their online presence with URL shortening, QR codes, and analytics.",
+      "keywords": "about shortn, link management, url shortener platform, digital marketing tools, link analytics"
+    },
+    "pricing": {
+      "title": "Pricing Plans - Shortn URL Shortener | Free & Premium Options",
+      "description": "Choose the perfect plan for your needs. Start free with basic URL shortening, or upgrade to Pro for unlimited links, custom domains, advanced analytics, and priority support.",
+      "keywords": "pricing, plans, free url shortener, premium plans, subscription, custom domain, unlimited links, analytics"
+    },
+    "products": {
+      "title": "Features - URL Shortener, QR Codes & Analytics | Shortn",
+      "description": "Discover powerful features including URL shortening, dynamic QR codes, link-in-bio pages, campaign tracking, click analytics, and custom branding tools.",
+      "keywords": "features, url shortener features, qr code generator, link analytics, bio page, campaign tracking, custom links"
+    },
+    "contact": {
+      "title": "Contact Us - Shortn Support | Get Help & Request Features",
+      "description": "Get in touch with Shortn support team. Whether you need help, want to report a bug, or have feature suggestions, we're here to assist you.",
+      "keywords": "contact, support, help, customer service, feedback, report bug, feature request"
+    },
+    "help": {
+      "title": "Help Center - Shortn Documentation & Tutorials | Learn How to Use Shortn",
+      "description": "Complete guide to using Shortn. Find tutorials, FAQs, and documentation on URL shortening, QR code creation, analytics, campaigns, and more.",
+      "keywords": "help, documentation, tutorials, guides, faq, how to, support articles, user guide"
+    },
+    "privacy": {
+      "title": "Privacy Policy - Shortn | Your Data Security & Privacy",
+      "description": "Learn how Shortn collects, uses, and protects your data. Our commitment to user privacy and data security explained in detail.",
+      "keywords": "privacy policy, data protection, user privacy, data security, gdpr, personal information"
+    },
+    "terms": {
+      "title": "Terms of Service - Shortn | Usage Terms & Conditions",
+      "description": "Read Shortn's terms of service and usage conditions. Understand your rights and responsibilities when using our URL shortening and link management platform.",
+      "keywords": "terms of service, terms and conditions, usage policy, user agreement, legal terms"
+    },
+    "login": {
+      "title": "Login - Access Your Shortn Dashboard | Sign In",
+      "description": "Sign in to your Shortn account to manage your shortened URLs, QR codes, bio pages, and view detailed analytics. Secure login with Google or email.",
+      "keywords": "login, sign in, user login, account access, dashboard login"
+    },
+    "register": {
+      "title": "Sign Up Free - Create Your Shortn Account | Free URL Shortener",
+      "description": "Create your free Shortn account and start shortening URLs, generating QR codes, and tracking clicks today. No credit card required for free tier.",
+      "keywords": "sign up, register, create account, free account, new user, get started"
+    },
+    "dashboard": {
+      "title": "Dashboard - Shortn | Manage Your Links & Analytics",
+      "description": "Access your Shortn dashboard to view all your shortened URLs, QR codes, analytics, and campaign performance in one place.",
+      "keywords": "dashboard, user dashboard, link management, analytics dashboard, control panel"
+    },
+    "links": {
+      "title": "My Links - Manage Shortened URLs | Shortn Dashboard",
+      "description": "View, edit, and organize all your shortened URLs. Filter by tags, dates, and campaigns. Track clicks and performance for each link.",
+      "keywords": "my links, shortened urls, link list, manage links, url management"
+    },
+    "qrCodes": {
+      "title": "QR Codes - Create & Manage QR Codes | Shortn Dashboard",
+      "description": "Create, customize, and track dynamic QR codes. Monitor scans, edit destination URLs, and download high-quality QR code images.",
+      "keywords": "qr codes, qr code generator, dynamic qr codes, qr code management, qr analytics"
+    },
+    "createQR": {
+      "title": "Create QR Code - Free QR Code Generator | Shortn",
+      "description": "Generate custom QR codes with logo, colors, and branding. Create dynamic QR codes that can be edited after printing.",
+      "keywords": "create qr code, qr generator, custom qr code, branded qr code, dynamic qr code"
+    },
+    "bioPages": {
+      "title": "Bio Pages - Link in Bio Tool | Shortn Dashboard",
+      "description": "Create and manage your link-in-bio pages. Add multiple links, customize design, and track visitor engagement from social media.",
+      "keywords": "bio pages, link in bio, social media links, instagram bio, link tree alternative"
+    },
+    "createBioPage": {
+      "title": "Create Bio Page - Free Link in Bio Tool | Shortn",
+      "description": "Build your custom bio page with unlimited links, social icons, and analytics. Perfect for Instagram, TikTok, and social media profiles.",
+      "keywords": "create bio page, link in bio creator, social media landing page, custom bio link"
+    },
+    "campaigns": {
+      "title": "Campaigns - Track Marketing Performance | Shortn Dashboard",
+      "description": "Organize links into campaigns and track aggregated analytics. Monitor UTM parameters and measure marketing campaign effectiveness.",
+      "keywords": "campaigns, marketing campaigns, utm tracking, campaign analytics, marketing performance"
+    },
+    "settings": {
+      "title": "Settings - Manage Your Shortn Account | User Preferences",
+      "description": "Configure your Shortn account settings, manage profile, security, integrations, and preferences.",
+      "keywords": "settings, account settings, user preferences, profile settings, security settings"
+    },
+    "subscription": {
+      "title": "Subscription - Manage Your Plan | Shortn Billing",
+      "description": "View and manage your Shortn subscription. Upgrade, downgrade, or cancel your plan. Access billing history and invoices.",
+      "keywords": "subscription, billing, plan management, upgrade plan, payment, invoices"
     }
   }
 }

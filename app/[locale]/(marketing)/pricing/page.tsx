@@ -1,5 +1,5 @@
 import { Check, MoveRight, X } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { use } from "react";
 import {
   features,
@@ -19,6 +19,29 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from "@/components/ui/accordion";
+
+export async function generateMetadata() {
+  const t = await getTranslations("metadata");
+
+  return {
+    title: t("pricing.title"),
+    description: t("pricing.description"),
+    keywords: t("pricing.keywords")
+      .split(",")
+      .map((k) => k.trim()),
+    openGraph: {
+      title: t("pricing.title"),
+      description: t("pricing.description"),
+      type: "website",
+      siteName: "Shortn",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("pricing.title"),
+      description: t("pricing.description"),
+    },
+  };
+}
 
 export default function Home({
   params,

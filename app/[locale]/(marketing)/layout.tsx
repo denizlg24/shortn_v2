@@ -25,11 +25,24 @@ export async function generateMetadata() {
       title: t("home.title"),
       description: t("home.description"),
       type: "website",
+      siteName: "Shortn",
+      locale: "en_US",
+      alternateLocale: ["pt_PT", "es_ES"],
     },
     twitter: {
       card: "summary_large_image",
       title: t("home.title"),
       description: t("home.description"),
+      site: "@shortn",
+      creator: "@shortn",
+    },
+    alternates: {
+      canonical: "https://shortn.at",
+      languages: {
+        en: "https://shortn.at/en",
+        pt: "https://shortn.at/pt",
+        es: "https://shortn.at/es",
+      },
     },
   };
 }
