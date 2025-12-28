@@ -42,7 +42,7 @@ import {
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
@@ -78,12 +78,16 @@ export const LinkCard = ({
   addTag,
   removeTag,
   tags,
+  tagOptions: externalTagOptions,
+  onTagSearchChange,
 }: {
   link: TUrl;
   initialBioPageSlug?: string;
   addTag: (_tagId: string) => void;
   removeTag: (_tagId: string) => void;
   tags: string[];
+  tagOptions?: ITag[];
+  onTagSearchChange?: (search: string) => void;
 }) => {
   const { plan } = usePlan();
   const router = useRouter();
@@ -91,8 +95,15 @@ export const LinkCard = ({
   const [currentLink, setCurrentLink] = useState(link);
   const shortUrl = getShortUrl(currentLink.urlCode);
   const [input, setInput] = useState("");
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);
+
+  const tagOptions = externalTagOptions || [];
+
+  useEffect(() => {
+    if (onTagSearchChange) {
+      onTagSearchChange(input);
+    }
+  }, [input, onTagSearchChange]);
 
   const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
@@ -111,30 +122,6 @@ export const LinkCard = ({
   const [passwordHint, setPasswordHint] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
-
-  useEffect(() => {
-    const delayDebounce = setTimeout(() => {
-      if (input.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
-          if (res.success) {
-            setTagOptions(res.tags);
-          } else {
-            setTagOptions([]);
-          }
-        });
-        return;
-      }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
-        if (res.success) {
-          setTagOptions(res.tags);
-        } else {
-          setTagOptions([]);
-        }
-      });
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
-  }, [input]);
 
   const handlePasswordSubmit = async () => {
     if (!isPro) {

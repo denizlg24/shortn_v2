@@ -8,6 +8,14 @@ export interface IDBSession extends Document {
   expiresAt: Date;
   ipAddress?: string;
   userAgent?: string;
+  geo?: {
+    city?: string;
+    country?: string;
+    countryRegion?: string;
+    region?: string;
+    latitude?: string;
+    longitude?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -19,6 +27,17 @@ const sessionSchema = new Schema<IDBSession>(
     expiresAt: { type: Date, required: true },
     ipAddress: { type: String },
     userAgent: { type: String },
+    geo: {
+      type: {
+        city: { type: String },
+        country: { type: String },
+        countryRegion: { type: String },
+        region: { type: String },
+        latitude: { type: String },
+        longitude: { type: String },
+      },
+      required: false,
+    },
     createdAt: { type: Date, required: true },
     updatedAt: { type: Date, required: true },
   },
