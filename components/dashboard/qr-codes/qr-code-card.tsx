@@ -19,7 +19,7 @@ import {
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi, getShortUrl } from "@/lib/utils";
+import { cn, getShortUrl } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { format } from "date-fns";
@@ -65,11 +65,15 @@ export const QRCodeCard = ({
   addTag,
   removeTag,
   tags,
+  tagOptions: externalTagOptions,
+  onTagSearchChange,
 }: {
   qrCode: TQRCode;
   addTag: (tagId: string) => void;
   removeTag: (tagId: string) => void;
   tags: string[];
+  tagOptions?: ITag[];
+  onTagSearchChange?: (search: string) => void;
 }) => {
   const { data } = authClient.useSession();
   const user = data?.user;
@@ -89,8 +93,9 @@ export const QRCodeCard = ({
 
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
   const [input, setInput] = useState("");
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);
+
+  const tagOptions = externalTagOptions || [];
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
@@ -104,32 +109,10 @@ export const QRCodeCard = ({
   );
 
   useEffect(() => {
-    if (!user) {
-      return;
+    if (onTagSearchChange) {
+      onTagSearchChange(input);
     }
-
-    const delayDebounce = setTimeout(() => {
-      if (input.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
-          if (res.success) {
-            setTagOptions(res.tags);
-          } else {
-            setTagOptions([]);
-          }
-        });
-        return;
-      }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
-        if (res.success) {
-          setTagOptions(res.tags);
-        } else {
-          setTagOptions([]);
-        }
-      });
-    }, 300);
-
-    return () => clearTimeout(delayDebounce);
-  }, [input, user]);
+  }, [input, onTagSearchChange]);
 
   const router = useRouter();
 

@@ -4,6 +4,9 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { QRCodeCard } from "./qr-code-card";
+import { fetchApi } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { ITag } from "@/models/url/Tag";
 
 export const QRCodesContainer = ({
   qrCodes,
@@ -19,6 +22,23 @@ export const QRCodesContainer = ({
   limit: number;
 }) => {
   const router = useRouter();
+
+  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagSearchInput, setTagSearchInput] = useState("");
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      const endpoint =
+        tagSearchInput.trim() === "" ? "tags" : `tags?q=${tagSearchInput}`;
+      fetchApi<{ tags: ITag[] }>(endpoint).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        }
+      });
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [tagSearchInput]);
 
   const addTag = (tagId: string) => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -73,6 +93,8 @@ export const QRCodesContainer = ({
               addTag={addTag}
               removeTag={removeTag}
               tags={tags}
+              tagOptions={tagOptions}
+              onTagSearchChange={setTagSearchInput}
             />
           ))}
           {page >= Math.ceil(total / limit) && (
