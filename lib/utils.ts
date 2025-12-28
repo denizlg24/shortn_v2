@@ -126,6 +126,10 @@ export function getBaseUrl() {
 
 export const BASEURL = getBaseUrl();
 
+export function getShortUrl(urlCode: string): string {
+  return `${BASEURL}/${urlCode}`;
+}
+
 export function deepEqual<T>(a: T, b: T): boolean {
   if (Object.is(a, b)) return true;
 

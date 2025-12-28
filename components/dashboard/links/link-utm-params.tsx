@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/i18n/navigation";
 import { TUrl } from "@/models/url/UrlV3";
+import { getShortUrl } from "@/lib/utils";
 import {
   CheckCircle,
   ChevronDown,
@@ -67,6 +68,7 @@ export const LinkUtmParams = ({
   currentLink: TUrl;
   unlocked: boolean;
 }) => {
+  const shortUrl = getShortUrl(currentLink.urlCode);
   const [link, updateLink] = useState(currentLink);
   const [justCopied, setJustCopied] = useState(-1);
   const [utm, updateUtm] = useState<
@@ -165,7 +167,7 @@ export const LinkUtmParams = ({
         <>
           <Separator className="mt-2" />
           {utm.map((utmSection, indx) => {
-            const builtHref = buildUrl(link.shortUrl, utmSection);
+            const builtHref = buildUrl(shortUrl, utmSection);
             const handleCopy = async () => {
               await navigator.clipboard.writeText(builtHref);
               setJustCopied(indx);

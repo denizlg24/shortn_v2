@@ -19,7 +19,7 @@ import {
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn, fetchApi, getShortUrl } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { format } from "date-fns";
@@ -278,12 +278,15 @@ export const QRCodeCard = ({
                                 }
                               }
                               if (response.success && response.data) {
-                                await attachShortnToQR(
+                                const shortUrl = getShortUrl(
                                   response.data.shortUrl,
+                                );
+                                await attachShortnToQR(
+                                  shortUrl,
                                   qrCode.qrCodeId,
                                 );
                                 router.push(
-                                  `/dashboard/links/${response.data.shortUrl}/details`,
+                                  `/dashboard/links/${shortUrl}/details`,
                                 );
                               }
                             }}
@@ -702,12 +705,12 @@ export const QRCodeCard = ({
                               }
                             }
                             if (response.success && response.data) {
-                              await attachShortnToQR(
+                              const shortUrl = getShortUrl(
                                 response.data.shortUrl,
-                                qrCode.qrCodeId,
                               );
+                              await attachShortnToQR(shortUrl, qrCode.qrCodeId);
                               router.push(
-                                `/dashboard/links/${response.data.shortUrl}/details`,
+                                `/dashboard/links/${shortUrl}/details`,
                               );
                             }
                           }}
@@ -912,13 +915,9 @@ export const QRCodeCard = ({
                           }
                         }
                         if (response.success && response.data) {
-                          await attachShortnToQR(
-                            response.data.shortUrl,
-                            qrCode.qrCodeId,
-                          );
-                          router.push(
-                            `/dashboard/links/${response.data.shortUrl}/details`,
-                          );
+                          const shortUrl = getShortUrl(response.data.shortUrl);
+                          await attachShortnToQR(shortUrl, qrCode.qrCodeId);
+                          router.push(`/dashboard/links/${shortUrl}/details`);
                         }
                       }}
                     >

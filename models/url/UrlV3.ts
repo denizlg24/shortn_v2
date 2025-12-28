@@ -6,7 +6,6 @@ export interface IUrl extends Document {
   urlCode: string;
   customCode: boolean;
   longUrl: string;
-  shortUrl: string;
   qrCodeId?: string;
   isQrCode: boolean;
   title?: string;
@@ -39,7 +38,6 @@ export interface TUrl {
   urlCode: string;
   customCode: boolean;
   longUrl: string;
-  shortUrl: string;
   qrCodeId?: string;
   isQrCode: boolean;
   title?: string;
@@ -70,7 +68,6 @@ const UrlSchema = new Schema<IUrl>({
   urlCode: { type: String, required: true },
   customCode: { type: Boolean, default: false },
   longUrl: { type: String, required: true },
-  shortUrl: { type: String, required: true },
   qrCodeId: String,
   isQrCode: { type: Boolean, default: false },
   title: String,
