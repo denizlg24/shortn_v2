@@ -4,7 +4,9 @@ import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
 import { TUrl } from "@/models/url/UrlV3";
 import { LinkCard } from "./link-card";
-import { cn } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { ITag } from "@/models/url/Tag";
 
 export const LinkContainer = ({
   links,
@@ -22,6 +24,32 @@ export const LinkContainer = ({
   hideEndTag?: boolean;
 }) => {
   const router = useRouter();
+  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagSearchInput, setTagSearchInput] = useState("");
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (tagSearchInput.trim() === "") {
+        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+          if (res.success) {
+            setTagOptions(res.tags);
+          } else {
+            setTagOptions([]);
+          }
+        });
+        return;
+      }
+      fetchApi<{ tags: ITag[] }>(`tags?q=${tagSearchInput}`).then((res) => {
+        if (res.success) {
+          setTagOptions(res.tags);
+        } else {
+          setTagOptions([]);
+        }
+      });
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [tagSearchInput]);
 
   const addTag = (tagId: string) => {
     const searchParams = new URLSearchParams(window.location.search);
@@ -82,6 +110,8 @@ export const LinkContainer = ({
               key={link._id as string}
               link={link}
               initialBioPageSlug={link.bioPageSlug}
+              tagOptions={tagOptions}
+              onTagSearchChange={setTagSearchInput}
             />
           ))}
           {page >= Math.ceil(total / limit) &&

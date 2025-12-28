@@ -66,6 +66,14 @@ export const SecurityCard = ({
     createdAt: Date;
     id: string;
     userAgent: string | undefined;
+    geo?: {
+      city?: string;
+      country?: string;
+      countryRegion?: string;
+      region?: string;
+      latitude?: string;
+      longitude?: string;
+    };
   }[];
 }) => {
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
@@ -274,169 +282,187 @@ export const SecurityCard = ({
                 <div
                   key={`${device.id}`}
                   className={cn(
-                    "flex flex-row items-start justify-between p-3 rounded-lg border",
+                    "flex flex-row items-start justify-between gap-3 p-3 rounded-lg border",
                     isCurrentSession
                       ? "bg-primary/5 border-primary/30"
                       : "bg-card",
                   )}
                 >
-                  <div className="flex flex-col gap-1 items-start text-left flex-1">
-                    <div className="flex flex-row items-center gap-2">
-                      <Monitor className="w-4 h-4 text-muted-foreground" />
-                      <p className="text-sm font-semibold">
-                        {userAgentInfo.browser} on {userAgentInfo.os}
-                      </p>
+                  <div className="flex flex-col gap-1 items-start text-left flex-1 min-w-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 w-full">
+                      <div className="flex flex-row items-center gap-2 min-w-0 flex-1">
+                        <Monitor className="w-4 h-4 text-muted-foreground shrink-0" />
+                        <p className="text-sm font-semibold truncate">
+                          {userAgentInfo.browser} on {userAgentInfo.os}
+                        </p>
+                      </div>
                       {isCurrentSession && (
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                        <span className="sm:block hidden text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary whitespace-nowrap shrink-0">
                           Current Session
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground truncate w-full">
                       {device.ipAddress || "Unknown IP"} •{" "}
                       {userAgentInfo.device}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      Unknown location
+                    <p className="text-xs text-muted-foreground truncate w-full">
+                      {device.geo
+                        ? `${device.geo.city || ""}${device.geo.city && device.geo.region ? ", " : ""}${device.geo.region || ""}${(device.geo.city || device.geo.region) && device.geo.country ? ", " : ""}${device.geo.country || ""}`
+                            .trim()
+                            .replace(/^,\s*|,\s*$/g, "") || "Unknown location"
+                        : "Unknown location"}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       Active since{" "}
                       {format(device.createdAt, "MMM d, yyyy h:mm a")}
                     </p>
                   </div>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        className="ml-2 shrink-0"
-                      >
-                        Revoke
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>
-                          {isCurrentSession
-                            ? "Revoke current session?"
-                            : "Revoke session?"}
-                        </DialogTitle>
-                        <DialogDescription>
-                          {isCurrentSession ? (
-                            <>
-                              <span className="font-semibold text-destructive">
-                                Warning:
-                              </span>{" "}
-                              You are about to revoke your current session. You
-                              will be logged out immediately and redirected to
-                              the login page.
-                            </>
-                          ) : (
-                            <>
-                              Are you sure you want to revoke this session? The
-                              device will be logged out immediately.
-                            </>
-                          )}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="flex flex-col gap-2 mt-4">
-                        <p className="text-sm">
-                          <span className="font-semibold">Device:</span>{" "}
-                          {userAgentInfo.browser} on {userAgentInfo.os}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-semibold">Device Type:</span>{" "}
-                          {userAgentInfo.device}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-semibold">IP:</span>{" "}
-                          {device.ipAddress || "Unknown"}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-semibold">Location:</span>{" "}
-                          Unknown location
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-semibold">Active since:</span>{" "}
-                          {format(device.createdAt, "MMM d, yyyy h:mm a")}
-                        </p>
-                      </div>
-                      <div className="flex flex-row gap-2 mt-4">
-                        <DialogTrigger asChild>
-                          <Button variant="outline" className="flex-1">
-                            Cancel
-                          </Button>
-                        </DialogTrigger>
+                  <div className="flex flex-col h-full gap-1 items-center justify-between">
+                    {isCurrentSession && (
+                      <span className="sm:hidden block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary whitespace-nowrap shrink-0">
+                        Current Session
+                      </span>
+                    )}
+                    <Dialog>
+                      <DialogTrigger asChild>
                         <Button
                           variant="destructive"
-                          className="flex-1"
-                          disabled={revokingSessionId === device.id}
-                          onClick={async () => {
-                            setRevokingSessionId(device.id);
-                            try {
-                              const response = await fetch(
-                                "/api/auth/revoke-session",
-                                {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  body: JSON.stringify({
-                                    sessionId: device.id,
-                                  }),
-                                },
-                              );
-
-                              if (response.ok) {
-                                toast.success("Session revoked successfully");
-                                if (isCurrentSession) {
-                                  await authClient.signOut({
-                                    fetchOptions: {
-                                      onSuccess: () => {
-                                        router.push("/login");
-                                      },
-                                      onError: () => {
-                                        router.push("/login");
-                                      },
+                          size="sm"
+                          className="ml-2 shrink-0"
+                        >
+                          Revoke
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>
+                            {isCurrentSession
+                              ? "Revoke current session?"
+                              : "Revoke session?"}
+                          </DialogTitle>
+                          <DialogDescription>
+                            {isCurrentSession ? (
+                              <>
+                                <span className="font-semibold text-destructive">
+                                  Warning:
+                                </span>{" "}
+                                You are about to revoke your current session.
+                                You will be logged out immediately and
+                                redirected to the login page.
+                              </>
+                            ) : (
+                              <>
+                                Are you sure you want to revoke this session?
+                                The device will be logged out immediately.
+                              </>
+                            )}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="flex flex-col gap-2 mt-4">
+                          <p className="text-sm">
+                            <span className="font-semibold">Device:</span>{" "}
+                            {userAgentInfo.browser} on {userAgentInfo.os}
+                          </p>
+                          <p className="text-sm">
+                            <span className="font-semibold">Device Type:</span>{" "}
+                            {userAgentInfo.device}
+                          </p>
+                          <p className="text-sm">
+                            <span className="font-semibold">IP:</span>{" "}
+                            {device.ipAddress || "Unknown"}
+                          </p>
+                          <p className="text-sm">
+                            <span className="font-semibold">Location:</span>{" "}
+                            {device.geo
+                              ? `${device.geo.city || ""}${device.geo.city && device.geo.region ? ", " : ""}${device.geo.region || ""}${(device.geo.city || device.geo.region) && device.geo.country ? ", " : ""}${device.geo.country || ""}`
+                                  .trim()
+                                  .replace(/^,\s*|,\s*$/g, "") ||
+                                "Unknown location"
+                              : "Unknown location"}
+                          </p>
+                          <p className="text-sm">
+                            <span className="font-semibold">Active since:</span>{" "}
+                            {format(device.createdAt, "MMM d, yyyy h:mm a")}
+                          </p>
+                        </div>
+                        <div className="flex flex-row gap-2 mt-4">
+                          <DialogTrigger asChild>
+                            <Button variant="outline" className="flex-1">
+                              Cancel
+                            </Button>
+                          </DialogTrigger>
+                          <Button
+                            variant="destructive"
+                            className="flex-1"
+                            disabled={revokingSessionId === device.id}
+                            onClick={async () => {
+                              setRevokingSessionId(device.id);
+                              try {
+                                const response = await fetch(
+                                  "/api/auth/revoke-session",
+                                  {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
                                     },
-                                  });
+                                    body: JSON.stringify({
+                                      sessionId: device.id,
+                                    }),
+                                  },
+                                );
+
+                                if (response.ok) {
+                                  toast.success("Session revoked successfully");
+                                  if (isCurrentSession) {
+                                    await authClient.signOut({
+                                      fetchOptions: {
+                                        onSuccess: () => {
+                                          router.push("/login");
+                                        },
+                                        onError: () => {
+                                          router.push("/login");
+                                        },
+                                      },
+                                    });
+                                  } else {
+                                    router.refresh();
+                                  }
                                 } else {
-                                  router.refresh();
+                                  const error = await response.json();
+                                  toast.error(
+                                    error.error || "Failed to revoke session",
+                                  );
+                                  setRevokingSessionId(null);
                                 }
-                              } else {
-                                const error = await response.json();
+                              } catch (error) {
+                                console.error("Error revoking session:", error);
                                 toast.error(
-                                  error.error || "Failed to revoke session",
+                                  "An error occurred. Please try again.",
                                 );
                                 setRevokingSessionId(null);
                               }
-                            } catch (error) {
-                              console.error("Error revoking session:", error);
-                              toast.error(
-                                "An error occurred. Please try again.",
-                              );
-                              setRevokingSessionId(null);
-                            }
-                          }}
-                        >
-                          {revokingSessionId === device.id ? (
-                            <>
-                              <Loader2 className="animate-spin" />
-                              {isCurrentSession
-                                ? "Logging out..."
-                                : "Revoking..."}
-                            </>
-                          ) : (
-                            <>
-                              {isCurrentSession
-                                ? "Revoke & Log Out"
-                                : "Revoke Session"}
-                            </>
-                          )}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                            }}
+                          >
+                            {revokingSessionId === device.id ? (
+                              <>
+                                <Loader2 className="animate-spin" />
+                                {isCurrentSession
+                                  ? "Logging out..."
+                                  : "Revoking..."}
+                              </>
+                            ) : (
+                              <>
+                                {isCurrentSession
+                                  ? "Revoke & Log Out"
+                                  : "Revoke Session"}
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
               );
             })}

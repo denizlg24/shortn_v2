@@ -15,6 +15,7 @@ import {
 import { BASEURL } from "./utils";
 import { connectDB } from "./mongodb";
 import { Session } from "@/models/auth/Session";
+import { geolocation } from "@vercel/functions";
 import {
   checkout,
   polar,
@@ -157,6 +158,38 @@ export const auth = betterAuth({
               image:
                 user.image ||
                 `https://robohash.org/${encodeURIComponent(user.email)}`,
+            },
+          };
+        },
+      },
+    },
+    session: {
+      create: {
+        before: async (session, ctx) => {
+          const request = ctx?.request;
+          let geo = null;
+
+          if (request) {
+            try {
+              geo = geolocation(request);
+            } catch (error) {
+              console.error("Failed to get geolocation:", error);
+            }
+          }
+
+          return {
+            data: {
+              ...session,
+              geo: geo
+                ? {
+                    city: geo.city,
+                    country: geo.country,
+                    countryRegion: geo.countryRegion,
+                    region: geo.region,
+                    latitude: geo.latitude,
+                    longitude: geo.longitude,
+                  }
+                : undefined,
             },
           };
         },
