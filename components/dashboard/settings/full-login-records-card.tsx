@@ -21,7 +21,6 @@ export const FullLoginRecordsCard = ({
   type IFilter =
     | "password-changed"
     | "profile-changed"
-    | "login"
     | "password-change-attempt"
     | "tax-id-changed"
     | "phone-changed"
@@ -66,7 +65,6 @@ export const FullLoginRecordsCard = ({
               <SelectValue placeholder="Choose one" />
             </SelectTrigger>
             <SelectContent className="z-99">
-              <SelectItem value="login">login</SelectItem>
               <SelectItem value="password-changed">password-changed</SelectItem>
               <SelectItem value="profile-changed">profile-changed</SelectItem>
               <SelectItem value="password-change-attempt">

@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { BASEURL, cn } from "@/lib/utils";
+import { BASEURL, cn, getShortUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   CheckCircle2,
@@ -1145,10 +1145,13 @@ export const QRCodeCreate = ({
                       }
                     }
                     if (firstLinkResponse.success && firstLinkResponse.data) {
+                      const shortUrl = getShortUrl(
+                        firstLinkResponse.data.shortUrl,
+                      );
                       const qrCodeResponse = await createQrCode({
                         longUrl: qrCodeForm.getValues("destination"),
                         title: qrCodeForm.getValues("title") || "",
-                        attachedUrl: firstLinkResponse.data.shortUrl,
+                        attachedUrl: shortUrl,
                         options,
                       });
                       if (!qrCodeResponse.success) {
@@ -1183,7 +1186,7 @@ export const QRCodeCreate = ({
                       }
                       if (qrCodeResponse.success && qrCodeResponse.data) {
                         const updateResponse = await attachQRToShortn(
-                          firstLinkResponse.data.shortUrl,
+                          shortUrl,
                           qrCodeResponse.data.qrCodeId,
                         );
                         if (!updateResponse.success) {

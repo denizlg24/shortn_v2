@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { getShortUrl } from "@/lib/utils";
 import { TUrl } from "@/models/url/UrlV3";
 import { ChartNoAxesColumn, Copy, CopyCheck, ExternalLink } from "lucide-react";
 import { useState } from "react";
@@ -13,10 +14,11 @@ export const CampaignLinkCard = ({
   link: TUrl;
   clicks?: number;
 }) => {
+  const shortUrl = getShortUrl(link.urlCode);
   const [justCopied, setJustCopied] = useState(false);
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(link.shortUrl);
+    await navigator.clipboard.writeText(shortUrl);
     setJustCopied(true);
     setTimeout(() => {
       setJustCopied(false);
@@ -36,10 +38,10 @@ export const CampaignLinkCard = ({
           <Link
             prefetch={false}
             target="_blank"
-            href={link.shortUrl}
+            href={shortUrl}
             className="text-xs text-blue-500 hover:underline truncate"
           >
-            {link.shortUrl.split("://")[1]}
+            {shortUrl.split("://")[1]}
           </Link>
           <button
             onClick={handleCopy}

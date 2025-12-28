@@ -9,9 +9,8 @@ import QRCodeStyling, { Options } from "qr-code-styling";
 import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
 import { ITag } from "@/models/url/Tag";
-import { fetchApi } from "@/lib/utils";
+import { fetchApi, BASEURL } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
-import { headers } from "next/headers";
 import { deletePicture } from "./deletePicture";
 import { User } from "@/models/auth/User";
 import { getUserPlan } from "@/app/actions/polarActions";
@@ -83,13 +82,6 @@ export async function createQrCode({
     const sub = user.sub;
     const urlCode = nanoid(6);
     const qrShortCode = nanoid(6);
-    const headersList = await headers();
-    const host = headersList.get("host");
-    const protocol =
-      headersList.get("x-forwarded-proto") ||
-      (process.env.NODE_ENV === "production" ? "https" : "http");
-
-    const shortUrl = `${protocol}://${host ?? "localhost:3000"}/${urlCode}`;
 
     let resolvedTitle = title?.trim();
 
@@ -139,7 +131,6 @@ export async function createQrCode({
       sub,
       urlCode,
       longUrl,
-      shortUrl,
       qrCodeId: qrShortCode,
       isQrCode: true,
       title: resolvedTitle,
@@ -165,12 +156,12 @@ export async function createQrCode({
       title: resolvedTitle,
       tags: finalTags,
       options: options
-        ? { ...options, data: newUrl.shortUrl }
+        ? { ...options, data: `${BASEURL}/${newUrl.urlCode}` }
         : {
             width: 300,
             height: 300,
             type: "svg",
-            data: newUrl.shortUrl,
+            data: `${BASEURL}/${newUrl.urlCode}`,
             dotsOptions: {
               color: "#1e90ff",
               type: "square",

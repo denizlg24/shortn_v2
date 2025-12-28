@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { cn, getShortUrl } from "@/lib/utils";
 import { TUrl } from "@/models/url/UrlV3";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import {
@@ -40,6 +40,7 @@ const LinkItem = ({
   link: TUrl;
   showClicks: boolean;
 }) => {
+  const shortUrl = getShortUrl(link.urlCode);
   return (
     <Link
       href={`/dashboard/links/${link.urlCode}/details`}
@@ -53,9 +54,7 @@ const LinkItem = ({
           <p className="font-medium text-sm truncate group-hover:text-primary transition-colors">
             {link.title || "Untitled"}
           </p>
-          <p className="text-xs text-muted-foreground truncate">
-            {link.shortUrl}
-          </p>
+          <p className="text-xs text-muted-foreground truncate">{shortUrl}</p>
           <div className="flex items-center gap-2 mt-1">
             {showClicks && (
               <Badge variant="outline" className="text-xs">

@@ -22,13 +22,22 @@ import { cn } from "@/lib/utils";
 import { TLoginRecord } from "@/models/auth/LoginActivity";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { EyeOff, Eye, Loader2, SquareArrowOutUpRight } from "lucide-react";
+import {
+  EyeOff,
+  Eye,
+  Loader2,
+  SquareArrowOutUpRight,
+  Monitor,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { FullLoginRecordsCard } from "./full-login-records-card";
 import { authClient } from "@/lib/authClient";
+import { Card } from "@/components/ui/card";
+import { parseUserAgent } from "@/lib/user-agent-parser";
+import { useRouter } from "@/i18n/navigation";
 const updatePasswordFormSchema = z
   .object({
     old_password: z.string().min(1, "Required"),
@@ -48,9 +57,16 @@ const updatePasswordFormSchema = z
 export const SecurityCard = ({
   loginRecords,
   fullLoginRecords,
+  loggedInDevices,
 }: {
   loginRecords: TLoginRecord[];
   fullLoginRecords: TLoginRecord[];
+  loggedInDevices: {
+    ipAddress: string | undefined;
+    createdAt: Date;
+    id: string;
+    userAgent: string | undefined;
+  }[];
 }) => {
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
     resolver: zodResolver(updatePasswordFormSchema),
@@ -65,8 +81,13 @@ export const SecurityCard = ({
   const [showCurrentPassword, toggleShowCurrentPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
   const [changesLoading, setChangesLoading] = useState(false);
+  const [revokingSessionId, setRevokingSessionId] = useState<string | null>(
+    null,
+  );
   const { data } = authClient.useSession();
   const user = data?.user;
+  const currentSessionId = data?.session?.id;
+  const router = useRouter();
   async function onSubmit(values: z.infer<typeof updatePasswordFormSchema>) {
     if (!user) {
       return;
@@ -238,8 +259,193 @@ export const SecurityCard = ({
         </form>
       </Form>
       <Separator className="my-4" />
+      <Card className="p-4 w-full max-w-xl flex flex-col gap-4">
+        <h1 className="lg:text-lg sm:text-base text-sm font-semibold">
+          Active Sessions
+        </h1>
+        {loggedInDevices.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No active sessions.</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {loggedInDevices.map((device) => {
+              const isCurrentSession = device.id === currentSessionId;
+              const userAgentInfo = parseUserAgent(device.userAgent);
+              return (
+                <div
+                  key={`${device.id}`}
+                  className={cn(
+                    "flex flex-row items-start justify-between p-3 rounded-lg border",
+                    isCurrentSession
+                      ? "bg-primary/5 border-primary/30"
+                      : "bg-card",
+                  )}
+                >
+                  <div className="flex flex-col gap-1 items-start text-left flex-1">
+                    <div className="flex flex-row items-center gap-2">
+                      <Monitor className="w-4 h-4 text-muted-foreground" />
+                      <p className="text-sm font-semibold">
+                        {userAgentInfo.browser} on {userAgentInfo.os}
+                      </p>
+                      {isCurrentSession && (
+                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary">
+                          Current Session
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {device.ipAddress || "Unknown IP"} •{" "}
+                      {userAgentInfo.device}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Unknown location
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Active since{" "}
+                      {format(device.createdAt, "MMM d, yyyy h:mm a")}
+                    </p>
+                  </div>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="ml-2 shrink-0"
+                      >
+                        Revoke
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {isCurrentSession
+                            ? "Revoke current session?"
+                            : "Revoke session?"}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {isCurrentSession ? (
+                            <>
+                              <span className="font-semibold text-destructive">
+                                Warning:
+                              </span>{" "}
+                              You are about to revoke your current session. You
+                              will be logged out immediately and redirected to
+                              the login page.
+                            </>
+                          ) : (
+                            <>
+                              Are you sure you want to revoke this session? The
+                              device will be logged out immediately.
+                            </>
+                          )}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="flex flex-col gap-2 mt-4">
+                        <p className="text-sm">
+                          <span className="font-semibold">Device:</span>{" "}
+                          {userAgentInfo.browser} on {userAgentInfo.os}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-semibold">Device Type:</span>{" "}
+                          {userAgentInfo.device}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-semibold">IP:</span>{" "}
+                          {device.ipAddress || "Unknown"}
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-semibold">Location:</span>{" "}
+                          Unknown location
+                        </p>
+                        <p className="text-sm">
+                          <span className="font-semibold">Active since:</span>{" "}
+                          {format(device.createdAt, "MMM d, yyyy h:mm a")}
+                        </p>
+                      </div>
+                      <div className="flex flex-row gap-2 mt-4">
+                        <DialogTrigger asChild>
+                          <Button variant="outline" className="flex-1">
+                            Cancel
+                          </Button>
+                        </DialogTrigger>
+                        <Button
+                          variant="destructive"
+                          className="flex-1"
+                          disabled={revokingSessionId === device.id}
+                          onClick={async () => {
+                            setRevokingSessionId(device.id);
+                            try {
+                              const response = await fetch(
+                                "/api/auth/revoke-session",
+                                {
+                                  method: "POST",
+                                  headers: {
+                                    "Content-Type": "application/json",
+                                  },
+                                  body: JSON.stringify({
+                                    sessionId: device.id,
+                                  }),
+                                },
+                              );
+
+                              if (response.ok) {
+                                toast.success("Session revoked successfully");
+                                if (isCurrentSession) {
+                                  await authClient.signOut({
+                                    fetchOptions: {
+                                      onSuccess: () => {
+                                        router.push("/login");
+                                      },
+                                      onError: () => {
+                                        router.push("/login");
+                                      },
+                                    },
+                                  });
+                                } else {
+                                  router.refresh();
+                                }
+                              } else {
+                                const error = await response.json();
+                                toast.error(
+                                  error.error || "Failed to revoke session",
+                                );
+                                setRevokingSessionId(null);
+                              }
+                            } catch (error) {
+                              console.error("Error revoking session:", error);
+                              toast.error(
+                                "An error occurred. Please try again.",
+                              );
+                              setRevokingSessionId(null);
+                            }
+                          }}
+                        >
+                          {revokingSessionId === device.id ? (
+                            <>
+                              <Loader2 className="animate-spin" />
+                              {isCurrentSession
+                                ? "Logging out..."
+                                : "Revoking..."}
+                            </>
+                          ) : (
+                            <>
+                              {isCurrentSession
+                                ? "Revoke & Log Out"
+                                : "Revoke Session"}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
+      <Separator className="my-4" />
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Access History
+        Account Activity History
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
         You&apos;re viewing recent activity on your account.
@@ -248,7 +454,7 @@ export const SecurityCard = ({
       <div className="w-full max-w-xl flex flex-col gap-4 items-start">
         {loginRecords.length == 0 && (
           <p className="font-semibold text-left text-sm">
-            No login records yet.
+            No account activity records yet.
           </p>
         )}
         {loginRecords.map((record) => {
