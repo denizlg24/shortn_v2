@@ -36,7 +36,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi } from "@/lib/utils";
+import { cn, fetchApi, getShortUrl } from "@/lib/utils";
 import { ITag } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
@@ -80,6 +80,7 @@ export const LinkDetailsCard = ({
   currentLink: TUrl;
 }) => {
   const [currentLink, setCurrentLink] = useState<TUrl>(initialLink);
+  const shortUrl = getShortUrl(currentLink.urlCode);
   const { plan } = usePlan();
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
@@ -228,7 +229,7 @@ export const LinkDetailsCard = ({
         <div className="md:flex hidden flex-row items-center gap-2 shrink-0">
           <Button
             onClick={async () => {
-              await navigator.clipboard.writeText(currentLink.shortUrl);
+              await navigator.clipboard.writeText(shortUrl);
               setJustCopied(true);
               setTimeout(() => {
                 setJustCopied(false);
@@ -264,7 +265,7 @@ export const LinkDetailsCard = ({
               </DialogHeader>
               <div className="w-full grid grid-cols-5 gap-4">
                 <FacebookShareButton
-                  url={currentLink.shortUrl}
+                  url={shortUrl}
                   quote={"Check out this link shortened with Shortn.at"}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -272,7 +273,7 @@ export const LinkDetailsCard = ({
                   </div>
                 </FacebookShareButton>
                 <RedditShareButton
-                  url={currentLink.shortUrl}
+                  url={shortUrl}
                   title={"Check out this link shortened with Shortn.at"}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -280,7 +281,7 @@ export const LinkDetailsCard = ({
                   </div>
                 </RedditShareButton>
                 <TwitterShareButton
-                  url={currentLink.shortUrl}
+                  url={shortUrl}
                   title={"Check out this link shortened with Shortn.at"}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -288,7 +289,7 @@ export const LinkDetailsCard = ({
                   </div>
                 </TwitterShareButton>
                 <WhatsappShareButton
-                  url={currentLink.shortUrl}
+                  url={shortUrl}
                   title={"Check out this link shortened with Shortn.at"}
                   separator=" "
                 >
@@ -297,7 +298,7 @@ export const LinkDetailsCard = ({
                   </div>
                 </WhatsappShareButton>
                 <EmailShareButton
-                  url={currentLink.shortUrl}
+                  url={shortUrl}
                   subject="Checkout my Shortn.at Link!"
                   body="Checkout this link shortened with Shortn.at"
                 >
@@ -309,13 +310,13 @@ export const LinkDetailsCard = ({
               <Separator />
               <div className="relative w-full flex items-center">
                 <Input
-                  value={currentLink.shortUrl}
+                  value={shortUrl}
                   readOnly
                   className="w-full bg-background"
                 />
                 <Button
                   onClick={async () => {
-                    await navigator.clipboard.writeText(currentLink.shortUrl);
+                    await navigator.clipboard.writeText(shortUrl);
                     setJustCopied(true);
                     setTimeout(() => {
                       setJustCopied(false);
@@ -569,12 +570,12 @@ export const LinkDetailsCard = ({
       </div>
       <div className="w-full flex flex-row justify-start">
         <Link
-          href={currentLink.shortUrl}
+          href={shortUrl}
           prefetch={false}
           target="_blank"
           className="font-semibold lg:text-base text-sm hover:underline text-blue-500 truncate"
         >
-          {currentLink.shortUrl.split("://")[1]}
+          {shortUrl.split("://")[1]}
         </Link>
       </div>
       <div className="w-full flex flex-row justify-start">
@@ -740,7 +741,7 @@ export const LinkDetailsCard = ({
       <div className="md:hidden flex flex-row items-center justify-start gap-2">
         <Button
           onClick={async () => {
-            await navigator.clipboard.writeText(currentLink.shortUrl);
+            await navigator.clipboard.writeText(shortUrl);
             setJustCopied(true);
             setTimeout(() => {
               setJustCopied(false);
@@ -777,7 +778,7 @@ export const LinkDetailsCard = ({
             </DialogHeader>
             <div className="w-full grid grid-cols-5 gap-4">
               <FacebookShareButton
-                url={currentLink.shortUrl}
+                url={shortUrl}
                 quote={"Check out this link shortened with Shortn.at"}
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -785,7 +786,7 @@ export const LinkDetailsCard = ({
                 </div>
               </FacebookShareButton>
               <RedditShareButton
-                url={currentLink.shortUrl}
+                url={shortUrl}
                 title={"Check out this link shortened with Shortn.at"}
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -793,7 +794,7 @@ export const LinkDetailsCard = ({
                 </div>
               </RedditShareButton>
               <TwitterShareButton
-                url={currentLink.shortUrl}
+                url={shortUrl}
                 title={"Check out this link shortened with Shortn.at"}
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -801,7 +802,7 @@ export const LinkDetailsCard = ({
                 </div>
               </TwitterShareButton>
               <WhatsappShareButton
-                url={currentLink.shortUrl}
+                url={shortUrl}
                 title={"Check out this link shortened with Shortn.at"}
                 separator=" "
               >
@@ -810,7 +811,7 @@ export const LinkDetailsCard = ({
                 </div>
               </WhatsappShareButton>
               <EmailShareButton
-                url={currentLink.shortUrl}
+                url={shortUrl}
                 subject="Checkout my Shortn.at Link!"
                 body="Checkout this link shortened with Shortn.at"
               >
@@ -822,13 +823,13 @@ export const LinkDetailsCard = ({
             <Separator />
             <div className="relative w-full flex items-center">
               <Input
-                value={currentLink.shortUrl}
+                value={shortUrl}
                 readOnly
                 className="w-full bg-background"
               />
               <Button
                 onClick={async () => {
-                  await navigator.clipboard.writeText(currentLink.shortUrl);
+                  await navigator.clipboard.writeText(shortUrl);
                   setJustCopied(true);
                   setTimeout(() => {
                     setJustCopied(false);

@@ -8,6 +8,7 @@ import { ManageLinksPage } from "./manage-links-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
+import { BASEURL } from "@/lib/utils";
 
 export default async function Page({
   params,
@@ -48,7 +49,7 @@ export default async function Page({
     }[]
   ).map((link) => ({
     _id: (link.link._id as string).toString(),
-    shortUrl: link.link.shortUrl,
+    shortUrl: `${BASEURL}/${link.link.urlCode}`,
     title: link.link.title || "",
     createdAt: link.link.date || new Date(),
     addedAt: link.addedAt || new Date(),

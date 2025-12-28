@@ -85,6 +85,7 @@
     "husky": "^9.1.7",
     "i18n-iso-countries": "^7.14.0",
     "input-otp": "^1.4.2",
+    "ip2location-io-nodejs": "^1.1.1",
     "isbot": "^5.1.32",
     "jest": "^30.2.0",
     "js-cookie": "^3.0.5",

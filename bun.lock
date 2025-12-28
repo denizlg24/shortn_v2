@@ -67,6 +67,7 @@
         "husky": "^9.1.7",
         "i18n-iso-countries": "^7.14.0",
         "input-otp": "^1.4.2",
+        "ip2location-io-nodejs": "^1.1.1",
         "isbot": "^5.1.32",
         "jest": "^30.2.0",
         "js-cookie": "^3.0.5",
@@ -1798,6 +1799,8 @@
     "internmap": ["internmap@2.0.3", "", {}, "sha512-5Hh7Y1wQbvY5ooGgPbDaL5iYLAPzMTUrjMulskHLH6wnv/A+1q5rgEaiuqEjB+oxGXIVZs1FF+R/KPN3ZSQYYg=="],
 
     "intl-messageformat": ["intl-messageformat@10.7.18", "", { "dependencies": { "@formatjs/ecma402-abstract": "2.3.6", "@formatjs/fast-memoize": "2.2.7", "@formatjs/icu-messageformat-parser": "2.11.4", "tslib": "2.8.1" } }, "sha512-m3Ofv/X/tV8Y3tHXLohcuVuhWKo7BBq62cqY15etqmLxg2DZ34AGGgQDeR+SCta2+zICb1NX83af0GJmbQ1++g=="],
+
+    "ip2location-io-nodejs": ["ip2location-io-nodejs@1.1.1", "", { "dependencies": { "punycode": "^2.3.0" } }, "sha512-MPFjx3hFteeQooUbiwfOL8etBGpKmgWLcphfJXc2nKhYLoruozhNPtO3ej8BGauMQNypMMOLhnxt10Sevjdojg=="],
 
     "is-alphabetical": ["is-alphabetical@2.0.1", "", {}, "sha512-FWyyY60MeTNyeSRpkM2Iry0G9hpr7/9kD40mD/cGQEuilcZYS4okz8SN2Q6rLCJ8gbCt6fN+rC+6tMGS99LaxQ=="],
 

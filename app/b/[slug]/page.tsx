@@ -3,6 +3,7 @@ import { BioPage } from "@/models/link-in-bio/BioPage";
 import { IUrl } from "@/models/url/UrlV3";
 import { notFound } from "next/navigation";
 import { BioPageDisplay } from "../bio-page-display";
+import { BASEURL } from "@/lib/utils";
 
 export default async function Home({
   params,
@@ -67,7 +68,7 @@ export default async function Home({
           },
           links: bioLinks.map((link) => ({
             link: {
-              shortUrl: link.link.shortUrl,
+              shortUrl: `${BASEURL}/${link.link.urlCode}`,
               title: link.link.title || "",
             },
             image: link.image,

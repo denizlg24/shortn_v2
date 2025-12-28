@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Switch } from "@/components/ui/switch";
 import { Link, useRouter } from "@/i18n/navigation";
-import { BASEURL, cn } from "@/lib/utils";
+import { BASEURL, cn, getShortUrl } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InfinityIcon, Loader2, LockIcon, Eye, EyeOff } from "lucide-react";
 import { Options } from "qr-code-styling";
@@ -587,10 +587,11 @@ export const LinksCreate = () => {
                   }
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
+                  const shortUrl = getShortUrl(firstLinkResponse.data.shortUrl);
                   const qrCodeResponse = await createQrCode({
                     longUrl: data.destination,
                     title: data.title,
-                    attachedUrl: firstLinkResponse.data.shortUrl,
+                    attachedUrl: shortUrl,
                     options,
                   });
                   if (!qrCodeResponse.success) {
@@ -621,7 +622,7 @@ export const LinksCreate = () => {
                   }
                   if (qrCodeResponse.success && qrCodeResponse.data) {
                     const updateResponse = await attachQRToShortn(
-                      firstLinkResponse.data.shortUrl,
+                      shortUrl,
                       qrCodeResponse.data.qrCodeId,
                     );
                     if (!updateResponse.success) {
@@ -633,9 +634,7 @@ export const LinksCreate = () => {
                       return;
                     }
                     if (updateResponse.success) {
-                      router.push(
-                        `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`,
-                      );
+                      router.push(`/dashboard/links/${shortUrl}/details`);
                     }
                   }
                 }
@@ -697,9 +696,8 @@ export const LinksCreate = () => {
                   }
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
-                  router.push(
-                    `/dashboard/links/${firstLinkResponse.data.shortUrl}/details`,
-                  );
+                  const shortUrl = getShortUrl(firstLinkResponse.data.shortUrl);
+                  router.push(`/dashboard/links/${shortUrl}/details`);
                   return;
                 }
               }

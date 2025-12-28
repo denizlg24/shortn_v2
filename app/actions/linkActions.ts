@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import UrlV3, { TUrl } from "@/models/url/UrlV3";
@@ -8,6 +7,7 @@ import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
 import { isbot } from "isbot";
 import { Geo } from "@vercel/functions";
+import { BASEURL } from "@/lib/utils";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
@@ -78,13 +78,7 @@ export async function createShortn({
     }
 
     await connectDB();
-    const headersList = await headers();
-    const host = headersList.get("host");
-    const protocol =
-      headersList.get("x-forwarded-proto") ||
-      (process.env.NODE_ENV === "production" ? "https" : "http");
     const urlCode = customCode || nanoid(6);
-    const shortUrl = `${protocol}://${host ?? "localhost:3000"}/${urlCode}`;
 
     if (customCode) {
       const existing = await UrlV3.findOne({ urlCode: customCode });
@@ -178,7 +172,6 @@ export async function createShortn({
       urlCode,
       customCode: customCode ? true : false,
       longUrl,
-      shortUrl,
       title: resolvedTitle,
       tags: finalTags,
       qrCodeId,
@@ -395,8 +388,6 @@ export const updateShortnData = async ({
     ) {
       return { success: false, message: "redirect-plan-limit" };
     }
-    const headersList = await headers();
-    const domain = headersList.get("host");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateQuery: Record<string, any> = {};
     updateQuery.title = title;
@@ -421,9 +412,6 @@ export const updateShortnData = async ({
     if (custom_code) {
       updateQuery.urlCode = custom_code;
       updateQuery.custom_code = true;
-      const protocol =
-        domain && domain.startsWith("localhost") ? "http://" : "https://";
-      updateQuery.shortUrl = `${protocol}${domain || "localhost:3000"}/${custom_code}`;
       updateCode = custom_code;
     }
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {
@@ -909,7 +897,7 @@ export async function searchUserLinks({
         _id: link._id.toString(),
         urlCode: link.urlCode,
         title: link.title,
-        shortUrl: link.shortUrl,
+        shortUrl: `${BASEURL}/${link.urlCode}`,
         longUrl: link.longUrl,
       })),
     };

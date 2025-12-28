@@ -9,6 +9,7 @@ import { CustomizeBioPage } from "./customize-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
+import { BASEURL } from "@/lib/utils";
 
 export default async function Home({
   params,
@@ -89,7 +90,7 @@ export default async function Home({
           },
           links: bioLinks.map((link) => ({
             link: {
-              shortUrl: link.link.shortUrl,
+              shortUrl: `${BASEURL}/${link.link.urlCode}`,
               title: link.link.title || "",
             },
             image: link.image,
