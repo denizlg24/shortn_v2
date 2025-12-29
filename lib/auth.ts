@@ -164,6 +164,38 @@ export const auth = betterAuth({
       },
     },
     session: {
+      additionalFields: {
+        geo_city: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+        geo_country: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+        geo_country_region: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+        geo_region: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+        geo_latitude: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+        geo_longitude: {
+          type: "string",
+          defaultValue: null,
+          input: false,
+        },
+      },
       create: {
         before: async (session, ctx) => {
           const request = ctx?.request;
@@ -180,16 +212,12 @@ export const auth = betterAuth({
           return {
             data: {
               ...session,
-              geo: geo
-                ? {
-                    city: geo.city,
-                    country: geo.country,
-                    countryRegion: geo.countryRegion,
-                    region: geo.region,
-                    latitude: geo.latitude,
-                    longitude: geo.longitude,
-                  }
-                : undefined,
+              geo_city: geo?.city || null,
+              geo_country: geo?.country || null,
+              geo_country_region: geo?.countryRegion || null,
+              geo_region: geo?.region || null,
+              geo_latitude: geo?.latitude || null,
+              geo_longitude: geo?.longitude || null,
             },
           };
         },

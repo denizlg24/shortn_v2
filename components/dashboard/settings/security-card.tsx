@@ -66,14 +66,12 @@ export const SecurityCard = ({
     createdAt: Date;
     id: string;
     userAgent: string | undefined;
-    geo?: {
-      city?: string;
-      country?: string;
-      countryRegion?: string;
-      region?: string;
-      latitude?: string;
-      longitude?: string;
-    };
+    geo_city?: string;
+    geo_country?: string;
+    geo_country_region?: string;
+    geo_region?: string;
+    geo_latitude?: string;
+    geo_longitude?: string;
   }[];
 }) => {
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
@@ -307,8 +305,10 @@ export const SecurityCard = ({
                       {userAgentInfo.device}
                     </p>
                     <p className="text-xs text-muted-foreground truncate w-full">
-                      {device.geo
-                        ? `${device.geo.city || ""}${device.geo.city && device.geo.region ? ", " : ""}${device.geo.region || ""}${(device.geo.city || device.geo.region) && device.geo.country ? ", " : ""}${device.geo.country || ""}`
+                      {device.geo_city ||
+                      device.geo_region ||
+                      device.geo_country
+                        ? `${device.geo_city || ""}${device.geo_city && device.geo_region ? ", " : ""}${device.geo_region || ""}${(device.geo_city || device.geo_region) && device.geo_country ? ", " : ""}${device.geo_country || ""}`
                             .trim()
                             .replace(/^,\s*|,\s*$/g, "") || "Unknown location"
                         : "Unknown location"}
@@ -374,8 +374,10 @@ export const SecurityCard = ({
                           </p>
                           <p className="text-sm">
                             <span className="font-semibold">Location:</span>{" "}
-                            {device.geo
-                              ? `${device.geo.city || ""}${device.geo.city && device.geo.region ? ", " : ""}${device.geo.region || ""}${(device.geo.city || device.geo.region) && device.geo.country ? ", " : ""}${device.geo.country || ""}`
+                            {device.geo_city ||
+                            device.geo_region ||
+                            device.geo_country
+                              ? `${device.geo_city || ""}${device.geo_city && device.geo_region ? ", " : ""}${device.geo_region || ""}${(device.geo_city || device.geo_region) && device.geo_country ? ", " : ""}${device.geo_country || ""}`
                                   .trim()
                                   .replace(/^,\s*|,\s*$/g, "") ||
                                 "Unknown location"
@@ -413,6 +415,18 @@ export const SecurityCard = ({
                                 );
 
                                 if (response.ok) {
+                                  await fetch("/api/auth/track-activity", {
+                                    method: "POST",
+                                    headers: {
+                                      "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify({
+                                      sub: user?.sub,
+                                      type: "session-revoked",
+                                      success: true,
+                                    }),
+                                  });
+
                                   toast.success("Session revoked successfully");
                                   if (isCurrentSession) {
                                     await authClient.signOut({
