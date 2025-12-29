@@ -1,6 +1,6 @@
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { QRCodeDetailsCard } from "./qr-code-details-card";
 import { QRCodeTimeAnalytics } from "./qr-code-time-analytics";
@@ -9,13 +9,21 @@ import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 import { ScanDataProvider } from "@/utils/ScanDataContext";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { forbidden } from "next/navigation";
+import { signOutUser } from "@/app/actions/signOut";
 
-export const QRCodeDetails = async ({ qr }: { qr: IQRCode }) => {
+export const QRCodeDetails = async ({
+  qr,
+  locale,
+}: {
+  qr: IQRCode;
+  locale: string;
+}) => {
   const session = await getServerSession();
   const { plan } = await getUserPlan();
   if (!session?.user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
+    return;
   }
   return (
     <>

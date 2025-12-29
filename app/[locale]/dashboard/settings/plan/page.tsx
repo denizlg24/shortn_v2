@@ -15,10 +15,10 @@ import {
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Check, ExternalLink, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { forbidden } from "next/navigation";
-import { redirect } from "next/navigation";
+import { redirect } from "@/i18n/navigation";
 import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
-
+import { signOutUser } from "@/app/actions/signOut";
+import { redirect as NextRedirect } from "next/navigation";
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
     <div className="w-full p-0.5 rounded-full shadow bg-muted flex items-center">
@@ -40,7 +40,9 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
+    return;
   }
   const { plan } = await getUserPlan();
   return (
@@ -263,7 +265,7 @@ export default async function Home({
                   "use server";
                   const result = await getPolarPortalUrl();
                   if (result.success && result.url) {
-                    redirect(result.url);
+                    NextRedirect(result.url);
                   }
                 }}
               >

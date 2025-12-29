@@ -1,9 +1,10 @@
 import env from "@/utils/env";
-import { betterAuth } from "better-auth";
+import { betterAuth, BetterAuthOptions } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { username } from "better-auth/plugins/username";
+import { customSession } from "better-auth/plugins";
 import { sendRecoveryEmail } from "@/app/actions/userActions";
 import { sendEmail } from "@/app/actions/sendEmail";
 import {
@@ -36,7 +37,7 @@ const generateRandomString = () => {
 const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 
-export const auth = betterAuth({
+const options = {
   database: mongodbAdapter(db, {
     client,
   }),
@@ -164,38 +165,6 @@ export const auth = betterAuth({
       },
     },
     session: {
-      additionalFields: {
-        geo_city: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-        geo_country: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-        geo_country_region: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-        geo_region: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-        geo_latitude: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-        geo_longitude: {
-          type: "string",
-          defaultValue: null,
-          input: false,
-        },
-      },
       create: {
         before: async (session, ctx) => {
           const request = ctx?.request;
@@ -221,6 +190,40 @@ export const auth = betterAuth({
             },
           };
         },
+      },
+    },
+  },
+  session: {
+    additionalFields: {
+      geo_city: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
+      geo_country: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
+      geo_country_region: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
+      geo_region: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
+      geo_latitude: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
+      geo_longitude: {
+        type: "string",
+        defaultValue: null,
+        input: false,
       },
     },
   },
@@ -668,6 +671,45 @@ export const auth = betterAuth({
       ],
     }),
     nextCookies(),
+  ],
+} satisfies BetterAuthOptions;
+
+type SessionWithGeo = {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  expiresAt: Date;
+  token: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  geo_city?: string | null;
+  geo_country?: string | null;
+  geo_country_region?: string | null;
+  geo_region?: string | null;
+  geo_latitude?: string | null;
+  geo_longitude?: string | null;
+};
+
+export const auth = betterAuth({
+  ...options,
+  plugins: [
+    ...(options.plugins ?? []),
+    customSession(async ({ session, user }) => {
+      const sessionWithGeo = session as SessionWithGeo;
+      return {
+        session: {
+          ...session,
+          geo_city: sessionWithGeo.geo_city,
+          geo_country: sessionWithGeo.geo_country,
+          geo_country_region: sessionWithGeo.geo_country_region,
+          geo_region: sessionWithGeo.geo_region,
+          geo_latitude: sessionWithGeo.geo_latitude,
+          geo_longitude: sessionWithGeo.geo_longitude,
+        },
+        user,
+      };
+    }, options),
   ],
 });
 

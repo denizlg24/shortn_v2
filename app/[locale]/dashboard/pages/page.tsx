@@ -1,4 +1,4 @@
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { PagesContainer } from "./pages-container";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { forbidden } from "next/navigation";
+import { signOutUser } from "@/app/actions/signOut";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -53,7 +53,9 @@ export default async function Home({
   const user = session?.user;
 
   if (!user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
+    return;
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {
