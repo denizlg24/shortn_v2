@@ -1,19 +1,20 @@
 import { CampaignLinkContainer } from "@/components/dashboard/campaigns/campaign-link-container";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { Campaigns } from "@/models/url/Campaigns";
 import { IUrl } from "@/models/url/UrlV3";
 import { Plus, Star } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
-import { forbidden, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { DeleteCampaignButton } from "./delete-campaign-button";
 import { DownloadButtonCSV } from "@/components/dashboard/links/download-csv-button";
 import Clicks from "@/models/url/Click";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { AddLinkToCampaignDialog } from "@/components/dashboard/campaigns/add-link-to-campaign-dialog";
+import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Home({
   params,
@@ -28,7 +29,9 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
+    return;
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {

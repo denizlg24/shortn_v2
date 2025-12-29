@@ -3,12 +3,11 @@ import {
   getPendingScheduledChange,
 } from "@/app/actions/polarActions";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { getServerSession } from "@/lib/session";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { Check, X } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { forbidden } from "next/navigation";
 import React from "react";
 import { CheckoutSessionButton } from "./checkout-session-button";
 import { UpgradeSessionButton } from "./upgrade-plan-button";
@@ -20,6 +19,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { signOutUser } from "@/app/actions/signOut";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -158,7 +158,9 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
+    return;
   }
   const { plan: _plan } = await getUserPlan();
   const pendingChange = await getPendingScheduledChange();

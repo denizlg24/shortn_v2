@@ -4,12 +4,13 @@ import { BioPage } from "@/models/link-in-bio/BioPage";
 
 import { setRequestLocale } from "next-intl/server";
 
-import { forbidden, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { CustomizeBioPage } from "./customize-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { BASEURL } from "@/lib/utils";
+import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Home({
   params,
@@ -22,7 +23,8 @@ export default async function Home({
   const user = session?.user;
 
   if (!user) {
-    forbidden();
+    await signOutUser();
+    redirect({ href: "/login", locale });
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {

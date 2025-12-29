@@ -3,6 +3,7 @@ import {
   inferAdditionalFields,
   usernameClient,
 } from "better-auth/client/plugins";
+import { customSessionClient } from "better-auth/client/plugins";
 import type { auth } from "@/lib/auth";
 import { polarClient } from "@polar-sh/better-auth";
 import { CustomerStateSubscription } from "@polar-sh/sdk/models/components/customerstatesubscription.js";
@@ -11,6 +12,7 @@ export const authClient = createAuthClient({
     usernameClient(),
     polarClient(),
     inferAdditionalFields<typeof auth>(),
+    customSessionClient<typeof auth>(),
   ],
 });
 

@@ -56,16 +56,6 @@ export async function POST(req: NextRequest) {
     await connectDB();
     await Session.findByIdAndDelete(sessionId);
 
-    await fetch(`${req.nextUrl.origin}/api/auth/track-activity`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sub: session.user.sub,
-        type: "session-revoked",
-        success: true,
-      }),
-    });
-
     return NextResponse.json(
       { success: true, message: "Session revoked successfully" },
       { status: 200 },
