@@ -31,6 +31,7 @@ export default async function Home({
   if (!user) {
     await signOutUser();
     redirect({ href: "/login", locale });
+    return;
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {
