@@ -675,7 +675,7 @@ const options = {
   ],
 } satisfies BetterAuthOptions;
 
-type SessionWithGeo = {
+export type SessionWithGeo = {
   id: string;
   createdAt: Date;
   updatedAt: Date;
