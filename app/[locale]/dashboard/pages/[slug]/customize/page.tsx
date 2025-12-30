@@ -3,14 +3,12 @@ import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 
 import { setRequestLocale } from "next-intl/server";
-
 import { notFound } from "next/navigation";
 import { CustomizeBioPage } from "./customize-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { BASEURL } from "@/lib/utils";
-import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Home({
   params,
@@ -23,8 +21,7 @@ export default async function Home({
   const user = session?.user;
 
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {

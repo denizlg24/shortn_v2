@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { PagesContainer } from "./pages-container";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { signOutUser } from "@/app/actions/signOut";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -53,8 +52,7 @@ export default async function Home({
   const user = session?.user;
 
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();

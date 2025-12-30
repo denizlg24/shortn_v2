@@ -17,7 +17,6 @@ import { Check, ExternalLink, X } from "lucide-react";
 import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
-import { signOutUser } from "@/app/actions/signOut";
 import { redirect as NextRedirect } from "next/navigation";
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
@@ -40,8 +39,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();

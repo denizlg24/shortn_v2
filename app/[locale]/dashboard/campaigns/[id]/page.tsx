@@ -14,7 +14,6 @@ import Clicks from "@/models/url/Click";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { AddLinkToCampaignDialog } from "@/components/dashboard/campaigns/add-link-to-campaign-dialog";
-import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Home({
   params,
@@ -29,8 +28,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();

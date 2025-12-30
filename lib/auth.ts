@@ -43,6 +43,7 @@ const options = {
   }),
   advanced: {
     cookiePrefix: "shortn_auth_",
+    useSecureCookies: !!process.env.VERCEL_URL,
   },
   user: {
     changeEmail: {

@@ -17,7 +17,6 @@ import { getClicks } from "@/utils/fetching-functions";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { SubscriptionsType } from "@/utils/plan-utils";
-import { signOutUser } from "@/app/actions/signOut";
 
 export const LinkDetails = async ({
   url,
@@ -31,8 +30,7 @@ export const LinkDetails = async ({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();

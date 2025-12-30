@@ -1,12 +1,10 @@
 import { redirect } from "@/i18n/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
-
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { DowngradeForm } from "./downgrade-form";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Home({
   params,
@@ -25,8 +23,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
 
