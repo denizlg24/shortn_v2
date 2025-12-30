@@ -1,15 +1,13 @@
 import { getUserPlan } from "@/app/actions/polarActions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
 import { Campaigns } from "@/models/url/Campaigns";
 import { LinkIcon, Plus, Rocket, Star } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { forbidden } from "next/navigation";
 import { AddCampaignDialog } from "./add-campaign-dialog";
-
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
@@ -47,7 +45,8 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {

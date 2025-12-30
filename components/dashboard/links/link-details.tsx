@@ -5,7 +5,7 @@ import { IQRCode } from "@/models/url/QRCodeV2";
 import { LinkTimeAnalytics } from "./link-time-analytics";
 import { LinkLocationAnalytics } from "./link-location-analytics";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
+import { Link, redirect } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
 import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
@@ -15,21 +15,23 @@ import { LinkUtmParams } from "./link-utm-params";
 import { LinkUtmStats } from "./link-utm-stats";
 import { getClicks } from "@/utils/fetching-functions";
 import { getServerSession } from "@/lib/session";
-import { forbidden } from "next/navigation";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { SubscriptionsType } from "@/utils/plan-utils";
 
 export const LinkDetails = async ({
   url,
   qr,
+  locale,
 }: {
   url: IUrl;
   qr: IQRCode | undefined;
+  locale: string;
 }) => {
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
   const { plan } = await getUserPlan();
   const clicks = await getClicks(url.urlCode, undefined, undefined);

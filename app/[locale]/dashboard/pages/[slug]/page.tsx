@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 import { setRequestLocale } from "next-intl/server";
 
-import { forbidden, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { ManageLinksPage } from "./manage-links-page";
 import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
@@ -21,7 +21,8 @@ export default async function Page({
   const user = session?.user;
 
   if (!user) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
   const { plan } = await getUserPlan();
   if (plan != "pro") {

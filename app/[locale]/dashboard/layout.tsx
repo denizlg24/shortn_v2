@@ -1,5 +1,5 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
-import { forbidden, notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
@@ -12,6 +12,7 @@ import { AbortControllerProvider } from "@/utils/AbortContext";
 import ScrollToTop from "@/utils/ScrollToTop";
 import { getServerSession } from "@/lib/session";
 import { PlanProvider } from "@/hooks/use-plan";
+import { redirect } from "@/i18n/navigation";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -67,7 +68,8 @@ export default async function RootLayout({
   const session = await getServerSession();
 
   if (!session) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
 
   return (

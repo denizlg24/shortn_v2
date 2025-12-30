@@ -1,7 +1,6 @@
 import { redirect } from "@/i18n/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { forbidden, notFound } from "next/navigation";
-
+import { notFound } from "next/navigation";
 import { getRelativeOrder, SubscriptionsType } from "@/utils/plan-utils";
 import { DowngradeForm } from "./downgrade-form";
 import { getServerSession } from "@/lib/session";
@@ -24,7 +23,8 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
 
   const response = await getUserPlan();

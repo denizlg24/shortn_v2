@@ -1,10 +1,10 @@
 import { getLoginRecords } from "@/app/actions/userActions";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
-import { auth } from "@/lib/auth";
+import { redirect } from "@/i18n/navigation";
+import { auth, SessionWithGeo } from "@/lib/auth";
 import { getServerSession } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { headers } from "next/headers";
-import { forbidden } from "next/navigation";
 
 type SessionWithGeo = {
   id: string;
@@ -29,7 +29,8 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    forbidden();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
   const { loginRecords } = await getLoginRecords({ limit: 4, sub: user.sub });
   const { loginRecords: fullLoginRecords } = await getLoginRecords({
