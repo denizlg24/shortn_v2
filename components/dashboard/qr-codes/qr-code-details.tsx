@@ -9,7 +9,6 @@ import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 import { ScanDataProvider } from "@/utils/ScanDataContext";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { signOutUser } from "@/app/actions/signOut";
 
 export const QRCodeDetails = async ({
   qr,
@@ -21,8 +20,7 @@ export const QRCodeDetails = async ({
   const session = await getServerSession();
   const { plan } = await getUserPlan();
   if (!session?.user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   return (

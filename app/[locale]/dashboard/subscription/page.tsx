@@ -19,8 +19,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { signOutUser } from "@/app/actions/signOut";
-
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
@@ -158,8 +156,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan: _plan } = await getUserPlan();

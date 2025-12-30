@@ -1,4 +1,3 @@
-import { signOutUser } from "@/app/actions/signOut";
 import { getLoginRecords } from "@/app/actions/userActions";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
 import { redirect } from "@/i18n/navigation";
@@ -6,7 +5,6 @@ import { auth } from "@/lib/auth";
 import { getServerSession } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { headers } from "next/headers";
-
 type SessionWithGeo = {
   id: string;
   createdAt: Date;
@@ -30,8 +28,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { loginRecords } = await getLoginRecords({ limit: 4, sub: user.sub });

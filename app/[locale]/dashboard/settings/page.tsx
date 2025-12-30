@@ -1,8 +1,7 @@
 import { ProfileCard } from "@/components/dashboard/settings/profile-card";
 import { getServerSession } from "@/lib/session";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
-
+import { redirect } from "@/i18n/navigation";
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
@@ -40,7 +39,8 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    notFound();
+    redirect({ href: "/dashboard/logout", locale: locale });
+    return;
   }
   return <ProfileCard initialUser={user} />;
 }

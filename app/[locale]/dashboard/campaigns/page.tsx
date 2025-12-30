@@ -8,8 +8,6 @@ import { Campaigns } from "@/models/url/Campaigns";
 import { LinkIcon, Plus, Rocket, Star } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { AddCampaignDialog } from "./add-campaign-dialog";
-import { signOutUser } from "@/app/actions/signOut";
-
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
 
@@ -47,8 +45,7 @@ export default async function Home({
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();

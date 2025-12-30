@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 import createMiddleware from "next-intl/middleware";
 import { getSessionCookie } from "better-auth/cookies";
+import { cookies, headers } from "next/headers";
+import { auth } from "./lib/auth";
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -61,9 +63,29 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const isLogout = request.nextUrl.pathname == `/${locale}/dashboard/logout`;
+  if (isLogout) {
+    await auth.api.signOut({
+      headers: await headers(),
+    });
+
+    const cookieStore = await cookies();
+
+    for (const cookie of cookieStore.getAll()) {
+      if (cookie.name.startsWith("shortn_auth_")) {
+        cookieStore.delete(cookie.name);
+      }
+    }
+    const response = NextResponse.redirect(
+      new URL(`/${locale}/login`, request.nextUrl),
+    );
+    return response;
+  }
+
   const sessionCookie = getSessionCookie(request, {
     cookiePrefix: "shortn_auth_",
   });
+
   const isLoggedIn = !!sessionCookie;
 
   const isDashboard = request.nextUrl.pathname.startsWith(

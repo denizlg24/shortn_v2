@@ -9,7 +9,6 @@ import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { BASEURL } from "@/lib/utils";
-import { signOutUser } from "@/app/actions/signOut";
 
 export default async function Page({
   params,
@@ -22,8 +21,7 @@ export default async function Page({
   const user = session?.user;
 
   if (!user) {
-    await signOutUser();
-    redirect({ href: "/login", locale });
+    redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
   const { plan } = await getUserPlan();
