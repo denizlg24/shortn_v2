@@ -1,22 +1,10 @@
 import { getLoginRecords } from "@/app/actions/userActions";
 import { SecurityCard } from "@/components/dashboard/settings/security-card";
 import { redirect } from "@/i18n/navigation";
-import { auth } from "@/lib/auth";
+import { auth, SessionWithGeo } from "@/lib/auth";
 import { getServerSession } from "@/lib/session";
 import { setRequestLocale } from "next-intl/server";
 import { headers } from "next/headers";
-type SessionWithGeo = {
-  id: string;
-  createdAt: Date;
-  ipAddress?: string | null;
-  userAgent?: string | null;
-  geo_city?: string | null;
-  geo_country?: string | null;
-  geo_country_region?: string | null;
-  geo_region?: string | null;
-  geo_latitude?: string | null;
-  geo_longitude?: string | null;
-};
 
 export default async function Home({
   params,
