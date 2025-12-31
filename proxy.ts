@@ -30,6 +30,8 @@ const PUBLIC_PATHS = [
   "url-not-found",
   "authenticate",
 ];
+const STATIC_FILES = ["/robots.txt", "/sitemap.xml", "/favicon.ico"];
+
 const LOCALES = routing.locales;
 
 export async function proxy(request: NextRequest) {
@@ -41,7 +43,11 @@ export async function proxy(request: NextRequest) {
   const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
 
   //UNSAFE WE TRUST DASHBOARD HANDLES THE VERIFICATION
-  if (pathname.includes("://") || pathname.startsWith("/http")) {
+  if (
+    pathname.includes("://") ||
+    pathname.startsWith("/http") ||
+    STATIC_FILES.includes(pathname)
+  ) {
     return NextResponse.next();
   }
 
