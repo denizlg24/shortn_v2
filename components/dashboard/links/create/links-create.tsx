@@ -21,7 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Switch } from "@/components/ui/switch";
 import { Link, useRouter } from "@/i18n/navigation";
-import { BASEURL, cn, getShortUrl } from "@/lib/utils";
+import { BASEURL, cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InfinityIcon, Loader2, LockIcon, Eye, EyeOff } from "lucide-react";
 import { Options } from "qr-code-styling";
@@ -587,7 +587,7 @@ export const LinksCreate = () => {
                   }
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
-                  const shortUrl = getShortUrl(firstLinkResponse.data.shortUrl);
+                  const shortUrl = firstLinkResponse.data.shortUrl;
                   const qrCodeResponse = await createQrCode({
                     longUrl: data.destination,
                     title: data.title,
@@ -696,7 +696,7 @@ export const LinksCreate = () => {
                   }
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
-                  const shortUrl = getShortUrl(firstLinkResponse.data.shortUrl);
+                  const shortUrl = firstLinkResponse.data.shortUrl;
                   router.push(`/dashboard/links/${shortUrl}/details`);
                   return;
                 }
