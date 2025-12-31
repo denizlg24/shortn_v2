@@ -127,5 +127,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-  matcher: ["/((?!api|_next|_next/image|.*\\..*|favicon.ico).*)"],
+  matcher: [
+    "/((?!api|_next|_next/image|.*\\..*|favicon.ico|robots.txt|sitemap.xml).*)",
+  ],
 };
