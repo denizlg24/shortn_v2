@@ -180,9 +180,10 @@ export async function createShortn({
       passwordHint: passwordHint || undefined,
     });
 
-    const updated = await User.findByIdAndUpdate(session.user.id, {
-      $inc: { links_this_month: 1 },
-    });
+    const updated = await User.findOneAndUpdate(
+      { sub: user.sub },
+      { $inc: { links_this_month: 1 } },
+    );
     if (!updated) {
       return {
         success: false,
@@ -417,12 +418,15 @@ export const updateShortnData = async ({
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {
       new: true,
     });
+
+    if (url && longUrl !== foundUrl.longUrl) {
+      await User.findOneAndUpdate(
+        { sub },
+        { $inc: { redirects_this_month: 1 } },
+      );
+    }
+
     if (updateCode) {
-      if (longUrl !== foundUrl.longUrl) {
-        await User.findByIdAndUpdate(session.user.id, {
-          $inc: { redirects_this_month: 1 },
-        });
-      }
       await Clicks.updateMany(
         { type: "click", urlCode },
         { urlCode: custom_code },
