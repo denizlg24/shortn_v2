@@ -259,9 +259,9 @@ export const updateQRCodeData = async ({
     await connectDB();
     const qr = await QRCodeV2.findOne({ sub, qrCodeId });
     const { plan } = await getUserPlan();
+    const isChangingLongUrl = qr && longUrl !== qr.longUrl;
     if (
-      qr &&
-      longUrl !== qr.longUrl &&
+      isChangingLongUrl &&
       ((plan === "plus" && user.qr_code_redirects_this_month >= 10) ||
         (plan !== "pro" && plan !== "plus"))
     ) {
@@ -276,6 +276,14 @@ export const updateQRCodeData = async ({
     const redirectorUpdated = updated
       ? await UrlV3.findOneAndUpdate({ sub, urlCode: qr!.urlId }, { longUrl })
       : undefined;
+
+    if (isChangingLongUrl && redirectorUpdated) {
+      await User.findOneAndUpdate(
+        { sub },
+        { $inc: { qr_code_redirects_this_month: 1 } },
+      );
+    }
+
     if (applyToLink && qr?.attachedUrl && redirectorUpdated) {
       const urlCode = qr.attachedUrl;
       const updatedURL = await UrlV3.findOneAndUpdate(
