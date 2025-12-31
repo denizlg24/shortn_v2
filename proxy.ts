@@ -39,6 +39,12 @@ export async function proxy(request: NextRequest) {
   const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
   const first = segments[0] !== "" ? segments[0] : locale;
   const isLocale = LOCALES.includes(first as "en" | "es" | "pt");
+
+  //UNSAFE WE TRUST DASHBOARD HANDLES THE VERIFICATION
+  if (pathname.includes("://") || pathname.startsWith("/http")) {
+    return NextResponse.next();
+  }
+
   if (!isLocale) {
     //LEGACY QR CODE SUPPORT
     if (segments.length === 2 && segments[0] === "qr") {
@@ -54,12 +60,9 @@ export async function proxy(request: NextRequest) {
         new URL(`/api/get-long-url/${slug}`, request.nextUrl),
       );
     } else {
-      return NextResponse.redirect(
-        new URL(
-          `/${locale}${pathname}?${request.nextUrl.searchParams.toString()}`,
-          request.nextUrl,
-        ),
-      );
+      const url = request.nextUrl.clone();
+      url.pathname = `/${locale}${pathname}`;
+      return NextResponse.redirect(url);
     }
   }
 
