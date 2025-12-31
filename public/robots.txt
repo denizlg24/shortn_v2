@@ -1,0 +1,61 @@
+# Shortn - URL Shortener robots.txt
+# https://shortn.at
+
+User-agent: *
+
+# Block dashboard (all locales)
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /*/dashboard
+Disallow: /*/dashboard/
+
+# Block API routes
+Disallow: /api/
+
+# Block authentication pages
+Disallow: /login
+Disallow: /register
+Disallow: /recover
+Disallow: /reset
+Disallow: /verify
+Disallow: /authenticate
+Disallow: /*/login
+Disallow: /*/register
+Disallow: /*/recover
+Disallow: /*/reset
+Disallow: /*/verify
+Disallow: /*/authenticate
+
+# Block shortened URLs (single segment paths that aren't known pages)
+# Since shortened URLs are root-level slugs, we block common patterns
+# Note: This uses a wildcard to match short URL codes
+Disallow: /qr/
+
+
+# Block internal/error pages
+Disallow: /url-not-found
+Disallow: /*/url-not-found
+Disallow: /_next/
+
+# Allow public marketing pages
+Allow: /
+Allow: /en
+Allow: /pt
+Allow: /es
+Allow: /pricing
+Allow: /help
+Allow: /about
+Allow: /products
+Allow: /privacy
+Allow: /terms
+Allow: /contact
+Allow: /*/pricing
+Allow: /*/help
+Allow: /*/about
+Allow: /*/products
+Allow: /*/privacy
+Allow: /*/terms
+Allow: /*/contact
+
+# Sitemap
+Sitemap: https://shortn.at/sitemap.xml
