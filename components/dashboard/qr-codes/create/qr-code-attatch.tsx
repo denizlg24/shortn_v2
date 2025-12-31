@@ -137,7 +137,7 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
             </h1>
             <div className="bg-muted-foreground/25 p-2 flex rounded flex-row items-center gap-2 shadow text-primary font-bold xs:text-sm text-xs">
               <LucideLink className="h-4 w-4" />
-              <p>{shortUrl.split("//")[1]}</p>
+              <p>{shortUrl.replace("www.", "").split("://")[1]}</p>
             </div>
           </div>
           {getLinksLeft(plan, user?.qr_codes_this_month ?? 0, true, "text-xs")}

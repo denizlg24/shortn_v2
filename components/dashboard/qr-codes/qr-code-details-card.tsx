@@ -29,7 +29,7 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi, getShortUrl } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { format } from "date-fns";
@@ -226,9 +226,8 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                               }
                             }
                             if (response.success && response.data) {
-                              const shortUrl = getShortUrl(
-                                response.data.shortUrl,
-                              );
+                              const shortUrl = response.data.shortUrl;
+
                               await attachShortnToQR(
                                 shortUrl,
                                 currentQrCode.qrCodeId,
@@ -472,9 +471,8 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                             }
                           }
                           if (response.success && response.data) {
-                            const shortUrl = getShortUrl(
-                              response.data.shortUrl,
-                            );
+                            const shortUrl = response.data.shortUrl;
+
                             await attachShortnToQR(
                               shortUrl,
                               currentQrCode.qrCodeId,

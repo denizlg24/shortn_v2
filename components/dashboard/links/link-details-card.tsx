@@ -575,7 +575,7 @@ export const LinkDetailsCard = ({
           target="_blank"
           className="font-semibold lg:text-base text-sm hover:underline text-blue-500 truncate"
         >
-          {shortUrl.split("://")[1]}
+          {shortUrl.replace("www.", "").split("://")[1]}
         </Link>
       </div>
       <div className="w-full flex flex-row justify-start">

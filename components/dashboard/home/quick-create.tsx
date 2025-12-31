@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, getShortUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -162,8 +162,9 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                     longUrl: data.destination,
                   });
                   if (response.success && response.data) {
-                    const shortUrl = getShortUrl(response.data.shortUrl);
-                    router.push(`/dashboard/links/${shortUrl}/details`);
+                    router.push(
+                      `/dashboard/links/${response.data.shortUrl}/details`,
+                    );
                   } else if (response.existingUrl) {
                     toast(
                       <div className="w-full flex flex-col gap-2">
