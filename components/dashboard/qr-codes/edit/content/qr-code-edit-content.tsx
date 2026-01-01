@@ -7,6 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import { updateQRCodeData } from "@/app/actions/qrCodeActions";
 import {
@@ -23,7 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
@@ -63,9 +64,21 @@ const qrCodeFormSchema = z.object({
 });
 
 export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
-  const { data } = authClient.useSession();
+  const { data, refetch } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const router = useRouter();
 
@@ -164,6 +177,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                 longUrl: data.longUrl,
               });
               if (success) {
+                await refetch();
                 router.push(`/dashboard/qr-codes/${qrCode.qrCodeId}/details`);
                 return;
               } else {
@@ -469,13 +483,14 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                 <FormItem className="w-full">
                   <FormLabel>
                     Change destination{" "}
-                    {plan === "pro" ? (
+                    {plan === "pro" || plan === "plus" ? (
                       <span className="text-muted-foreground">
                         (
                         {plan === "pro"
                           ? "Unlimited "
                           : Math.max(
-                              10 - (user?.qr_code_redirects_this_month ?? 0),
+                              (usage?.qrCodeRedirects.limit ?? 10) -
+                                (usage?.qrCodeRedirects.consumed ?? 0),
                               0,
                             )}{" "}
                         left)
@@ -507,7 +522,8 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                   <FormControl>
                     <Input
                       disabled={
-                        ((user?.qr_code_redirects_this_month ?? 0) >= 10 &&
+                        ((usage?.qrCodeRedirects.consumed ?? 0) >=
+                          (usage?.qrCodeRedirects.limit ?? 10) &&
                           plan == "plus") ||
                         (plan != "pro" && plan != "plus")
                       }

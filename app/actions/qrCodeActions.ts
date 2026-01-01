@@ -12,8 +12,12 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi, BASEURL } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { deletePicture } from "./deletePicture";
-import { User } from "@/models/auth/User";
 import { getUserPlan } from "@/app/actions/polarActions";
+import {
+  ingestUsageEvent,
+  METER_EVENTS,
+  canPerformAction,
+} from "@/lib/polar-usage";
 
 /**
  * Generates a QR code as a base64 PNG using full customization options.
@@ -101,25 +105,13 @@ export async function createQrCode({
 
     const { plan } = await getUserPlan();
 
-    const links = user.qr_codes_this_month;
-    if (plan === "free") {
-      if (links >= 3) {
-        return {
-          success: false,
-          message: "plan-limit",
-        };
-      }
-    }
-    if (plan === "basic") {
-      if (links >= 25) {
-        return {
-          success: false,
-          message: "plan-limit",
-        };
-      }
-    }
-    if (plan === "plus") {
-      if (links >= 50) {
+    if (plan !== "pro") {
+      const { allowed } = await canPerformAction(
+        user.id,
+        METER_EVENTS.QR_CODE_CREATED,
+        plan,
+      );
+      if (!allowed) {
         return {
           success: false,
           message: "plan-limit",
@@ -177,17 +169,14 @@ export async function createQrCode({
           },
     });
 
-    const updatedUser = await User.findOneAndUpdate(
-      { sub: user.sub },
-      { $inc: { qr_codes_this_month: 1 } },
-    );
-
-    if (!updatedUser) {
-      return {
-        success: false,
-        message: "server-error",
-      };
-    }
+    await ingestUsageEvent({
+      customerId: user.id,
+      eventName: METER_EVENTS.QR_CODE_CREATED,
+      metadata: {
+        qrCodeId: qrShortCode,
+        plan,
+      },
+    });
 
     return {
       success: true,
@@ -260,13 +249,22 @@ export const updateQRCodeData = async ({
     const qr = await QRCodeV2.findOne({ sub, qrCodeId });
     const { plan } = await getUserPlan();
     const isChangingLongUrl = qr && longUrl !== qr.longUrl;
-    if (
-      isChangingLongUrl &&
-      ((plan === "plus" && user.qr_code_redirects_this_month >= 10) ||
-        (plan !== "pro" && plan !== "plus"))
-    ) {
-      return { success: false, message: "redirect-plan-limit" };
+
+    if (isChangingLongUrl && plan !== "pro") {
+      if (plan === "plus") {
+        const { allowed } = await canPerformAction(
+          user.id,
+          METER_EVENTS.QR_CODE_REDIRECT,
+          plan,
+        );
+        if (!allowed) {
+          return { success: false, message: "redirect-plan-limit" };
+        }
+      } else {
+        return { success: false, message: "redirect-plan-limit" };
+      }
     }
+
     const updated = qr
       ? await QRCodeV2.findOneAndUpdate(
           { sub, qrCodeId },
@@ -278,10 +276,14 @@ export const updateQRCodeData = async ({
       : undefined;
 
     if (isChangingLongUrl && redirectorUpdated) {
-      await User.findOneAndUpdate(
-        { sub },
-        { $inc: { qr_code_redirects_this_month: 1 } },
-      );
+      await ingestUsageEvent({
+        customerId: user.id,
+        eventName: METER_EVENTS.QR_CODE_REDIRECT,
+        metadata: {
+          qrCodeId,
+          plan,
+        },
+      });
     }
 
     if (applyToLink && qr?.attachedUrl && redirectorUpdated) {

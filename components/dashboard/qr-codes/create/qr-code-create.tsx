@@ -1,12 +1,13 @@
 "use client";
 
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Options } from "qr-code-styling";
 import { Skeleton } from "@/components/ui/skeleton";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { BASEURL, cn, getShortUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,16 +98,22 @@ export const QRCodeCreate = ({
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
-  const allowedLinks = {
-    free: 3,
-    basic: 25,
-    plus: 50,
-  };
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const linksLeft =
     plan != "pro"
-      ? allowedLinks[plan as "free" | "basic" | "plus"] -
-        (user?.links_this_month ?? 0)
+      ? (usage?.links.limit ?? 0) - (usage?.links.consumed ?? 0)
       : undefined;
 
   const [options, setOptions] = useState<Partial<Options>>({
@@ -241,7 +248,7 @@ export const QRCodeCreate = ({
               </h1>
               {getLinksLeft(
                 plan,
-                user?.qr_codes_this_month ?? 0,
+                usage?.qrCodes.consumed ?? 0,
                 true,
                 "text-xs",
               )}
@@ -1200,6 +1207,7 @@ export const QRCodeCreate = ({
                           return;
                         }
                         if (updateResponse.success) {
+                          await fetchUsage();
                           router.push(
                             `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`,
                           );
@@ -1244,6 +1252,7 @@ export const QRCodeCreate = ({
                       }
                     }
                     if (qrCodeResponse.success && qrCodeResponse.data) {
+                      await fetchUsage();
                       router.push(
                         `/dashboard/qr-codes/${qrCodeResponse.data.qrCodeId}/details`,
                       );

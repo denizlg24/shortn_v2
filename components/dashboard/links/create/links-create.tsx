@@ -2,6 +2,7 @@
 
 import { attachQRToShortn, createShortn } from "@/app/actions/linkActions";
 import { createQrCode } from "@/app/actions/qrCodeActions";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -25,11 +26,10 @@ import { BASEURL, cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InfinityIcon, Loader2, LockIcon, Eye, EyeOff } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { getLinksLeft } from "../../home/quick-create";
-import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
 
 const linkFormSchema = z.object({
@@ -67,11 +67,26 @@ const linkFormSchema = z.object({
 });
 
 export const LinksCreate = () => {
-  const { data } = authClient.useSession();
-  const user = data?.user;
   const { plan } = usePlan();
   const router = useRouter();
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
+
+  const fetchUsage = useCallback(async () => {
+    setUsageLoading(true);
+    const result = await getCurrentUsage();
+    if (result.success && result.data) {
+      setUsage(result.data);
+    }
+    setUsageLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [creating, setCreating] = useState(false);
   const [options, setOptions] = useState<Partial<Options>>({
@@ -106,7 +121,7 @@ export const LinksCreate = () => {
   const qrCodesLeft =
     plan && plan != "pro"
       ? allowedLinks[plan as "free" | "basic" | "plus"] -
-        (user?.qr_codes_this_month ?? 0)
+        (usage?.qrCodes.consumed ?? 0)
       : undefined;
 
   const linkForm = useForm<z.infer<typeof linkFormSchema>>({
@@ -129,11 +144,15 @@ export const LinksCreate = () => {
         <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
           Create a new short link
         </h1>
-        {getLinksLeft(
-          plan ?? "free",
-          user?.links_this_month ?? 0,
-          false,
-          "text-xs",
+        {usageLoading ? (
+          <Skeleton className="h-4 w-48" />
+        ) : (
+          getLinksLeft(
+            plan ?? "free",
+            usage?.links.consumed ?? 0,
+            false,
+            "text-xs",
+          )
         )}
       </div>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
@@ -634,6 +653,7 @@ export const LinksCreate = () => {
                       return;
                     }
                     if (updateResponse.success) {
+                      await fetchUsage();
                       router.push(`/dashboard/links/${shortUrl}/details`);
                     }
                   }
@@ -697,6 +717,7 @@ export const LinksCreate = () => {
                 }
                 if (firstLinkResponse.success && firstLinkResponse.data) {
                   const shortUrl = firstLinkResponse.data.shortUrl;
+                  await fetchUsage();
                   router.push(`/dashboard/links/${shortUrl}/details`);
                   return;
                 }
