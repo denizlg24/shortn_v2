@@ -16,6 +16,22 @@ const nextConfig: NextConfig = {
       new URL("https://sapphire-high-sailfish-380.mypinata.cloud/ipfs/**"),
     ],
   },
+  async redirects() {
+    return [
+      // Redirect www to non-www
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.shortn.at",
+          },
+        ],
+        destination: "https://shortn.at/:path*",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 const withNextIntl = createNextIntlPlugin();

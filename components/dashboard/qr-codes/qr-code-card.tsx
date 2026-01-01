@@ -113,6 +113,19 @@ export const QRCodeCard = ({
   const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
     undefined,
   );
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const response = await deleteQRCode(qrCode.qrCodeId);
+    if (response.success) {
+      toast.success(`QR Code ${qrCode.title} was successfully deleted.`);
+      router.refresh();
+    } else {
+      toast.error("There was a problem deleting your QR Code.");
+      setIsDeleting(false);
+    }
+  };
 
   useEffect(() => {
     if (onTagSearchChange) {
@@ -123,6 +136,10 @@ export const QRCodeCard = ({
   const router = useRouter();
 
   if (!user) {
+    return null;
+  }
+
+  if (isDeleting) {
     return null;
   }
 
@@ -294,23 +311,20 @@ export const QRCodeCard = ({
                     </Dialog>
                   )}
                   <Button
-                    onClick={async () => {
-                      const response = await deleteQRCode(qrCode.qrCodeId);
-                      if (response.success) {
-                        toast.success(
-                          `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
-                        );
-                      } else {
-                        toast.error(
-                          "There was a problem deleting your QR Code.",
-                        );
-                      }
-                      router.refresh();
-                    }}
+                    onClick={handleDelete}
+                    disabled={isDeleting}
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! "
                   >
-                    <Trash2 /> Delete
+                    {isDeleting ? (
+                      <>
+                        <Loader2 className="animate-spin" /> Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 /> Delete
+                      </>
+                    )}
                   </Button>
                 </ScrollPopoverContent>
               </Popover>
@@ -717,21 +731,20 @@ export const QRCodeCard = ({
                   </Dialog>
                 )}
                 <Button
-                  onClick={async () => {
-                    const response = await deleteQRCode(qrCode.qrCodeId);
-                    if (response.success) {
-                      toast.success(
-                        `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
-                      );
-                    } else {
-                      toast.error("There was a problem deleting your QR Code.");
-                    }
-                    router.refresh();
-                  }}
+                  onClick={handleDelete}
+                  disabled={isDeleting}
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! "
                 >
-                  <Trash2 /> Delete
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="animate-spin" /> Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 /> Delete
+                    </>
+                  )}
                 </Button>
               </ScrollPopoverContent>
             </Popover>
@@ -922,21 +935,20 @@ export const QRCodeCard = ({
               </Dialog>
             )}
             <Button
-              onClick={async () => {
-                const response = await deleteQRCode(qrCode.qrCodeId);
-                if (response.success) {
-                  toast.success(
-                    `QR Code ${qrCode.qrCodeId} was successfully deleted.`,
-                  );
-                } else {
-                  toast.error("There was a problem deleting your QR Code.");
-                }
-                router.refresh();
-              }}
+              onClick={handleDelete}
+              disabled={isDeleting}
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
-              <Trash2 /> Delete
+              {isDeleting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 /> Delete
+                </>
+              )}
             </Button>
           </ScrollPopoverContent>
         </Popover>

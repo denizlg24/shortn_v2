@@ -52,6 +52,7 @@ import {
   EyeOff,
   FileChartColumn,
   KeyRound,
+  Loader2,
   LockIcon,
   PlusCircle,
   Share2,
@@ -97,6 +98,19 @@ export const LinkDetailsCard = ({
   const [passwordHint, setPasswordHint] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    const response = await deleteShortn(currentLink.urlCode);
+    if (response.success) {
+      toast.success(`Link ${currentLink.urlCode} was successfully deleted.`);
+      router.push(`/dashboard/links`);
+    } else {
+      toast.error("There was a problem deleting your link.");
+      setIsDeleting(false);
+    }
+  };
 
   const isPro = plan === "pro";
 
@@ -489,21 +503,20 @@ export const LinkDetailsCard = ({
               className="w-[200px] flex flex-col px-0! py-1 gap-1"
             >
               <Button
-                onClick={async () => {
-                  const response = await deleteShortn(currentLink.urlCode);
-                  if (response.success) {
-                    toast.success(
-                      `Link ${currentLink.urlCode} was successfully deleted.`,
-                    );
-                  } else {
-                    toast.error("There was a problem deleting your link.");
-                  }
-                  router.push(`/dashboard/links`);
-                }}
+                onClick={handleDelete}
+                disabled={isDeleting}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
-                <Trash2 /> Delete
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 /> Delete
+                  </>
+                )}
               </Button>
               {plan != "pro" ? (
                 <HoverCard>
@@ -881,20 +894,19 @@ export const LinkDetailsCard = ({
           >
             <Button
               variant={"outline"}
-              onClick={async () => {
-                const response = await deleteShortn(currentLink.urlCode);
-                if (response.success) {
-                  toast.success(
-                    `Link ${currentLink.urlCode} was successfully deleted.`,
-                  );
-                } else {
-                  toast.error("There was a problem deleting your link.");
-                }
-                router.push(`/dashboard/links`);
-              }}
+              onClick={handleDelete}
+              disabled={isDeleting}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
             >
-              <Trash2 /> Delete
+              {isDeleting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 /> Delete
+                </>
+              )}
             </Button>
             {plan != "pro" ? (
               <HoverCard>
