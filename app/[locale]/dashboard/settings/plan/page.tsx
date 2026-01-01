@@ -18,6 +18,7 @@ import { setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
 import { redirect as NextRedirect } from "next/navigation";
+import { getUsageSummary } from "@/lib/polar-usage";
 const UsageBar = ({ max, curr }: { max: number; curr: number }) => {
   return (
     <div className="w-full p-0.5 rounded-full shadow bg-muted flex items-center">
@@ -43,6 +44,11 @@ export default async function Home({
     return;
   }
   const { plan } = await getUserPlan();
+
+  const usage = await getUsageSummary(user.id, plan);
+  const linksThisMonth = usage?.linksThisMonth?.consumedUnits ?? 0;
+  const qrCodesThisMonth = usage?.qrCodesThisMonth?.consumedUnits ?? 0;
+
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
@@ -165,15 +171,12 @@ export default async function Home({
                           (plan == "pro"
                             ? 1000
                             : allowed_links[plan as SubscriptionsType]) <
-                            user.links_this_month
+                            linksThisMonth
                             ? "text-red-600"
                             : "text-muted-foreground",
                         )}
                       >
-                        (
-                        <span className="font-semibold">
-                          {user.links_this_month}
-                        </span>
+                        (<span className="font-semibold">{linksThisMonth}</span>
                         /
                         {plan == "pro"
                           ? "Unlimited"
@@ -187,7 +190,7 @@ export default async function Home({
                           ? 1000
                           : allowed_links[plan as SubscriptionsType]
                       }
-                      curr={user.links_this_month}
+                      curr={linksThisMonth}
                     />
                     <p className="text-xs font-medium text-left">
                       <span className="font-semibold">
@@ -210,14 +213,14 @@ export default async function Home({
                           (plan == "pro"
                             ? 1000
                             : allowed_qr_codes[plan as SubscriptionsType]) <
-                            user.qr_codes_this_month
+                            qrCodesThisMonth
                             ? "text-red-600"
                             : "text-muted-foreground",
                         )}
                       >
                         (
                         <span className="font-semibold">
-                          {user.qr_codes_this_month}
+                          {qrCodesThisMonth}
                         </span>
                         /
                         {plan == "pro"
@@ -232,7 +235,7 @@ export default async function Home({
                           ? 1000
                           : allowed_qr_codes[plan as SubscriptionsType]
                       }
-                      curr={user.qr_codes_this_month}
+                      curr={qrCodesThisMonth}
                     />
                     <p className="text-xs font-medium text-left">
                       <span className="font-semibold">
