@@ -11,7 +11,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import Hamburger from "hamburger-react";
-
+import logo from "@/public/logo.png";
 import {
   BarChart,
   ChevronDown,
@@ -72,7 +72,7 @@ export const Header = () => {
       <div className="max-w-7xl mx-auto flex flex-row justify-between w-full gap-4">
         <Link href="/" className="h-full">
           <Image
-            src="/logo.png"
+            src={logo}
             width={256}
             height={256}
             priority
@@ -86,7 +86,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
+                    "p-0! bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}
@@ -219,7 +219,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
+                    "p-0! bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}

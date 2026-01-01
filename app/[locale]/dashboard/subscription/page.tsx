@@ -107,6 +107,7 @@ export const features = {
     "Short Links": ["3", "25", "50", "Unlimited"],
     Redirects: ["-", "-", "10", "Unlimited"],
     "Custom Back-half": [0, 0, 0, 1],
+    "Password Protection": [0, 0, 0, 1],
   },
   "Shortn Codes": {
     "QR Codes": ["3", "25", "50", "Unlimited"],

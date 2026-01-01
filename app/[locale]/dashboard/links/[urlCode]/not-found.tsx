@@ -1,3 +1,6 @@
+// Force dynamic rendering to avoid static-to-dynamic errors
+export const dynamic = "force-dynamic";
+
 export default function NotFound() {
   return (
     <main className="w-full flex flex-col items-center max-w-7xl px-4 mx-auto">

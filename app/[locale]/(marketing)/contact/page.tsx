@@ -66,7 +66,7 @@ export default function Home({
       </div>
       <div className="w-full pb-12 px-2">
         <div className="w-full max-w-5xl mx-auto">
-          <div className="grid grid-cols-2 text-left w-full gap-6 bg-background border rounded-lg p-6 drop-shadow-xl">
+          <div className="grid grid-cols-2 text-left w-full gap-6 bg-background/80 backdrop-blur-sm border rounded-lg p-6 drop-shadow-xl">
             <ContactForm className="col-span-full w-full" />
           </div>
         </div>

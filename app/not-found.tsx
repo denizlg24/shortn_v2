@@ -1,17 +1,21 @@
 import Image from "next/image";
 import illust from "@/public/404_illustration.svg";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 
-export default async function Forbidden() {
+// Force dynamic rendering to avoid static-to-dynamic errors
+// when middleware uses headers/cookies
+export const dynamic = "force-dynamic";
+
+export default function NotFound() {
   return (
     <main className="w-full flex flex-col items-center max-w-7xl px-4 mx-auto">
-      <div className="w-full max-w-4xl md:grid flex flex-col grid-cols-3 my-12 md:gap-4 gap-6">
+      <div className="w-full max-w-4xl md:grid flex flex-col grid-cols-3 my-12 md:gap-4 gap-6 mt-24">
         <div className="col-span-2 w-full flex flex-col md:items-start items-center md:text-left text-center gap-4">
           <h1 className="font-bold text-4xl">Oops!</h1>
           <h2 className="text-xl">
-            You do not have permission to access this page.
+            We can&apos;t seem to find the page you&apos;re looking for.
           </h2>
-          <p>Error code: 403</p>
+          <p>Error code: 404</p>
           <div className="flex flex-col gap-1 text-sm">
             <p>Here are some helpful links instead:</p>
             <Link className="text-primary" href={"/"}>
