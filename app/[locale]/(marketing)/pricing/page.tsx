@@ -152,7 +152,7 @@ export default function Home({
           {plans.map((plan) => (
             <div
               key={plan.id}
-              className="col-span-1 border shadow p-2 flex flex-col items-center sm:gap-2 gap-0.5 sm:top-14 top-12 bg-background"
+              className="col-span-1 border shadow p-2 flex flex-col items-center sm:gap-2 gap-0.5 sm:top-14 top-12 bg-background/80 backdrop-blur-sm"
             >
               <h1 className="font-semibold text-base text-primary">
                 {plan.name}

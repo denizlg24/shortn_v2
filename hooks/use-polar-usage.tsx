@@ -101,6 +101,6 @@ export function getUsageLimit(meterData: MeterData | null): number {
 }
 
 export function canPerformAction(meterData: MeterData | null): boolean {
-  if (!meterData) return true; // No meter data = unlimited (or meter not set up yet)
+  if (!meterData) return true;
   return meterData.balance > 0;
 }

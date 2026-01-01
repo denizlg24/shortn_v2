@@ -86,7 +86,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
+                    "p-0! bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}
@@ -219,7 +219,7 @@ export const Header = () => {
               <PopoverTrigger className="group" asChild>
                 <Button
                   className={cn(
-                    "p-0! hover:bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
+                    "p-0! bg-transparent! border-0! shadow-none! text-primary! hover:cursor-pointer",
                     !isScrolled && "bg-transparent!",
                     navigationMenuTriggerStyle(),
                   )}
