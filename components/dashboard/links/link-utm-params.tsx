@@ -200,7 +200,11 @@ export const LinkUtmParams = ({
                   </CollapsibleTrigger>
                   <div className="bg-muted rounded shadow flex items-center gap-2 justify-start px-2 py-1 h-full border w-full truncate">
                     <LinkIcon className="w-3.5 h-3.5 shrink-0" />
-                    <Link href={builtHref} className="text-sm truncate w-full">
+                    <Link
+                      prefetch={false}
+                      href={builtHref}
+                      className="text-sm truncate w-full"
+                    >
                       {builtHref.replace("www.", "").split("://")[1]}
                     </Link>
                   </div>
