@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://shortn.at/en</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Pricing -->
+  <url>
+    <loc>https://shortn.at/en/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/pricing"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/pricing"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/pricing</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/pricing"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/pricing"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/pricing"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/pricing"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- About -->
+  <url>
+    <loc>https://shortn.at/en/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/about"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/about"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/about</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/about"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/about"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/about"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/about"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Products -->
+  <url>
+    <loc>https://shortn.at/en/products</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/products"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/products"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/products"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/products"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/products</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/products"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/products"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/products"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/products"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/products</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/products"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/products"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/products"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/products"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Help -->
+  <url>
+    <loc>https://shortn.at/en/help</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/help"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/help"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/help"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/help</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/help"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/help"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/help"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/help</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/help"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/help"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/help"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/help"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Contact -->
+  <url>
+    <loc>https://shortn.at/en/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/contact"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/contact"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/contact</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/contact"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/contact"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/contact"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/contact"/>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://shortn.at/en/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/privacy</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/privacy"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/privacy"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/privacy"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/privacy"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://shortn.at/en/terms</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/terms"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/terms"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/es/terms</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/terms"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/terms"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://shortn.at/pt/terms</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en/terms"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es/terms"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt/terms"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en/terms"/>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+
+</urlset>

@@ -41,7 +41,7 @@ export const CampaignLinkCard = ({
             href={shortUrl}
             className="text-xs text-blue-500 hover:underline truncate"
           >
-            {shortUrl.split("://")[1]}
+            {shortUrl.replace("www.", "").split("://")[1]}
           </Link>
           <button
             onClick={handleCopy}

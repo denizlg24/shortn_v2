@@ -2,6 +2,7 @@
 
 import { attachQRToShortn } from "@/app/actions/linkActions";
 import { createQrCode } from "@/app/actions/qrCodeActions";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import InputColor from "@/components/ui/color-input";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
@@ -10,7 +11,7 @@ import { cn, getShortUrl } from "@/lib/utils";
 import { IUrl } from "@/models/url/UrlV3";
 import { Loader2, LockIcon, LucideLink, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 
 import BASE1 from "@/public/QR-CODES-PREVIEW/BASE-1.png";
 import BASE2 from "@/public/QR-CODES-PREVIEW/BASE-2.png";
@@ -50,6 +51,18 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [options, setOptions] = useState<Partial<Options>>({
     type: "svg",
@@ -137,10 +150,10 @@ export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
             </h1>
             <div className="bg-muted-foreground/25 p-2 flex rounded flex-row items-center gap-2 shadow text-primary font-bold xs:text-sm text-xs">
               <LucideLink className="h-4 w-4" />
-              <p>{shortUrl.split("//")[1]}</p>
+              <p>{shortUrl.replace("www.", "").split("://")[1]}</p>
             </div>
           </div>
-          {getLinksLeft(plan, user?.qr_codes_this_month ?? 0, true, "text-xs")}
+          {getLinksLeft(plan, usage?.qrCodes.consumed ?? 0, true, "text-xs")}
         </div>
         <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
           <div className="flex flex-col gap-2 items-start">

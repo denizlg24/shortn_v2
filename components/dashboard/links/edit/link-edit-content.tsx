@@ -7,6 +7,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -21,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Label } from "@/components/ui/label";
@@ -75,10 +76,22 @@ const urlFormSchema = z.object({
 });
 
 export const LinksEditContent = ({ url }: { url: IUrl }) => {
-  const { data } = authClient.useSession();
+  const { data, refetch } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
   const router = useRouter();
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [creating, setCreating] = useState(false);
 
@@ -164,15 +177,18 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
           <form
             onSubmit={urlForm.handleSubmit(async (data) => {
               setCreating(true);
+              const customCodeChanged =
+                data.custom_code && data.custom_code !== url.urlCode;
               const response = await updateShortnData({
                 urlCode: url.urlCode,
                 title: data.title,
                 tags: tags,
                 applyToQRCode: data.applyToQR ?? false,
-                custom_code: data.custom_code ? data.custom_code : undefined,
+                custom_code: customCodeChanged ? data.custom_code : undefined,
                 longUrl: data.longUrl,
               });
               if (response.success) {
+                await refetch();
                 router.push(`/dashboard/links/${response.urlCode}/details`);
                 return;
               } else {
@@ -540,13 +556,14 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                   <FormLabel>
                     {" "}
                     Change destination{" "}
-                    {plan === "pro" ? (
+                    {plan === "pro" || plan === "plus" ? (
                       <span className="text-muted-foreground">
                         (
                         {plan === "pro"
                           ? "Unlimited "
                           : Math.max(
-                              10 - (user?.redirects_this_month ?? 0),
+                              (usage?.linkRedirects.limit ?? 10) -
+                                (usage?.linkRedirects.consumed ?? 0),
                               0,
                             )}{" "}
                         left)
@@ -578,7 +595,8 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                   <FormControl>
                     <Input
                       disabled={
-                        ((user?.redirects_this_month ?? 0) >= 10 &&
+                        ((usage?.linkRedirects.consumed ?? 0) >=
+                          (usage?.linkRedirects.limit ?? 10) &&
                           plan == "plus") ||
                         (plan != "pro" && plan != "plus")
                       }

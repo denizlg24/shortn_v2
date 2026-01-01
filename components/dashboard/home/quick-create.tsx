@@ -1,6 +1,7 @@
 "use client";
 import { createQrCode } from "@/app/actions/qrCodeActions";
 import { createShortn } from "@/app/actions/linkActions";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -14,15 +15,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, getShortUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LinkIcon, Loader2, QrCode, XCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { authClient } from "@/lib/authClient";
-import { Skeleton } from "@/components/ui/skeleton"; // Make sure to import Skeleton
+import { Skeleton } from "@/components/ui/skeleton";
 import { usePlan } from "@/hooks/use-plan";
 
 const urlFormSchema = z.object({
@@ -89,15 +89,23 @@ export const getLinksLeft = (
 };
 
 export const QuickCreate = ({ className }: { className?: string }) => {
-  const { data } = authClient.useSession();
-  const user = data?.user;
   const { plan } = usePlan();
 
-  const [mounted, setMounted] = useState(false);
+  const [usage, setUsage] = useState<UsageData | null>(null);
+  const [usageLoading, setUsageLoading] = useState(true);
+
+  const fetchUsage = useCallback(async () => {
+    setUsageLoading(true);
+    const result = await getCurrentUsage();
+    if (result.success && result.data) {
+      setUsage(result.data);
+    }
+    setUsageLoading(false);
+  }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const urlForm = useForm<z.infer<typeof urlFormSchema>>({
@@ -117,8 +125,6 @@ export const QuickCreate = ({ className }: { className?: string }) => {
   const router = useRouter();
   const [linkLoading, setLinkLoading] = useState(false);
   const [qrCodeLoading, setQrCodeLoading] = useState(false);
-
-  const isLoading = !mounted;
 
   return (
     <Card
@@ -148,10 +154,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </div>
         <TabsContent value="link" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {isLoading ? (
+            {usageLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (
-              getLinksLeft(plan ?? "free", user?.links_this_month ?? 0)
+              getLinksLeft(plan ?? "free", usage?.links.consumed ?? 0)
             )}
 
             <Form {...urlForm}>
@@ -162,8 +168,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                     longUrl: data.destination,
                   });
                   if (response.success && response.data) {
-                    const shortUrl = getShortUrl(response.data.shortUrl);
-                    router.push(`/dashboard/links/${shortUrl}/details`);
+                    await fetchUsage();
+                    router.push(
+                      `/dashboard/links/${response.data.shortUrl}/details`,
+                    );
                   } else if (response.existingUrl) {
                     toast(
                       <div className="w-full flex flex-col gap-2">
@@ -252,10 +260,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
         </TabsContent>
         <TabsContent value="qrcode" asChild>
           <div className="w-full flex flex-col gap-1 justify-between">
-            {isLoading ? (
+            {usageLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (
-              getLinksLeft(plan ?? "free", user?.qr_codes_this_month ?? 0, true)
+              getLinksLeft(plan ?? "free", usage?.qrCodes.consumed ?? 0, true)
             )}
 
             <Form {...qrCodeForm}>
@@ -266,6 +274,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                     longUrl: data.destination,
                   });
                   if (response.success && response.data) {
+                    await fetchUsage();
                     router.push(
                       `/dashboard/qr-codes/${response.data.qrCodeId}/details`,
                     );

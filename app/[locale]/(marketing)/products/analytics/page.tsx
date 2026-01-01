@@ -47,7 +47,7 @@ export default function Home({
           </Link>
         </Button>
       </div>
-      <div className="w-full bg-muted px-4 py-12 sm:my-20 my-12">
+      <div className="w-full bg-muted/50 border-y px-4 py-12 sm:my-20 my-12">
         <div className="w-full mx-auto max-w-7xl grid grid-cols-3 gap-6 gap-y-12">
           <h1 className="sm:text-3xl xs:text-2xl text-lg font-black col-span-full text-center">
             Track what matters
@@ -119,16 +119,22 @@ export default function Home({
           extract the insights we need."
         </p>
       </div>
-      <div className="w-full bg-muted px-4 py-12 border-b-2">
-        <div className="flex flex-col items-center text-center max-w-5xl mx-auto gap-6">
-          <h1 className="md:text-4xl sm:text-3xl xs:text-2xl text-xl font-bold">
+      <div className="w-full max-w-4xl mx-auto px-4 sm:mb-20 mb-12">
+        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary/80 p-8 sm:p-12 text-center text-primary-foreground">
+          <div className="absolute inset-0 bg-grid-white/10 mask-[linear-gradient(0deg,transparent,white)]" />
+          <h1 className="relative md:text-4xl sm:text-3xl xs:text-2xl text-xl font-bold mb-3">
             Start tracking your engagement today
           </h1>
-          <h2 className="text-lg text-muted-foreground max-w-xl">
+          <h2 className="relative text-primary-foreground/80 mb-6 max-w-xl mx-auto">
             Join thousands of businesses and individuals using Shortn to gain
             valuable insights.
           </h2>
-          <Button asChild className="rounded-full w-full max-w-sm" size={"lg"}>
+          <Button
+            asChild
+            variant="secondary"
+            className="relative rounded-full w-full max-w-sm"
+            size={"lg"}
+          >
             <Link href={"/register"}>
               Get Started Today <MoveRight />
             </Link>

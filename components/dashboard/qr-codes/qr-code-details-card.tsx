@@ -6,6 +6,7 @@ import {
   createAndAddTagToUrl,
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -29,7 +30,7 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, fetchApi, getShortUrl } from "@/lib/utils";
+import { cn, fetchApi } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { format } from "date-fns";
@@ -49,7 +50,7 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getLinksLeft } from "../home/quick-create";
 import { toast } from "sonner";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
@@ -66,6 +67,19 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [currentQrCode, setCurrentQrCode] = useState<TQRCode>(qrCode);
   const [input, setInput] = useState("");
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
@@ -166,7 +180,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                               Creating a link for this QR Code will use up one
                               of your monthly links.
                             </p>
-                            {getLinksLeft(plan, user.qr_codes_this_month, true)}
+                            {getLinksLeft(
+                              plan,
+                              usage?.qrCodes.consumed ?? 0,
+                              true,
+                            )}
                           </div>
                         </DialogDescription>
                       </DialogHeader>
@@ -226,9 +244,8 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                               }
                             }
                             if (response.success && response.data) {
-                              const shortUrl = getShortUrl(
-                                response.data.shortUrl,
-                              );
+                              const shortUrl = response.data.shortUrl;
+
                               await attachShortnToQR(
                                 shortUrl,
                                 currentQrCode.qrCodeId,
@@ -412,7 +429,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                             Creating a link for this QR Code will use up one of
                             your monthly links.
                           </p>
-                          {getLinksLeft(plan, user.qr_codes_this_month, true)}
+                          {getLinksLeft(
+                            plan,
+                            usage?.qrCodes.consumed ?? 0,
+                            true,
+                          )}
                         </div>
                       </DialogDescription>
                     </DialogHeader>
@@ -472,9 +493,8 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                             }
                           }
                           if (response.success && response.data) {
-                            const shortUrl = getShortUrl(
-                              response.data.shortUrl,
-                            );
+                            const shortUrl = response.data.shortUrl;
+
                             await attachShortnToQR(
                               shortUrl,
                               currentQrCode.qrCodeId,

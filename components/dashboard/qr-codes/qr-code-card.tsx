@@ -3,6 +3,7 @@ import {
   createAndAddTagToQRCode,
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -19,7 +20,7 @@ import {
 import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { cn, getShortUrl } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { format } from "date-fns";
@@ -39,7 +40,7 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogClose,
@@ -79,16 +80,21 @@ export const QRCodeCard = ({
   const user = data?.user;
   const { plan } = usePlan();
 
-  const allowedLinks = {
-    free: 3,
-    basic: 25,
-    plus: 50,
-  };
+  const [usage, setUsage] = useState<UsageData | null>(null);
+
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    void fetchUsage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const linksLeft =
     plan != "pro"
-      ? allowedLinks[plan as "free" | "basic" | "plus"] -
-        (user?.links_this_month ?? 0)
+      ? (usage?.links.limit ?? 0) - (usage?.links.consumed ?? 0)
       : undefined;
 
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
@@ -261,9 +267,8 @@ export const QRCodeCard = ({
                                 }
                               }
                               if (response.success && response.data) {
-                                const shortUrl = getShortUrl(
-                                  response.data.shortUrl,
-                                );
+                                const shortUrl = response.data.shortUrl;
+
                                 await attachShortnToQR(
                                   shortUrl,
                                   qrCode.qrCodeId,
@@ -688,9 +693,8 @@ export const QRCodeCard = ({
                               }
                             }
                             if (response.success && response.data) {
-                              const shortUrl = getShortUrl(
-                                response.data.shortUrl,
-                              );
+                              const shortUrl = response.data.shortUrl;
+
                               await attachShortnToQR(shortUrl, qrCode.qrCodeId);
                               router.push(
                                 `/dashboard/links/${shortUrl}/details`,
@@ -898,7 +902,7 @@ export const QRCodeCard = ({
                           }
                         }
                         if (response.success && response.data) {
-                          const shortUrl = getShortUrl(response.data.shortUrl);
+                          const shortUrl = response.data.shortUrl;
                           await attachShortnToQR(shortUrl, qrCode.qrCodeId);
                           router.push(`/dashboard/links/${shortUrl}/details`);
                         }

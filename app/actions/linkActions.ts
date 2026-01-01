@@ -15,9 +15,13 @@ import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
 import { Campaigns } from "@/models/url/Campaigns";
 import { getUserPlan } from "@/app/actions/polarActions";
-import { User } from "@/models/auth/User";
 import { format } from "date-fns";
 import bcrypt from "bcryptjs";
+import {
+  ingestUsageEvent,
+  METER_EVENTS,
+  canPerformAction,
+} from "@/lib/polar-usage";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -107,42 +111,19 @@ export async function createShortn({
       }
     }
 
-    const links = user.links_this_month;
-    if (plan === "free") {
-      if (links >= 3) {
+    if (plan !== "pro") {
+      const { allowed } = await canPerformAction(
+        user.id,
+        METER_EVENTS.LINK_CREATED,
+        plan,
+      );
+      if (!allowed) {
         return {
           success: false,
           message: "plan-limit",
         };
       }
-      if (customCode) {
-        return {
-          success: false,
-          message: "custom-restricted",
-        };
-      }
-    }
-    if (plan === "basic") {
-      if (links >= 25) {
-        return {
-          success: false,
-          message: "plan-limit",
-        };
-      }
-      if (customCode) {
-        return {
-          success: false,
-          message: "custom-restricted",
-        };
-      }
-    }
-    if (plan === "plus") {
-      if (links >= 50) {
-        return {
-          success: false,
-          message: "plan-limit",
-        };
-      }
+
       if (customCode) {
         return {
           success: false,
@@ -180,15 +161,14 @@ export async function createShortn({
       passwordHint: passwordHint || undefined,
     });
 
-    const updated = await User.findByIdAndUpdate(session.user.id, {
-      $inc: { links_this_month: 1 },
+    await ingestUsageEvent({
+      customerId: user.id,
+      eventName: METER_EVENTS.LINK_CREATED,
+      metadata: {
+        urlCode,
+        plan,
+      },
     });
-    if (!updated) {
-      return {
-        success: false,
-        message: "server-error",
-      };
-    }
 
     return {
       success: true,
@@ -381,12 +361,20 @@ export const updateShortnData = async ({
     if (!foundUrl) {
       return { success: false, message: "url-not-found" };
     }
-    if (
-      longUrl !== foundUrl.longUrl &&
-      ((plan === "plus" && user.redirects_this_month >= 10) ||
-        (plan !== "pro" && plan !== "plus"))
-    ) {
-      return { success: false, message: "redirect-plan-limit" };
+
+    if (longUrl !== foundUrl.longUrl && plan !== "pro") {
+      if (plan === "plus") {
+        const { allowed } = await canPerformAction(
+          user.id,
+          METER_EVENTS.LINK_REDIRECT,
+          plan,
+        );
+        if (!allowed) {
+          return { success: false, message: "redirect-plan-limit" };
+        }
+      } else {
+        return { success: false, message: "redirect-plan-limit" };
+      }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateQuery: Record<string, any> = {};
@@ -417,12 +405,19 @@ export const updateShortnData = async ({
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {
       new: true,
     });
+
+    if (url && longUrl !== foundUrl.longUrl) {
+      await ingestUsageEvent({
+        customerId: user.id,
+        eventName: METER_EVENTS.LINK_REDIRECT,
+        metadata: {
+          urlCode,
+          plan,
+        },
+      });
+    }
+
     if (updateCode) {
-      if (longUrl !== foundUrl.longUrl) {
-        await User.findByIdAndUpdate(session.user.id, {
-          $inc: { redirects_this_month: 1 },
-        });
-      }
       await Clicks.updateMany(
         { type: "click", urlCode },
         { urlCode: custom_code },
