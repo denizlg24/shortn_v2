@@ -2,6 +2,10 @@ import Image from "next/image";
 import illust from "@/public/404_illustration.svg";
 import Link from "next/link";
 
+// Force dynamic rendering to avoid static-to-dynamic errors
+// when middleware uses headers/cookies
+export const dynamic = "force-dynamic";
+
 export default function NotFound() {
   return (
     <main className="w-full flex flex-col items-center max-w-7xl px-4 mx-auto">

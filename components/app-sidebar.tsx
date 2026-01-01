@@ -33,7 +33,7 @@ import {
 } from "./ui/dialog";
 import { useState } from "react";
 import { authClient } from "@/lib/authClient";
-
+import logo from "@/public/logo.png";
 export const AppSidebar = () => {
   const { data } = authClient.useSession();
   const session = data;
@@ -53,7 +53,7 @@ export const AppSidebar = () => {
               <Link href={"/dashboard"}>
                 <Image
                   alt="Shortn-logo"
-                  src={"/logo.png"}
+                  src={logo}
                   width={1080}
                   height={1080}
                   className="w-8 h-8 rounded"
