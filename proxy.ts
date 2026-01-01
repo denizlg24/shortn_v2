@@ -32,6 +32,12 @@ const PUBLIC_PATHS = [
 ];
 const STATIC_FILES = ["/robots.txt", "/sitemap.xml", "/favicon.ico"];
 
+const INVALID_SLUG_PATTERNS = [/^\./, /\.[a-z0-9]+$/i];
+
+function isInvalidSlug(slug: string): boolean {
+  return INVALID_SLUG_PATTERNS.some((pattern) => pattern.test(slug));
+}
+
 const LOCALES = routing.locales;
 
 export async function proxy(request: NextRequest) {
@@ -49,6 +55,12 @@ export async function proxy(request: NextRequest) {
     STATIC_FILES.includes(pathname)
   ) {
     return NextResponse.next();
+  }
+
+  if (isInvalidSlug(first) || isInvalidSlug(pathname)) {
+    return NextResponse.redirect(
+      new URL(`/${locale}/url-not-found`, request.nextUrl),
+    );
   }
 
   if (!isLocale) {
@@ -132,8 +144,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
+  // Match all paths to handle dotfiles and file-like paths in the proxy
   matcher: [
-    "/((?!api|_next|_next/image|.*\\..*|favicon.ico|robots.txt|sitemap.xml).*)",
+    "/((?!api|_next|_next/image|favicon.ico|robots.txt|sitemap.xml).*)",
   ],
 };
