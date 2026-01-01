@@ -40,6 +40,7 @@ import { cn } from "@/lib/utils";
 import { ScrollPopoverContent } from "./scroll-popover-content";
 import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
+import logo from "@/public/logo.png";
 
 export const DashboardHeaderClient = () => {
   const { data } = authClient.useSession();
@@ -81,7 +82,7 @@ export const DashboardHeaderClient = () => {
                 <Link href={"/dashboard"}>
                   <Image
                     alt="Shortn-logo"
-                    src={"/logo.png"}
+                    src={logo}
                     width={1080}
                     height={1080}
                     className="w-8 h-8 rounded"
