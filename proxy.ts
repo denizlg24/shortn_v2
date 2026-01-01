@@ -57,6 +57,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  if (pathname.startsWith("/b/")) {
+    return NextResponse.next();
+  }
+
   if (isInvalidSlug(first) || isInvalidSlug(pathname)) {
     return NextResponse.redirect(
       new URL(`/${locale}/url-not-found`, request.nextUrl),
@@ -118,6 +122,7 @@ export async function proxy(request: NextRequest) {
   const isAuthenticate = request.nextUrl.pathname.startsWith(
     `/${locale}/authenticate`,
   );
+
   if (isDashboard && !isLoggedIn) {
     const response = NextResponse.redirect(
       new URL(`/${locale}/login`, request.nextUrl),
