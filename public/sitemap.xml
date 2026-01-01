@@ -2,7 +2,18 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
-  <!-- Homepage -->
+  <!-- Root URL (canonical) -->
+  <url>
+    <loc>https://shortn.at</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en"/>
+    <xhtml:link rel="alternate" hreflang="es" href="https://shortn.at/es"/>
+    <xhtml:link rel="alternate" hreflang="pt" href="https://shortn.at/pt"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://shortn.at/en"/>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Homepage (localized) -->
   <url>
     <loc>https://shortn.at/en</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://shortn.at/en"/>

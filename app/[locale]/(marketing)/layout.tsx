@@ -1,7 +1,7 @@
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
 import "../../globals.css";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
@@ -14,20 +14,34 @@ export function generateStaticParams() {
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
+  const locale = await getLocale();
 
   return {
+    metadataBase: new URL("https://shortn.at"),
     title: t("home.title"),
     description: t("home.description"),
     keywords: t("home.keywords")
       .split(",")
       .map((k) => k.trim()),
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        "max-video-preview": -1,
+        "max-image-preview": "large",
+        "max-snippet": -1,
+      },
+    },
     openGraph: {
       title: t("home.title"),
       description: t("home.description"),
       type: "website",
       siteName: "Shortn",
-      locale: "en_US",
-      alternateLocale: ["pt_PT", "es_ES"],
+      url: `https://shortn.at/${locale}`,
+      locale: locale === "en" ? "en_US" : locale === "pt" ? "pt_PT" : "es_ES",
+      alternateLocale: ["en_US", "pt_PT", "es_ES"],
     },
     twitter: {
       card: "summary_large_image",
@@ -37,8 +51,9 @@ export async function generateMetadata() {
       creator: "@shortn",
     },
     alternates: {
-      canonical: "https://shortn.at",
+      canonical: `https://shortn.at/${locale}`,
       languages: {
+        "x-default": "https://shortn.at/en",
         en: "https://shortn.at/en",
         pt: "https://shortn.at/pt",
         es: "https://shortn.at/es",
