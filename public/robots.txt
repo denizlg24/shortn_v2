@@ -1,61 +1,124 @@
-# Shortn - URL Shortener robots.txt
-# https://shortn.at
+# Shortn - URL Shortener robots.txt# Shortn - URL Shortener robots.txt
 
-User-agent: *
-
-# Block dashboard (all locales)
-Disallow: /dashboard
-Disallow: /dashboard/
-Disallow: /*/dashboard
-Disallow: /*/dashboard/
-
-# Block API routes
-Disallow: /api/
-
-# Block authentication pages
-Disallow: /login
-Disallow: /register
-Disallow: /recover
-Disallow: /reset
-Disallow: /verify
-Disallow: /authenticate
-Disallow: /*/login
-Disallow: /*/register
-Disallow: /*/recover
-Disallow: /*/reset
-Disallow: /*/verify
-Disallow: /*/authenticate
-
-# Block shortened URLs (single segment paths that aren't known pages)
-# Since shortened URLs are root-level slugs, we block common patterns
-# Note: This uses a wildcard to match short URL codes
-Disallow: /qr/
+# https://shortn.at# https://shortn.at
 
 
-# Block internal/error pages
-Disallow: /url-not-found
-Disallow: /*/url-not-found
-Disallow: /_next/
 
-# Allow public marketing pages
-Allow: /
-Allow: /en
-Allow: /pt
-Allow: /es
-Allow: /pricing
-Allow: /help
-Allow: /about
-Allow: /products
-Allow: /privacy
-Allow: /terms
-Allow: /contact
-Allow: /*/pricing
-Allow: /*/help
-Allow: /*/about
-Allow: /*/products
-Allow: /*/privacy
+User-agent: *User-agent: *
+
+
+
+# Allow root and marketing pages# Block dashboard (all locales)
+
+Allow: /Disallow: /dashboard
+
+Allow: /enDisallow: /dashboard/
+
+Allow: /en/Disallow: /*/dashboard
+
+Allow: /ptDisallow: /*/dashboard/
+
+Allow: /pt/
+
+Allow: /es# Block API routes
+
+Allow: /es/Disallow: /api/
+
+
+
+# Allow marketing pages (all locales)# Block authentication pages
+
+Allow: /pricingDisallow: /login
+
+Allow: /helpDisallow: /register
+
+Allow: /aboutDisallow: /recover
+
+Allow: /productsDisallow: /reset
+
+Allow: /privacyDisallow: /verify
+
+Allow: /termsDisallow: /authenticate
+
+Allow: /contactDisallow: /*/login
+
+Allow: /*/pricingDisallow: /*/register
+
+Allow: /*/helpDisallow: /*/recover
+
+Allow: /*/aboutDisallow: /*/reset
+
+Allow: /*/productsDisallow: /*/verify
+
+Allow: /*/privacyDisallow: /*/authenticate
+
 Allow: /*/terms
-Allow: /*/contact
+
+Allow: /*/contact# Block shortened URLs (single segment paths that aren't known pages)
+
+# Since shortened URLs are root-level slugs, we block common patterns
+
+# Block dashboard (all locales)# Note: This uses a wildcard to match short URL codes
+
+Disallow: /dashboardDisallow: /qr/
+
+Disallow: /dashboard/
+
+Disallow: /*/dashboard
+
+Disallow: /*/dashboard/# Block internal/error pages
+
+Disallow: /url-not-found
+
+# Block API routesDisallow: /*/url-not-found
+
+Disallow: /api/Disallow: /_next/
+
+
+
+# Block authentication pages# Allow public marketing pages
+
+Disallow: /loginAllow: /
+
+Disallow: /registerAllow: /en
+
+Disallow: /recoverAllow: /pt
+
+Disallow: /resetAllow: /es
+
+Disallow: /verifyAllow: /pricing
+
+Disallow: /authenticateAllow: /help
+
+Disallow: /*/loginAllow: /about
+
+Disallow: /*/registerAllow: /products
+
+Disallow: /*/recoverAllow: /privacy
+
+Disallow: /*/resetAllow: /terms
+
+Disallow: /*/verifyAllow: /contact
+
+Disallow: /*/authenticateAllow: /*/pricing
+
+Allow: /*/help
+
+# Block legacy QR routesAllow: /*/about
+
+Disallow: /qr/Allow: /*/products
+
+Allow: /*/privacy
+
+# Block internal/error pagesAllow: /*/terms
+
+Disallow: /url-not-foundAllow: /*/contact
+
+Disallow: /*/url-not-found
+
+Disallow: /_next/# Sitemap
+
+Sitemap: https://shortn.at/sitemap.xml
 
 # Sitemap
 Sitemap: https://shortn.at/sitemap.xml

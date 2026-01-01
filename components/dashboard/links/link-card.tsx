@@ -58,6 +58,7 @@ import {
   EyeOff,
   KeyRound,
   LinkIcon,
+  Loader2,
   LockIcon,
   NotepadText,
   PlusCircle,
@@ -113,6 +114,25 @@ export const LinkCard = ({
   const [justCopied, setJustCopied] = useState(false);
 
   const isPro = plan === "pro";
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      const response = await deleteShortn(currentLink.urlCode);
+      if (response.success) {
+        toast.success(`Link ${currentLink.urlCode} was successfully deleted.`);
+      } else {
+        toast.error("There was a problem deleting your link.");
+        setIsDeleting(false);
+      }
+      router.refresh();
+    } catch {
+      toast.error("There was a problem deleting your link.");
+      setIsDeleting(false);
+    }
+  };
   const [bioPageSlug, setBioPageSlug] = useState<string | undefined>(
     initialBioPageSlug,
   );
@@ -197,6 +217,10 @@ export const LinkCard = ({
       setIsPasswordLoading(false);
     }
   };
+
+  if (isDeleting) {
+    return null;
+  }
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
@@ -475,21 +499,20 @@ export const LinkCard = ({
               className="w-[200px] flex flex-col px-0! py-1 gap-1"
             >
               <Button
-                onClick={async () => {
-                  const response = await deleteShortn(currentLink.urlCode);
-                  if (response.success) {
-                    toast.success(
-                      `Link ${currentLink.urlCode} was successfully deleted.`,
-                    );
-                  } else {
-                    toast.error("There was a problem deleting your link.");
-                  }
-                  router.refresh();
-                }}
+                onClick={handleDelete}
+                disabled={isDeleting}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
-                <Trash2 /> Delete
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 /> Delete
+                  </>
+                )}
               </Button>
               <Button
                 asChild
@@ -996,19 +1019,18 @@ export const LinkCard = ({
             <Button
               variant={"outline"}
               className="w-full border-none! rounded-none! justify-start! shadow-none! "
-              onClick={async () => {
-                const response = await deleteShortn(currentLink.urlCode);
-                if (response.success) {
-                  toast.success(
-                    `Link ${currentLink.urlCode} was successfully deleted.`,
-                  );
-                } else {
-                  toast.error("There was a problem deleting your link.");
-                }
-                router.refresh();
-              }}
+              onClick={handleDelete}
+              disabled={isDeleting}
             >
-              <Trash2 /> Delete
+              {isDeleting ? (
+                <>
+                  <Loader2 className="animate-spin" /> Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 /> Delete
+                </>
+              )}
             </Button>
             <Button
               asChild
