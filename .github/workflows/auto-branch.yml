@@ -85,7 +85,9 @@ jobs:
 
           # --- STEP 3: Create Branch (Idempotent) ---
           # Fetch to ensure we know about existing remote branches
-          git fetch origin 
+          git fetch origin
+          git checkout dev
+          git pull 
 
           # Check if branch exists remotely
           if git ls-remote --exit-code --heads origin "$BRANCH_NAME"; then
