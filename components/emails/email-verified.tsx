@@ -150,7 +150,7 @@ export function AccountVerifiedEmail() {
                     <Section className="mt-4">
                       <Text className="text-text-light m-0 p-0 text-base">
                         If you have any questions or need a hand getting
-                        started, contact us at geral@oceaninformatix.com.
+                        started, contact us at geral@shortn.at
                       </Text>
                       <Text className="text-text-light m-0 mt-4 p-0 text-base">
                         Enjoy your journey with Shortn.at!

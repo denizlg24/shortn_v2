@@ -266,10 +266,10 @@ export default async function PrivacyPage({
           <p className="text-muted-foreground">
             To exercise these rights, please contact us at{" "}
             <a
-              href="mailto:privacy@shortn.at"
+              href="mailto:geral@shortn.at"
               className="text-primary hover:underline"
             >
-              privacy@shortn.at
+              geral@shortn.at
             </a>
           </p>
         </section>
@@ -421,10 +421,10 @@ export default async function PrivacyPage({
             <p>
               <strong>Email:</strong>{" "}
               <a
-                href="mailto:privacy@shortn.at"
+                href="mailto:geral@shortn.at"
                 className="text-primary hover:underline"
               >
-                privacy@shortn.at
+                geral@shortn.at
               </a>
             </p>
             <p>
