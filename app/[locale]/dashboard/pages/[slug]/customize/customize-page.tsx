@@ -572,21 +572,74 @@ export const CustomizeBioPage = ({
                   bio.theme?.header ? bio.theme.header.headerStyle : "no-header"
                 }
               >
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="no-header" id="r1" />
-                  <Label htmlFor="r1">No Header</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="no-header" id="r1" />
+                    <Label htmlFor="r1">No Header</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
+                      <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                    </div>
+                    <div className="w-[50%] mx-auto h-1 rounded-full bg-muted-foreground mt-1"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-2.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                  </div>
                 </div>
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="centered" id="r2" />
-                  <Label htmlFor="r2">Centered</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="centered" id="r2" />
+                    <Label htmlFor="r2">Centered</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="relative flex items-center flex-col w-full h-8 bg-primary">
+                      <div className="w-6 h-6 rounded-full bg-muted mx-auto flex items-center justify-center absolute mt-5">
+                        <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                      </div>
+                      <div className="w-[50%] mx-auto h-1 rounded-full bg-muted-foreground mt-12 absolute"></div>
+                    </div>
+
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-7"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                  </div>
                 </div>
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="left-aligned" id="r3" />
-                  <Label htmlFor="r3">Leftmost</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="left-aligned" id="r3" />
+                    <Label htmlFor="r3">Leftmost</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="relative flex items-start flex-col w-full h-8 bg-primary">
+                      <div className="w-6 h-6 rounded-full bg-muted ml-1 flex items-center justify-center absolute mt-5">
+                        <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                      </div>
+                      <div className="w-[50%] ml-1 h-1 rounded-full bg-muted-foreground mt-12 absolute"></div>
+                    </div>
+
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-7"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                  </div>
                 </div>
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="right-aligned" id="r4" />
-                  <Label htmlFor="r4">Rightmost</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="right-aligned" id="r4" />
+                    <Label htmlFor="r4">Rightmost</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="relative flex items-end flex-col w-full h-8 bg-primary">
+                      <div className="w-6 h-6 rounded-full bg-muted mr-1 flex items-center justify-center absolute mt-5">
+                        <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                      </div>
+                      <div className="w-[50%] mr-1 h-1 rounded-full bg-muted-foreground mt-12 absolute"></div>
+                    </div>
+
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-7"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                    <div className="w-[90%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                  </div>
                 </div>
               </RadioGroup>
             </CardContent>
@@ -1031,17 +1084,54 @@ export const CustomizeBioPage = ({
                 className="w-full flex flex-row gap-1 items-start flex-wrap"
                 value={bio.theme?.buttonStyle || "rounded"}
               >
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="rounded" id="btn-rounded" />
-                  <Label htmlFor="btn-rounded">Rounded</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="rounded" id="btn-rounded" />
+                    <Label htmlFor="btn-rounded">Rounded</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
+                      <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                    </div>
+                    <div className="w-[50%] mx-auto h-1 rounded-full bg-muted-foreground mt-1"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-none bg-primary mt-2.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-none bg-primary mt-0.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-none bg-primary mt-0.5"></div>
+                  </div>
                 </div>
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="square" id="btn-square" />
-                  <Label htmlFor="btn-square">Square</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="square" id="btn-square" />
+                    <Label htmlFor="btn-square">Square</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
+                      <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                    </div>
+                    <div className="w-[50%] mx-auto h-1 rounded-full bg-muted-foreground mt-1"></div>
+                    <div className="grid grid-cols-3 w-[95%] mt-2.5 gap-px">
+                      <div className="col-span-1 bg-primary h-auto aspect-square"></div>
+                      <div className="col-span-1 bg-primary h-auto aspect-square"></div>
+                      <div className="col-span-1 bg-primary h-auto aspect-square"></div>
+                      <div className="col-span-1 bg-primary h-auto aspect-square"></div>
+                      <div className="col-span-1 bg-primary h-auto aspect-square"></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex grow items-center gap-3">
-                  <RadioGroupItem value="pill" id="btn-pill" />
-                  <Label htmlFor="btn-pill">Pill</Label>
+                <div className="flex flex-col gap-2 items-start grow">
+                  <div className="flex grow items-center gap-3">
+                    <RadioGroupItem value="pill" id="btn-pill" />
+                    <Label htmlFor="btn-pill">Pill</Label>
+                  </div>
+                  <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
+                    <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
+                      <ImageIcon className="text-muted-foreground w-2.5 h-2.5" />
+                    </div>
+                    <div className="w-[50%] mx-auto h-1 rounded-full bg-muted-foreground mt-1"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-2.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                    <div className="w-[95%] mx-auto h-1.5 rounded-full bg-primary mt-0.5"></div>
+                  </div>
                 </div>
               </RadioGroup>
             </CardContent>
