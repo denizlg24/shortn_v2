@@ -108,7 +108,10 @@ export async function updateBioPage({
     await connectDB();
     delete bio.links;
     await BioPage.findOneAndUpdate({ userId: bio.userId, slug: bio.slug }, bio);
-    revalidatePath(`/b/${bio.slug}`);
+
+    revalidatePath(`/b/${bio.slug}`, "page");
+    revalidatePath(`/b/${bio.slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -161,7 +164,11 @@ export async function updateBioLink({
     if (result.matchedCount === 0) {
       return { success: false, message: "link-not-found" };
     }
-    revalidatePath(`/b/${slug}`);
+
+    // Revalidate both the page and the layout
+    revalidatePath(`/b/${slug}`, "page");
+    revalidatePath(`/b/${slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -203,7 +210,11 @@ export async function removeLinkFromBio({
     if (result.matchedCount === 0) {
       return { success: false, message: "not-found" };
     }
-    revalidatePath(`/b/${slug}`);
+
+    // Revalidate both the page and the layout
+    revalidatePath(`/b/${slug}`, "page");
+    revalidatePath(`/b/${slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -254,7 +265,11 @@ export async function reorderBioLinks({
         },
       },
     );
-    revalidatePath(`/b/${slug}`);
+
+    // Revalidate both the page and the layout
+    revalidatePath(`/b/${slug}`, "page");
+    revalidatePath(`/b/${slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -315,7 +330,11 @@ export async function addLinkToBioPage({
         },
       },
     );
-    revalidatePath(`/b/${slug}`);
+
+    // Revalidate both the page and the layout
+    revalidatePath(`/b/${slug}`, "page");
+    revalidatePath(`/b/${slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -384,7 +403,11 @@ export async function deleteBioPage({ slug }: { slug: string }) {
     for (const imgUrl of imgsToDelete) {
       await deletePicture(imgUrl);
     }
-    revalidatePath(`/b/${slug}`);
+
+    // Revalidate both the page and the layout
+    revalidatePath(`/b/${slug}`, "page");
+    revalidatePath(`/b/${slug}`, "layout");
+
     return { success: true };
   } catch (error) {
     console.log(error);

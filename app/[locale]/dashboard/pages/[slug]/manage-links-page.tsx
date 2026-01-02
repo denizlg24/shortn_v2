@@ -80,6 +80,7 @@ export const ManageLinksPage = ({
     {},
   );
   const [savingLinks, setSavingLinks] = useState<Record<string, boolean>>({});
+  const [isSorting, setIsSorting] = useState(false);
 
   const hasChanges = (linkId: string) => {
     return !!editingLinks[linkId];
@@ -246,7 +247,9 @@ export const ManageLinksPage = ({
     }
   };
 
-  const handleSort = (sortType: "addedAt" | "createdAt") => {
+  const handleSort = async (sortType: "addedAt" | "createdAt") => {
+    setIsSorting(true);
+
     const sorted = [...links].sort((a, b) => {
       if (sortType === "addedAt") {
         return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
@@ -256,10 +259,25 @@ export const ManageLinksPage = ({
         );
       }
     });
+
     setLinks(sorted);
-    toast.success(
-      `Sorted by ${sortType === "addedAt" ? "date added" : "date created"}`,
-    );
+
+    const result = await reorderBioLinks({
+      slug,
+      linkIds: sorted.map((link) => link._id),
+    });
+
+    if (result.success) {
+      toast.success(
+        `Sorted by ${sortType === "addedAt" ? "date added" : "date created"}`,
+      );
+    } else {
+      toast.error("Failed to save sorted order");
+
+      setLinks(links);
+    }
+
+    setIsSorting(false);
   };
 
   return (
@@ -287,16 +305,26 @@ export const ManageLinksPage = ({
               variant="outline"
               size="sm"
               onClick={() => handleSort("addedAt")}
+              disabled={isSorting}
             >
-              <CalendarPlus className="h-4 w-4 mr-2" />
+              {isSorting ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <CalendarPlus className="h-4 w-4" />
+              )}
               Date Added
             </Button>
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleSort("createdAt")}
+              disabled={isSorting}
             >
-              <Calendar className="h-4 w-4 mr-2" />
+              {isSorting ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <Calendar className="h-4 w-4" />
+              )}
               Date Created
             </Button>
           </div>
@@ -371,7 +399,7 @@ export const ManageLinksPage = ({
                                         removeFile(link._id, currentImage)
                                       }
                                     >
-                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      <Trash2 className="h-4 w-4" />
                                       Remove
                                     </Button>
                                   </>
@@ -459,7 +487,7 @@ export const ManageLinksPage = ({
                                 >
                                   {isSaving ? (
                                     <>
-                                      <Spinner className="h-3 w-3 mr-2" />
+                                      <Spinner className="h-3 w-3" />
                                       Saving...
                                     </>
                                   ) : (
