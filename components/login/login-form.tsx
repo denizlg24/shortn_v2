@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AtSign, Mail } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
@@ -24,12 +24,78 @@ import { useLocale } from "next-intl";
 import { authClient } from "@/lib/authClient";
 import { BASEURL } from "@/lib/utils";
 
+const mapBetterAuthLoginError = (
+  error: { code?: string; message?: string; status?: number },
+  form: ReturnType<typeof useForm<z.infer<typeof loginFormSchema>>>,
+  isUsername: boolean,
+) => {
+  const code = error.code?.toUpperCase();
+
+  switch (code) {
+    case "INVALID_EMAIL_OR_PASSWORD":
+    case "INVALID_CREDENTIALS":
+    case "INVALID_PASSWORD":
+      if (isUsername) {
+        form.setError("password", {
+          type: "manual",
+          message: "Invalid username or password",
+        });
+      } else {
+        form.setError("password", {
+          type: "manual",
+          message: "Invalid email or password",
+        });
+      }
+      break;
+    case "USER_NOT_FOUND":
+    case "USER_DOES_NOT_EXIST":
+      form.setError("email", {
+        type: "manual",
+        message: isUsername
+          ? "No account found with this username"
+          : "No account found with this email",
+      });
+      break;
+    case "INVALID_EMAIL":
+      form.setError("email", {
+        type: "manual",
+        message: "Please enter a valid email address",
+      });
+      break;
+    case "ACCOUNT_NOT_FOUND":
+      form.setError("email", {
+        type: "manual",
+        message: "Account not found. Please check your credentials.",
+      });
+      break;
+    case "TOO_MANY_REQUESTS":
+    case "RATE_LIMIT_EXCEEDED":
+      form.setError("root", {
+        type: "manual",
+        message: "Too many login attempts. Please wait a moment and try again.",
+      });
+      break;
+    case "SOCIAL_ACCOUNT_ALREADY_LINKED":
+      form.setError("root", {
+        type: "manual",
+        message:
+          "This account was created with a social login. Please use that method to sign in.",
+      });
+      break;
+    default:
+      form.setError("root", {
+        type: "manual",
+        message: error.message || "Unable to sign in. Please try again.",
+      });
+  }
+};
+
 const loginFormSchema = z.object({
   email: z.string().min(1, {
-    message: "Please fill out your email or username",
+    message: "Please enter your email or username",
   }),
   password: z.string().min(1, {
-    message: "Please fill out your password.",
+    message: "Please enter your password",
   }),
 });
 
@@ -46,6 +112,10 @@ export const LoginForm = () => {
   });
 
   const [showPassword, toggleShowPassword] = useState(false);
+
+  const watchedEmail = form.watch("email");
+  const isEmail = watchedEmail.includes("@");
+
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     const { email: identifier, password } = values;
     if (identifier.includes("@")) {
@@ -125,10 +195,7 @@ export const LoginForm = () => {
               return;
             }
             setLoading(0);
-            form.setError("root", {
-              type: "manual",
-              message: ctx.error.message,
-            });
+            mapBetterAuthLoginError(ctx.error, form, false);
           },
         },
       );
@@ -188,10 +255,7 @@ export const LoginForm = () => {
               return;
             }
             setLoading(0);
-            form.setError("root", {
-              type: "manual",
-              message: ctx.error.message,
-            });
+            mapBetterAuthLoginError(ctx.error, form, true);
           },
         },
       );
@@ -211,8 +275,30 @@ export const LoginForm = () => {
             <FormItem>
               <FormLabel>Email or Username</FormLabel>
               <FormControl>
-                <Input placeholder="Your email or username" {...field} />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors">
+                    {isEmail ? (
+                      <Mail className="h-4 w-4" />
+                    ) : (
+                      <AtSign className="h-4 w-4" />
+                    )}
+                  </span>
+                  <Input
+                    placeholder={
+                      isEmail ? "your@email.com" : "username or email"
+                    }
+                    className="pl-9"
+                    {...field}
+                  />
+                </div>
               </FormControl>
+              <p className="text-xs text-muted-foreground">
+                {isEmail
+                  ? "Signing in with email"
+                  : watchedEmail.length > 0
+                    ? "Signing in with username"
+                    : "Enter your email or @username"}
+              </p>
               <FormMessage />
             </FormItem>
           )}
@@ -226,7 +312,7 @@ export const LoginForm = () => {
               <FormControl>
                 <Input
                   type={showPassword ? "text" : "password"}
-                  placeholder="*******"
+                  placeholder="•••••••"
                   {...field}
                 />
               </FormControl>

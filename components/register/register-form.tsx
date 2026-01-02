@@ -16,13 +16,33 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { authClient } from "@/lib/authClient";
 import { BASEURL } from "@/lib/utils";
 import Cookies from "js-cookie";
+import { cn } from "@/lib/utils";
+
+const PasswordRequirement = ({
+  met,
+  label,
+}: {
+  met: boolean;
+  label: string;
+}) => (
+  <div
+    className={cn(
+      "flex items-center gap-1.5 text-xs transition-colors",
+      met ? "text-green-600 dark:text-green-500" : "text-muted-foreground",
+    )}
+  >
+    {met ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+    <span>{label}</span>
+  </div>
+);
+
 const registerFormSchema = z
   .object({
     fullName: z
@@ -30,16 +50,17 @@ const registerFormSchema = z
       .min(1, "Please provide a display name")
       .max(64, "Can't be longer than 64 characters"),
     email: z.string().email("Must be a valid email address").min(1, {
-      message: "Please fill out your email or username",
+      message: "Please fill out your email",
     }),
     nickname: z
       .string()
-      .min(1, "Please provide a username")
+      .min(3, "Username must be at least 3 characters")
       .max(32, "Username must be at most 32 characters")
       .regex(
         /^[a-zA-Z0-9_]+$/,
         "Only letters, numbers, and underscores are allowed",
-      ),
+      )
+      .refine((val) => !/^\d+$/.test(val), "Username cannot be only numbers"),
     password: z
       .string()
       .min(6, "Password must be at least 6 characters")
@@ -53,15 +74,125 @@ const registerFormSchema = z
     path: ["confirmPassword"],
   });
 
+const mapBetterAuthError = (
+  error: { code?: string; message?: string; status?: number },
+  form: ReturnType<typeof useForm<z.infer<typeof registerFormSchema>>>,
+) => {
+  const code = error.code?.toUpperCase() || "";
+  const message = error.message?.toLowerCase() || "";
+
+  switch (code) {
+    case "USER_ALREADY_EXISTS":
+    case "EMAIL_ALREADY_EXISTS":
+    case "USER_EXISTS":
+      form.setError("email", {
+        type: "manual",
+        message: "An account with this email already exists",
+      });
+      return;
+    case "USERNAME_ALREADY_EXISTS":
+    case "USERNAME_IS_ALREADY_TAKEN":
+    case "USERNAME_TAKEN":
+    case "USERNAME_EXISTS":
+      form.setError("nickname", {
+        type: "manual",
+        message: "This username is already taken",
+      });
+      return;
+    case "INVALID_EMAIL":
+      form.setError("email", {
+        type: "manual",
+        message: "Please enter a valid email address",
+      });
+      return;
+    case "PASSWORD_TOO_SHORT":
+      form.setError("password", {
+        type: "manual",
+        message: "Password must be at least 6 characters",
+      });
+      return;
+    case "PASSWORD_TOO_LONG":
+      form.setError("password", {
+        type: "manual",
+        message: "Password is too long",
+      });
+      return;
+    case "INVALID_PASSWORD":
+      form.setError("password", {
+        type: "manual",
+        message: "Password doesn't meet requirements",
+      });
+      return;
+    case "RATE_LIMIT_EXCEEDED":
+    case "TOO_MANY_REQUESTS":
+      form.setError("root", {
+        type: "manual",
+        message: "Too many attempts. Please wait a moment and try again.",
+      });
+      return;
+  }
+
+  if (
+    message.includes("email") &&
+    (message.includes("already") ||
+      message.includes("exists") ||
+      message.includes("taken") ||
+      message.includes("use"))
+  ) {
+    form.setError("email", {
+      type: "manual",
+      message: "An account with this email already exists",
+    });
+    return;
+  }
+
+  if (
+    message.includes("username") &&
+    (message.includes("already") ||
+      message.includes("exists") ||
+      message.includes("taken") ||
+      message.includes("use"))
+  ) {
+    form.setError("nickname", {
+      type: "manual",
+      message: "This username is already taken",
+    });
+    return;
+  }
+
+  if (message.includes("password")) {
+    form.setError("password", {
+      type: "manual",
+      message: error.message || "Invalid password",
+    });
+    return;
+  }
+
+  if (message.includes("email") && message.includes("invalid")) {
+    form.setError("email", {
+      type: "manual",
+      message: "Please enter a valid email address",
+    });
+    return;
+  }
+
+  form.setError("root", {
+    type: "manual",
+    message: error.message || "There was a problem creating your account.",
+  });
+};
+
 export const RegisterForm = () => {
   const locale = useLocale();
   const [loading, setLoading] = useState(0);
   const [showPassword, toggleShowPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const router = useRouter();
 
   const form = useForm<z.infer<typeof registerFormSchema>>({
     resolver: zodResolver(registerFormSchema),
+    mode: "onChange",
     defaultValues: {
       fullName: "",
       nickname: "",
@@ -70,6 +201,15 @@ export const RegisterForm = () => {
       confirmPassword: "",
     },
   });
+
+  const watchedPassword = form.watch("password");
+
+  const passwordRequirements = {
+    minLength: watchedPassword.length >= 6,
+    hasUppercase: /[A-Z]/.test(watchedPassword),
+    hasNumber: /[0-9]/.test(watchedPassword),
+    hasSpecial: /[^a-zA-Z0-9]/.test(watchedPassword),
+  };
 
   async function onSubmit(values: z.infer<typeof registerFormSchema>) {
     setLoading(1);
@@ -84,17 +224,12 @@ export const RegisterForm = () => {
       },
       {
         onSuccess() {
-          Cookies.set("flow_signup_success", "true", { expires: 30 / 288 }); // 30 day / 288 = 30 mins
+          Cookies.set("flow_signup_success", "true", { expires: 30 / 288 });
           Cookies.set("flow_signup_email", values.email, { expires: 30 / 288 });
           router.push("/verify/sent");
         },
         onError(context) {
-          form.setError("root", {
-            type: "manual",
-            message:
-              context.error.message ||
-              "There was a problem creating your account.",
-          });
+          mapBetterAuthError(context.error, form);
         },
       },
     );
@@ -151,16 +286,32 @@ export const RegisterForm = () => {
             name="nickname"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
+                <FormLabel className="flex items-center gap-1">
                   Username
-                  <span className="text-muted-foreground text-xs -ml-1">
-                    (alternative log in)
-                  </span>
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input autoComplete="nickname" placeholder="" {...field} />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      @
+                    </span>
+                    <Input
+                      autoComplete="nickname"
+                      placeholder="your_username"
+                      className="pl-7"
+                      {...field}
+                      onChange={(e) => {
+                        const value = e.target.value
+                          .toLowerCase()
+                          .replace(/\s/g, "_");
+                        field.onChange(value);
+                      }}
+                    />
+                  </div>
                 </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  You can use this instead of email to sign in
+                </p>
                 <FormMessage />
               </FormItem>
             )}
@@ -179,9 +330,34 @@ export const RegisterForm = () => {
                     type={showPassword ? "text" : "password"}
                     placeholder=""
                     {...field}
+                    onFocus={() => setPasswordFocused(true)}
+                    onBlur={() => setPasswordFocused(false)}
                   />
                 </FormControl>
-                <FormMessage />
+                {/* Password requirements display */}
+                {(passwordFocused || watchedPassword.length > 0) && (
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
+                    <PasswordRequirement
+                      met={passwordRequirements.minLength}
+                      label="At least 6 characters"
+                    />
+                    <PasswordRequirement
+                      met={passwordRequirements.hasUppercase}
+                      label="One uppercase letter"
+                    />
+                    <PasswordRequirement
+                      met={passwordRequirements.hasNumber}
+                      label="One number"
+                    />
+                    <PasswordRequirement
+                      met={passwordRequirements.hasSpecial}
+                      label="One special character"
+                    />
+                  </div>
+                )}
+                {!passwordFocused &&
+                  watchedPassword.length === 0 &&
+                  form.formState.errors.password && <FormMessage />}
                 <Button
                   type="button"
                   onClick={() => {
