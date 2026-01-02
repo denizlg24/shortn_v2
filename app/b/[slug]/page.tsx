@@ -24,17 +24,11 @@ export default async function Home({
     notFound();
   }
 
-  const bioLinks = (
-    bioPage.links as {
-      link: IUrl;
-      image?: string;
-      title?: string;
-    }[]
-  ).sort((a, b) => {
-    const aDate = a.link.date ? new Date(a.link.date).getTime() : 0;
-    const bDate = b.link.date ? new Date(b.link.date).getTime() : 0;
-    return bDate - aDate;
-  });
+  const bioLinks = bioPage.links as {
+    link: IUrl;
+    image?: string;
+    title?: string;
+  }[];
 
   return (
     <main className="h-full w-full bg-transparent">

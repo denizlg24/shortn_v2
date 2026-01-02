@@ -42,6 +42,8 @@ import { deletePicture } from "@/app/actions/deletePicture";
 import { ServerUser } from "@/lib/auth";
 import { BASEURL } from "@/lib/utils";
 import Cookies from "js-cookie";
+import { clearPlanCacheGlobal } from "@/hooks/use-plan";
+
 const updateEmailFormSchema = z.object({
   email: z
     .string()
@@ -186,6 +188,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountActivity),
       });
+      clearPlanCacheGlobal();
       await signOutUser();
       Cookies.set("flow_request_change_success", "true", { expires: 30 / 288 });
       Cookies.set("flow_request_change_email", values.email, {

@@ -44,7 +44,7 @@ import logo from "@/public/logo.png";
 
 export const DashboardHeaderClient = () => {
   const { data } = authClient.useSession();
-  const { plan } = usePlan();
+  const { plan, clearPlanCache } = usePlan();
   const user = data?.user;
   const [open, setOpen] = useState(false);
   const [hamburguerOpen, setHamburguerOpen] = useState(false);
@@ -393,6 +393,7 @@ export const DashboardHeaderClient = () => {
                   <Button
                     onClick={async () => {
                       setOpen(false);
+                      clearPlanCache();
                       await authClient.signOut({
                         fetchOptions: {
                           onSuccess: () => {
