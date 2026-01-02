@@ -110,16 +110,16 @@ export default function Home({
         </div>
         <div className="w-full flex flex-row items-center gap-4 flex-wrap justify-center hover:backdrop-blur-3xl p-4">
           <a
-            href="mailto:geral@oceaninformatix.com"
+            href="mailto:geral@shortn.at"
             target="_blank"
             className="flex flex-row items-center gap-2 justify-start"
             rel="noopener noreferrer"
           >
             <Mail className="w-4 h-4" />
-            geral@oceaninformatix.com
+            geral@shortn.at
           </a>
           <a
-            href="mailto:geral@oceaninformatix.com"
+            href="#"
             target="_blank"
             className="flex flex-row items-center gap-2 justify-start"
             rel="noopener noreferrer"
