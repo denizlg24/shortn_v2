@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 import { notFound } from "next/navigation";
 
+export const revalidate = 60;
+
 export async function generateStaticParams() {
   await connectDB();
   const bios = await BioPage.find({}, { slug: 1 })
