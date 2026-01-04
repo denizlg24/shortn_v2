@@ -130,13 +130,15 @@ export async function createQrCode({
 
     const finalTags: ITag[] = [];
 
-    if (tags) {
-      for (const t of tags) {
-        const tag = await fetchApi<{ tag: ITag }>(`tags/${t}`);
+    if (tags && tags.length > 0) {
+      const tagResults = await Promise.all(
+        tags.map((t) => fetchApi<{ tag: ITag }>(`tags/${t}`)),
+      );
+      tagResults.forEach((tag) => {
         if (tag.success) {
           finalTags.push(tag.tag);
         }
-      }
+      });
     }
 
     const newQrCode = await QRCodeV2.create({

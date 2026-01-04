@@ -243,15 +243,29 @@ export default async function Home({
   };
 
   const { links, total } = await getFilteredLinks(filters);
+  const linkIds = links.map((link) => link._id);
+  const bioPages = await BioPage.find(
+    {
+      links: { $elemMatch: { link: { $in: linkIds } } },
+    },
+    { slug: 1, links: 1 },
+  ).lean();
 
-  const linksWithBioPageSlug = await Promise.all(
-    links.map(async (link) => {
-      const page = await BioPage.findOne({
-        links: { $elemMatch: { link: link._id } },
-      });
-      return { ...link, bioPageSlug: page?.slug };
-    }),
-  );
+  const linkToBioPageMap = new Map<string, string>();
+  bioPages.forEach((page) => {
+    page.links.forEach((linkItem) => {
+      const linkId =
+        typeof linkItem.link === "object" && "toString" in linkItem.link
+          ? linkItem.link.toString()
+          : String(linkItem.link);
+      linkToBioPageMap.set(linkId, page.slug);
+    });
+  });
+
+  const linksWithBioPageSlug = links.map((link) => ({
+    ...link,
+    bioPageSlug: linkToBioPageMap.get(String(link._id)),
+  }));
 
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
