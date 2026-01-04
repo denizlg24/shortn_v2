@@ -13,7 +13,7 @@ import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
-import { Campaigns } from "@/models/url/Campaigns";
+import { Campaigns, ICampaign } from "@/models/url/Campaigns";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { format } from "date-fns";
 import bcrypt from "bcryptjs";
@@ -22,6 +22,7 @@ import {
   METER_EVENTS,
   canPerformAction,
 } from "@/lib/polar-usage";
+import { FlattenMaps } from "mongoose";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -134,13 +135,15 @@ export async function createShortn({
 
     const finalTags: ITag[] = [];
 
-    if (tags) {
-      for (const t of tags) {
-        const tag = await fetchApi<{ tag: ITag }>(`tags/${t}`);
+    if (tags && tags.length > 0) {
+      const tagResults = await Promise.all(
+        tags.map((t) => fetchApi<{ tag: ITag }>(`tags/${t}`)),
+      );
+      tagResults.forEach((tag) => {
         if (tag.success) {
           finalTags.push(tag.tag);
         }
-      }
+      });
     }
 
     let passwordHash: string | undefined = undefined;
@@ -283,14 +286,24 @@ export const deleteShortn = async (urlCode: string) => {
       const campaigns = foundURL.utmLinks
         .filter((section) => section.campaign != undefined)
         .map((section) => section.campaign?._id);
-      for (const id of campaigns) {
-        const finished = await Campaigns.findOneAndUpdate(
-          { _id: id },
-          { $pull: { links: foundURL._id } },
-          { new: true },
+
+      if (campaigns.length > 0) {
+        const updateResults = await Promise.all(
+          campaigns.map((id) =>
+            Campaigns.findOneAndUpdate(
+              { _id: id },
+              { $pull: { links: foundURL._id } },
+              { new: true },
+            ),
+          ),
         );
-        if (finished?.links.length == 0) {
-          await Campaigns.deleteOne({ _id: id });
+
+        const campaignsToDelete = updateResults
+          .filter((campaign) => campaign && campaign.links.length === 0)
+          .map((campaign) => campaign!._id);
+
+        if (campaignsToDelete.length > 0) {
+          await Campaigns.deleteMany({ _id: { $in: campaignsToDelete } });
         }
       }
     }
@@ -648,69 +661,96 @@ export async function updateUTM({
           !utm.some((ut) => curr.campaign?.title === ut.campaign?.title),
       );
 
-      for (const element of removed) {
-        const finished = await Campaigns.findOneAndUpdate(
-          { _id: element.campaign?._id },
-          { $pull: { links: foundUrl._id } },
-          { new: true },
+      if (removed.length > 0) {
+        const updateResults = await Promise.all(
+          removed.map((element) =>
+            Campaigns.findOneAndUpdate(
+              { _id: element.campaign?._id },
+              { $pull: { links: foundUrl._id } },
+              { new: true },
+            ),
+          ),
         );
-        if (finished?.links.length == 0) {
-          await Campaigns.deleteOne({ _id: element.campaign?._id });
+
+        const campaignsToDelete = updateResults
+          .filter((campaign) => campaign && campaign.links.length === 0)
+          .map((campaign) => campaign!._id);
+
+        if (campaignsToDelete.length > 0) {
+          await Campaigns.deleteMany({ _id: { $in: campaignsToDelete } });
         }
       }
     }
 
-    const finalUtm = await Promise.all(
-      utm.map(async (utmSection) => {
-        if (utmSection.campaign?.title) {
-          if (utmSection.campaign.title.trim()) {
-            const foundCampaign = await Campaigns.findOne({
-              sub,
-              title: utmSection.campaign.title,
-            });
-            if (foundCampaign) {
-              await Campaigns.updateOne(
-                { _id: foundCampaign._id },
-                { $addToSet: { links: foundUrl._id } },
-              );
-              return {
-                source: utmSection.source,
-                medium: utmSection.medium,
-                campaign: {
-                  _id: (foundCampaign._id as string).toString(),
-                  title: utmSection.campaign.title.trim(),
-                },
-                term: utmSection.term,
-                content: utmSection.content,
-              };
-            }
+    const campaignTitles = utm
+      .filter((u) => u.campaign?.title?.trim())
+      .map((u) => u.campaign!.title.trim());
 
-            const newCampaign = await Campaigns.create({
-              title: utmSection.campaign.title,
-              sub,
-              links: [foundUrl._id],
-            });
-            return {
-              source: utmSection.source,
-              medium: utmSection.medium,
-              campaign: {
-                _id: (newCampaign._id as string).toString(),
-                title: utmSection.campaign.title.trim(),
-              },
-              term: utmSection.term,
-              content: utmSection.content,
-            };
-          }
+    const existingCampaigns =
+      campaignTitles.length > 0
+        ? await Campaigns.find({
+            sub,
+            title: { $in: campaignTitles },
+          }).lean()
+        : [];
+
+    const campaignMap = new Map(existingCampaigns.map((c) => [c.title, c]));
+
+    const campaignsToCreate = campaignTitles
+      .filter((title) => !campaignMap.has(title))
+      .map((title) => ({
+        title,
+        sub,
+        links: [foundUrl._id],
+      }));
+
+    if (campaignsToCreate.length > 0) {
+      const newCampaigns = await Campaigns.insertMany(campaignsToCreate);
+      newCampaigns.forEach((c) => {
+        campaignMap.set(
+          c.title,
+          c as FlattenMaps<ICampaign> &
+            Required<{
+              _id: FlattenMaps<unknown>;
+            }> & {
+              __v: number;
+            },
+        );
+      });
+    }
+
+    const existingCampaignIds = existingCampaigns.map((c) => c._id);
+    if (existingCampaignIds.length > 0) {
+      await Campaigns.updateMany(
+        { _id: { $in: existingCampaignIds } },
+        { $addToSet: { links: foundUrl._id } },
+      );
+    }
+
+    const finalUtm = utm.map((utmSection) => {
+      if (utmSection.campaign?.title?.trim()) {
+        const campaign = campaignMap.get(utmSection.campaign.title.trim());
+        if (campaign) {
+          return {
+            source: utmSection.source,
+            medium: utmSection.medium,
+            campaign: {
+              _id: (campaign._id as string).toString(),
+              title: utmSection.campaign.title.trim(),
+            },
+            term: utmSection.term,
+            content: utmSection.content,
+          };
         }
-        return {
-          source: utmSection.source,
-          medium: utmSection.medium,
-          campaign: { title: "" },
-          term: utmSection.term,
-          content: utmSection.content,
-        };
-      }),
-    );
+      }
+      return {
+        source: utmSection.source,
+        medium: utmSection.medium,
+        campaign: { title: "" },
+        term: utmSection.term,
+        content: utmSection.content,
+      };
+    });
 
     const newUrl = await UrlV3.findOneAndUpdate(
       { sub, urlCode },
@@ -763,9 +803,10 @@ export async function deleteCampaign({
     if (!deletedCampaign) {
       return { success: true };
     }
-    for (const linkId of deletedCampaign.links) {
-      await UrlV3.updateOne(
-        { sub, _id: linkId },
+
+    if (deletedCampaign.links.length > 0) {
+      await UrlV3.updateMany(
+        { sub, _id: { $in: deletedCampaign.links } },
         {
           $pull: {
             utmLinks: {
