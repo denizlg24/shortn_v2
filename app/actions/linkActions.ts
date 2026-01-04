@@ -682,9 +682,13 @@ export async function updateUTM({
       }
     }
 
-    const campaignTitles = utm
-      .filter((u) => u.campaign?.title?.trim())
-      .map((u) => u.campaign!.title.trim());
+    const campaignTitles = Array.from(
+      new Set(
+        utm
+          .filter((u) => u.campaign?.title?.trim())
+          .map((u) => u.campaign!.title.trim()),
+      ),
+    );
 
     const existingCampaigns =
       campaignTitles.length > 0
