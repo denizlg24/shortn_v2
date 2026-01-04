@@ -34,59 +34,55 @@ export async function getDashboardStats(): Promise<{
     const { plan } = await getUserPlan();
     const canSeeClicks = plan && plan !== "free";
 
-    const totalLinks = await UrlV3.countDocuments({ sub, isQrCode: false });
-    const totalQRCodes = await QRCodeV2.countDocuments({ sub });
+    const [
+      totalLinks,
+      totalQRCodes,
+      recentLinks,
+      recentQRCodes,
+      topLink,
+      topQRCode,
+      linksWithClicks,
+      qrCodesWithScans,
+    ] = await Promise.all([
+      UrlV3.countDocuments({ sub, isQrCode: false }),
+      QRCodeV2.countDocuments({ sub }),
+      UrlV3.find({ sub, isQrCode: false }).sort({ date: -1 }).limit(5).lean(),
+      QRCodeV2.find({ sub }).sort({ date: -1 }).limit(3).lean(),
+      canSeeClicks
+        ? UrlV3.findOne({ sub, isQrCode: false })
+            .sort({ "clicks.total": -1 })
+            .limit(1)
+            .lean()
+        : Promise.resolve(null),
+      canSeeClicks
+        ? QRCodeV2.findOne({ sub }).sort({ "clicks.total": -1 }).limit(1).lean()
+        : Promise.resolve(null),
+      canSeeClicks
+        ? UrlV3.find({ sub, isQrCode: false }).select("clicks.total").lean()
+        : Promise.resolve([]),
+      canSeeClicks
+        ? QRCodeV2.find({ sub }).select("clicks.total").lean()
+        : Promise.resolve([]),
+    ]);
 
-    const recentLinks = await UrlV3.find({ sub, isQrCode: false })
-      .sort({ date: -1 })
-      .limit(5)
-      .lean();
+    const totalClicks = canSeeClicks
+      ? linksWithClicks.reduce(
+          (sum, link) => sum + (link.clicks?.total || 0),
+          0,
+        )
+      : 0;
 
-    const recentQRCodes = await QRCodeV2.find({ sub })
-      .sort({ date: -1 })
-      .limit(3)
-      .lean();
-
-    let topLink = undefined;
-    let topQRCode = undefined;
-    let totalClicks = 0;
-    let totalScans = 0;
-
-    if (canSeeClicks) {
-      topLink = await UrlV3.findOne({ sub, isQrCode: false })
-        .sort({ "clicks.total": -1 })
-        .limit(1)
-        .lean();
-
-      topQRCode = await QRCodeV2.findOne({ sub })
-        .sort({ "clicks.total": -1 })
-        .limit(1)
-        .lean();
-
-      const linksWithClicks = await UrlV3.find({ sub, isQrCode: false })
-        .select("clicks.total")
-        .lean();
-      totalClicks = linksWithClicks.reduce(
-        (sum, link) => sum + (link.clicks?.total || 0),
-        0,
-      );
-
-      const qrCodesWithScans = await QRCodeV2.find({ sub })
-        .select("clicks.total")
-        .lean();
-      totalScans = qrCodesWithScans.reduce(
-        (sum, qr) => sum + (qr.clicks?.total || 0),
-        0,
-      );
-    }
+    const totalScans = canSeeClicks
+      ? qrCodesWithScans.reduce((sum, qr) => sum + (qr.clicks?.total || 0), 0)
+      : 0;
 
     return {
       success: true,
       data: {
         totalLinks,
         totalQRCodes,
-        totalClicks: canSeeClicks ? totalClicks : 0,
-        totalScans: canSeeClicks ? totalScans : 0,
+        totalClicks,
+        totalScans,
         recentLinks: recentLinks.map((link) => ({
           ...link,
           _id: link._id.toString(),
