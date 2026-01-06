@@ -41,8 +41,8 @@ export async function getDashboardStats(): Promise<{
       recentQRCodes,
       topLink,
       topQRCode,
-      linksWithClicks,
-      qrCodesWithScans,
+      clicksAggregation,
+      scansAggregation,
     ] = await Promise.all([
       UrlV3.countDocuments({ sub, isQrCode: false }),
       QRCodeV2.countDocuments({ sub }),
@@ -57,24 +57,24 @@ export async function getDashboardStats(): Promise<{
       canSeeClicks
         ? QRCodeV2.findOne({ sub }).sort({ "clicks.total": -1 }).limit(1).lean()
         : Promise.resolve(null),
+
       canSeeClicks
-        ? UrlV3.find({ sub, isQrCode: false }).select("clicks.total").lean()
+        ? UrlV3.aggregate([
+            { $match: { sub, isQrCode: false } },
+            { $group: { _id: null, total: { $sum: "$clicks.total" } } },
+          ])
         : Promise.resolve([]),
       canSeeClicks
-        ? QRCodeV2.find({ sub }).select("clicks.total").lean()
+        ? QRCodeV2.aggregate([
+            { $match: { sub } },
+            { $group: { _id: null, total: { $sum: "$clicks.total" } } },
+          ])
         : Promise.resolve([]),
     ]);
 
-    const totalClicks = canSeeClicks
-      ? linksWithClicks.reduce(
-          (sum, link) => sum + (link.clicks?.total || 0),
-          0,
-        )
-      : 0;
+    const totalClicks = canSeeClicks ? (clicksAggregation[0]?.total ?? 0) : 0;
 
-    const totalScans = canSeeClicks
-      ? qrCodesWithScans.reduce((sum, qr) => sum + (qr.clicks?.total || 0), 0)
-      : 0;
+    const totalScans = canSeeClicks ? (scansAggregation[0]?.total ?? 0) : 0;
 
     return {
       success: true,

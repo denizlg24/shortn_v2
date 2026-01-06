@@ -1,7 +1,32 @@
 import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
-export async function GET(request: Request) {
+import { NextRequest, NextResponse } from "next/server";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
+
+export async function GET(request: NextRequest) {
   try {
+    const { error, auth: authResult } = await protectRoute(request, {
+      requireAuth: true,
+    });
+
+    if (error) return error;
+
+    const rateLimitId = createRateLimitIdentifier(
+      "auth_subscription",
+      request,
+      {
+        includeUserId: authResult.user!.id,
+      },
+    );
+
+    const { error: rateLimitError } = await protectRoute(request, {
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "api",
+      },
+    });
+
+    if (rateLimitError) return rateLimitError;
+
     const plan = await getPlan(request.headers);
     return NextResponse.json({ success: true, plan });
   } catch (err) {

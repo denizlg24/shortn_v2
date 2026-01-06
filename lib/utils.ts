@@ -199,3 +199,11 @@ export function deepEqual<T>(a: T, b: T): boolean {
 }
 
 export type LeanDocument<T> = T & { $locals?: never };
+
+/**
+ * Escapes special regex characters in a string to make it safe for use in RegExp
+ * This prevents regex injection attacks when using user input in MongoDB $regex queries
+ */
+export function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}

@@ -8,26 +8,29 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ urlCode: string }> },
 ) {
-  const { urlCode } = await params;
-  const url = await UrlV3.findOne({ urlCode });
-  if (!url) {
-    return NextResponse.json(
-      { success: false, slug: undefined },
-      { status: 400 },
-    );
-  }
+  // Check auth FIRST to prevent information disclosure
   const session = await auth.api.getSession({
     headers: request.headers,
   });
   const user = session?.user;
   if (!user) {
-    console.log("No user session found");
     return NextResponse.json(
-      { success: false, slug: undefined },
-      { status: 403 },
+      { success: false, message: "Unauthorized" },
+      { status: 401 },
     );
   }
+
+  const { urlCode } = await params;
   await connectDB();
+
+  // Include user ownership in query to prevent enumeration
+  const url = await UrlV3.findOne({ urlCode, sub: user.sub });
+  if (!url) {
+    return NextResponse.json(
+      { success: false, slug: undefined },
+      { status: 404 },
+    );
+  }
 
   const page = await BioPage.findOne({
     links: { $elemMatch: { link: url._id } },

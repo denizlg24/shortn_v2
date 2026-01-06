@@ -5,6 +5,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import env from "@/utils/env";
 
+const INTERNAL_SECRET = env.INTERNAL_API_SECRET;
+
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 
 export async function GET(
@@ -47,7 +49,10 @@ export async function GET(
 
     fetch(`${url.origin}/api/track-click`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-secret": INTERNAL_SECRET,
+      },
       body: JSON.stringify(clickData),
     }).catch(() => null);
 

@@ -5,8 +5,10 @@ import { useRouter } from "@/i18n/navigation";
 import { IQRCode } from "@/models/url/QRCodeV2";
 import { QRCodeCard } from "./qr-code-card";
 import { fetchApi } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ITag } from "@/models/url/Tag";
+import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
+import { usePlan } from "@/hooks/use-plan";
 
 export const QRCodesContainer = ({
   qrCodes,
@@ -22,9 +24,26 @@ export const QRCodesContainer = ({
   limit: number;
 }) => {
   const router = useRouter();
+  const { plan } = usePlan();
 
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagSearchInput, setTagSearchInput] = useState("");
+
+  const [usage, setUsage] = useState<UsageData | null>(null);
+  const fetchUsage = useCallback(async () => {
+    const result = await getCurrentUsage();
+    if (result.success && result.data) setUsage(result.data);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchUsage();
+  }, [fetchUsage]);
+
+  const linksLeft =
+    plan !== "pro"
+      ? (usage?.links.limit ?? 0) - (usage?.links.consumed ?? 0)
+      : undefined;
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -95,6 +114,7 @@ export const QRCodesContainer = ({
               tags={tags}
               tagOptions={tagOptions}
               onTagSearchChange={setTagSearchInput}
+              linksLeft={linksLeft}
             />
           ))}
           {page >= Math.ceil(total / limit) && (
