@@ -38,6 +38,13 @@ const client = new MongoClient(env.MONGODB_KEY);
 const db = client.db();
 
 const options = {
+  onAPIError: {
+    throw: false,
+    onError(error, ctx) {
+      console.error("Auth Error: ", error, " with context: ", ctx);
+    },
+    errorURL: "/auth/error",
+  },
   database: mongodbAdapter(db, {
     client,
   }),
