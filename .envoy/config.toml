@@ -1,7 +1,7 @@
 
 version = 1
-project_id = "b3c3e542-1718-4782-8c9a-55c8c6cda89e"
-name = "My Envoy Project"
+project_id = "dc5d6e4b-b4b0-4d87-af95-295c40485c66"
+name = "shortn-v2"
 
 default_remote = "origin"
 
