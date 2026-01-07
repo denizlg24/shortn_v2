@@ -7,8 +7,9 @@ import env from "@/utils/env";
 import {
   checkRateLimit,
   resetRateLimit,
-  getClientIp,
+  createRateLimitIdentifier,
   formatBlockedTime,
+  RATE_LIMIT_PRESETS,
 } from "@/lib/rate-limit";
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
@@ -24,8 +25,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const clientIp = getClientIp(request);
-    const rateLimitIdentifier = `password_verify:${urlCode}:${clientIp}`;
+    const rateLimitIdentifier = createRateLimitIdentifier(
+      "password_verify",
+      request,
+      { includeParam: urlCode },
+    );
 
     await connectDB();
 
@@ -45,11 +49,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, {
-      maxAttempts: 5,
-      windowMs: 15 * 60 * 1000,
-      blockDurationMs: 60 * 60 * 1000,
-    });
+    const rateLimitResult = await checkRateLimit(
+      rateLimitIdentifier,
+      RATE_LIMIT_PRESETS.auth,
+    );
 
     if (!rateLimitResult.allowed) {
       const timeRemaining = rateLimitResult.blockedUntil
@@ -94,8 +97,8 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(`link_access_${urlCode}`, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: !!process.env.VERCEL_URL || process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 86400,
       path: "/",
     });

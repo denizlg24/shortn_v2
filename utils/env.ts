@@ -29,6 +29,9 @@ const envSchema = z.object({
   QSTASH_NEXT_SIGNING_KEY: z.string().nonempty().optional(),
   ATLAS_SEARCH_INDEX_LINKS: z.string().nonempty().optional(),
   ATLAS_SEARCH_INDEX_QR_CODES: z.string().nonempty().optional(),
+  INTERNAL_API_SECRET: z
+    .string()
+    .min(32, "INTERNAL_API_SECRET must be at least 32 characters"),
 });
 
 export default envSchema.parse(process.env);

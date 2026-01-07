@@ -1,40 +1,37 @@
 import { getUserPlan } from "@/app/actions/polarActions";
-import { auth } from "@/lib/auth";
 import { polarClient } from "@/lib/polar";
 import { connectDB } from "@/lib/mongodb";
 import ScheduledChange from "@/models/subscription/ScheduledChange";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { SubscriptionsType } from "@/utils/plan-utils";
 import env from "@/utils/env";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
 
 const scheduleCancellationDTO = z.object({
   reason: z.string().optional(),
   comment: z.string().optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const rateLimitId = createRateLimitIdentifier("schedule_cancellation", req);
+    const { error, auth: authResult } = await protectRoute(req, {
+      requireAuth: true,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "sensitive",
+      },
+    });
+
+    if (error) return error;
+
     const body = await req.json();
     const parsed = await scheduleCancellationDTO.safeParseAsync(body);
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, message: "Malformed input." },
         { status: 400 },
-      );
-    }
-
-    const data = await auth.api.getSession({
-      headers: req.headers,
-    });
-
-    if (!data?.user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        { status: 401 },
       );
     }
 
@@ -105,7 +102,7 @@ export async function POST(req: Request) {
       });
 
       const scheduledChange = await ScheduledChange.create({
-        userId: data.user.id,
+        userId: authResult.user!.id,
         subscriptionId: id,
         changeType: "cancellation",
         currentPlan,

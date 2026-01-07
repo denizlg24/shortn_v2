@@ -31,7 +31,8 @@ jobs:
       RESEND_API_KEY: ${{secrets.RESEND_API_KEY || 'dependabot'}},
       QSTASH_CURRENT_SIGNING_KEY: ${{secrets.QSTASH_CURRENT_SIGNING_KEY||'dependabot'}},
       QSTASH_NEXT_SIGNING_KEY: ${{secrets.QSTASH_NEXT_SIGNING_KEY||'dependabot'}},
-      
+      INTERNAL_API_SECRET: ${{secrets.INTERNAL_API_SECRET || 'dependabot'}}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

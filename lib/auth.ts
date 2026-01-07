@@ -48,6 +48,41 @@ const options = {
   database: mongodbAdapter(db, {
     client,
   }),
+  rateLimit: {
+    enabled: true,
+    window: 60,
+    max: 10,
+    customRules: {
+      "/sign-in/email": {
+        window: 900,
+        max: 5,
+      },
+      "/sign-up/email": {
+        window: 3600,
+        max: 5,
+      },
+      "/forget-password": {
+        window: 3600,
+        max: 3,
+      },
+      "/reset-password": {
+        window: 900,
+        max: 5,
+      },
+      "/verify-email": {
+        window: 300,
+        max: 10,
+      },
+      "/change-email": {
+        window: 3600,
+        max: 3,
+      },
+      "/change-password": {
+        window: 900,
+        max: 5,
+      },
+    },
+  },
   advanced: {
     cookiePrefix: "shortn_auth_",
     useSecureCookies: !!process.env.VERCEL_URL,
