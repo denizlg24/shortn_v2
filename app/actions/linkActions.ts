@@ -7,7 +7,7 @@ import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
 import { isbot } from "isbot";
 import { Geo } from "@vercel/functions";
-import { BASEURL } from "@/lib/utils";
+import { BASEURL, escapeRegex } from "@/lib/utils";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import { ITag } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
@@ -467,6 +467,31 @@ export const updateShortnData = async ({
   }
 };
 
+/**
+ * Sanitizes click data to prevent oversized payloads and injection attacks
+ */
+function sanitizeClickData(data: {
+  userAgent?: string;
+  referrer?: string;
+  language?: string;
+  timezone?: string;
+  ip?: string;
+  query?: Record<string, string>;
+}) {
+  return {
+    userAgent: (data.userAgent || "").slice(0, 2000),
+    referrer: (data.referrer || "").slice(0, 4000),
+    language: (data.language || "").slice(0, 100),
+    timezone: (data.timezone || "").slice(0, 100),
+    ip: (data.ip || "").slice(0, 45),
+    query: Object.fromEntries(
+      Object.entries(data.query || {})
+        .slice(0, 50)
+        .map(([k, v]) => [k.slice(0, 100), String(v).slice(0, 500)]),
+    ),
+  };
+}
+
 export async function recordClickFromMiddleware(clickData: {
   slug: string;
   ip?: string;
@@ -478,16 +503,18 @@ export async function recordClickFromMiddleware(clickData: {
   query?: Record<string, string>;
 }) {
   try {
-    const {
-      slug,
-      ip,
-      userAgent = "",
-      referrer,
-      language,
-      geo,
-      query,
-      timezone,
-    } = clickData;
+    const { slug, geo } = clickData;
+
+    const sanitized = sanitizeClickData({
+      userAgent: clickData.userAgent,
+      referrer: clickData.referrer,
+      language: clickData.language,
+      timezone: clickData.timezone,
+      ip: clickData.ip,
+      query: clickData.query,
+    });
+
+    const { ip, userAgent, referrer, language, query, timezone } = sanitized;
 
     if (isbot(userAgent)) return { ignored: true };
 
@@ -915,10 +942,11 @@ export async function searchUserLinks({
     const filter: Record<string, any> = { sub, isQrCode: false };
 
     if (query && query.trim()) {
+      const escapedQuery = escapeRegex(query.trim());
       filter.$or = [
-        { title: { $regex: query, $options: "i" } },
-        { urlCode: { $regex: query, $options: "i" } },
-        { longUrl: { $regex: query, $options: "i" } },
+        { title: { $regex: escapedQuery, $options: "i" } },
+        { urlCode: { $regex: escapedQuery, $options: "i" } },
+        { longUrl: { $regex: escapedQuery, $options: "i" } },
       ];
     }
 

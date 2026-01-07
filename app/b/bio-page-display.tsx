@@ -320,8 +320,6 @@ export const BioPageDisplay = ({
     bio.links,
   ]);
 
-  console.log(bio.links);
-
   if (isLoading) {
     return (
       <div

@@ -1,13 +1,37 @@
 import { loginAttempt } from "@/app/actions/userActions";
 import { geolocation, ipAddress } from "@vercel/functions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  protectRoute,
+  createRateLimitIdentifier,
+  getClientIp,
+} from "@/lib/rate-limit";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const rateLimitId = createRateLimitIdentifier("track_activity", req);
+    const { error, auth } = await protectRoute(req, {
+      requireAuth: true,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "api",
+      },
+    });
+
+    if (error) return error;
+
     const body = await req.json();
+
+    if (body.sub !== auth.user?.sub) {
+      return NextResponse.json(
+        { error: "Cannot track activity for another user" },
+        { status: 403 },
+      );
+    }
+
     const loginRecord = {
-      sub: body.sub as string,
-      ip: ipAddress(req),
+      sub: auth.user!.sub,
+      ip: ipAddress(req) || getClientIp(req),
       location: geolocation(req),
       success: body.success as boolean,
       type: body.type as string,

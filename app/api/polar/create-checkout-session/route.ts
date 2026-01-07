@@ -1,38 +1,39 @@
 import { auth } from "@/lib/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
 
 const createCheckoutSessionDTO = z.object({
   slug: z.enum(["pro", "plus", "basic"]),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const rateLimitId = createRateLimitIdentifier("checkout_session", req);
+    const { error, auth: authResult } = await protectRoute(req, {
+      requireAuth: true,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "sensitive",
+      },
+    });
+
+    if (error) return error;
+
     const body = await req.json();
     const parsed = await createCheckoutSessionDTO.safeParseAsync(body);
     if (!parsed.success) {
       return NextResponse.json(
         { success: false, message: "Malformed input." },
-        { status: 401 },
+        { status: 400 },
       );
     }
-    const data = await auth.api.getSession({
-      headers: req.headers,
-    });
-    if (!data?.user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        { status: 401 },
-      );
-    }
+
     const { url } = await auth.api.checkout({
       body: {
         slug: parsed.data.slug,
         allowDiscountCodes: true,
-        referenceId: data.user.id,
+        referenceId: authResult.user!.id,
       },
       headers: req.headers,
     });

@@ -3,6 +3,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createContact } from "@/lib/contact";
 import { sendContactConfirmation } from "@/lib/send-contact-confirmation";
+import {
+  protectRoute,
+  createRateLimitIdentifier,
+  getClientIp,
+} from "@/lib/rate-limit";
 
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -14,6 +19,17 @@ const contactSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitId = createRateLimitIdentifier("contact_form", request);
+    const { error } = await protectRoute(request, {
+      requireAuth: false,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "contact",
+      },
+    });
+
+    if (error) return error;
+
     const body = await request.json();
 
     const validationResult = contactSchema.safeParse(body);
@@ -29,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     const { name, email, message, company, subject } = validationResult.data;
 
-    const _ipAddress = ipAddress(request) || "unknown";
+    const _ipAddress = ipAddress(request) || getClientIp(request);
 
     const userAgent = request.headers.get("user-agent") || "unknown";
 

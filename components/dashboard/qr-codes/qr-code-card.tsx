@@ -3,7 +3,6 @@ import {
   createAndAddTagToQRCode,
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
-import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -40,7 +39,7 @@ import {
   Tags,
   Trash2,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogClose,
@@ -68,6 +67,7 @@ export const QRCodeCard = ({
   tags,
   tagOptions: externalTagOptions,
   onTagSearchChange,
+  linksLeft,
 }: {
   qrCode: TQRCode;
   addTag: (tagId: string) => void;
@@ -75,27 +75,11 @@ export const QRCodeCard = ({
   tags: string[];
   tagOptions?: ITag[];
   onTagSearchChange?: (search: string) => void;
+  linksLeft?: number;
 }) => {
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
-
-  const [usage, setUsage] = useState<UsageData | null>(null);
-
-  const fetchUsage = useCallback(async () => {
-    const result = await getCurrentUsage();
-    if (result.success && result.data) setUsage(result.data);
-  }, []);
-
-  useEffect(() => {
-    void fetchUsage();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const linksLeft =
-    plan != "pro"
-      ? (usage?.links.limit ?? 0) - (usage?.links.consumed ?? 0)
-      : undefined;
 
   const [currentQrCode, setCurrentQrCode] = useState(qrCode);
   const [input, setInput] = useState("");

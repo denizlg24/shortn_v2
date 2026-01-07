@@ -1,25 +1,25 @@
 import { getUserPlan } from "@/app/actions/polarActions";
-import { auth } from "@/lib/auth";
 import { polarClient } from "@/lib/polar";
 import { connectDB } from "@/lib/mongodb";
 import ScheduledChange from "@/models/subscription/ScheduledChange";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const data = await auth.api.getSession({
-      headers: req.headers,
+    const rateLimitId = createRateLimitIdentifier(
+      "revert_scheduled_change",
+      req,
+    );
+    const { error, auth: authResult } = await protectRoute(req, {
+      requireAuth: true,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "sensitive",
+      },
     });
 
-    if (!data?.user) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized",
-        },
-        { status: 401 },
-      );
-    }
+    if (error) return error;
 
     const { id } = await getUserPlan();
     if (!id) {
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     try {
       const scheduledChange = await ScheduledChange.findOne({
         subscriptionId: id,
-        userId: data.user.id,
+        userId: authResult.user!.id,
         status: "pending",
       });
 

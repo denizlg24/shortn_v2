@@ -1,10 +1,33 @@
 import { loginAttempt } from "@/app/actions/userActions";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const rateLimitId = createRateLimitIdentifier("track_login", req);
+    const { error, auth } = await protectRoute(req, {
+      requireAuth: true,
+      rateLimit: {
+        identifier: rateLimitId,
+        preset: "api",
+      },
+    });
+
+    if (error) return error;
+
     const body = await req.json();
-    const result = await loginAttempt(body);
+
+    if (body.sub !== auth.user?.sub) {
+      return NextResponse.json(
+        { error: "Cannot track login for another user" },
+        { status: 403 },
+      );
+    }
+
+    const result = await loginAttempt({
+      ...body,
+      sub: auth.user!.sub,
+    });
     if (result.success) {
       return NextResponse.json(result);
     }
