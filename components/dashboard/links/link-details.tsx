@@ -11,7 +11,6 @@ import { LinkSourceData } from "./link-source-data";
 import { LinkStackedSourceData } from "./link-stacked-source-data";
 import { LinkTimeByDateData } from "./link-time-by-date-data";
 import { ClickDataProvider } from "@/utils/ClickDataContext";
-import { LinkUtmParams } from "./link-utm-params";
 import { LinkUtmStats } from "./link-utm-stats";
 import { getClicks } from "@/utils/fetching-functions";
 import { getServerSession } from "@/lib/session";
@@ -35,6 +34,10 @@ export const LinkDetails = async ({
   }
   const { plan } = await getUserPlan();
   const clicks = await getClicks(url.urlCode, undefined, undefined);
+
+  const linkedCampaign = url.utmLinks?.find((utm) => utm.campaign?._id)
+    ?.campaign as { _id: string; title: string } | undefined;
+
   return (
     <>
       {url && user && (
@@ -45,8 +48,7 @@ export const LinkDetails = async ({
               Back to list
             </Link>
           </Button>
-          <LinkDetailsCard currentLink={url} />
-          <LinkUtmParams currentLink={url} unlocked={plan == "pro"} />
+          <LinkDetailsCard currentLink={url} campaign={linkedCampaign} />
           <LinkAdditionsCard
             qrCode={qr}
             url={url}
@@ -81,6 +83,7 @@ export const LinkDetails = async ({
               createdAt={url.date}
               unlocked={plan == "pro"}
               initialClicks={clicks}
+              campaign={linkedCampaign}
             />
           )}
         </ClickDataProvider>

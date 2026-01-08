@@ -1,6 +1,6 @@
 "use client";
 
-import { updateUTM } from "@/app/actions/linkActions";
+import { updateUTM, getCampaignByTitle } from "@/app/actions/linkActions";
 import { Button } from "@/components/ui/button";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import {
@@ -16,6 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Link } from "@/i18n/navigation";
 import { TUrl } from "@/models/url/UrlV3";
 import { getShortUrl } from "@/lib/utils";
@@ -28,10 +35,12 @@ import {
   LockIcon,
   Plus,
   Trash2,
+  Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import { CampaignSelectorDialog } from "./campaign-selector-dialog";
+import { IUtmDefaults } from "@/models/url/Campaigns";
 function buildUrl(
   link: string,
   utm?: {
@@ -88,6 +97,46 @@ export const LinkUtmParams = ({
   );
   const [saving, setSaving] = useState(false);
   const [collapsed, setCollapsed] = useState(-1);
+  const [campaignDefaults, setCampaignDefaults] = useState<
+    Record<number, IUtmDefaults | null>
+  >({});
+  const [loadingDefaults, setLoadingDefaults] = useState<
+    Record<number, boolean>
+  >({});
+
+  const fetchCampaignDefaults = useCallback(
+    async (campaignTitle: string, index: number) => {
+      setLoadingDefaults((prev) => ({ ...prev, [index]: true }));
+      try {
+        const result = await getCampaignByTitle({ title: campaignTitle });
+        if (result.success && result.campaign?.utmDefaults) {
+          setCampaignDefaults((prev) => ({
+            ...prev,
+            [index]: result.campaign!.utmDefaults!,
+          }));
+        } else {
+          setCampaignDefaults((prev) => ({ ...prev, [index]: null }));
+        }
+      } catch {
+        setCampaignDefaults((prev) => ({ ...prev, [index]: null }));
+      } finally {
+        setLoadingDefaults((prev) => ({ ...prev, [index]: false }));
+      }
+    },
+    [],
+  );
+
+  const applyDefaultValue = (
+    index: number,
+    field: "source" | "medium" | "term" | "content",
+    value: string,
+  ) => {
+    updateUtm((prev) =>
+      prev.map((pUTM, pIndx) =>
+        pIndx === index ? { ...pUTM, [field]: value } : pUTM,
+      ),
+    );
+  };
 
   if (!unlocked) {
     return (
@@ -252,6 +301,14 @@ export const LinkUtmParams = ({
                                 : pUTM,
                             ),
                           );
+                          if (campaign?.title) {
+                            fetchCampaignDefaults(campaign.title, indx);
+                          } else {
+                            setCampaignDefaults((prev) => ({
+                              ...prev,
+                              [indx]: null,
+                            }));
+                          }
                         }}
                         trigger={
                           <div className="w-full relative cursor-pointer">
@@ -267,101 +324,203 @@ export const LinkUtmParams = ({
                           </div>
                         }
                       />
+                      {loadingDefaults[indx] && (
+                        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Loading campaign defaults...
+                        </div>
+                      )}
+                      {campaignDefaults[indx] && !loadingDefaults[indx] && (
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs text-muted-foreground">
+                            Campaign has UTM defaults available
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Source</p>
                     </div>
                     <div className="xs:col-span-3 col-span-2">
-                      <Input
-                        aria-invalid={/[^a-zA-Z0-9-_]/.test(
-                          utmSection.source ?? "",
-                        )}
-                        type="text"
-                        value={utmSection.source ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value.trim().toLowerCase();
-                          if (/[^a-zA-Z0-9-_]/.test(value)) return;
-                          updateUtm((prev) =>
-                            prev.map((pUTM, pIndx) =>
-                              pIndx == indx ? { ...pUTM, source: value } : pUTM,
-                            ),
-                          );
-                        }}
-                        className="w-full has-[aria-invalid=true]:border-destructive"
-                        placeholder="ex: newsletter"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          aria-invalid={/[^a-zA-Z0-9-_]/.test(
+                            utmSection.source ?? "",
+                          )}
+                          type="text"
+                          value={utmSection.source ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value.trim().toLowerCase();
+                            if (/[^a-zA-Z0-9-_]/.test(value)) return;
+                            updateUtm((prev) =>
+                              prev.map((pUTM, pIndx) =>
+                                pIndx == indx
+                                  ? { ...pUTM, source: value }
+                                  : pUTM,
+                              ),
+                            );
+                          }}
+                          className="flex-1 has-[aria-invalid=true]:border-destructive"
+                          placeholder="ex: newsletter"
+                        />
+                        {campaignDefaults[indx]?.sources &&
+                          campaignDefaults[indx]!.sources.length > 0 && (
+                            <Select
+                              onValueChange={(v) =>
+                                applyDefaultValue(indx, "source", v)
+                              }
+                            >
+                              <SelectTrigger className="w-auto min-w-[100px]">
+                                <SelectValue placeholder="Defaults" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {campaignDefaults[indx]!.sources.map((s) => (
+                                  <SelectItem key={s} value={s}>
+                                    {s}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                      </div>
                     </div>
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Medium</p>
                     </div>
                     <div className="xs:col-span-3 col-span-2">
-                      <Input
-                        type="text"
-                        aria-invalid={/[^a-zA-Z0-9-_]/.test(
-                          utmSection.medium ?? "",
-                        )}
-                        value={utmSection.medium ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value.trim().toLowerCase();
-                          if (/[^a-zA-Z0-9-_]/.test(value)) return;
-                          updateUtm((prev) =>
-                            prev.map((pUTM, pIndx) =>
-                              pIndx == indx ? { ...pUTM, medium: value } : pUTM,
-                            ),
-                          );
-                        }}
-                        className="w-full has-[aria-invalid=true]:border-destructive"
-                        placeholder="ex: email"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          type="text"
+                          aria-invalid={/[^a-zA-Z0-9-_]/.test(
+                            utmSection.medium ?? "",
+                          )}
+                          value={utmSection.medium ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value.trim().toLowerCase();
+                            if (/[^a-zA-Z0-9-_]/.test(value)) return;
+                            updateUtm((prev) =>
+                              prev.map((pUTM, pIndx) =>
+                                pIndx == indx
+                                  ? { ...pUTM, medium: value }
+                                  : pUTM,
+                              ),
+                            );
+                          }}
+                          className="flex-1 has-[aria-invalid=true]:border-destructive"
+                          placeholder="ex: email"
+                        />
+                        {campaignDefaults[indx]?.mediums &&
+                          campaignDefaults[indx]!.mediums.length > 0 && (
+                            <Select
+                              onValueChange={(v) =>
+                                applyDefaultValue(indx, "medium", v)
+                              }
+                            >
+                              <SelectTrigger className="w-auto min-w-[100px]">
+                                <SelectValue placeholder="Defaults" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {campaignDefaults[indx]!.mediums.map((m) => (
+                                  <SelectItem key={m} value={m}>
+                                    {m}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                      </div>
                     </div>
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Term</p>
                     </div>
                     <div className="xs:col-span-3 col-span-2">
-                      <Input
-                        aria-invalid={/[^a-zA-Z0-9-_]/.test(
-                          utmSection.term ?? "",
-                        )}
-                        type="text"
-                        value={utmSection.term ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value.trim().toLowerCase();
-                          if (/[^a-zA-Z0-9-_]/.test(value)) return;
-                          updateUtm((prev) =>
-                            prev.map((pUTM, pIndx) =>
-                              pIndx == indx ? { ...pUTM, term: value } : pUTM,
-                            ),
-                          );
-                        }}
-                        className="w-full has-[aria-invalid=true]:border-destructive"
-                        placeholder="ex: discount"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          aria-invalid={/[^a-zA-Z0-9-_]/.test(
+                            utmSection.term ?? "",
+                          )}
+                          type="text"
+                          value={utmSection.term ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value.trim().toLowerCase();
+                            if (/[^a-zA-Z0-9-_]/.test(value)) return;
+                            updateUtm((prev) =>
+                              prev.map((pUTM, pIndx) =>
+                                pIndx == indx ? { ...pUTM, term: value } : pUTM,
+                              ),
+                            );
+                          }}
+                          className="flex-1 has-[aria-invalid=true]:border-destructive"
+                          placeholder="ex: discount"
+                        />
+                        {campaignDefaults[indx]?.terms &&
+                          campaignDefaults[indx]!.terms.length > 0 && (
+                            <Select
+                              onValueChange={(v) =>
+                                applyDefaultValue(indx, "term", v)
+                              }
+                            >
+                              <SelectTrigger className="w-auto min-w-[100px]">
+                                <SelectValue placeholder="Defaults" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {campaignDefaults[indx]!.terms.map((t) => (
+                                  <SelectItem key={t} value={t}>
+                                    {t}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                      </div>
                     </div>
                     <div className="col-span-1 text-left flex justify-start text-sm font-semibold items-center px-2 bg-muted border rounded shadow">
                       <p>Content</p>
                     </div>
                     <div className="xs:col-span-3 col-span-2">
-                      <Input
-                        aria-invalid={/[^a-zA-Z0-9-_]/.test(
-                          utmSection.content ?? "",
-                        )}
-                        type="text"
-                        value={utmSection.content ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value.trim().toLowerCase();
-                          if (/[^a-zA-Z0-9-_]/.test(value)) return;
-                          updateUtm((prev) =>
-                            prev.map((pUTM, pIndx) =>
-                              pIndx == indx
-                                ? { ...pUTM, content: value }
-                                : pUTM,
-                            ),
-                          );
-                        }}
-                        className="w-full has-[aria-invalid=true]:border-destructive"
-                        placeholder="ex: cta-button"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          aria-invalid={/[^a-zA-Z0-9-_]/.test(
+                            utmSection.content ?? "",
+                          )}
+                          type="text"
+                          value={utmSection.content ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value.trim().toLowerCase();
+                            if (/[^a-zA-Z0-9-_]/.test(value)) return;
+                            updateUtm((prev) =>
+                              prev.map((pUTM, pIndx) =>
+                                pIndx == indx
+                                  ? { ...pUTM, content: value }
+                                  : pUTM,
+                              ),
+                            );
+                          }}
+                          className="flex-1 has-[aria-invalid=true]:border-destructive"
+                          placeholder="ex: cta-button"
+                        />
+                        {campaignDefaults[indx]?.contents &&
+                          campaignDefaults[indx]!.contents.length > 0 && (
+                            <Select
+                              onValueChange={(v) =>
+                                applyDefaultValue(indx, "content", v)
+                              }
+                            >
+                              <SelectTrigger className="w-auto min-w-[100px]">
+                                <SelectValue placeholder="Defaults" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {campaignDefaults[indx]!.contents.map((c) => (
+                                  <SelectItem key={c} value={c}>
+                                    {c}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          )}
+                      </div>
                     </div>
                   </div>
                 </CollapsibleContent>
@@ -413,6 +572,11 @@ export const LinkUtmParams = ({
                   utm,
                 });
                 if (!response.success) {
+                  toast.error("There was a problem updating your link.");
+                  setSaving(false);
+                  return;
+                }
+                if (!response.newUrl) {
                   toast.error("There was a problem updating your link.");
                   setSaving(false);
                   return;
