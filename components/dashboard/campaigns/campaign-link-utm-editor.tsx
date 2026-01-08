@@ -107,25 +107,23 @@ export function CampaignLinkUtmEditor({
     (utm) => utm.campaign?.title === campaignTitle,
   );
 
-  const [utmLinks, setUtmLinks] = useState<UtmLink[]>(
+  const defaultUtmLinks =
     campaignUtmLinks.length > 0
       ? campaignUtmLinks
-      : [{ campaign: { _id: campaignId, title: campaignTitle } }],
-  );
+      : [{ campaign: { _id: campaignId, title: campaignTitle } }];
+
+  const [utmLinks, setUtmLinks] = useState<UtmLink[]>(defaultUtmLinks);
+  const [savedBaseline, setSavedBaseline] =
+    useState<UtmLink[]>(defaultUtmLinks);
   const [saving, setSaving] = useState(false);
   const [justCopied, setJustCopied] = useState<number | null>(null);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
   const hasChanges = (() => {
-    const initial =
-      campaignUtmLinks.length > 0
-        ? campaignUtmLinks
-        : [{ campaign: { _id: campaignId, title: campaignTitle } }];
-
-    if (utmLinks.length !== initial.length) return true;
+    if (utmLinks.length !== savedBaseline.length) return true;
 
     return utmLinks.some((utm, i) => {
-      const orig = initial[i];
+      const orig = savedBaseline[i];
       if (!orig) return true;
       return (
         utm.source !== orig.source ||
@@ -225,6 +223,8 @@ export function CampaignLinkUtmEditor({
 
       if (result.success) {
         toast.success("UTM parameters saved successfully");
+        setSavedBaseline([...utmLinks]);
+        setEditingIndex(null);
         onSave?.();
       } else {
         toast.error("Failed to save UTM parameters");

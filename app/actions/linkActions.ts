@@ -1245,7 +1245,7 @@ export async function getCampaignStats({
       return { success: false, message: "no-user" };
     }
     const { plan } = await getUserPlan();
-    if (plan !== "pro" && plan !== "plus") {
+    if (plan !== "pro") {
       return { success: false, message: "plan-restricted" };
     }
     const sub = session.user.sub;
