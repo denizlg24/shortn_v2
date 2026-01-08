@@ -35,9 +35,11 @@ interface LinkResult {
 export const AddLinkToCampaignDialog = ({
   campaignTitle,
   trigger,
+  onLinkAdded,
 }: {
   campaignTitle: string;
   trigger?: React.ReactNode;
+  onLinkAdded?: (link: { urlCode: string; title: string }) => void;
 }) => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -74,7 +76,14 @@ export const AddLinkToCampaignDialog = ({
     if (result.success) {
       toast.success(`Added "${link.title || link.urlCode}" to campaign`);
       setOpen(false);
-      router.refresh();
+      if (onLinkAdded) {
+        onLinkAdded({
+          urlCode: link.urlCode,
+          title: link.title || link.urlCode,
+        });
+      } else {
+        router.refresh();
+      }
     } else {
       switch (result.message) {
         case "already-in-campaign":

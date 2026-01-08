@@ -661,9 +661,7 @@ export async function updateUTM({
     term?: string;
     content?: string;
   }[];
-}): Promise<
-  { success: true; newUrl: TUrl } | { success: false; message: string }
-> {
+}) {
   try {
     const session = await getServerSession();
     if (!session?.user) {
@@ -788,11 +786,22 @@ export async function updateUTM({
       { utmLinks: finalUtm },
       { new: true },
     ).lean();
+
+    if (!newUrl) {
+      return { success: false, message: "url-not-found" };
+    }
+
     return {
       success: true,
       newUrl: {
         ...newUrl,
-        _id: newUrl?._id.toString(),
+        _id: newUrl._id.toString(),
+        tags: (newUrl.tags || []).map((tag) => ({
+          _id: tag._id.toString(),
+          id: tag.id,
+          tagName: tag.tagName,
+          sub: tag.sub,
+        })),
         utmLinks: finalUtm.map((utmSection) => ({
           ...utmSection,
           ...(utmSection.campaign?.title
@@ -913,6 +922,15 @@ export async function getUserCampaigns() {
         _id: c._id.toString(),
         title: c.title,
         linksCount: c.links.length,
+        description: c.description,
+        utmDefaults: c.utmDefaults
+          ? {
+              sources: c.utmDefaults.sources || [],
+              mediums: c.utmDefaults.mediums || [],
+              terms: c.utmDefaults.terms || [],
+              contents: c.utmDefaults.contents || [],
+            }
+          : undefined,
       })),
     };
   } catch (error) {
@@ -1033,6 +1051,522 @@ export async function addLinkToCampaign({
     );
 
     return { success: true };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function updateCampaignDefaults({
+  campaignId,
+  utmDefaults,
+  description,
+}: {
+  campaignId: string;
+  utmDefaults?: {
+    sources: string[];
+    mediums: string[];
+    terms: string[];
+    contents: string[];
+  };
+  description?: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro" && plan !== "plus") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, _id: campaignId });
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updateQuery: Record<string, any> = {};
+    if (utmDefaults !== undefined) {
+      updateQuery.utmDefaults = {
+        sources: utmDefaults.sources.map((s) => s.toLowerCase().trim()),
+        mediums: utmDefaults.mediums.map((m) => m.toLowerCase().trim()),
+        terms: utmDefaults.terms.map((t) => t.toLowerCase().trim()),
+        contents: utmDefaults.contents.map((c) => c.toLowerCase().trim()),
+      };
+    }
+    if (description !== undefined) {
+      updateQuery.description = description.trim();
+    }
+
+    const updatedCampaign = await Campaigns.findOneAndUpdate(
+      { sub, _id: campaignId },
+      updateQuery,
+      { new: true },
+    ).lean();
+
+    return {
+      success: true,
+      campaign: {
+        _id: updatedCampaign?._id.toString(),
+        title: updatedCampaign?.title,
+        description: updatedCampaign?.description,
+        utmDefaults: updatedCampaign?.utmDefaults,
+        linksCount: updatedCampaign?.links.length,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function getCampaignWithDefaults({
+  campaignId,
+}: {
+  campaignId: string;
+}) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro" && plan !== "plus") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, _id: campaignId }).lean();
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    return {
+      success: true,
+      campaign: {
+        _id: campaign._id.toString(),
+        title: campaign.title,
+        description: campaign.description,
+        utmDefaults: campaign.utmDefaults
+          ? {
+              sources: campaign.utmDefaults.sources || [],
+              mediums: campaign.utmDefaults.mediums || [],
+              terms: campaign.utmDefaults.terms || [],
+              contents: campaign.utmDefaults.contents || [],
+            }
+          : undefined,
+        linksCount: campaign.links.length,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function getCampaignByTitle({ title }: { title: string }) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro" && plan !== "plus") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, title }).lean();
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    return {
+      success: true,
+      campaign: {
+        _id: campaign._id.toString(),
+        title: campaign.title,
+        description: campaign.description,
+        utmDefaults: campaign.utmDefaults
+          ? {
+              sources: campaign.utmDefaults.sources || [],
+              mediums: campaign.utmDefaults.mediums || [],
+              terms: campaign.utmDefaults.terms || [],
+              contents: campaign.utmDefaults.contents || [],
+            }
+          : undefined,
+        linksCount: campaign.links.length,
+      },
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export interface CampaignStats {
+  totalClicks: number;
+  uniqueLinks: number;
+  topPerformingLinks: Array<{
+    urlCode: string;
+    title: string;
+    clicks: number;
+  }>;
+  utmBreakdown: {
+    sources: Array<{ name: string; clicks: number }>;
+    mediums: Array<{ name: string; clicks: number }>;
+    terms: Array<{ name: string; clicks: number }>;
+    contents: Array<{ name: string; clicks: number }>;
+  };
+  geographic: Array<{ country: string; clicks: number }>;
+  devices: Array<{ device: string; clicks: number }>;
+  browsers: Array<{ browser: string; clicks: number }>;
+  timeline: Array<{ date: string; clicks: number }>;
+}
+
+export async function getCampaignStats({
+  campaignId,
+  startDate,
+  endDate,
+}: {
+  campaignId: string;
+  startDate?: Date;
+  endDate?: Date;
+}): Promise<{ success: boolean; message?: string; stats?: CampaignStats }> {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro" && plan !== "plus") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, _id: campaignId })
+      .populate("links")
+      .lean();
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    const links = campaign.links as unknown as Array<{
+      urlCode: string;
+      title: string;
+      _id: string;
+    }>;
+    const urlCodes = links.map((link) => link.urlCode);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const matchQuery: Record<string, any> = {
+      urlCode: { $in: urlCodes },
+      "queryParams.utm_campaign": campaign.title,
+    };
+
+    if (startDate || endDate) {
+      matchQuery.timestamp = {};
+      if (startDate) matchQuery.timestamp.$gte = startDate;
+      if (endDate) matchQuery.timestamp.$lte = endDate;
+    }
+
+    const clicks = await Clicks.find(matchQuery).lean();
+
+    const totalClicks = clicks.length;
+    const linkClicksMap = new Map<string, number>();
+    clicks.forEach((click) => {
+      const count = linkClicksMap.get(click.urlCode) || 0;
+      linkClicksMap.set(click.urlCode, count + 1);
+    });
+
+    const topPerformingLinks = links
+      .map((link) => ({
+        urlCode: link.urlCode,
+        title: link.title || link.urlCode,
+        clicks: linkClicksMap.get(link.urlCode) || 0,
+      }))
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 10);
+
+    const sourceMap = new Map<string, number>();
+    const mediumMap = new Map<string, number>();
+    const termMap = new Map<string, number>();
+    const contentMap = new Map<string, number>();
+    const countryMap = new Map<string, number>();
+    const deviceMap = new Map<string, number>();
+    const browserMap = new Map<string, number>();
+    const dateMap = new Map<string, number>();
+
+    clicks.forEach((click) => {
+      const source = click.queryParams?.utm_source;
+      const medium = click.queryParams?.utm_medium;
+      const term = click.queryParams?.utm_term;
+      const content = click.queryParams?.utm_content;
+
+      if (source) sourceMap.set(source, (sourceMap.get(source) || 0) + 1);
+      if (medium) mediumMap.set(medium, (mediumMap.get(medium) || 0) + 1);
+      if (term) termMap.set(term, (termMap.get(term) || 0) + 1);
+      if (content) contentMap.set(content, (contentMap.get(content) || 0) + 1);
+
+      const country = click.country || "Unknown";
+      countryMap.set(country, (countryMap.get(country) || 0) + 1);
+
+      const device = click.deviceType || "unknown";
+      const browser = click.browser || "unknown";
+      deviceMap.set(device, (deviceMap.get(device) || 0) + 1);
+      browserMap.set(browser, (browserMap.get(browser) || 0) + 1);
+
+      const dateKey = format(click.timestamp, "yyyy-MM-dd");
+      dateMap.set(dateKey, (dateMap.get(dateKey) || 0) + 1);
+    });
+
+    const mapToArray = (map: Map<string, number>) =>
+      Array.from(map.entries())
+        .map(([name, clicks]) => ({ name, clicks }))
+        .sort((a, b) => b.clicks - a.clicks);
+
+    const stats: CampaignStats = {
+      totalClicks,
+      uniqueLinks: links.length,
+      topPerformingLinks,
+      utmBreakdown: {
+        sources: mapToArray(sourceMap),
+        mediums: mapToArray(mediumMap),
+        terms: mapToArray(termMap),
+        contents: mapToArray(contentMap),
+      },
+      geographic: mapToArray(countryMap).map((item) => ({
+        country: item.name,
+        clicks: item.clicks,
+      })),
+      devices: mapToArray(deviceMap).map((item) => ({
+        device: item.name,
+        clicks: item.clicks,
+      })),
+      browsers: mapToArray(browserMap).map((item) => ({
+        browser: item.name,
+        clicks: item.clicks,
+      })),
+      timeline: Array.from(dateMap.entries())
+        .map(([date, clicks]) => ({ date, clicks }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
+    };
+
+    return { success: true, stats };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export interface UtmTreeNode {
+  name: string;
+  clicks: number;
+  hasChildren: boolean;
+}
+
+export async function getUtmTreeData({
+  campaignId,
+  path,
+}: {
+  campaignId: string;
+  path: {
+    source?: string;
+    medium?: string;
+    term?: string;
+  };
+}): Promise<{
+  success: boolean;
+  message?: string;
+  level?: "source" | "medium" | "term" | "content";
+  data?: UtmTreeNode[];
+  breadcrumb?: Array<{ level: string; value: string }>;
+}> {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, _id: campaignId })
+      .populate("links")
+      .lean();
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    const links = campaign.links as unknown as Array<{ urlCode: string }>;
+    const urlCodes = links.map((link) => link.urlCode);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const matchQuery: Record<string, any> = {
+      urlCode: { $in: urlCodes },
+      "queryParams.utm_campaign": campaign.title,
+    };
+
+    const breadcrumb: Array<{ level: string; value: string }> = [
+      { level: "campaign", value: campaign.title },
+    ];
+
+    let currentLevel: "source" | "medium" | "term" | "content" = "source";
+    let groupField = "queryParams.utm_source";
+
+    if (path.source) {
+      matchQuery["queryParams.utm_source"] = path.source;
+      breadcrumb.push({ level: "source", value: path.source });
+      currentLevel = "medium";
+      groupField = "queryParams.utm_medium";
+    }
+
+    if (path.medium) {
+      matchQuery["queryParams.utm_medium"] = path.medium;
+      breadcrumb.push({ level: "medium", value: path.medium });
+      currentLevel = "term";
+      groupField = "queryParams.utm_term";
+    }
+
+    if (path.term) {
+      matchQuery["queryParams.utm_term"] = path.term;
+      breadcrumb.push({ level: "term", value: path.term });
+      currentLevel = "content";
+      groupField = "queryParams.utm_content";
+    }
+
+    const aggregation = await Clicks.aggregate([
+      { $match: matchQuery },
+      {
+        $group: {
+          _id: `$${groupField}`,
+          clicks: { $sum: 1 },
+        },
+      },
+      { $sort: { clicks: -1 } },
+    ]);
+
+    const data: UtmTreeNode[] = aggregation
+      .filter((item) => item._id && item._id.trim() !== "")
+      .map((item) => ({
+        name: item._id,
+        clicks: item.clicks,
+        hasChildren: currentLevel !== "content",
+      }));
+
+    return {
+      success: true,
+      level: currentLevel,
+      data,
+      breadcrumb,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: "server-error" };
+  }
+}
+
+export async function exportCampaignData({
+  campaignId,
+  filters,
+}: {
+  campaignId: string;
+  filters: {
+    startDate?: Date;
+    endDate?: Date;
+    sources?: string[];
+    mediums?: string[];
+    terms?: string[];
+    contents?: string[];
+  };
+}): Promise<{ success: boolean; message?: string; url?: string }> {
+  try {
+    const session = await getServerSession();
+    if (!session?.user) {
+      return { success: false, message: "no-user" };
+    }
+    const { plan } = await getUserPlan();
+    if (plan !== "pro") {
+      return { success: false, message: "plan-restricted" };
+    }
+    const sub = session.user.sub;
+    await connectDB();
+
+    const campaign = await Campaigns.findOne({ sub, _id: campaignId })
+      .populate("links")
+      .lean();
+    if (!campaign) {
+      return { success: false, message: "campaign-not-found" };
+    }
+
+    const links = campaign.links as unknown as Array<{ urlCode: string }>;
+    const urlCodes = links.map((link) => link.urlCode);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const matchQuery: Record<string, any> = {
+      urlCode: { $in: urlCodes },
+      "queryParams.utm_campaign": campaign.title,
+    };
+
+    if (filters.startDate || filters.endDate) {
+      matchQuery.timestamp = {};
+      if (filters.startDate) matchQuery.timestamp.$gte = filters.startDate;
+      if (filters.endDate) matchQuery.timestamp.$lte = filters.endDate;
+    }
+
+    if (filters.sources && filters.sources.length > 0) {
+      matchQuery["queryParams.utm_source"] = { $in: filters.sources };
+    }
+
+    if (filters.mediums && filters.mediums.length > 0) {
+      matchQuery["queryParams.utm_medium"] = { $in: filters.mediums };
+    }
+
+    if (filters.terms && filters.terms.length > 0) {
+      matchQuery["queryParams.utm_term"] = { $in: filters.terms };
+    }
+
+    if (filters.contents && filters.contents.length > 0) {
+      matchQuery["queryParams.utm_content"] = { $in: filters.contents };
+    }
+
+    const clicks = await Clicks.find(matchQuery)
+      .select("-_id -__v -sub -type -ip")
+      .lean();
+
+    const mappedClicks: Record<string, string>[] = clicks.map((click) => ({
+      "Link Code": click.urlCode || "",
+      Campaign: click.queryParams?.utm_campaign || "",
+      Source: click.queryParams?.utm_source || "",
+      Medium: click.queryParams?.utm_medium || "",
+      Term: click.queryParams?.utm_term || "",
+      Content: click.queryParams?.utm_content || "",
+      Country: click.country || "",
+      Region: click.region || "",
+      City: click.city || "",
+      Timezone: click.timezone || "",
+      Language: click.language || "",
+      Browser: click.browser || "",
+      OS: click.os || "",
+      "Device Type": click.deviceType || "",
+      Referrer: click.referrer || "",
+      Date: format(click.timestamp, "yyyy-MM-dd HH:mm:ss"),
+    }));
+
+    const csv = parse(mappedClicks);
+    const base64 = Buffer.from(csv).toString("base64");
+
+    return { success: true, url: `data:text/csv;base64,${base64}` };
   } catch (error) {
     console.log(error);
     return { success: false, message: "server-error" };
