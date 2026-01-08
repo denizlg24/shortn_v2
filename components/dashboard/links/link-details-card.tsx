@@ -50,15 +50,18 @@ import {
   Ellipsis,
   Eye,
   EyeOff,
+  ExternalLink,
   FileChartColumn,
   KeyRound,
   Loader2,
   LockIcon,
+  Megaphone,
   PlusCircle,
   Share2,
   Tags,
   Trash2,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   FacebookShareButton,
   RedditShareButton,
@@ -77,8 +80,10 @@ import { usePlan } from "@/hooks/use-plan";
 
 export const LinkDetailsCard = ({
   currentLink: initialLink,
+  campaign,
 }: {
   currentLink: TUrl;
+  campaign?: { _id: string; title: string };
 }) => {
   const [currentLink, setCurrentLink] = useState<TUrl>(initialLink);
   const shortUrl = getShortUrl(currentLink.urlCode);
@@ -223,10 +228,22 @@ export const LinkDetailsCard = ({
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
       <div className="w-full flex flex-row items-start justify-between gap-2">
         <div className="flex flex-col gap-1 w-full truncate">
-          <div className="flex flex-row items-center gap-2">
+          <div className="flex flex-row items-center gap-2 flex-wrap">
             <h1 className="font-bold lg:text-2xl md:text-xl text-lg truncate">
               {currentLink.title}
             </h1>
+            {campaign && (
+              <Link
+                href={`/dashboard/campaigns/${campaign._id}`}
+                className="flex items-center gap-1 hover:opacity-80 transition-opacity"
+              >
+                <Badge variant="outline" className="gap-1 text-xs font-normal">
+                  <Megaphone className="w-3 h-3" />
+                  {campaign.title}
+                  <ExternalLink className="w-2.5 h-2.5 ml-0.5" />
+                </Badge>
+              </Link>
+            )}
             {currentLink.passwordProtected && (
               <div className="flex flex-row items-center gap-1 text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
                 <LockIcon className="w-3 h-3" />

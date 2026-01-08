@@ -1,21 +1,42 @@
-import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
 import { Campaigns } from "@/models/url/Campaigns";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
+import { getUserPlan } from "@/app/actions/polarActions";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const query = searchParams.get("q");
-  const session = await getServerSession();
-  const user = session?.user;
+export async function GET(req: NextRequest) {
+  const { error, auth } = await protectRoute(req, {
+    requireAuth: true,
+    rateLimit: {
+      identifier: createRateLimitIdentifier("campaigns:list", req, {
+        includeUserId: undefined,
+      }),
+      preset: "api",
+    },
+  });
 
+  if (error) return error;
+
+  const user = auth.user;
   if (!user) {
     return NextResponse.json(
       { success: false, campaigns: [] },
       { status: 403 },
     );
   }
+
+  const { plan } = await getUserPlan();
+  if (plan !== "pro" && plan !== "plus") {
+    return NextResponse.json(
+      { success: false, message: "pro-required", campaigns: [] },
+      { status: 403 },
+    );
+  }
+
   const sub = user?.sub;
+  const { searchParams } = new URL(req.url);
+  const query = searchParams.get("q");
+
   try {
     await connectDB();
     if (query) {

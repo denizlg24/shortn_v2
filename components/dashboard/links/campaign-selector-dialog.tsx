@@ -25,17 +25,27 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { useState, useEffect, ReactNode } from "react";
 import { createCampaign, getUserCampaigns } from "@/app/actions/linkActions";
-import { Plus, Check, ChevronDown } from "lucide-react";
+import { Plus, Check, ChevronDown, ExternalLink, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Link } from "@/i18n/navigation";
+import { IUtmDefaults } from "@/models/url/Campaigns";
 
 type Campaign = {
   _id: string;
   title: string;
   linksCount: number;
+  description?: string;
+  utmDefaults?: IUtmDefaults;
 };
 
 const campaignFormSchema = z.object({
@@ -48,6 +58,16 @@ const campaignFormSchema = z.object({
       "Campaign name can only contain letters, numbers, spaces, dashes (-), and underscores (_)",
     ),
 });
+
+const getUtmDefaultsCount = (utmDefaults?: IUtmDefaults): number => {
+  if (!utmDefaults) return 0;
+  return (
+    (utmDefaults.sources?.length || 0) +
+    (utmDefaults.mediums?.length || 0) +
+    (utmDefaults.terms?.length || 0) +
+    (utmDefaults.contents?.length || 0)
+  );
+};
 
 export const CampaignSelectorDialog = ({
   selectedCampaign,
@@ -195,31 +215,125 @@ export const CampaignSelectorDialog = ({
                     {campaigns.map((campaign) => {
                       const isSelected =
                         selectedCampaign?.title === campaign.title;
+                      const defaultsCount = getUtmDefaultsCount(
+                        campaign.utmDefaults,
+                      );
                       return (
-                        <button
+                        <HoverCard
                           key={campaign._id}
-                          onClick={() => handleSelectExisting(campaign)}
-                          className={cn(
-                            "bg-background flex items-center gap-3 p-3 rounded-lg border hover:bg-background/50 transition-colors text-left",
-                            isSelected && "border-2 border-primary",
-                          )}
+                          openDelay={200}
+                          closeDelay={100}
                         >
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
-                              {campaign.title}
-                            </p>
-                            <p className="text-sm text-muted-foreground truncate">
-                              {campaign.linksCount} link
-                              {campaign.linksCount !== 1 ? "s" : ""}
-                            </p>
-                          </div>
-                          <Check
-                            className={cn(
-                              "h-4 w-4 shrink-0",
-                              isSelected ? "opacity-100" : "opacity-0",
-                            )}
-                          />
-                        </button>
+                          <HoverCardTrigger asChild>
+                            <button
+                              onClick={() => handleSelectExisting(campaign)}
+                              className={cn(
+                                "bg-background flex items-center gap-3 p-3 rounded-lg border hover:bg-background/50 transition-colors text-left w-full",
+                                isSelected && "border-2 border-primary",
+                              )}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium truncate">
+                                    {campaign.title}
+                                  </p>
+                                  {defaultsCount > 0 && (
+                                    <Badge
+                                      variant="secondary"
+                                      className="text-[10px] px-1.5 py-0 shrink-0"
+                                    >
+                                      <Sparkles className="w-2.5 h-2.5 mr-0.5" />
+                                      {defaultsCount}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground truncate">
+                                  {campaign.linksCount} link
+                                  {campaign.linksCount !== 1 ? "s" : ""}
+                                  {campaign.description &&
+                                    ` • ${campaign.description}`}
+                                </p>
+                              </div>
+                              <Check
+                                className={cn(
+                                  "h-4 w-4 shrink-0",
+                                  isSelected ? "opacity-100" : "opacity-0",
+                                )}
+                              />
+                            </button>
+                          </HoverCardTrigger>
+                          {(campaign.utmDefaults || campaign.description) && (
+                            <HoverCardContent side="right" className="w-72">
+                              <div className="flex flex-col gap-3">
+                                {campaign.description && (
+                                  <p className="text-sm text-muted-foreground">
+                                    {campaign.description}
+                                  </p>
+                                )}
+                                {campaign.utmDefaults && defaultsCount > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                                      <Sparkles className="w-3 h-3" />
+                                      UTM Defaults
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {campaign.utmDefaults.sources?.map(
+                                        (s) => (
+                                          <Badge
+                                            key={`source-${s}`}
+                                            variant="outline"
+                                            className="text-[10px]"
+                                          >
+                                            source: {s}
+                                          </Badge>
+                                        ),
+                                      )}
+                                      {campaign.utmDefaults.mediums?.map(
+                                        (m) => (
+                                          <Badge
+                                            key={`medium-${m}`}
+                                            variant="outline"
+                                            className="text-[10px]"
+                                          >
+                                            medium: {m}
+                                          </Badge>
+                                        ),
+                                      )}
+                                      {campaign.utmDefaults.terms?.map((t) => (
+                                        <Badge
+                                          key={`term-${t}`}
+                                          variant="outline"
+                                          className="text-[10px]"
+                                        >
+                                          term: {t}
+                                        </Badge>
+                                      ))}
+                                      {campaign.utmDefaults.contents?.map(
+                                        (c) => (
+                                          <Badge
+                                            key={`content-${c}`}
+                                            variant="outline"
+                                            className="text-[10px]"
+                                          >
+                                            content: {c}
+                                          </Badge>
+                                        ),
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                                <Link
+                                  href={`/dashboard/campaigns/${campaign._id}`}
+                                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                  View campaign
+                                </Link>
+                              </div>
+                            </HoverCardContent>
+                          )}
+                        </HoverCard>
                       );
                     })}
                   </div>

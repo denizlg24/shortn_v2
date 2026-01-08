@@ -8,8 +8,20 @@ import {
 import { Link } from "@/i18n/navigation";
 import { ClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
-import { ChevronDownIcon, Lock, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import {
+  ChevronDownIcon,
+  Lock,
+  X,
+  Table2,
+  LayoutGrid,
+  Megaphone,
+  Globe,
+  Radio,
+  Tag,
+  FileText,
+  ExternalLink,
+} from "lucide-react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import { CardDescription, CardTitle } from "@/components/ui/card";
@@ -34,16 +46,63 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DownloadButtonCSV } from "./download-csv-button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+
+type ViewMode = "table" | "grouped";
+
+interface GroupedData {
+  campaigns: { name: string; count: number }[];
+  sources: { name: string; count: number }[];
+  mediums: { name: string; count: number }[];
+  terms: { name: string; count: number }[];
+  contents: { name: string; count: number }[];
+}
+
+function groupUtmData(clicks: ClickEntry[]): GroupedData {
+  const utmClicks = clicks.filter(
+    (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
+  );
+
+  const groupBy = (key: string): { name: string; count: number }[] => {
+    const counts = new Map<string, number>();
+    utmClicks.forEach((click) => {
+      const value = click.queryParams?.[key];
+      if (value) {
+        counts.set(value, (counts.get(value) || 0) + 1);
+      }
+    });
+    return Array.from(counts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  };
+
+  return {
+    campaigns: groupBy("utm_campaign"),
+    sources: groupBy("utm_source"),
+    mediums: groupBy("utm_medium"),
+    terms: groupBy("utm_term"),
+    contents: groupBy("utm_content"),
+  };
+}
 
 export const LinkUtmStats = ({
   unlocked,
   initialClicks,
   createdAt,
+  campaign,
 }: {
   unlocked: boolean;
   initialClicks: ClickEntry[];
   createdAt: Date;
+  campaign?: { _id: string; title: string };
 }) => {
+  const [viewMode, setViewMode] = useState<ViewMode>("grouped");
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
@@ -106,6 +165,15 @@ export const LinkUtmStats = ({
   const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(false);
   const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
+
+  const groupedData = useMemo(() => groupUtmData(clicks), [clicks]);
+  const totalUtmClicks = useMemo(
+    () =>
+      clicks.filter(
+        (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
+      ).length,
+    [clicks],
+  );
 
   const isInitialRender = useRef(true);
 
@@ -175,14 +243,119 @@ export const LinkUtmStats = ({
     );
   }
 
+  const GroupedSection = ({
+    title,
+    icon: Icon,
+    items,
+    total,
+    defaultOpen = false,
+  }: {
+    title: string;
+    icon: typeof Globe;
+    items: { name: string; count: number }[];
+    total: number;
+    defaultOpen?: boolean;
+  }) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+    if (items.length === 0) return null;
+
+    return (
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        className="border rounded-lg"
+      >
+        <CollapsibleTrigger className="flex items-center justify-between w-full p-3 hover:bg-muted/50 transition-colors">
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-muted-foreground" />
+            <span className="font-medium">{title}</span>
+            <Badge variant="secondary" className="text-xs">
+              {items.length} unique
+            </Badge>
+          </div>
+          <ChevronDownIcon
+            className={cn(
+              "w-4 h-4 text-muted-foreground transition-transform",
+              isOpen && "rotate-180",
+            )}
+          />
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-3 pb-3 space-y-2">
+            {items.map((item) => {
+              const percentage =
+                total > 0 ? Math.round((item.count / total) * 100) : 0;
+              return (
+                <div key={item.name} className="relative">
+                  <div
+                    className="absolute inset-y-0 left-0 bg-primary/10 rounded transition-all"
+                    style={{ width: `${percentage}%` }}
+                  />
+                  <div className="relative flex items-center justify-between py-1.5 px-2">
+                    <span className="text-sm truncate max-w-[200px]">
+                      {item.name}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {percentage}%
+                      </span>
+                      <span className="text-sm font-medium tabular-nums">
+                        {item.count.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
+
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle className="w-full flex flex-row items-center justify-between">
-          <>UTM Stats</>
-        </CardTitle>
+        <div className="w-full flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            UTM Stats
+            {campaign && (
+              <Link
+                href={`/dashboard/campaigns/${campaign._id}`}
+                className="inline-flex items-center gap-1 text-xs font-normal text-primary hover:underline"
+              >
+                <Badge variant="outline" className="text-xs font-normal">
+                  {campaign.title}
+                  <ExternalLink className="w-3 h-3" />
+                </Badge>
+              </Link>
+            )}
+          </CardTitle>
+          <div className="flex items-center gap-1 border rounded-lg p-1">
+            <Button
+              variant={viewMode === "table" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode("table")}
+            >
+              <Table2 className="w-3.5 h-3.5 mr-1" />
+              <span className="hidden sm:inline">Table</span>
+            </Button>
+            <Button
+              variant={viewMode === "grouped" ? "default" : "ghost"}
+              size="sm"
+              className="h-7 px-2"
+              onClick={() => setViewMode("grouped")}
+            >
+              <LayoutGrid className="w-3.5 h-3.5 mr-1" />
+              <span className="hidden sm:inline">Grouped</span>
+            </Button>
+          </div>
+        </div>
         <CardDescription>
           Showing UTM stats of short link&apos;s clicks
+          {totalUtmClicks > 0 &&
+            ` (${totalUtmClicks.toLocaleString()} with UTM params)`}
         </CardDescription>
       </div>
       <div className="w-full flex flex-row items-center gap-2 flex-wrap">
@@ -395,21 +568,107 @@ export const LinkUtmStats = ({
           </Button>
         )}
       </div>
-      <DataTable
-        columns={utmColumns()}
-        data={clicks
-          .filter(
-            (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
-          )
-          .map((click) => ({
-            timestamp: click.timestamp,
-            utm_campaign: click.queryParams?.utm_campaign,
-            utm_source: click.queryParams?.utm_source,
-            utm_medium: click.queryParams?.utm_medium,
-            utm_term: click.queryParams?.utm_term,
-            utm_content: click.queryParams?.utm_content,
-          }))}
-      />
+
+      {viewMode === "table" ? (
+        <DataTable
+          columns={utmColumns()}
+          data={clicks
+            .filter(
+              (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
+            )
+            .map((click) => ({
+              timestamp: click.timestamp,
+              utm_campaign: click.queryParams?.utm_campaign,
+              utm_source: click.queryParams?.utm_source,
+              utm_medium: click.queryParams?.utm_medium,
+              utm_term: click.queryParams?.utm_term,
+              utm_content: click.queryParams?.utm_content,
+            }))}
+        />
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            {[
+              {
+                label: "Campaigns",
+                count: groupedData.campaigns.length,
+                icon: Megaphone,
+              },
+              {
+                label: "Sources",
+                count: groupedData.sources.length,
+                icon: Globe,
+              },
+              {
+                label: "Mediums",
+                count: groupedData.mediums.length,
+                icon: Radio,
+              },
+              { label: "Terms", count: groupedData.terms.length, icon: Tag },
+              {
+                label: "Contents",
+                count: groupedData.contents.length,
+                icon: FileText,
+              },
+            ].map(({ label, count, icon: Icon }) => (
+              <div
+                key={label}
+                className="flex flex-col items-center justify-center p-3 rounded-lg border bg-muted/30"
+              >
+                <Icon className="w-4 h-4 text-muted-foreground mb-1" />
+                <span className="text-xl font-bold tabular-nums">{count}</span>
+                <span className="text-xs text-muted-foreground">{label}</span>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            <GroupedSection
+              title="Campaigns"
+              icon={Megaphone}
+              items={groupedData.campaigns}
+              total={totalUtmClicks}
+              defaultOpen={true}
+            />
+            <GroupedSection
+              title="Sources"
+              icon={Globe}
+              items={groupedData.sources}
+              total={totalUtmClicks}
+              defaultOpen={true}
+            />
+            <GroupedSection
+              title="Mediums"
+              icon={Radio}
+              items={groupedData.mediums}
+              total={totalUtmClicks}
+            />
+            <GroupedSection
+              title="Terms"
+              icon={Tag}
+              items={groupedData.terms}
+              total={totalUtmClicks}
+            />
+            <GroupedSection
+              title="Contents"
+              icon={FileText}
+              items={groupedData.contents}
+              total={totalUtmClicks}
+            />
+          </div>
+
+          {totalUtmClicks === 0 && (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <LayoutGrid className="w-12 h-12 mb-3 opacity-50" />
+              <p className="font-medium">No UTM data available</p>
+              <p className="text-sm">
+                Clicks with UTM parameters will appear here
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       <DownloadButtonCSV
         data={clicks
           .filter(
