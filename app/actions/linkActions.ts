@@ -1217,6 +1217,12 @@ export interface CampaignStats {
     urlCode: string;
     title: string;
     clicks: number;
+    utmLinks?: Array<{
+      source?: string;
+      medium?: string;
+      term?: string;
+      content?: string;
+    }>;
   }>;
   utmBreakdown: {
     sources: Array<{ name: string; clicks: number }>;
@@ -1262,6 +1268,13 @@ export async function getCampaignStats({
       urlCode: string;
       title: string;
       _id: string;
+      utmLinks?: Array<{
+        source?: string;
+        medium?: string;
+        campaign?: { _id: unknown; title: string };
+        term?: string;
+        content?: string;
+      }>;
     }>;
     const urlCodes = links.map((link) => link.urlCode);
 
@@ -1291,6 +1304,14 @@ export async function getCampaignStats({
         urlCode: link.urlCode,
         title: link.title || link.urlCode,
         clicks: linkClicksMap.get(link.urlCode) || 0,
+        utmLinks: (link.utmLinks || [])
+          .filter((utm) => utm.campaign?.title === campaign.title)
+          .map((utm) => ({
+            source: utm.source,
+            medium: utm.medium,
+            term: utm.term,
+            content: utm.content,
+          })),
       }))
       .sort((a, b) => b.clicks - a.clicks)
       .slice(0, 10);

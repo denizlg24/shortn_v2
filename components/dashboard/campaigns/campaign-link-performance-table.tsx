@@ -10,22 +10,64 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { cn, BASEURL } from "@/lib/utils";
 import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Link2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  CheckCircle,
+  Share2,
   Settings,
-  LinkIcon,
+  MousePointerClick,
 } from "lucide-react";
-import { BASEURL } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
+import {
+  FacebookShareButton,
+  RedditShareButton,
+  RedditIcon,
+  TwitterShareButton,
+  WhatsappShareButton,
+  WhatsappIcon,
+  EmailShareButton,
+  EmailIcon,
+  FacebookIcon,
+  TwitterIcon,
+} from "next-share";
+import { toast } from "sonner";
+
+interface UtmLinkData {
+  source?: string;
+  medium?: string;
+  term?: string;
+  content?: string;
+}
 
 interface LinkPerformanceData {
   urlCode: string;
   title: string;
   clicks: number;
+  utmLinks?: UtmLinkData[];
 }
 
 interface CampaignLinkPerformanceTableProps {
@@ -38,14 +80,64 @@ interface CampaignLinkPerformanceTableProps {
 type SortField = "title" | "clicks";
 type SortDirection = "asc" | "desc";
 
+const ITEMS_PER_PAGE = 5;
+
+function buildUtmUrl(
+  shortUrl: string,
+  utm: UtmLinkData,
+  campaignTitle: string,
+): string {
+  const params = new URLSearchParams();
+  if (utm.source) params.set("utm_source", utm.source);
+  if (utm.medium) params.set("utm_medium", utm.medium);
+  params.set("utm_campaign", campaignTitle);
+  if (utm.term) params.set("utm_term", utm.term);
+  if (utm.content) params.set("utm_content", utm.content);
+
+  if ([...params].length === 0) return shortUrl;
+  const separator = shortUrl.includes("?") ? "&" : "?";
+  return `${shortUrl}${separator}${params.toString()}`;
+}
+
+function getUtmLabel(utm: UtmLinkData): string {
+  const parts: string[] = [];
+  if (utm.source) parts.push(utm.source);
+  if (utm.medium) parts.push(utm.medium);
+  if (utm.term) parts.push(utm.term);
+  if (utm.content) parts.push(utm.content);
+  return parts.length > 0 ? parts.join(" / ") : "Default";
+}
+
 export function CampaignLinkPerformanceTable({
   links,
   loading,
   campaignId,
-  campaignTitle: _campaignTitle,
+  campaignTitle,
 }: CampaignLinkPerformanceTableProps) {
   const [sortField, setSortField] = useState<SortField>("clicks");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [expandedLinks, setExpandedLinks] = useState<Set<string>>(new Set());
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const toggleExpanded = (urlCode: string) => {
+    setExpandedLinks((prev) => {
+      const next = new Set(prev);
+      if (next.has(urlCode)) {
+        next.delete(urlCode);
+      } else {
+        next.add(urlCode);
+      }
+      return next;
+    });
+  };
+
+  const handleCopyUrl = async (url: string) => {
+    await navigator.clipboard.writeText(url);
+    setCopiedUrl(url);
+    toast.success("Link copied to clipboard");
+    setTimeout(() => setCopiedUrl(null), 1500);
+  };
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -63,6 +155,13 @@ export function CampaignLinkPerformanceTable({
     }
     return a.title.localeCompare(b.title) * multiplier;
   });
+
+  const totalPages = Math.ceil(sortedLinks.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedLinks = sortedLinks.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE,
+  );
 
   const totalClicks = links.reduce((sum, link) => sum + link.clicks, 0);
 
@@ -153,76 +252,315 @@ export function CampaignLinkPerformanceTable({
           </div>
 
           <div className="divide-y">
-            {sortedLinks.map((link) => {
+            {paginatedLinks.map((link) => {
               const percentage =
                 totalClicks > 0
                   ? Math.round((link.clicks / totalClicks) * 100)
                   : 0;
+              const isExpanded = expandedLinks.has(link.urlCode);
+              const hasUtmLinks = (link.utmLinks?.length ?? 0) > 0;
+              const shortUrl = `${BASEURL}/${link.urlCode}`;
 
               return (
-                <div
-                  key={link.urlCode}
-                  className={cn(
-                    "grid grid-cols-[1fr_auto_auto] gap-2 sm:gap-4 px-3 sm:px-4 py-3 items-center group hover:bg-muted/30 transition-colors relative",
-                  )}
-                >
+                <div key={link.urlCode} className="flex flex-col">
                   <div
-                    className="absolute inset-y-0 left-0 bg-primary/5 transition-all duration-500"
-                    style={{ width: `${percentage}%` }}
-                  />
-                  <div className="flex flex-col gap-1 relative z-10 min-w-0 overflow-hidden">
-                    <Link
-                      href={`/dashboard/campaigns/${campaignId}/links/${link.urlCode}`}
-                      className="font-medium text-sm truncate hover:text-primary hover:underline underline-offset-2 transition-colors"
-                    >
-                      {link.title}
-                    </Link>
-                    <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
-                      <span className="truncate font-mono text-[11px] sm:text-xs">
-                        {BASEURL}/{link.urlCode}
-                      </span>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] px-1.5 py-0 shrink-0"
+                    className={cn(
+                      "grid grid-cols-[1fr_auto_auto] gap-2 sm:gap-4 px-3 sm:px-4 py-3 items-center group hover:bg-muted/30 transition-colors relative",
+                    )}
+                  >
+                    <div
+                      className="absolute inset-y-0 left-0 bg-primary/5 transition-all duration-500"
+                      style={{ width: `${percentage}%` }}
+                    />
+                    <div className="flex flex-col gap-1 relative z-10 min-w-0 overflow-hidden">
+                      <Link
+                        href={`/dashboard/campaigns/${campaignId}/links/${link.urlCode}`}
+                        className="font-medium text-sm truncate hover:text-primary hover:underline underline-offset-2 transition-colors"
                       >
-                        {percentage}%
-                      </Badge>
+                        {link.title}
+                      </Link>
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground">
+                        <span className="truncate font-mono text-[11px] sm:text-xs">
+                          {shortUrl}
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] px-1.5 py-0 shrink-0"
+                        >
+                          {percentage}%
+                        </Badge>
+                        {hasUtmLinks && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0 shrink-0"
+                          >
+                            {link.utmLinks?.length} UTM
+                            {link.utmLinks?.length !== 1 ? "s" : ""}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1 sm:gap-2 relative z-10">
+                      <span className="font-semibold tabular-nums flex items-center justify-end min-w-10 sm:min-w-[60px] text-right text-sm pr-3 border-r border-r-muted-foreground">
+                        <MousePointerClick className="inline-flex mr-2 my-auto w-3 h-3 text-muted-foreground" />
+                        {link.clicks.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-0.5 sm:gap-1 relative z-10 w-16 sm:w-24 justify-end">
+                      {hasUtmLinks ? (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity"
+                          onClick={() => toggleExpanded(link.urlCode)}
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "w-3.5 h-3.5 transition-transform",
+                              isExpanded && "rotate-180",
+                            )}
+                          />
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled
+                          className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity text-muted-foreground!"
+                        >
+                          <ChevronDown
+                            className={cn(
+                              "w-3.5 h-3.5 transition-transform",
+                              isExpanded && "rotate-180",
+                            )}
+                          />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity"
+                        asChild
+                      >
+                        <Link
+                          href={`/dashboard/campaigns/${campaignId}/links/${link.urlCode}`}
+                        >
+                          <Settings className="w-3.5 h-3.5" />
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity"
+                        asChild
+                      >
+                        <Link href={`/dashboard/links/${link.urlCode}/details`}>
+                          <Link2 className="w-3.5 h-3.5" />
+                        </Link>
+                      </Button>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 sm:gap-2 relative z-10">
-                    <span className="font-semibold tabular-nums min-w-10 sm:min-w-[60px] text-right text-sm">
-                      {link.clicks.toLocaleString()}
-                    </span>
-                  </div>
+                  {isExpanded && hasUtmLinks && (
+                    <div className="px-3 sm:px-4 pb-3 pt-2 bg-muted/20 border-t">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">
+                        UTM Tagged Links
+                      </p>
+                      <div className="space-y-2">
+                        {link.utmLinks?.map((utm, utmIndex) => {
+                          const utmUrl = buildUtmUrl(
+                            shortUrl,
+                            utm,
+                            campaignTitle,
+                          );
+                          const utmLabel = getUtmLabel(utm);
+                          const isCopied = copiedUrl === utmUrl;
 
-                  <div className="flex items-center gap-0.5 sm:gap-1 relative z-10 w-16 sm:w-24 justify-center">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity"
-                      asChild
-                    >
-                      <Link
-                        href={`/dashboard/campaigns/${campaignId}/links/${link.urlCode}`}
-                      >
-                        <Settings className="w-3.5 h-3.5" />
-                      </Link>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 sm:h-8 sm:w-8 transition-opacity"
-                      asChild
-                    >
-                      <Link href={`/dashboard/links/${link.urlCode}/details`}>
-                        <LinkIcon className="w-3.5 h-3.5" />
-                      </Link>
-                    </Button>
-                  </div>
+                          return (
+                            <div
+                              key={utmIndex}
+                              className="flex items-center gap-2 p-2 rounded-md bg-background border"
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium truncate">
+                                  {utmLabel}
+                                </p>
+                                <code className="text-[10px] text-muted-foreground font-mono truncate block">
+                                  {utmUrl
+                                    .replace("https://", "")
+                                    .replace("www.", "")}
+                                </code>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={() => handleCopyUrl(utmUrl)}
+                                      >
+                                        {isCopied ? (
+                                          <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                                        ) : (
+                                          <Copy className="w-3.5 h-3.5" />
+                                        )}
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Copy link</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                    >
+                                      <Share2 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </DialogTrigger>
+                                  <DialogContent>
+                                    <DialogHeader>
+                                      <DialogTitle>Share UTM Link</DialogTitle>
+                                      <DialogDescription>
+                                        Share this UTM-tagged link across social
+                                        media.
+                                      </DialogDescription>
+                                    </DialogHeader>
+                                    <div className="w-full grid grid-cols-5 gap-4">
+                                      <FacebookShareButton
+                                        url={utmUrl}
+                                        quote={
+                                          "Check out this link shortened with Shortn.at"
+                                        }
+                                      >
+                                        <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                                          <FacebookIcon size={32} round />
+                                        </div>
+                                      </FacebookShareButton>
+                                      <RedditShareButton
+                                        url={utmUrl}
+                                        title={
+                                          "Check out this link shortened with Shortn.at"
+                                        }
+                                      >
+                                        <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                                          <RedditIcon size={32} round />
+                                        </div>
+                                      </RedditShareButton>
+                                      <TwitterShareButton
+                                        url={utmUrl}
+                                        title={
+                                          "Check out this link shortened with Shortn.at"
+                                        }
+                                      >
+                                        <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                                          <TwitterIcon size={32} round />
+                                        </div>
+                                      </TwitterShareButton>
+                                      <WhatsappShareButton
+                                        url={utmUrl}
+                                        title={
+                                          "Check out this link shortened with Shortn.at"
+                                        }
+                                        separator=" "
+                                      >
+                                        <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                                          <WhatsappIcon size={32} round />
+                                        </div>
+                                      </WhatsappShareButton>
+                                      <EmailShareButton
+                                        url={utmUrl}
+                                        subject="Checkout my Shortn.at Link!"
+                                        body="Checkout this link shortened with Shortn.at"
+                                      >
+                                        <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
+                                          <EmailIcon size={32} round />
+                                        </div>
+                                      </EmailShareButton>
+                                    </div>
+                                    <Separator />
+                                    <div className="relative w-full flex items-center">
+                                      <Input
+                                        value={utmUrl}
+                                        readOnly
+                                        className="w-full bg-background text-xs pr-16"
+                                      />
+                                      <Button
+                                        onClick={() => handleCopyUrl(utmUrl)}
+                                        variant="secondary"
+                                        className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
+                                      >
+                                        {isCopied ? "Copied" : "Copy"}
+                                      </Button>
+                                    </div>
+                                  </DialogContent>
+                                </Dialog>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="px-3 sm:px-4 py-2 bg-muted/50 border-t flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                Showing {startIndex + 1}-
+                {Math.min(startIndex + ITEMS_PER_PAGE, sortedLinks.length)} of{" "}
+                {sortedLinks.length} links
+              </span>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <span className="text-xs text-muted-foreground px-2">
+                  {currentPage} / {totalPages}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div className="px-3 sm:px-4 py-2 bg-muted/30 border-t flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] sm:text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <ChevronDown className="w-3 h-3" />
+              <span>Expand UTM links</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Settings className="w-3 h-3" />
+              <span>Edit/Add UTM links</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Link2 className="w-3 h-3" />
+              <span>View link details</span>
+            </div>
           </div>
         </div>
       </CardContent>
