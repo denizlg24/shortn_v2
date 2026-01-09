@@ -84,6 +84,7 @@ export function CampaignStatsDashboard({
       urlCode: link.urlCode,
       title: link.title,
       clicks: link.clicks,
+      utmLinks: link.utmLinks,
     })) || [];
 
   const handleLinkAdded = useCallback(
