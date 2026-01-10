@@ -250,34 +250,36 @@ export default async function Home({
           </Card>
         </div>
         {plan !== "free" && <UpcomingInvoice />}
-        <div className="w-full flex flex-col gap-2">
-          <h1 className="sm:text-base text-sm font-semibold">
-            Billing Management
-          </h1>
-          <Card className="w-full p-0 gap-0!">
-            <CardContent className="p-4 flex flex-col gap-3">
-              <p className="text-sm text-muted-foreground">
-                Manage your payment methods, view invoices, update billing
-                information, and access your complete billing history through
-                our secure billing portal.
-              </p>
-              <form
-                action={async () => {
-                  "use server";
-                  const result = await getPolarPortalUrl();
-                  if (result.success && result.url) {
-                    NextRedirect(result.url);
-                  }
-                }}
-              >
-                <Button type="submit" className="w-full sm:w-auto">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Open Billing Portal
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
+        {plan !== "free" && (
+          <div className="w-full flex flex-col gap-2">
+            <h1 className="sm:text-base text-sm font-semibold">
+              Billing Management
+            </h1>
+            <Card className="w-full p-0 gap-0!">
+              <CardContent className="p-4 flex flex-col gap-3">
+                <p className="text-sm text-muted-foreground">
+                  Manage your payment methods, view invoices, update billing
+                  information, and access your complete billing history through
+                  our secure billing portal.
+                </p>
+                <form
+                  action={async () => {
+                    "use server";
+                    const result = await getPolarPortalUrl();
+                    if (result.success && result.url) {
+                      NextRedirect(result.url);
+                    }
+                  }}
+                >
+                  <Button type="submit" className="w-full sm:w-auto">
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Open Billing Portal
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
