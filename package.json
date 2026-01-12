@@ -98,7 +98,7 @@
     "lucide-react": "^0.562.0",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.1",
-    "motion": "^12.23.26",
+    "motion": "^12.26.0",
     "nanoid": "^5.1.6",
     "next": "16.0.10",
     "next-intl": "^4.5.8",
