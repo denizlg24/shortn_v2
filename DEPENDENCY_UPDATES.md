@@ -44,7 +44,9 @@ Five separate Dependabot pull requests (#336, #337, #338, #339, #340) have been 
 
 ## Next Steps
 
-After merging this PR:
+**IMPORTANT**: This PR needs to be merged to the `dev` branch, not `master`. Please change the base branch of PR #341 from `master` to `dev` before merging.
+
+After merging this PR to dev:
 1. Run `bun install` to update `bun.lock`
 2. Test the application thoroughly
 3. The original Dependabot PRs (#336-#340) can be closed as their changes are now consolidated
