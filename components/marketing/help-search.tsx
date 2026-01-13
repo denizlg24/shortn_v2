@@ -4,96 +4,104 @@ import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 import { useState, useMemo } from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface Article {
-  title: string;
+  titleKey: string;
+  descKey: string;
   href: string;
-  description: string;
-  category: string;
+  categoryKey: string;
 }
 
-const allArticles: Article[] = [
+const articleData: Article[] = [
   {
-    title: "Getting Started with Shortn",
+    titleKey: "getting-started-title",
+    descKey: "getting-started-desc",
     href: "/help/articles/getting-started",
-    description:
-      "Learn the basics of creating links, tracking analytics, and navigating your dashboard",
-    category: "Getting Started",
+    categoryKey: "getting-started",
   },
   {
-    title: "Creating Short Links",
+    titleKey: "creating-links-title",
+    descKey: "creating-links-desc",
     href: "/help/articles/links/creating-links",
-    description:
-      "Master link creation with custom back-halves, password protection, and tags",
-    category: "Links",
+    categoryKey: "links",
   },
   {
-    title: "Managing Your Links",
+    titleKey: "managing-links-title",
+    descKey: "managing-links-desc",
     href: "/help/articles/links/managing-links",
-    description: "Edit, organize, and control your shortened links",
-    category: "Links",
+    categoryKey: "links",
   },
   {
-    title: "UTM Parameters",
+    titleKey: "utm-title",
+    descKey: "utm-desc",
     href: "/help/articles/links/utm-parameters",
-    description: "Track campaign performance with UTM parameters",
-    category: "Links",
+    categoryKey: "links",
   },
   {
-    title: "Creating QR Codes",
+    titleKey: "creating-qr-title",
+    descKey: "creating-qr-desc",
     href: "/help/articles/qr-codes/creating-qr-codes",
-    description: "Generate and customize QR codes for print and digital use",
-    category: "QR Codes",
+    categoryKey: "qr-codes",
   },
   {
-    title: "Managing QR Codes",
+    titleKey: "managing-qr-title",
+    descKey: "managing-qr-desc",
     href: "/help/articles/qr-codes/managing-qr-codes",
-    description: "Edit, download, and organize your QR codes",
-    category: "QR Codes",
+    categoryKey: "qr-codes",
   },
   {
-    title: "Creating Bio Pages",
+    titleKey: "creating-bio-title",
+    descKey: "creating-bio-desc",
     href: "/help/articles/bio-pages/creating-bio-pages",
-    description:
-      "Build beautiful link-in-bio pages for Instagram, TikTok, and more (Pro)",
-    category: "Bio Pages",
+    categoryKey: "bio-pages",
   },
   {
-    title: "Customizing Bio Pages",
+    titleKey: "customizing-bio-title",
+    descKey: "customizing-bio-desc",
     href: "/help/articles/bio-pages/customizing-bio-pages",
-    description: "Design beautiful, branded bio pages that stand out",
-    category: "Bio Pages",
+    categoryKey: "bio-pages",
   },
   {
-    title: "Understanding Analytics",
+    titleKey: "understanding-analytics-title",
+    descKey: "understanding-analytics-desc",
     href: "/help/articles/analytics/understanding-analytics",
-    description:
-      "Track clicks, locations, devices, and measure your link performance",
-    category: "Analytics",
+    categoryKey: "analytics",
   },
   {
-    title: "Organizing Campaigns",
+    titleKey: "organizing-campaigns-title",
+    descKey: "organizing-campaigns-desc",
     href: "/help/articles/campaigns/organizing-campaigns",
-    description: "Group and track links by marketing campaigns (Pro)",
-    category: "Campaigns",
+    categoryKey: "campaigns",
   },
   {
-    title: "Plans & Pricing",
+    titleKey: "plans-pricing-title",
+    descKey: "plans-pricing-desc",
     href: "/help/articles/billing/plans-pricing",
-    description: "Compare plans and find the perfect fit for your needs",
-    category: "Billing",
+    categoryKey: "billing",
   },
   {
-    title: "Upgrading Your Plan",
+    titleKey: "upgrading-title",
+    descKey: "upgrading-desc",
     href: "/help/articles/billing/upgrading-plans",
-    description:
-      "Learn how to upgrade, downgrade, and manage your subscription",
-    category: "Billing",
+    categoryKey: "billing",
   },
 ];
 
 export function HelpSearch() {
   const [query, setQuery] = useState("");
+  const t = useTranslations("help");
+  const tArticles = useTranslations("help.articles");
+  const tCategories = useTranslations("help.categories");
+
+  const allArticles = useMemo(() => {
+    return articleData.map((article) => ({
+      title: tArticles(article.titleKey),
+      description: tArticles(article.descKey),
+      href: article.href,
+      category: tCategories(article.categoryKey),
+    }));
+  }, [tArticles, tCategories]);
 
   const filteredArticles = useMemo(() => {
     if (!query.trim()) return [];
@@ -105,13 +113,13 @@ export function HelpSearch() {
         article.description.toLowerCase().includes(searchTerm) ||
         article.category.toLowerCase().includes(searchTerm),
     );
-  }, [query]);
+  }, [query, allArticles]);
 
   return (
     <div className="w-full relative text-left!">
       <div className="relative flex items-center">
         <Input
-          placeholder="Search for help articles..."
+          placeholder={t("search-placeholder")}
           className="w-full pl-12 xs:h-12 h-10 rounded-sm bg-muted"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -148,7 +156,7 @@ export function HelpSearch() {
             </div>
           ) : (
             <div className="p-6 text-center text-sm text-muted-foreground">
-              No articles found for &quot;{query}&quot;
+              {t("no-results", { query })}
             </div>
           )}
         </div>

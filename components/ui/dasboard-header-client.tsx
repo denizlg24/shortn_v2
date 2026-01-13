@@ -41,6 +41,7 @@ import { ScrollPopoverContent } from "./scroll-popover-content";
 import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
 import logo from "@/public/logo.png";
+import { useTranslations } from "next-intl";
 
 export const DashboardHeaderClient = () => {
   const { data } = authClient.useSession();
@@ -51,6 +52,8 @@ export const DashboardHeaderClient = () => {
   const [createdNewOpen, createNewOpenChange] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("dashboard.sidebar");
+  const tHeader = useTranslations("dashboard.header");
 
   return (
     <header className="fixed top-0 p-2 w-full sm:h-14 h-12 border-b shadow bg-background z-85 transition-shadow flex flex-row justify-between gap-4">
@@ -66,7 +69,7 @@ export const DashboardHeaderClient = () => {
           >
             <div className="hidden">
               <SheetHeader>
-                <SheetTitle>Hamburguer Menu</SheetTitle>
+                <SheetTitle>{tHeader("hamburger-menu")}</SheetTitle>
               </SheetHeader>
             </div>
             <div className="flex flex-col w-full gap-2 items-stretch p-3">
@@ -87,7 +90,7 @@ export const DashboardHeaderClient = () => {
                     height={1080}
                     className="w-8 h-8 rounded"
                   />
-                  <span>Shortn.at</span>
+                  <span>{t("brand")}</span>
                 </Link>
               </Button>
               <Separator />
@@ -95,13 +98,13 @@ export const DashboardHeaderClient = () => {
                 <DialogTrigger asChild>
                   <Button variant={"default"} className="justify-start rounded">
                     <Plus />
-                    Create new
+                    {t("create-new")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-full lg:max-w-[800px]! md:max-w-[500px]! z-99">
                   <DialogHeader>
                     <DialogTitle className="mb-2 font-semibold! text-lg!">
-                      What do you want to create?
+                      {t("create-dialog-title")}
                     </DialogTitle>
                     <div className="lg:grid grid-cols-3 flex flex-col w-full gap-4">
                       <Button
@@ -115,7 +118,7 @@ export const DashboardHeaderClient = () => {
                       >
                         <Link href={`/dashboard/links/create`}>
                           <LinkIcon className="text-primary" />
-                          Shorten a link
+                          {t("shorten-link")}
                         </Link>
                       </Button>
 
@@ -130,7 +133,7 @@ export const DashboardHeaderClient = () => {
                       >
                         <Link href={`/dashboard/qr-codes/create`}>
                           <QrCode className="text-primary" />
-                          Create a QR Code
+                          {t("create-qr-code")}
                         </Link>
                       </Button>
 
@@ -145,7 +148,7 @@ export const DashboardHeaderClient = () => {
                       >
                         <Link href={`/dashboard/pages/create`}>
                           <NotepadText className="text-primary" />
-                          Build a landing page
+                          {t("build-landing-page")}
                         </Link>
                       </Button>
                     </div>
@@ -169,7 +172,7 @@ export const DashboardHeaderClient = () => {
                   href={`/dashboard`}
                 >
                   <HomeIcon />
-                  Home
+                  {t("home")}
                 </Link>
               </Button>
               <Button
@@ -190,7 +193,7 @@ export const DashboardHeaderClient = () => {
                   href={`/dashboard/links`}
                 >
                   <LinkIcon />
-                  Links
+                  {t("links")}
                 </Link>
               </Button>
               <Button
@@ -211,7 +214,7 @@ export const DashboardHeaderClient = () => {
                   href={`/dashboard/qr-codes`}
                 >
                   <QrCode />
-                  QR Codes
+                  {t("qr-codes")}
                 </Link>
               </Button>
               <Button
@@ -232,7 +235,7 @@ export const DashboardHeaderClient = () => {
                   href={`/dashboard/pages`}
                 >
                   <NotepadText />
-                  Pages
+                  {t("pages")}
                 </Link>
               </Button>
               <Button
@@ -253,7 +256,7 @@ export const DashboardHeaderClient = () => {
                   href={`/dashboard/campaigns`}
                 >
                   <Folder />
-                  Campaigns
+                  {t("campaigns")}
                 </Link>
               </Button>
             </div>
@@ -327,22 +330,22 @@ export const DashboardHeaderClient = () => {
                     <p className="text-sm">{user.sub.split("|")[1]}</p>
                     {plan == "pro" && (
                       <p className="text-xs text-muted-foreground">
-                        Pro Account
+                        {tHeader("pro-account")}
                       </p>
                     )}
                     {plan == "plus" && (
                       <p className="text-xs text-muted-foreground">
-                        Plus Account
+                        {tHeader("plus-account")}
                       </p>
                     )}
                     {plan == "basic" && (
                       <p className="text-xs text-muted-foreground">
-                        Basic Account
+                        {tHeader("basic-account")}
                       </p>
                     )}
                     {plan == "free" && (
                       <p className="text-xs text-muted-foreground">
-                        Free Account
+                        {tHeader("free-account")}
                       </p>
                     )}
                   </div>
@@ -354,7 +357,9 @@ export const DashboardHeaderClient = () => {
                       asChild
                       className="h-fit text-xs px-2 py-1 rounded!"
                     >
-                      <Link href={`/dashboard/subscription`}>Upgrade</Link>
+                      <Link href={`/dashboard/subscription`}>
+                        {tHeader("upgrade")}
+                      </Link>
                     </Button>
                   )}
                 </div>
@@ -370,7 +375,7 @@ export const DashboardHeaderClient = () => {
                   >
                     <Link href={`/dashboard/settings`}>
                       <Settings />
-                      Settings
+                      {tHeader("settings")}
                     </Link>
                   </Button>
 
@@ -384,7 +389,7 @@ export const DashboardHeaderClient = () => {
                   >
                     <Link href={`/dashboard/help`}>
                       <HelpCircle />
-                      Help
+                      {tHeader("help")}
                     </Link>
                   </Button>
                 </div>
@@ -406,7 +411,7 @@ export const DashboardHeaderClient = () => {
                     variant="ghost"
                   >
                     <LogOut />
-                    Sign out
+                    {tHeader("sign-out")}
                   </Button>
                 </div>
               </ScrollPopoverContent>

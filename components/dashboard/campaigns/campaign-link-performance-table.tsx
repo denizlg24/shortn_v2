@@ -55,6 +55,7 @@ import {
   TwitterIcon,
 } from "next-share";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 interface UtmLinkData {
   source?: string;
@@ -114,6 +115,7 @@ export function CampaignLinkPerformanceTable({
   campaignId,
   campaignTitle,
 }: CampaignLinkPerformanceTableProps) {
+  const t = useTranslations("campaign-link-performance");
   const [sortField, setSortField] = useState<SortField>("clicks");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [expandedLinks, setExpandedLinks] = useState<Set<string>>(new Set());
@@ -135,7 +137,7 @@ export function CampaignLinkPerformanceTable({
   const handleCopyUrl = async (url: string) => {
     await navigator.clipboard.writeText(url);
     setCopiedUrl(url);
-    toast.success("Link copied to clipboard");
+    toast.success(t("toast.copied"));
     setTimeout(() => setCopiedUrl(null), 1500);
   };
 
@@ -180,10 +182,8 @@ export function CampaignLinkPerformanceTable({
     return (
       <Card className="w-full">
         <div className="px-6 py-0">
-          <CardTitle className="text-lg">Link Performance</CardTitle>
-          <CardDescription>
-            Click performance by individual link
-          </CardDescription>
+          <CardTitle className="text-lg">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <CardContent className="px-6 py-0">
           <div className="space-y-3">
@@ -200,16 +200,14 @@ export function CampaignLinkPerformanceTable({
     return (
       <Card className="w-full">
         <div className="px-6 py-0">
-          <CardTitle className="text-lg">Link Performance</CardTitle>
-          <CardDescription>
-            Click performance by individual link
-          </CardDescription>
+          <CardTitle className="text-lg">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <CardContent className="px-6 py-0">
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Link2 className="w-12 h-12 mb-3 opacity-50" />
-            <p className="font-medium">No links in this campaign</p>
-            <p className="text-sm">Add links to start tracking performance</p>
+            <p className="font-medium">{t("no-links-title")}</p>
+            <p className="text-sm">{t("no-links-description")}</p>
           </div>
         </CardContent>
       </Card>
@@ -221,11 +219,9 @@ export function CampaignLinkPerformanceTable({
       <div className="px-6 py-0">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="text-lg">Link Performance</CardTitle>
+            <CardTitle className="text-lg">{t("title")}</CardTitle>
             <CardDescription>
-              {links.length} link{links.length !== 1 ? "s" : ""} with{" "}
-              {totalClicks.toLocaleString()} total click
-              {totalClicks !== 1 ? "s" : ""}
+              {t("summary", { links: links.length, clicks: totalClicks })}
             </CardDescription>
           </div>
         </div>
@@ -238,17 +234,17 @@ export function CampaignLinkPerformanceTable({
               onClick={() => handleSort("title")}
               className="flex items-center gap-1.5 hover:text-foreground transition-colors text-left"
             >
-              Link
+              {t("link")}
               {renderSortIcon("title")}
             </button>
             <button
               onClick={() => handleSort("clicks")}
               className="flex items-center gap-1.5 hover:text-foreground transition-colors"
             >
-              Clicks
+              {t("clicks")}
               {renderSortIcon("clicks")}
             </button>
-            <span className="w-16 sm:w-24 text-center">Actions</span>
+            <span className="w-16 sm:w-24 text-center">{t("actions")}</span>
           </div>
 
           <div className="divide-y">
@@ -366,7 +362,7 @@ export function CampaignLinkPerformanceTable({
                   {isExpanded && hasUtmLinks && (
                     <div className="px-3 sm:px-4 pb-3 pt-2 bg-muted/20 border-t">
                       <p className="text-xs font-medium text-muted-foreground mb-2">
-                        UTM Tagged Links
+                        {t("utm-tagged-links")}
                       </p>
                       <div className="space-y-2">
                         {link.utmLinks?.map((utm, utmIndex) => {
@@ -410,7 +406,9 @@ export function CampaignLinkPerformanceTable({
                                         )}
                                       </Button>
                                     </TooltipTrigger>
-                                    <TooltipContent>Copy link</TooltipContent>
+                                    <TooltipContent>
+                                      {t("copy-link")}
+                                    </TooltipContent>
                                   </Tooltip>
                                 </TooltipProvider>
 
@@ -426,18 +424,17 @@ export function CampaignLinkPerformanceTable({
                                   </DialogTrigger>
                                   <DialogContent>
                                     <DialogHeader>
-                                      <DialogTitle>Share UTM Link</DialogTitle>
+                                      <DialogTitle>
+                                        {t("share.title")}
+                                      </DialogTitle>
                                       <DialogDescription>
-                                        Share this UTM-tagged link across social
-                                        media.
+                                        {t("share.description")}
                                       </DialogDescription>
                                     </DialogHeader>
                                     <div className="w-full grid grid-cols-5 gap-4">
                                       <FacebookShareButton
                                         url={utmUrl}
-                                        quote={
-                                          "Check out this link shortened with Shortn.at"
-                                        }
+                                        quote={t("share.text")}
                                       >
                                         <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                                           <FacebookIcon size={32} round />
@@ -445,9 +442,7 @@ export function CampaignLinkPerformanceTable({
                                       </FacebookShareButton>
                                       <RedditShareButton
                                         url={utmUrl}
-                                        title={
-                                          "Check out this link shortened with Shortn.at"
-                                        }
+                                        title={t("share.text")}
                                       >
                                         <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                                           <RedditIcon size={32} round />
@@ -455,9 +450,7 @@ export function CampaignLinkPerformanceTable({
                                       </RedditShareButton>
                                       <TwitterShareButton
                                         url={utmUrl}
-                                        title={
-                                          "Check out this link shortened with Shortn.at"
-                                        }
+                                        title={t("share.text")}
                                       >
                                         <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                                           <TwitterIcon size={32} round />
@@ -465,9 +458,7 @@ export function CampaignLinkPerformanceTable({
                                       </TwitterShareButton>
                                       <WhatsappShareButton
                                         url={utmUrl}
-                                        title={
-                                          "Check out this link shortened with Shortn.at"
-                                        }
+                                        title={t("share.text")}
                                         separator=" "
                                       >
                                         <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -476,8 +467,8 @@ export function CampaignLinkPerformanceTable({
                                       </WhatsappShareButton>
                                       <EmailShareButton
                                         url={utmUrl}
-                                        subject="Checkout my Shortn.at Link!"
-                                        body="Checkout this link shortened with Shortn.at"
+                                        subject={t("share.email-subject")}
+                                        body={t("share.email-body")}
                                       >
                                         <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                                           <EmailIcon size={32} round />
@@ -496,7 +487,7 @@ export function CampaignLinkPerformanceTable({
                                         variant="secondary"
                                         className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
                                       >
-                                        {isCopied ? "Copied" : "Copy"}
+                                        {isCopied ? t("copied") : t("copy")}
                                       </Button>
                                     </div>
                                   </DialogContent>
@@ -516,9 +507,14 @@ export function CampaignLinkPerformanceTable({
           {totalPages > 1 && (
             <div className="px-3 sm:px-4 py-2 bg-muted/50 border-t flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
-                Showing {startIndex + 1}-
-                {Math.min(startIndex + ITEMS_PER_PAGE, sortedLinks.length)} of{" "}
-                {sortedLinks.length} links
+                {t("showing", {
+                  start: startIndex + 1,
+                  end: Math.min(
+                    startIndex + ITEMS_PER_PAGE,
+                    sortedLinks.length,
+                  ),
+                  total: sortedLinks.length,
+                })}
               </span>
               <div className="flex items-center gap-1">
                 <Button
@@ -551,15 +547,15 @@ export function CampaignLinkPerformanceTable({
           <div className="px-3 sm:px-4 py-2 bg-muted/30 border-t flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] sm:text-xs text-muted-foreground">
             <div className="flex items-center gap-1.5">
               <ChevronDown className="w-3 h-3" />
-              <span>Expand UTM links</span>
+              <span>{t("hint.expand-utm")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Settings className="w-3 h-3" />
-              <span>Edit/Add UTM links</span>
+              <span>{t("hint.edit-utm")}</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Link2 className="w-3 h-3" />
-              <span>View link details</span>
+              <span>{t("hint.view-details")}</span>
             </div>
           </div>
         </div>

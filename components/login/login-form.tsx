@@ -20,7 +20,7 @@ import { Eye, EyeOff, Loader2, AtSign, Mail } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient } from "@/lib/authClient";
 import { BASEURL } from "@/lib/utils";
 
@@ -28,6 +28,7 @@ const mapBetterAuthLoginError = (
   error: { code?: string; message?: string; status?: number },
   form: ReturnType<typeof useForm<z.infer<typeof loginFormSchema>>>,
   isUsername: boolean,
+  t: ReturnType<typeof useTranslations<"login">>,
 ) => {
   const code = error.code?.toUpperCase();
 
@@ -38,12 +39,12 @@ const mapBetterAuthLoginError = (
       if (isUsername) {
         form.setError("password", {
           type: "manual",
-          message: "Invalid username or password",
+          message: t("errors.invalid-username-or-password"),
         });
       } else {
         form.setError("password", {
           type: "manual",
-          message: "Invalid email or password",
+          message: t("errors.invalid-email-or-password"),
         });
       }
       break;
@@ -52,40 +53,39 @@ const mapBetterAuthLoginError = (
       form.setError("email", {
         type: "manual",
         message: isUsername
-          ? "No account found with this username"
-          : "No account found with this email",
+          ? t("errors.no-account-username")
+          : t("errors.no-account-email"),
       });
       break;
     case "INVALID_EMAIL":
       form.setError("email", {
         type: "manual",
-        message: "Please enter a valid email address",
+        message: t("errors.invalid-email"),
       });
       break;
     case "ACCOUNT_NOT_FOUND":
       form.setError("email", {
         type: "manual",
-        message: "Account not found. Please check your credentials.",
+        message: t("errors.account-not-found"),
       });
       break;
     case "TOO_MANY_REQUESTS":
     case "RATE_LIMIT_EXCEEDED":
       form.setError("root", {
         type: "manual",
-        message: "Too many login attempts. Please wait a moment and try again.",
+        message: t("errors.too-many-requests"),
       });
       break;
     case "SOCIAL_ACCOUNT_ALREADY_LINKED":
       form.setError("root", {
         type: "manual",
-        message:
-          "This account was created with a social login. Please use that method to sign in.",
+        message: t("errors.social-account-linked"),
       });
       break;
     default:
       form.setError("root", {
         type: "manual",
-        message: error.message || "Unable to sign in. Please try again.",
+        message: error.message || t("errors.unable-to-sign-in"),
       });
   }
 };
@@ -101,6 +101,7 @@ const loginFormSchema = z.object({
 
 export const LoginForm = () => {
   const locale = useLocale();
+  const t = useTranslations("login");
   const [loading, setLoading] = useState(0);
   const router = useRouter();
   const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -137,7 +138,7 @@ export const LoginForm = () => {
               setLoading(0);
               form.setError("root", {
                 type: "manual",
-                message: "Unable to retrieve user session",
+                message: t("errors.unable-to-retrieve-session"),
               });
               await authClient.signOut();
               return;
@@ -149,7 +150,7 @@ export const LoginForm = () => {
               setLoading(0);
               form.setError("root", {
                 type: "manual",
-                message: "Please verify your email address before logging in",
+                message: t("errors.verify-email-before-login"),
               });
               await authClient.signOut();
               return;
@@ -165,7 +166,7 @@ export const LoginForm = () => {
             ) {
               toast.error(
                 <p className="text-xs flex flex-row flex-wrap gap-1">
-                  Please verify your email address before logging in.{" "}
+                  {t("errors.verify-email-toast")}{" "}
                   <Button
                     onClick={async () => {
                       await authClient.sendVerificationEmail(
@@ -175,9 +176,7 @@ export const LoginForm = () => {
                         },
                         {
                           onSuccess: () => {
-                            toast.success(
-                              "Verification email resent successfully.",
-                            );
+                            toast.success(t("errors.verification-resent"));
                           },
                         },
                       );
@@ -186,7 +185,7 @@ export const LoginForm = () => {
                     variant={"link"}
                     className="text-xs p-0! h-fit! w-fit!"
                   >
-                    Resend verification email.
+                    {t("errors.resend-verification")}
                   </Button>
                 </p>,
                 { id: "not-verified-toast" },
@@ -195,7 +194,7 @@ export const LoginForm = () => {
               return;
             }
             setLoading(0);
-            mapBetterAuthLoginError(ctx.error, form, false);
+            mapBetterAuthLoginError(ctx.error, form, false, t);
           },
         },
       );
@@ -218,7 +217,7 @@ export const LoginForm = () => {
               setLoading(0);
               form.setError("root", {
                 type: "manual",
-                message: "Unable to retrieve user session",
+                message: t("errors.unable-to-retrieve-session"),
               });
               await authClient.signOut();
               return;
@@ -230,7 +229,7 @@ export const LoginForm = () => {
               setLoading(0);
               form.setError("root", {
                 type: "manual",
-                message: "Please verify your email address before logging in",
+                message: t("errors.verify-email-before-login"),
               });
               await authClient.signOut();
               return;
@@ -246,8 +245,7 @@ export const LoginForm = () => {
             ) {
               toast.error(
                 <p className="text-xs flex flex-row flex-wrap gap-1">
-                  Your account isn't verified. Please login with your email to
-                  get a verification email.
+                  {t("errors.not-verified-username")}
                 </p>,
                 { id: "not-verified-toast" },
               );
@@ -255,7 +253,7 @@ export const LoginForm = () => {
               return;
             }
             setLoading(0);
-            mapBetterAuthLoginError(ctx.error, form, true);
+            mapBetterAuthLoginError(ctx.error, form, true, t);
           },
         },
       );
@@ -263,156 +261,168 @@ export const LoginForm = () => {
   }
 
   return (
-    <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-full"
-      >
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email or Username</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors">
-                    {isEmail ? (
-                      <Mail className="h-4 w-4" />
-                    ) : (
-                      <AtSign className="h-4 w-4" />
-                    )}
-                  </span>
+    <>
+      <div className="flex flex-col gap-0 w-full text-center items-center">
+        <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
+          {t("welcome-back")}
+        </h1>
+        <h2 className="lg:text-lg md:text-base text-sm">
+          {t("login-subtitle")}
+        </h2>
+      </div>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="flex flex-col gap-4 w-full"
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t("email-or-username")}</FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors">
+                      {isEmail ? (
+                        <Mail className="h-4 w-4" />
+                      ) : (
+                        <AtSign className="h-4 w-4" />
+                      )}
+                    </span>
+                    <Input
+                      placeholder={
+                        isEmail
+                          ? t("email-placeholder")
+                          : t("username-placeholder")
+                      }
+                      className="pl-9"
+                      {...field}
+                    />
+                  </div>
+                </FormControl>
+                <p className="text-xs text-muted-foreground">
+                  {isEmail
+                    ? t("signing-in-with-email")
+                    : watchedEmail.length > 0
+                      ? t("signing-in-with-username")
+                      : t("enter-email-or-username")}
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem className="relative">
+                <FormLabel>{t("password")}</FormLabel>
+                <FormControl>
                   <Input
-                    placeholder={
-                      isEmail ? "your@email.com" : "username or email"
-                    }
-                    className="pl-9"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="•••••••"
                     {...field}
                   />
-                </div>
-              </FormControl>
-              <p className="text-xs text-muted-foreground">
-                {isEmail
-                  ? "Signing in with email"
-                  : watchedEmail.length > 0
-                    ? "Signing in with username"
-                    : "Enter your email or @username"}
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem className="relative">
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="•••••••"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-              <Button
-                type="button"
-                onClick={() => {
-                  toggleShowPassword((prev) => !prev);
-                }}
-                variant="link"
-                className="absolute right-0 top-6"
-              >
-                {!showPassword ? <EyeOff /> : <Eye />}
-              </Button>
-            </FormItem>
-          )}
-        />
-        <Button disabled={loading > 0} className="w-full" type="submit">
-          {loading == 1 ? "Signing you in..." : "Login"}
-          {loading == 1 && <Loader2 className="animate-spin" />}
-        </Button>
-        <FormRootError />
-        <Link
-          className="text-primary underline text-sm -mt-3 w-fit ml-auto"
-          href={"/recover"}
-        >
-          Forgot your password?
-        </Link>
-        <div className="w-full relative flex flex-row justify-center">
-          <Separator className=""></Separator>
-          <p className="text-xs text-center text-muted-foreground absolute mx-auto -top-2 bg-background px-2">
-            OR
-          </p>
-        </div>
-
-        <div className="w-full flex flex-col gap-2">
-          <Button
-            disabled={loading > 0}
-            variant="outline"
-            type="button"
-            className="w-full"
-            onClick={async () => {
-              await authClient.signIn.social(
-                { provider: "github" },
-                {
-                  onRequest: () => {
-                    setLoading(2);
-                  },
-                  onError: (ctx) => {
-                    console.log(ctx);
-                    setLoading(0);
-                    form.setError("root", {
-                      type: "manual",
-                      message: ctx.error.message,
-                    });
-                  },
-                },
-              );
-            }}
-          >
-            <GithubOriginal />
-            {loading == 2 ? "Signing you in..." : "Continue with GitHub"}
-            {loading == 2 && <Loader2 className="animate-spin" />}
+                </FormControl>
+                <FormMessage />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    toggleShowPassword((prev) => !prev);
+                  }}
+                  variant="link"
+                  className="absolute right-0 top-6"
+                >
+                  {!showPassword ? <EyeOff /> : <Eye />}
+                </Button>
+              </FormItem>
+            )}
+          />
+          <Button disabled={loading > 0} className="w-full" type="submit">
+            {loading == 1 ? t("signing-you-in") : t("login-button")}
+            {loading == 1 && <Loader2 className="animate-spin" />}
           </Button>
-          <Button
-            disabled={loading > 0}
-            variant="outline"
-            type="button"
-            className="w-full"
-            onClick={async () => {
-              await authClient.signIn.social(
-                { provider: "google" },
-                {
-                  onRequest: () => {
-                    setLoading(3);
-                  },
-                  onError: (ctx) => {
-                    console.log(ctx);
-                    setLoading(0);
-                    form.setError("root", {
-                      type: "manual",
-                      message: ctx.error.message,
-                    });
-                  },
-                },
-              );
-            }}
+          <FormRootError />
+          <Link
+            className="text-primary underline text-sm -mt-3 w-fit ml-auto"
+            href={"/recover"}
           >
-            <GoogleOriginal />
-            {loading == 3 ? "Signing you in..." : " Continue with Google"}
-            {loading == 3 && <Loader2 className="animate-spin" />}
-          </Button>
-        </div>
-        <div className="flex flex-row items-center gap-1 text-sm justify-center w-full">
-          <p>Don&apos;t have an account? </p>
-          <Link className="text-primary underline" href={"/register"}>
-            Register now.
+            {t("forgot-password")}
           </Link>
-        </div>
-      </form>
-    </Form>
+          <div className="w-full relative flex flex-row justify-center">
+            <Separator className=""></Separator>
+            <p className="text-xs text-center text-muted-foreground absolute mx-auto -top-2 bg-background px-2">
+              {t("or")}
+            </p>
+          </div>
+
+          <div className="w-full flex flex-col gap-2">
+            <Button
+              disabled={loading > 0}
+              variant="outline"
+              type="button"
+              className="w-full"
+              onClick={async () => {
+                await authClient.signIn.social(
+                  { provider: "github" },
+                  {
+                    onRequest: () => {
+                      setLoading(2);
+                    },
+                    onError: (ctx) => {
+                      console.log(ctx);
+                      setLoading(0);
+                      form.setError("root", {
+                        type: "manual",
+                        message: ctx.error.message,
+                      });
+                    },
+                  },
+                );
+              }}
+            >
+              <GithubOriginal />
+              {loading == 2 ? t("signing-you-in") : t("continue-with-github")}
+              {loading == 2 && <Loader2 className="animate-spin" />}
+            </Button>
+            <Button
+              disabled={loading > 0}
+              variant="outline"
+              type="button"
+              className="w-full"
+              onClick={async () => {
+                await authClient.signIn.social(
+                  { provider: "google" },
+                  {
+                    onRequest: () => {
+                      setLoading(3);
+                    },
+                    onError: (ctx) => {
+                      console.log(ctx);
+                      setLoading(0);
+                      form.setError("root", {
+                        type: "manual",
+                        message: ctx.error.message,
+                      });
+                    },
+                  },
+                );
+              }}
+            >
+              <GoogleOriginal />
+              {loading == 3 ? t("signing-you-in") : t("continue-with-google")}
+              {loading == 3 && <Loader2 className="animate-spin" />}
+            </Button>
+          </div>
+          <div className="flex flex-row items-center gap-1 text-sm justify-center w-full">
+            <p>{t("no-account")} </p>
+            <Link className="text-primary underline" href={"/register"}>
+              {t("register-now")}
+            </Link>
+          </div>
+        </form>
+      </Form>
+    </>
   );
 };

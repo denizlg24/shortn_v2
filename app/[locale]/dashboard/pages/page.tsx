@@ -56,6 +56,8 @@ export default async function Home({
     return;
   }
   const { plan } = await getUserPlan();
+  const t = await getTranslations("dashboard.pages");
+
   if (plan != "pro") {
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
@@ -65,34 +67,22 @@ export default async function Home({
               <Star className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="text-lg">Pages (Pro)</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Create custom bio pages with multiple links and track
-                engagement.
-              </p>
+              <CardTitle className="text-lg">{t("title")}</CardTitle>
+              <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
           </CardHeader>
 
           <CardContent className="flex flex-col gap-4">
             <ul className="list-disc ml-5 text-sm text-muted-foreground">
-              <li>
-                Build beautiful, customizable landing pages with unlimited links
-                for your social media profiles.
-              </li>
-              <li>
-                Track clicks and engagement on each link to understand what
-                resonates with your audience.
-              </li>
-              <li>
-                Customize your page with themes, colors, and branding to match
-                your style.
-              </li>
+              <li>{t("feature-1")}</li>
+              <li>{t("feature-2")}</li>
+              <li>{t("feature-3")}</li>
             </ul>
 
             <div className="flex flex-col items-center gap-3 pt-2">
               <Button asChild className="w-full">
                 <Link href="/dashboard/subscription" className="w-full">
-                  Upgrade to Pro
+                  {t("upgrade-to-pro")}
                 </Link>
               </Button>
             </div>

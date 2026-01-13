@@ -21,6 +21,7 @@ import Image from "next/image";
 import QRCodeStyling, { Options } from "qr-code-styling";
 import { useEffect, useMemo, useState } from "react";
 import { AddToBioPageDialog } from "@/components/dashboard/links/add-to-bio-page-dialog";
+import { useTranslations } from "next-intl";
 
 export const LinkAdditionsCard = ({
   qrCode,
@@ -31,6 +32,7 @@ export const LinkAdditionsCard = ({
   url: IUrl;
   subscription: string;
 }) => {
+  const t = useTranslations("link-additions");
   const isPro = subscription === "pro";
   const [styledCode, setStyledCode] = useState<QRCodeStyling | undefined>(
     undefined,
@@ -84,7 +86,7 @@ export const LinkAdditionsCard = ({
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex xs:flex-row xs:items-start items-center flex-col gap-8">
       <div className="flex-1 w-full flex flex-col items-start gap-4">
         <h1 className="font-bold lg:text-xl md:text-lg text-base w-full md:text-left text-center">
-          QR Code
+          {t("qr-code")}
         </h1>
         <div className="w-full flex md:flex-row flex-col justify-start gap-4 md:items-start items-center">
           <div className="p-2 rounded border w-full max-w-36 h-auto aspect-square">
@@ -100,7 +102,7 @@ export const LinkAdditionsCard = ({
                 <Button variant={"outline"} asChild>
                   <Link href={`/dashboard/qr-codes/${qrCode.qrCodeId}/details`}>
                     <ChartNoAxesColumn />
-                    View details
+                    {t("view-details")}
                   </Link>
                 </Button>
                 <Popover>
@@ -118,7 +120,7 @@ export const LinkAdditionsCard = ({
                       <Link
                         href={`/dashboard/qr-codes/${qrCode.qrCodeId}/edit/customize`}
                       >
-                        <Palette /> Customize
+                        <Palette /> {t("customize")}
                       </Link>
                     </Button>
                     <Button
@@ -132,7 +134,7 @@ export const LinkAdditionsCard = ({
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
                       <Download />
-                      Download
+                      {t("download")}
                     </Button>
                   </ScrollPopoverContent>
                 </Popover>
@@ -143,7 +145,7 @@ export const LinkAdditionsCard = ({
                   href={`/dashboard/qr-codes/create?dynamic_id=${url.urlCode}`}
                 >
                   <ChartNoAxesColumn />
-                  Create QR Code
+                  {t("create-qr-code")}
                 </Link>
               </Button>
             )}
@@ -152,7 +154,7 @@ export const LinkAdditionsCard = ({
       </div>
       <div className="flex-1 w-full flex flex-col items-start gap-4">
         <h1 className="font-bold lg:text-xl md:text-lg text-base w-full md:text-left text-center">
-          Shortn Page
+          {t("shortn-page")}
         </h1>
         <div className="w-full flex md:flex-row flex-col justify-start gap-4 md:items-start items-center">
           <div className="p-2 rounded-full bg-muted border w-full max-w-36 h-auto aspect-square flex items-center justify-center">
@@ -177,7 +179,7 @@ export const LinkAdditionsCard = ({
               <Button variant={"outline"} asChild>
                 <Link href={`/dashboard/pages/${bioPage.slug}/customize`}>
                   <ChartNoAxesColumn />
-                  View page
+                  {t("view-page")}
                 </Link>
               </Button>
             ) : isPro ? (
@@ -203,7 +205,7 @@ export const LinkAdditionsCard = ({
                 trigger={
                   <Button variant={"outline"}>
                     <NotepadText className="h-4 w-4 mr-2" />
-                    Add to a page
+                    {t("add-to-page")}
                   </Button>
                 }
               />
@@ -211,7 +213,7 @@ export const LinkAdditionsCard = ({
               <Button variant={"outline"} asChild>
                 <Link href="/dashboard/subscription">
                   <LockIcon className="h-4 w-4 mr-2" />
-                  Upgrade to Pro
+                  {t("upgrade-to-pro")}
                 </Link>
               </Button>
             )}

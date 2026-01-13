@@ -13,7 +13,9 @@ export interface UtmStats {
   utm_content?: string;
 }
 
-export const utmColumns = (): ColumnDef<UtmStats>[] => [
+export const utmColumns = (
+  t: (key: string) => string,
+): ColumnDef<UtmStats>[] => [
   {
     id: "timestamp",
     accessorKey: "timestamp",
@@ -32,7 +34,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Timestamp
+          {t("timestamp")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -67,7 +69,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Campaign
+          {t("campaign")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -105,7 +107,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Source
+          {t("source")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -143,7 +145,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Medium
+          {t("medium")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -181,7 +183,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Term
+          {t("term")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (
@@ -219,7 +221,7 @@ export const utmColumns = (): ColumnDef<UtmStats>[] => [
       };
       return (
         <Button variant="ghost" onClick={handleClick} className="flex w-fit!">
-          Content
+          {t("content")}
           {sortState === "asc" ? (
             <ArrowUp className=" h-4 w-4" />
           ) : sortState === "desc" ? (

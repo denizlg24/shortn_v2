@@ -7,6 +7,7 @@ import { useRouter } from "@/i18n/navigation";
 import { CornerDownLeft, Loader2, Search, X } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { PageCard } from "./page-card";
+import { useTranslations } from "next-intl";
 
 export const PagesContainer = ({
   pages,
@@ -28,6 +29,7 @@ export const PagesContainer = ({
   limit: number;
 }) => {
   const router = useRouter();
+  const t = useTranslations("pages-container");
 
   const [query, setQuery] = useState(initialQuery);
   const [isPending, startTransition] = useTransition();
@@ -58,7 +60,7 @@ export const PagesContainer = ({
   return (
     <div className="w-full flex flex-col gap-6">
       <h1 className="col-span-full lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-        Your Pages
+        {t("title")}
       </h1>
       <div className="w-full flex md:flex-row flex-col justify-start gap-2 lg:items-center items-start pb-4 border-b-2 relative col-span-full">
         <div className="relative w-full lg:max-w-[375px] md:max-w-[300px]">
@@ -66,7 +68,7 @@ export const PagesContainer = ({
             type="text"
             name="query"
             id="query"
-            placeholder="Search pages"
+            placeholder={t("search-placeholder")}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -91,7 +93,7 @@ export const PagesContainer = ({
             ) : (
               <CornerDownLeft />
             )}
-            {isPending ? "Searching..." : "Search"}
+            {isPending ? t("searching") : t("search")}
           </Button>
         )}
       </div>
@@ -104,7 +106,7 @@ export const PagesContainer = ({
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You&apos;ve reached the end of your pages
+                {t("reached-end")}
               </p>
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
             </div>
@@ -114,7 +116,7 @@ export const PagesContainer = ({
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You&apos;ve reached the end of your pages
+            {t("reached-end")}
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

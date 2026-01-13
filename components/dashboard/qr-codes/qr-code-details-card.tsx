@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { createShortn, generateCSV } from "@/app/actions/linkActions";
 import { attachShortnToQR, deleteQRCode } from "@/app/actions/qrCodeActions";
 import {
@@ -64,6 +65,7 @@ import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
 
 export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
+  const t = useTranslations("qr-code-details-card");
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
@@ -95,10 +97,12 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
     setIsDeleting(true);
     const response = await deleteQRCode(currentQrCode.qrCodeId);
     if (response.success) {
-      toast.success(`QR Code ${currentQrCode.title} was successfully deleted.`);
+      toast.success(
+        t("delete-success", { title: currentQrCode.title || "Untitled" }),
+      );
       router.push("/dashboard/qr-codes");
     } else {
-      toast.error("There was a problem deleting your QR Code.");
+      toast.error(t("delete-error"));
       setIsDeleting(false);
     }
   };
@@ -166,7 +170,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                     <Link
                       href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                     >
-                      <LinkIcon /> View short link
+                      <LinkIcon /> {t("view-short-link")}
                     </Link>
                   </Button>
                 ) : (
@@ -179,20 +183,17 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                         variant={"outline"}
                         className="w-full border-none! rounded-none! justify-start! shadow-none! "
                       >
-                        <LinkIcon /> Create short link
+                        <LinkIcon /> {t("create-short-link")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="text-left!">
-                          Create a link for your Code
+                          {t("create-link-dialog-title")}
                         </DialogTitle>
                         <DialogDescription asChild>
                           <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
-                            <p>
-                              Creating a link for this QR Code will use up one
-                              of your monthly links.
-                            </p>
+                            <p>{t("create-link-dialog-description")}</p>
                             {getLinksLeft(
                               plan,
                               usage?.qrCodes.consumed ?? 0,
@@ -203,7 +204,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       </DialogHeader>
                       <div className="w-full flex flex-col text-left gap-1 items-start">
                         <p className="font-semibold xs:text-base text-sm">
-                          Destination
+                          {t("destination")}
                         </p>
                         <p className="xs:text-sm text-xs">
                           {currentQrCode.longUrl}
@@ -211,7 +212,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       </div>
                       <div className="w-full flex flex-col text-left gap-1 items-start">
                         <p className="font-semibold xs:text-base text-sm">
-                          Title
+                          {t("title")}
                         </p>
                         <p className="xs:text-sm text-xs">
                           {currentQrCode.title}
@@ -219,7 +220,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       </div>
                       <DialogFooter className="flex flex-row items-center justify-end gap-2">
                         <DialogClose asChild>
-                          <Button variant={"secondary"}>Cancel</Button>
+                          <Button variant={"secondary"}>{t("cancel")}</Button>
                         </DialogClose>
                         <Button
                           onClick={async () => {
@@ -233,25 +234,19 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                             if (!response.success) {
                               switch (response.message) {
                                 case "no-user":
-                                  setError("User session error.");
+                                  setError(t("error-no-user"));
                                   setCreating(false);
                                   return;
                                 case "custom-restricted":
-                                  setError(
-                                    "Custom back-halves are restricted to pro accounts.",
-                                  );
+                                  setError(t("error-custom-restricted"));
                                   setCreating(false);
                                   return;
                                 case "plan-limit":
-                                  setError(
-                                    "You have reached your plan's link limit.",
-                                  );
+                                  setError(t("error-plan-limit"));
                                   setCreating(false);
                                   return;
                                 default:
-                                  setError(
-                                    "There was a problem creating your link.",
-                                  );
+                                  setError(t("error-default"));
                                   setCreating(false);
                                   return;
                               }
@@ -273,10 +268,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                           {creating ? (
                             <>
                               <Loader2 className="animate-spin" />
-                              Creating...
+                              {t("creating")}
                             </>
                           ) : (
-                            <>Create link</>
+                            <>{t("create-link")}</>
                           )}
                         </Button>
                         {error && (
@@ -296,11 +291,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                 >
                   {isDeleting ? (
                     <>
-                      <Loader2 className="animate-spin" /> Deleting...
+                      <Loader2 className="animate-spin" /> {t("deleting")}
                     </>
                   ) : (
                     <>
-                      <Trash2 /> Delete
+                      <Trash2 /> {t("delete")}
                     </>
                   )}
                 </Button>
@@ -311,21 +306,23 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                         variant={"outline"}
                         className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                       >
-                        <FileChartColumn /> Export raw scan data
+                        <FileChartColumn /> {t("export-raw-scan-data")}
                         <LockIcon className="ml-auto" />
                       </Button>
                     </HoverCardTrigger>
                     <HoverCardContent asChild>
                       <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                        <p className="text-sm font-bold">Unlock CSV data.</p>
+                        <p className="text-sm font-bold">
+                          {t("unlock-csv-data")}
+                        </p>
                         <p>
                           <Link
                             className="underline hover:cursor-pointer"
                             href={`/dashboard/subscription`}
                           >
-                            Upgrade
+                            {t("upgrade")}
                           </Link>{" "}
-                          to export all-time scan data.
+                          {t("to-export-all-time-scan-data")}
                         </p>
                       </div>
                     </HoverCardContent>
@@ -342,25 +339,25 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                           return response;
                         },
                         {
-                          loading: "Preparing your download...",
+                          loading: t("preparing-download"),
                           success: (response) => {
                             if (response.success) {
                               const a = document.createElement("a");
                               a.href = response.url;
                               a.download = `${currentQrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                               a.click();
-                              return `Your download is ready and should start now.`;
+                              return t("download-ready");
                             }
-                            return "There was an error creating your download.";
+                            return t("download-error");
                           },
-                          error: "There was an error creating your download.",
+                          error: t("download-error"),
                         },
                       );
                     }}
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                   >
-                    <FileChartColumn /> Export raw scan data
+                    <FileChartColumn /> {t("export-raw-scan-data")}
                   </Button>
                 )}
               </ScrollPopoverContent>
@@ -414,7 +411,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                   <Link
                     href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                   >
-                    <LinkIcon /> View short link
+                    <LinkIcon /> {t("view-short-link")}
                   </Link>
                 </Button>
               ) : (
@@ -427,20 +424,17 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
-                      <LinkIcon /> Create short link
+                      <LinkIcon /> {t("create-short-link")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
                       <DialogTitle className="text-left!">
-                        Create a link for your Code
+                        {t("create-link-dialog-title")}
                       </DialogTitle>
                       <DialogDescription asChild>
                         <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
-                          <p>
-                            Creating a link for this QR Code will use up one of
-                            your monthly links.
-                          </p>
+                          <p>{t("create-link-dialog-description")}</p>
                           {getLinksLeft(
                             plan,
                             usage?.qrCodes.consumed ?? 0,
@@ -451,7 +445,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                     </DialogHeader>
                     <div className="w-full flex flex-col text-left gap-1 items-start">
                       <p className="font-semibold xs:text-base text-sm">
-                        Destination
+                        {t("destination")}
                       </p>
                       <p className="xs:text-sm text-xs">
                         {currentQrCode.longUrl}
@@ -459,7 +453,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                     </div>
                     <div className="w-full flex flex-col text-left gap-1 items-start">
                       <p className="font-semibold xs:text-base text-sm">
-                        Title
+                        {t("title")}
                       </p>
                       <p className="xs:text-sm text-xs">
                         {currentQrCode.title}
@@ -467,7 +461,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                     </div>
                     <DialogFooter className="flex flex-row items-center justify-end gap-2">
                       <DialogClose asChild>
-                        <Button variant={"secondary"}>Cancel</Button>
+                        <Button variant={"secondary"}>{t("cancel")}</Button>
                       </DialogClose>
                       <Button
                         onClick={async () => {
@@ -475,31 +469,25 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                           const response = await createShortn({
                             longUrl: currentQrCode.longUrl,
                             title: currentQrCode.title,
-                            tags: currentQrCode.tags?.map((t) => t.id),
+                            tags: currentQrCode.tags?.map((tg) => tg.id),
                             qrCodeId: currentQrCode.qrCodeId,
                           });
                           if (!response.success) {
                             switch (response.message) {
                               case "no-user":
-                                setError("User session error.");
+                                setError(t("error-no-user"));
                                 setCreating(false);
                                 return;
                               case "custom-restricted":
-                                setError(
-                                  "Custom back-halves are restricted to pro accounts.",
-                                );
+                                setError(t("error-custom-restricted"));
                                 setCreating(false);
                                 return;
                               case "plan-limit":
-                                setError(
-                                  "You have reached your plan's link limit.",
-                                );
+                                setError(t("error-plan-limit"));
                                 setCreating(false);
                                 return;
                               default:
-                                setError(
-                                  "There was a problem creating your link.",
-                                );
+                                setError(t("error-default"));
                                 setCreating(false);
                                 return;
                             }
@@ -519,10 +507,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                         {creating ? (
                           <>
                             <Loader2 className="animate-spin" />
-                            Creating...
+                            {t("creating")}
                           </>
                         ) : (
-                          <>Create link</>
+                          <>{t("create-link")}</>
                         )}
                       </Button>
                     </DialogFooter>
@@ -537,11 +525,11 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="animate-spin" /> Deleting...
+                    <Loader2 className="animate-spin" /> {t("deleting")}
                   </>
                 ) : (
                   <>
-                    <Trash2 /> Delete
+                    <Trash2 /> {t("delete")}
                   </>
                 )}
               </Button>
@@ -552,21 +540,23 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                     >
-                      <FileChartColumn /> Export raw scan data
+                      <FileChartColumn /> {t("export-raw-scan-data")}
                       <LockIcon className="ml-auto" />
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent asChild>
                     <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                      <p className="text-sm font-bold">Unlock CSV data.</p>
+                      <p className="text-sm font-bold">
+                        {t("unlock-csv-data")}
+                      </p>
                       <p>
                         <Link
                           className="underline hover:cursor-pointer"
                           href={`/dashboard/subscription`}
                         >
-                          Upgrade
+                          {t("upgrade")}
                         </Link>{" "}
-                        to export all-time scan data.
+                        {t("to-export-all-time-scan-data")}
                       </p>
                     </div>
                   </HoverCardContent>
@@ -583,25 +573,25 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                         return response;
                       },
                       {
-                        loading: "Preparing your download...",
+                        loading: t("preparing-download"),
                         success: (response) => {
                           if (response.success) {
                             const a = document.createElement("a");
                             a.href = response.url;
                             a.download = `${currentQrCode.qrCodeId}-scans-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                             a.click();
-                            return `Your download is ready and should start now.`;
+                            return t("download-ready");
                           }
-                          return "There was an error creating your download.";
+                          return t("download-error");
                         },
-                        error: "There was an error creating your download.",
+                        error: t("download-error"),
                       },
                     );
                   }}
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                 >
-                  <FileChartColumn /> Export raw scan data
+                  <FileChartColumn /> {t("export-raw-scan-data")}
                 </Button>
               )}
             </ScrollPopoverContent>
@@ -635,7 +625,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
         </div>
         <Separator className="sm:hidden block w-full my-4" />
         <div className="lg:text-base text-sm truncate font-semibold">
-          Website
+          {t("website")}
         </div>
         <div className="w-full flex flex-row justify-start items-center gap-1">
           <CornerDownRight className="w-4 h-4 shrink-0" />
@@ -675,7 +665,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                 })}
                 {currentQrCode.tags && currentQrCode.tags.length > 4 && (
                   <p className="text-xs">
-                    +{currentQrCode.tags.length - 4} more
+                    +{currentQrCode.tags.length - 4} {t("more")}
                   </p>
                 )}
                 <Popover open={tagOpen} onOpenChange={tagOpenChange}>
@@ -685,7 +675,8 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       role="combobox"
                       className="w-fit! justify-between text-primary text-sm gap-1! px-0! py-0! h-fit!"
                     >
-                      <PlusCircle className="text-primary w-3! h-3!" /> Add tag
+                      <PlusCircle className="text-primary w-3! h-3!" />{" "}
+                      {t("add-tag")}
                     </Button>
                   </PopoverTrigger>
                   <ScrollPopoverContent
@@ -697,7 +688,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                       <CommandInput
                         value={input}
                         onValueChange={setInput}
-                        placeholder="Search tags..."
+                        placeholder={t("search-tags")}
                         className="h-9"
                       />
                       <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -775,7 +766,7 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
                                 tagOpenChange(false);
                               }}
                             >
-                              Create &quot;{input}&quot;
+                              {t("create-tag", { input })}
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -789,11 +780,10 @@ export const QRCodeDetailsCard = ({ qrCode }: { qrCode: TQRCode }) => {
               <Tags className="w-4 h-4" />
               {currentQrCode.tags && currentQrCode.tags.length > 0 ? (
                 <p className="text-xs">
-                  {currentQrCode.tags.length}{" "}
-                  {currentQrCode.tags.length == 1 ? "tag" : "tags"}
+                  {t("tag-count", { count: currentQrCode.tags.length })}
                 </p>
               ) : (
-                <p className="text-xs">No tags</p>
+                <p className="text-xs">{t("no-tags")}</p>
               )}
             </div>
           </div>

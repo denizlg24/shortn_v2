@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/hover-card";
 import { Link } from "@/i18n/navigation";
 import { IUtmDefaults } from "@/models/url/Campaigns";
+import { useTranslations } from "next-intl";
 
 type Campaign = {
   _id: string;
@@ -47,17 +48,6 @@ type Campaign = {
   description?: string;
   utmDefaults?: IUtmDefaults;
 };
-
-const campaignFormSchema = z.object({
-  title: z
-    .string()
-    .min(1, "Campaign name is required")
-    .max(100, "Campaign name can't be longer than 100 characters")
-    .regex(
-      /^[A-Za-z0-9 _-]+$/,
-      "Campaign name can only contain letters, numbers, spaces, dashes (-), and underscores (_)",
-    ),
-});
 
 const getUtmDefaultsCount = (utmDefaults?: IUtmDefaults): number => {
   if (!utmDefaults) return 0;
@@ -78,10 +68,19 @@ export const CampaignSelectorDialog = ({
   onSelect: (campaign: { _id: string; title: string } | undefined) => void;
   trigger?: ReactNode;
 }) => {
+  const t = useTranslations("campaign-selector");
   const [open, setOpen] = useState(false);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
+
+  const campaignFormSchema = z.object({
+    title: z
+      .string()
+      .min(1, t("errors.name-required"))
+      .max(100, t("errors.name-too-long"))
+      .regex(/^[A-Za-z0-9 _-]+$/, t("errors.name-invalid-chars")),
+  });
 
   const campaignForm = useForm<z.infer<typeof campaignFormSchema>>({
     resolver: zodResolver(campaignFormSchema),
@@ -120,7 +119,7 @@ export const CampaignSelectorDialog = ({
     });
 
     if (result.success && result.campaign) {
-      toast.success("Campaign created");
+      toast.success(t("toast.created"));
       onSelect({
         _id: result.campaign._id,
         title: result.campaign.title,
@@ -131,28 +130,27 @@ export const CampaignSelectorDialog = ({
       switch (result.message) {
         case "duplicate":
           campaignForm.setError("title", {
-            message:
-              "A campaign with this name already exists. Please choose another name.",
+            message: t("errors.duplicate"),
           });
           break;
         case "plan-restricted":
           campaignForm.setError("root", {
-            message: "Campaigns require a Pro plan.",
+            message: t("errors.plan-restricted"),
           });
           break;
         case "no-user":
           campaignForm.setError("root", {
-            message: "User not found. Please log in again.",
+            message: t("errors.no-user"),
           });
           break;
         case "server-error":
           campaignForm.setError("root", {
-            message: "Server error. Please try again later.",
+            message: t("errors.server-error"),
           });
           break;
         default:
           campaignForm.setError("root", {
-            message: "Failed to create campaign. Please try again.",
+            message: t("errors.create-failed"),
           });
       }
     }
@@ -178,7 +176,7 @@ export const CampaignSelectorDialog = ({
           <div className="w-full relative cursor-pointer">
             <Input
               readOnly
-              value={selectedCampaign?.title || "Select or create a campaign"}
+              value={selectedCampaign?.title || t("placeholder")}
               className="text-left pl-6 cursor-pointer"
             />
             <ChevronDown className="w-4 h-4 left-1.5 top-1/2 -translate-y-1/2 absolute" />
@@ -187,27 +185,25 @@ export const CampaignSelectorDialog = ({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Select Campaign</DialogTitle>
-          <DialogDescription>
-            Select an existing campaign or create a new one.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="select" className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="select">Select a campaign</TabsTrigger>
-            <TabsTrigger value="create">Create a new campaign</TabsTrigger>
+            <TabsTrigger value="select">{t("tabs.select")}</TabsTrigger>
+            <TabsTrigger value="create">{t("tabs.create")}</TabsTrigger>
           </TabsList>
           <Separator className="mt-1" />
           <TabsContent value="select">
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold">Your Campaigns</h3>
+              <h3 className="text-sm font-semibold">{t("your-campaigns")}</h3>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Spinner className="h-6 w-6" />
                 </div>
               ) : campaigns.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No campaigns yet. Create one to get started!
+                  {t("no-campaigns")}
                 </p>
               ) : (
                 <ScrollArea className="h-60 rounded-md border bg-muted p-2">
@@ -248,8 +244,9 @@ export const CampaignSelectorDialog = ({
                                   )}
                                 </div>
                                 <p className="text-sm text-muted-foreground truncate">
-                                  {campaign.linksCount} link
-                                  {campaign.linksCount !== 1 ? "s" : ""}
+                                  {t("link-count", {
+                                    count: campaign.linksCount,
+                                  })}
                                   {campaign.description &&
                                     ` • ${campaign.description}`}
                                 </p>
@@ -274,7 +271,7 @@ export const CampaignSelectorDialog = ({
                                   <div className="space-y-2">
                                     <p className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
                                       <Sparkles className="w-3 h-3" />
-                                      UTM Defaults
+                                      {t("utm-defaults")}
                                     </p>
                                     <div className="flex flex-wrap gap-1">
                                       {campaign.utmDefaults.sources?.map(
@@ -328,7 +325,7 @@ export const CampaignSelectorDialog = ({
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <ExternalLink className="w-3 h-3" />
-                                  View campaign
+                                  {t("view-campaign")}
                                 </Link>
                               </div>
                             </HoverCardContent>
@@ -347,14 +344,14 @@ export const CampaignSelectorDialog = ({
                     setOpen(false);
                   }}
                 >
-                  Clear Selection
+                  {t("clear-selection")}
                 </Button>
               )}
             </div>
           </TabsContent>
           <TabsContent value="create">
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold">Create New Campaign</h3>
+              <h3 className="text-sm font-semibold">{t("create-new")}</h3>
               <Form {...campaignForm}>
                 <form className="flex flex-col gap-3">
                   <FormField
@@ -362,10 +359,10 @@ export const CampaignSelectorDialog = ({
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Campaign Name *</FormLabel>
+                        <FormLabel>{t("form.name-label")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., Black Friday 2025"
+                            placeholder={t("form.name-placeholder")}
                             {...field}
                           />
                         </FormControl>
@@ -381,12 +378,12 @@ export const CampaignSelectorDialog = ({
                   >
                     {creating ? (
                       <>
-                        Creating...
+                        {t("form.creating")}
                         <Spinner className="h-4 w-4" />
                       </>
                     ) : (
                       <>
-                        Create & Select
+                        {t("form.create-and-select")}
                         <Plus className="h-4 w-4" />
                       </>
                     )}

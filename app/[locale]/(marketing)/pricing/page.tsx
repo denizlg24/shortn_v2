@@ -1,6 +1,5 @@
 import { Check, MoveRight, X } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { use } from "react";
 import {
   features,
   plans,
@@ -43,14 +42,15 @@ export async function generateMetadata() {
   };
 }
 
-export default function Home({
+export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("pricing");
   return (
     <main className="flex flex-col items-center w-full mx-auto relative">
       <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
@@ -70,11 +70,10 @@ export default function Home({
       </div>
       <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          Transparent pricing for businesses of all sizes
+          {t("title")}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl">
-          Focus your marketing budget on what matters most — growing your
-          business. Handle all marketing essentials with our affordable plans.
+          {t("subtitle")}
         </h2>
       </div>
       <div className="w-full px-2 mx-auto max-w-7xl grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4 gap-y-6 my-12">
@@ -92,7 +91,7 @@ export default function Home({
               <article key={plan.id} className={`relative h-full p-4`}>
                 {plan.featured && (
                   <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                    Recommended
+                    {t("recommended")}
                   </div>
                 )}
 
@@ -111,8 +110,8 @@ export default function Home({
                     </div>
                   </div>
                   <div className="text-right text-muted-foreground text-sm">
-                    <div>Monthly billing</div>
-                    <div className="mt-2">Cancel anytime</div>
+                    <div>{t("monthly-billing")}</div>
+                    <div className="mt-2">{t("cancel-anytime")}</div>
                   </div>
                 </div>
                 <div className="mt-6 flex flex-col items-start gap-1">
@@ -122,11 +121,11 @@ export default function Home({
                     variant={plan.featured ? "default" : "outline"}
                   >
                     <Link href={"/register"}>
-                      Get Started <MoveRight />
+                      {t("get-started")} <MoveRight />
                     </Link>
                   </Button>
                   <div className="text-xs text-[#3b4d6b]">
-                    Billed monthly. Taxes may apply.
+                    {t("billed-monthly")}
                   </div>
                 </div>
 
@@ -169,7 +168,7 @@ export default function Home({
                 variant={"outline"}
               >
                 <Link href={"/register"}>
-                  Get Started <MoveRight />
+                  {t("get-started")} <MoveRight />
                 </Link>
               </Button>
             </div>
@@ -256,7 +255,7 @@ export default function Home({
                   size="sm"
                 >
                   <Link href="#">
-                    Get Started <MoveRight />
+                    {t("get-started")} <MoveRight />
                   </Link>
                 </Button>
               </div>

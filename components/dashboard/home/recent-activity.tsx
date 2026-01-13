@@ -18,6 +18,7 @@ import {
 import { Link } from "@/i18n/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 interface RecentActivityProps {
   recentLinks?: TUrl[];
@@ -36,9 +37,11 @@ const formatDate = (date: Date | string) => {
 const LinkItem = ({
   link,
   showClicks,
+  clicksLabel,
 }: {
   link: TUrl;
   showClicks: boolean;
+  clicksLabel: string;
 }) => {
   const shortUrl = getShortUrl(link.urlCode);
   return (
@@ -59,7 +62,7 @@ const LinkItem = ({
             {showClicks && (
               <Badge variant="outline" className="text-xs">
                 <MousePointerClick className="w-3 h-3" />
-                {link.clicks?.total || 0} clicks
+                {link.clicks?.total || 0} {clicksLabel}
               </Badge>
             )}
             <span className="text-xs text-muted-foreground">
@@ -76,9 +79,11 @@ const LinkItem = ({
 const QRCodeItem = ({
   qrCode,
   showClicks,
+  scansLabel,
 }: {
   qrCode: TQRCode;
   showClicks: boolean;
+  scansLabel: string;
 }) => {
   return (
     <Link
@@ -100,7 +105,7 @@ const QRCodeItem = ({
             {showClicks && (
               <Badge variant="outline" className="text-xs">
                 <MousePointerClick className="w-3 h-3" />
-                {qrCode.clicks?.total || 0} scans
+                {qrCode.clicks?.total || 0} {scansLabel}
               </Badge>
             )}
             <span className="text-xs text-muted-foreground">
@@ -138,6 +143,7 @@ export const RecentActivity = ({
   plan,
   className,
 }: RecentActivityProps) => {
+  const t = useTranslations("recent-activity");
   const canSeeClicks = Boolean(plan && plan !== "free");
 
   if (loading) {
@@ -147,7 +153,7 @@ export const RecentActivity = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-primary" />
-              <h2 className="font-bold text-lg">Recent Links</h2>
+              <h2 className="font-bold text-lg">{t("recent-links")}</h2>
             </div>
           </div>
           <LoadingSkeleton />
@@ -157,7 +163,7 @@ export const RecentActivity = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="font-bold text-lg">Top Performers</h2>
+              <h2 className="font-bold text-lg">{t("top-performers")}</h2>
             </div>
           </div>
           <LoadingSkeleton />
@@ -172,12 +178,12 @@ export const RecentActivity = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="w-5 h-5 text-primary" />
-            <h2 className="font-bold text-lg">Recent Links</h2>
+            <h2 className="font-bold text-lg">{t("recent-links")}</h2>
           </div>
           {recentLinks && recentLinks.length > 0 && (
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard/links">
-                View All
+                {t("view-all")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -187,10 +193,8 @@ export const RecentActivity = ({
         {!recentLinks || recentLinks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <LinkIcon className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">No links created yet</p>
-            <p className="text-xs mt-1">
-              Use Quick Create above to get started
-            </p>
+            <p className="text-sm">{t("no-links")}</p>
+            <p className="text-xs mt-1">{t("get-started")}</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -199,6 +203,7 @@ export const RecentActivity = ({
                 key={link._id?.toString()}
                 link={link}
                 showClicks={canSeeClicks}
+                clicksLabel={t("clicks")}
               />
             ))}
           </div>
@@ -208,25 +213,31 @@ export const RecentActivity = ({
       <Card className={cn("p-4 flex flex-col gap-4", className)}>
         <div className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-primary" />
-          <h2 className="font-bold text-lg">Top Performers</h2>
+          <h2 className="font-bold text-lg">{t("top-performers")}</h2>
         </div>
 
         {(!topLink || topLink.clicks?.total === 0) &&
         (!topQRCode || topQRCode.clicks?.total === 0) ? (
           <div className="text-center py-8 text-muted-foreground">
             <TrendingUp className="w-12 h-12 mx-auto mb-2 opacity-20" />
-            <p className="text-sm">No activity yet</p>
-            <p className="text-xs mt-1">
-              Share your links to see performance stats
-            </p>
+            <p className="text-sm">{t("no-activity")}</p>
+            <p className="text-xs mt-1">{t("share-links")}</p>
           </div>
         ) : (
           <div className="space-y-1">
             {topLink && topLink.clicks?.total > 0 && (
-              <LinkItem link={topLink} showClicks={canSeeClicks} />
+              <LinkItem
+                link={topLink}
+                showClicks={canSeeClicks}
+                clicksLabel={t("clicks")}
+              />
             )}
             {topQRCode && topQRCode.clicks?.total > 0 && (
-              <QRCodeItem qrCode={topQRCode} showClicks={canSeeClicks} />
+              <QRCodeItem
+                qrCode={topQRCode}
+                showClicks={canSeeClicks}
+                scansLabel={t("scans")}
+              />
             )}
           </div>
         )}
@@ -237,11 +248,11 @@ export const RecentActivity = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <QrCode className="w-5 h-5 text-primary" />
-              <h2 className="font-bold text-lg">Recent QR Codes</h2>
+              <h2 className="font-bold text-lg">{t("recent-qr-codes")}</h2>
             </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/dashboard/qr-codes">
-                View All
+                {t("view-all")}
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -253,6 +264,7 @@ export const RecentActivity = ({
                 key={qrCode._id?.toString()}
                 qrCode={qrCode}
                 showClicks={canSeeClicks}
+                scansLabel={t("scans")}
               />
             ))}
           </div>

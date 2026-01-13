@@ -20,25 +20,22 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { usePlan } from "@/hooks/use-plan";
-
-const pageFormSchema = z.object({
-  title: z
-    .string()
-    .max(100, "Title can't be longer than 100 characters")
-    .optional(),
-  slug: z
-    .string()
-    .min(3, "Page URL must be at least 3 characters long")
-    .max(52, "Page URL can't be longer than 52 characters")
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Page URL can only contain letters, numbers, dashes (-), and underscores (_)",
-    ),
-});
+import { useTranslations } from "next-intl";
 
 export const CreatePage = ({ url }: { url?: IUrl }) => {
+  const t = useTranslations("create-page");
   const { plan } = usePlan();
   const [creating, setCreating] = useState(false);
+
+  const pageFormSchema = z.object({
+    title: z.string().max(100, t("validation.title-max")).optional(),
+    slug: z
+      .string()
+      .min(3, t("validation.slug-min"))
+      .max(52, t("validation.slug-max"))
+      .regex(/^[a-zA-Z0-9_-]+$/, t("validation.slug-format")),
+  });
+
   const pageForm = useForm<z.infer<typeof pageFormSchema>>({
     resolver: zodResolver(pageFormSchema),
     defaultValues: {
@@ -52,7 +49,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
       <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-        Create a new Link-in-bio Page
+        {t("title")}
       </h1>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
         <Form {...pageForm}>
@@ -62,7 +59,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
               name="title"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Tittle (optional)</FormLabel>
+                  <FormLabel>{t("title-label")}</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
                   </FormControl>
@@ -71,19 +68,21 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
               )}
             />
             <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-              Your page
+              {t("your-page")}
             </h2>
             <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
               <div className="w-full grow flex flex-col items-start gap-2">
-                <p className="sm:text-sm text-xs font-semibold">Domain</p>
+                <p className="sm:text-sm text-xs font-semibold">
+                  {t("domain")}
+                </p>
                 <Input disabled className="w-full" readOnly value={BASEURL} />
               </div>
               <div className="h-9 text-sm flex items-center justify-center">
-                <p>/b/</p>
+                <p className="w-max">/b/</p>
               </div>
               <div className="w-full grow flex flex-col items-start gap-2">
                 <p className="sm:text-sm text-xs font-semibold">
-                  Link in bio code
+                  {t("link-in-bio-code")}
                 </p>
                 <FormField
                   control={pageForm.control}
@@ -101,7 +100,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
             </div>
             <div className="w-full flex flex-col gap-0.5 items-start">
               <p className="text-sm text-muted-foreground">
-                Your Page&apos;s link will look like
+                {t("page-link-preview")}
               </p>
               <Input
                 className="w-full bg-muted"
@@ -119,7 +118,7 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
             }}
             variant={"secondary"}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={async () => {
@@ -145,29 +144,27 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
                 switch (message) {
                   case "duplicate":
                     pageForm.setError("slug", {
-                      message:
-                        "This page URL is already taken. Please choose another one.",
+                      message: t("errors.duplicate"),
                     });
                     break;
                   case "plan-restricted":
                     pageForm.setError("root", {
-                      message:
-                        "Your current plan does not allow creating a new page.",
+                      message: t("errors.plan-restricted"),
                     });
                     break;
                   case "no-user":
                     pageForm.setError("root", {
-                      message: "User not found. Please log in again.",
+                      message: t("errors.no-user"),
                     });
                     break;
                   case "server-error":
                     pageForm.setError("root", {
-                      message: "Server error. Please try again later.",
+                      message: t("errors.server-error"),
                     });
                     break;
                   default:
                     pageForm.setError("root", {
-                      message: "Unknown error. Please try again.",
+                      message: t("errors.unknown"),
                     });
                 }
                 setCreating(false);
@@ -178,14 +175,14 @@ export const CreatePage = ({ url }: { url?: IUrl }) => {
           >
             {plan != "pro" ? (
               <>
-                <LockIcon /> Upgrade to Pro
+                <LockIcon /> {t("upgrade-to-pro")}
               </>
             ) : creating ? (
               <>
-                <Loader2 className="animate-spin" /> Creating...
+                <Loader2 className="animate-spin" /> {t("creating")}
               </>
             ) : (
-              <>Create your page</>
+              <>{t("create-your-page")}</>
             )}
           </Button>
         </div>

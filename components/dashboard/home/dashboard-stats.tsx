@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 interface StatsCardProps {
   title: string;
@@ -19,6 +20,8 @@ interface StatsCardProps {
   icon: React.ReactNode;
   locked?: boolean;
   className?: string;
+  lockedText: string;
+  upgradeText: string;
 }
 
 const StatsCard = ({
@@ -27,6 +30,8 @@ const StatsCard = ({
   icon,
   locked,
   className,
+  lockedText,
+  upgradeText,
 }: StatsCardProps) => {
   if (locked) {
     return (
@@ -42,10 +47,10 @@ const StatsCard = ({
         </div>
         <div className="flex items-center gap-2">
           <LockIcon className="w-4 h-4 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">Upgrade to view</p>
+          <p className="text-sm text-muted-foreground">{lockedText}</p>
         </div>
         <Button size="sm" variant="outline" className="mt-2" asChild>
-          <Link href="/dashboard/subscription">Upgrade Plan</Link>
+          <Link href="/dashboard/subscription">{upgradeText}</Link>
         </Button>
       </Card>
     );
@@ -76,6 +81,8 @@ export const DashboardStats = ({
   loading?: boolean;
   plan?: string;
 }) => {
+  const t = useTranslations("dashboard.stats");
+
   if (loading || !stats) {
     return (
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 col-span-full">
@@ -97,26 +104,34 @@ export const DashboardStats = ({
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 col-span-full">
       <StatsCard
-        title="Total Links"
+        title={t("total-links")}
         value={stats.totalLinks}
         icon={<LinkIcon className="w-5 h-5" />}
+        lockedText={t("upgrade-to-view")}
+        upgradeText={t("upgrade-plan")}
       />
       <StatsCard
-        title="Total QR Codes"
+        title={t("total-qr-codes")}
         value={stats.totalQRCodes}
         icon={<QrCode className="w-5 h-5" />}
+        lockedText={t("upgrade-to-view")}
+        upgradeText={t("upgrade-plan")}
       />
       <StatsCard
-        title="Total Clicks"
+        title={t("total-clicks")}
         value={stats.totalClicks}
         icon={<MousePointerClick className="w-5 h-5" />}
         locked={isFree}
+        lockedText={t("upgrade-to-view")}
+        upgradeText={t("upgrade-plan")}
       />
       <StatsCard
-        title="Total Scans"
+        title={t("total-scans")}
         value={stats.totalScans}
         icon={<Scan className="w-5 h-5" />}
         locked={isFree}
+        lockedText={t("upgrade-to-view")}
+        upgradeText={t("upgrade-plan")}
       />
     </div>
   );

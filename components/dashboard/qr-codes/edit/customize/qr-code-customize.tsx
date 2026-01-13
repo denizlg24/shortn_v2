@@ -41,8 +41,10 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
 export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
+  const t = useTranslations("qr-code-customize");
   const [options, setOptions] = useState<Partial<Options>>(qrCode.options);
 
   const router = useRouter();
@@ -62,7 +64,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
       const maxSizeInBytes = 5 * 1024 * 1024;
 
       if (!validTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+        toast.error(t("error-invalid-file-type"));
         if (logoRef && logoRef.current) {
           logoRef.current.value = "";
         }
@@ -70,7 +72,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
       }
 
       if (file.size > maxSizeInBytes) {
-        toast.error("File is too large. Must be under 2MB.");
+        toast.error(t("error-file-too-large"));
         if (logoRef && logoRef.current) {
           logoRef.current.value = "";
         }
@@ -100,14 +102,16 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
     <div className="w-full flex flex-row items-start justify-between gap-4 col-span-full">
       <div className="w-full flex flex-col gap-6 items-start">
         <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-          Customize your QR Code
+          {t("title")}
         </h1>
         <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
           <div className="flex flex-col gap-2 items-start">
             <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-              Select styles
+              {t("select-styles")}
             </h1>
-            <p className="lg:text-base text-sm font-semibold">Patterns</p>
+            <p className="lg:text-base text-sm font-semibold">
+              {t("patterns")}
+            </p>
             <div className="w-full grid grid-cols-6 gap-2">
               <Button
                 variant={"outline"}
@@ -240,8 +244,8 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
             </div>
           </div>
           <div className="w-full flex flex-col gap-2 items-start">
-            <p className="lg:text-base text-sm font-semibold">Corners</p>
-            <p className="lg:text-sm text-xs font-medium">Borders</p>
+            <p className="lg:text-base text-sm font-semibold">{t("corners")}</p>
+            <p className="lg:text-sm text-xs font-medium">{t("borders")}</p>
             <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
               <Button
                 variant={"outline"}
@@ -382,7 +386,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
                 />
               </Button>
             </div>
-            <p className="lg:text-sm text-xs font-medium">Dots</p>
+            <p className="lg:text-sm text-xs font-medium">{t("dots")}</p>
             <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
               <Button
                 variant={"outline"}
@@ -526,9 +530,9 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
           </div>
           <div className="w-full flex flex-col gap-2 items-start">
             <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-              Choose your colors
+              {t("choose-colors")}
             </h1>
-            <p className="lg:text-base text-sm font-semibold">Presets</p>
+            <p className="lg:text-base text-sm font-semibold">{t("presets")}</p>
             <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
               <Button
                 variant={"outline"}
@@ -674,7 +678,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
             <InputColor
               className="w-full"
               onBlur={() => {}}
-              label="Code Color"
+              label={t("code-color")}
               value={options.dotsOptions?.color || "#000"}
               onChange={(v) => {
                 setPresetChosen(undefined);
@@ -687,7 +691,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
             <InputColor
               className="w-full"
               onBlur={() => {}}
-              label="Background Color"
+              label={t("background-color")}
               value={options.backgroundOptions?.color || "#ffffff"}
               onChange={(v) => {
                 setPresetChosen(undefined);
@@ -705,31 +709,31 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
                   className="px-1 rounded-none! h-fit flex flex-row items-baseline
                   gap-1! hover:cursor-help lg:text-2xl md:text-xl sm:text-lg text-base font-bold"
                 >
-                  Add a logo
+                  {t("add-logo")}
                   <LockIcon className="w-4! h-4!" />
                 </HoverCardTrigger>
                 <HoverCardContent align="end" asChild>
                   <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                    <p className="text-sm font-bold">Unlock adding logos</p>
+                    <p className="text-sm font-bold">{t("unlock-logos")}</p>
                     <p>
                       <Link
                         className="underline hover:cursor-pointer"
                         href={`/dashboard/subscription`}
                       >
-                        Upgrade
+                        {t("upgrade")}
                       </Link>{" "}
-                      to be able to add logos to your QR Codes.
+                      {t("to-add-logos")}
                     </p>
                   </div>
                 </HoverCardContent>
               </HoverCard>
             ) : (
               <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-                Add a logo
+                {t("add-logo")}
               </h1>
             )}
             <p className="lg:text-base text-sm font-semibold">
-              Choose a picture to place in the middle of your QR Code
+              {t("choose-picture")}
             </p>
             <div className="w-full flex flex-col gap-1 items-start sm:max-w-sm">
               <div className="w-full flex flex-row items-center gap-1 sm:max-w-sm">
@@ -743,7 +747,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
                 {uploading && (
                   <Button variant={"secondary"} disabled>
                     <Loader2 className="animate-spin" />
-                    Uploading
+                    {t("uploading")}
                   </Button>
                 )}
                 {options.image && (
@@ -763,14 +767,13 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
                     variant={"secondary"}
                   >
                     <Trash2Icon />
-                    Remove logo
+                    {t("remove-logo")}
                   </Button>
                 )}
               </div>
 
               <p className="text-muted-foreground font-light text-xs">
-                PNG, JPG, or SVG. Max 5 MB. Transparent PNG recommended for best
-                results.
+                {t("file-requirements")}
               </p>
             </div>
           </div>
@@ -784,7 +787,7 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
               }}
               variant={"secondary"}
             >
-              Cancel
+              {t("cancel")}
             </Button>
             <Button
               onClick={async () => {
@@ -804,10 +807,10 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
             >
               {creating ? (
                 <>
-                  <Loader2 className="animate-spin" /> Saving...
+                  <Loader2 className="animate-spin" /> {t("saving")}
                 </>
               ) : (
-                <>Save changes</>
+                <>{t("save-changes")}</>
               )}
             </Button>
           </div>
@@ -815,15 +818,12 @@ export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
       </div>
       <div className="w-full max-w-xs lg:flex hidden flex-col gap-4 items-center text-center">
         <p className="font-semibold text-muted-foreground lg:text-lg text-base">
-          Preview
+          {t("preview")}
         </p>
         <div className="w-full h-auto max-w-52 aspect-square bg-background p-4 flex flex-col">
           <StyledQRCode className="w-full" options={options} />
         </div>
-        <p className="text-xs text-muted-foreground">
-          This code is preview only, so don&apos;t copy it just yet.
-          <br /> Your code will be generated once you finish creating it.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("preview-notice")}</p>
       </div>
     </div>
   );

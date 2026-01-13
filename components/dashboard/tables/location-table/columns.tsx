@@ -8,6 +8,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 export function aggregateClicksByLocation(
   entries: ClickEntry[],
   level: "country" | "city" | "device" | "browser" | "os" = "country",
+  unknownLabel: string = "Unknown",
 ) {
   const total = entries.length;
   const counts: Record<string, number> = {};
@@ -17,20 +18,20 @@ export function aggregateClicksByLocation(
 
     switch (level) {
       case "city":
-        key = entry.city?.trim() || "Unknown City";
+        key = entry.city?.trim() || `${unknownLabel} City`;
         break;
       case "device":
-        key = entry.deviceType?.trim() || "Unknown Device";
+        key = entry.deviceType?.trim() || `${unknownLabel} Device`;
         break;
       case "browser":
-        key = entry.browser?.trim() || "Unknown Browser";
+        key = entry.browser?.trim() || `${unknownLabel} Browser`;
         break;
       case "os":
-        key = entry.os?.trim() || "Unknown OS";
+        key = entry.os?.trim() || `${unknownLabel} OS`;
         break;
       case "country":
       default:
-        key = entry.country?.trim() || "Unknown Country";
+        key = entry.country?.trim() || `${unknownLabel} Country`;
         break;
     }
 
@@ -62,14 +63,8 @@ export const locationColumns = (
     enableResizing: true,
     filterFn: (row, _columnId, filterValue) => {
       if (filterValue === "__HIDE_UNKNOWN__") {
-        return (
-          row.original.location !== "Unknown Country" &&
-          row.original.location !== "Unknown Region" &&
-          row.original.location !== "Unknown City" &&
-          row.original.location !== "Unknown Device" &&
-          row.original.location !== "Unknown OS" &&
-          row.original.location !== "Unknown Browser"
-        );
+        // Check if location contains "Unknown" pattern (works for any language)
+        return !row.original.location.toLowerCase().includes("unknown");
       }
       if (typeof filterValue === "string" && filterValue.trim().length > 0) {
         return row.original.location

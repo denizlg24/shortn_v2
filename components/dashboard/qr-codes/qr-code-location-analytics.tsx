@@ -32,12 +32,14 @@ import { useScans } from "@/utils/ScanDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadButtonCSV } from "../links/download-csv-button";
 import { format } from "date-fns";
+import { useTranslations } from "next-intl";
 
 export const QRCodeLocationAnalytics = ({
   unlocked,
 }: {
   unlocked: "none" | "location" | "all";
 }) => {
+  const t = useTranslations("qr-code-location-analytics");
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
   >("country");
@@ -58,13 +60,13 @@ export const QRCodeLocationAnalytics = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Advanced data
+            {t("advanced-data")}
           </h1>
           <HoverCard>
             <HoverCardTrigger asChild>
               <Button className="xs:rounded-xl! p-1! px-2! h-fit! rounded! text-xs xs:w-fit w-full hover:cursor-help">
                 <Lock />
-                Upgrade
+                {t("upgrade")}
               </Button>
             </HoverCardTrigger>
             <HoverCardContent asChild>
@@ -74,9 +76,9 @@ export const QRCodeLocationAnalytics = ({
                     href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </Link>{" "}
-                  to see advanced data.
+                  {t("to-see-advanced")}
                 </p>
               </div>
             </HoverCardContent>
@@ -85,7 +87,7 @@ export const QRCodeLocationAnalytics = ({
         <div className="w-full h-auto">
           <Image
             src={scansOverTimeLocked}
-            alt="Scans over time locked illustration"
+            alt={t("locked-alt")}
             className="w-full h-full object-cover  min-h-[150px]"
           />
         </div>
@@ -97,10 +99,8 @@ export const QRCodeLocationAnalytics = ({
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
         <div className="w-full flex flex-col gap-1 items-start">
-          <CardTitle>Advanced Data</CardTitle>
-          <CardDescription>
-            Showing advanced data of qr code&apos;s scans
-          </CardDescription>
+          <CardTitle>{t("advanced-data")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <div className="w-full flex flex-col gap-2">
           <Skeleton className="w-full h-[250px]" />
@@ -113,15 +113,13 @@ export const QRCodeLocationAnalytics = ({
     country: click.country ? countries.getName(click.country, "en") : undefined,
   })) as ClickEntry[];
 
-  const data = aggregateClicksByLocation(transformed, selected);
+  const data = aggregateClicksByLocation(transformed, selected, t("unknown"));
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Advanced Data</CardTitle>
-        <CardDescription>
-          Showing advanced data of qr code&apos;s scans
-        </CardDescription>
+        <CardTitle>{t("advanced-data")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">
         <Tabs
@@ -133,11 +131,11 @@ export const QRCodeLocationAnalytics = ({
           <TabsList className="w-full sm:max-w-md">
             <TabsTrigger className="h-fit!" value="country">
               <Earth />
-              Countries
+              {t("tabs.countries")}
             </TabsTrigger>
             <TabsTrigger className="h-fit!" value="city">
               <MapPinned />
-              Cities
+              {t("tabs.cities")}
             </TabsTrigger>
             <TabsTrigger
               disabled={unlocked == "location"}
@@ -145,7 +143,7 @@ export const QRCodeLocationAnalytics = ({
               value="device"
             >
               <MonitorSmartphone />
-              Device
+              {t("tabs.device")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -156,7 +154,7 @@ export const QRCodeLocationAnalytics = ({
               value="browser"
             >
               <Globe />
-              Browser
+              {t("tabs.browser")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -167,7 +165,7 @@ export const QRCodeLocationAnalytics = ({
               value="os"
             >
               <AppWindowMac />
-              OS
+              {t("tabs.os")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -187,7 +185,7 @@ export const QRCodeLocationAnalytics = ({
               value="device"
             >
               <MonitorSmartphone />
-              Device
+              {t("tabs.device")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -198,7 +196,7 @@ export const QRCodeLocationAnalytics = ({
               value="browser"
             >
               <Globe />
-              Browser
+              {t("tabs.browser")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -209,7 +207,7 @@ export const QRCodeLocationAnalytics = ({
               value="os"
             >
               <AppWindowMac />
-              OS
+              {t("tabs.os")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -218,7 +216,7 @@ export const QRCodeLocationAnalytics = ({
         </Tabs>
         <DataTable
           data={data}
-          columns={locationColumns(getDataTitle(selected), "Scans")}
+          columns={locationColumns(getDataTitle(selected, t), t("table.scans"))}
         />
       </div>
       {clicks.length > 0 && (

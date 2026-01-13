@@ -77,6 +77,7 @@ import {
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
 export const LinkDetailsCard = ({
   currentLink: initialLink,
@@ -85,6 +86,7 @@ export const LinkDetailsCard = ({
   currentLink: TUrl;
   campaign?: { _id: string; title: string };
 }) => {
+  const t = useTranslations("link-details-card");
   const [currentLink, setCurrentLink] = useState<TUrl>(initialLink);
   const shortUrl = getShortUrl(currentLink.urlCode);
   const { plan } = usePlan();
@@ -109,10 +111,10 @@ export const LinkDetailsCard = ({
     setIsDeleting(true);
     const response = await deleteShortn(currentLink.urlCode);
     if (response.success) {
-      toast.success(`Link ${currentLink.urlCode} was successfully deleted.`);
+      toast.success(t("toast.deleted", { code: currentLink.urlCode }));
       router.push(`/dashboard/links`);
     } else {
-      toast.error("There was a problem deleting your link.");
+      toast.error(t("toast.delete-error"));
       setIsDeleting(false);
     }
   };
@@ -147,7 +149,7 @@ export const LinkDetailsCard = ({
 
   const handlePasswordSubmit = async () => {
     if (!isPro) {
-      toast.error("Password protection is only available for Pro users.");
+      toast.error(t("toast.password-pro-only"));
       return;
     }
 
@@ -164,7 +166,7 @@ export const LinkDetailsCard = ({
       });
 
       if (response.success) {
-        toast.success("Password protection enabled successfully!");
+        toast.success(t("toast.password-enabled"));
         setCurrentLink((prev) => ({
           ...prev,
           passwordProtected: true,
@@ -175,11 +177,11 @@ export const LinkDetailsCard = ({
         setPasswordHint("");
         router.refresh();
       } else {
-        toast.error("Failed to enable password protection.");
+        toast.error(t("toast.password-enable-failed"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while updating the link.");
+      toast.error(t("toast.update-error"));
     } finally {
       setIsPasswordLoading(false);
     }
@@ -198,7 +200,7 @@ export const LinkDetailsCard = ({
       });
 
       if (response.success) {
-        toast.success("Password protection removed successfully!");
+        toast.success(t("toast.password-removed"));
         setCurrentLink((prev) => ({
           ...prev,
           passwordProtected: false,
@@ -210,11 +212,11 @@ export const LinkDetailsCard = ({
         setPasswordHint("");
         router.refresh();
       } else {
-        toast.error("Failed to remove password protection.");
+        toast.error(t("toast.password-remove-failed"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while updating the link.");
+      toast.error(t("toast.update-error"));
     } finally {
       setIsPasswordLoading(false);
     }
@@ -247,13 +249,13 @@ export const LinkDetailsCard = ({
             {currentLink.passwordProtected && (
               <div className="flex flex-row items-center gap-1 text-secondary-foreground bg-secondary px-2 py-0.5 rounded-full">
                 <LockIcon className="w-3 h-3" />
-                <span className="text-xs font-medium">Protected</span>
+                <span className="text-xs font-medium">{t("protected")}</span>
               </div>
             )}
           </div>
           {currentLink.passwordProtected && (
             <p className="text-xs text-muted-foreground">
-              This link requires a password to access
+              {t("requires-password")}
             </p>
           )}
         </div>
@@ -271,12 +273,12 @@ export const LinkDetailsCard = ({
             {justCopied ? (
               <>
                 <CopyCheck />
-                Copied
+                {t("copied")}
               </>
             ) : (
               <>
                 <Copy />
-                Copy
+                {t("copy")}
               </>
             )}
           </Button>
@@ -284,44 +286,33 @@ export const LinkDetailsCard = ({
             <DialogTrigger asChild>
               <Button variant={"outline"}>
                 <Share2 />
-                Share
+                {t("share")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Share your Shortn Link</DialogTitle>
-                <DialogDescription>
-                  Share your link across social media.
-                </DialogDescription>
+                <DialogTitle>{t("share-title")}</DialogTitle>
+                <DialogDescription>{t("share-description")}</DialogDescription>
               </DialogHeader>
               <div className="w-full grid grid-cols-5 gap-4">
-                <FacebookShareButton
-                  url={shortUrl}
-                  quote={"Check out this link shortened with Shortn.at"}
-                >
+                <FacebookShareButton url={shortUrl} quote={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <FacebookIcon size={32} round />
                   </div>
                 </FacebookShareButton>
-                <RedditShareButton
-                  url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
-                >
+                <RedditShareButton url={shortUrl} title={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <RedditIcon size={32} round />
                   </div>
                 </RedditShareButton>
-                <TwitterShareButton
-                  url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
-                >
+                <TwitterShareButton url={shortUrl} title={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <TwitterIcon size={32} round />
                   </div>
                 </TwitterShareButton>
                 <WhatsappShareButton
                   url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
+                  title={t("share-text")}
                   separator=" "
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -330,8 +321,8 @@ export const LinkDetailsCard = ({
                 </WhatsappShareButton>
                 <EmailShareButton
                   url={shortUrl}
-                  subject="Checkout my Shortn.at Link!"
-                  body="Checkout this link shortened with Shortn.at"
+                  subject={t("email-subject")}
+                  body={t("email-body")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <EmailIcon size={32} round />
@@ -356,7 +347,7 @@ export const LinkDetailsCard = ({
                   variant={"secondary"}
                   className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
                 >
-                  {justCopied ? <>Copied</> : <>Copy</>}
+                  {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
                 </Button>
               </div>
             </DialogContent>
@@ -391,15 +382,15 @@ export const LinkDetailsCard = ({
               <DialogHeader>
                 <DialogTitle>
                   {currentLink.passwordProtected
-                    ? "Manage Password Protection"
-                    : "Add Password Protection"}
+                    ? t("password.manage-title")
+                    : t("password.add-title")}
                 </DialogTitle>
                 <DialogDescription>
                   {currentLink.passwordProtected
-                    ? "This link is currently password protected. You can remove the password below."
+                    ? t("password.manage-description")
                     : isPro
-                      ? "Protect your link with a password. Only users with the password can access it."
-                      : "Password protection is a Pro feature. Upgrade to enable this feature."}
+                      ? t("password.add-description")
+                      : t("password.upgrade-description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -407,13 +398,13 @@ export const LinkDetailsCard = ({
                 <div className="flex flex-col gap-4">
                   <div className="p-4 bg-secondary rounded-lg border">
                     <p className="text-sm text-secondary-foreground">
-                      Upgrade to Pro to protect your links with passwords.
+                      {t("password.upgrade-prompt")}
                     </p>
                   </div>
                   <Button asChild>
                     <Link href="/dashboard/subscription">
                       <LockIcon className="w-4 h-4 mr-2" />
-                      Upgrade to Pro
+                      {t("password.upgrade-button")}
                     </Link>
                   </Button>
                 </div>
@@ -423,16 +414,16 @@ export const LinkDetailsCard = ({
                     <div className="flex items-center gap-2 mb-2">
                       <LockIcon className="w-4 h-4 text-secondary-foreground" />
                       <p className="text-sm font-semibold text-secondary-foreground">
-                        Password Protected
+                        {t("password.protected")}
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      This link is currently protected. Users must enter the
-                      password to access it.
+                      {t("password.protected-description")}
                     </p>
                     {currentLink.passwordHint && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        <strong>Hint:</strong> {currentLink.passwordHint}
+                        <strong>{t("password.hint-label")}</strong>{" "}
+                        {currentLink.passwordHint}
                       </p>
                     )}
                   </div>
@@ -442,15 +433,15 @@ export const LinkDetailsCard = ({
                     disabled={isPasswordLoading}
                   >
                     {isPasswordLoading
-                      ? "Removing..."
-                      : "Remove Password Protection"}
+                      ? t("password.removing")
+                      : t("password.remove-button")}
                   </Button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <label htmlFor="password" className="text-sm font-medium">
-                      Password
+                      {t("password.password-label")}
                     </label>
                     <div className="relative">
                       <Input
@@ -458,7 +449,7 @@ export const LinkDetailsCard = ({
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter password"
+                        placeholder={t("password.password-placeholder")}
                         className="pr-10"
                       />
                       <Button
@@ -481,19 +472,18 @@ export const LinkDetailsCard = ({
                       htmlFor="passwordHint"
                       className="text-sm font-medium"
                     >
-                      Password Hint (Optional)
+                      {t("password.hint-optional")}
                     </label>
                     <Input
                       id="passwordHint"
                       type="text"
                       value={passwordHint}
                       onChange={(e) => setPasswordHint(e.target.value)}
-                      placeholder="e.g., Your birthday"
+                      placeholder={t("password.hint-placeholder")}
                       maxLength={100}
                     />
                     <p className="text-xs text-muted-foreground">
-                      This hint will be shown to users who need to enter the
-                      password.
+                      {t("password.hint-description")}
                     </p>
                   </div>
                   <Button
@@ -501,8 +491,8 @@ export const LinkDetailsCard = ({
                     disabled={!password || isPasswordLoading}
                   >
                     {isPasswordLoading
-                      ? "Enabling..."
-                      : "Enable Password Protection"}
+                      ? t("password.enabling")
+                      : t("password.enable-button")}
                   </Button>
                 </div>
               )}
@@ -527,11 +517,11 @@ export const LinkDetailsCard = ({
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="animate-spin" /> Deleting...
+                    <Loader2 className="animate-spin" /> {t("menu.deleting")}
                   </>
                 ) : (
                   <>
-                    <Trash2 /> Delete
+                    <Trash2 /> {t("menu.delete")}
                   </>
                 )}
               </Button>
@@ -542,21 +532,23 @@ export const LinkDetailsCard = ({
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                     >
-                      <FileChartColumn /> Export raw click data{" "}
+                      <FileChartColumn /> {t("menu.export-click-data")}{" "}
                       <LockIcon className="ml-auto" />
                     </Button>
                   </HoverCardTrigger>
                   <HoverCardContent asChild>
                     <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                      <p className="text-sm font-bold">Unlock CSV data.</p>
+                      <p className="text-sm font-bold">
+                        {t("menu.unlock-csv")}
+                      </p>
                       <p>
                         <Link
                           className="underline hover:cursor-pointer"
                           href={`/dashboard/subscription`}
                         >
-                          Upgrade
+                          {t("menu.upgrade")}
                         </Link>{" "}
-                        to export all-time click data.
+                        {t("menu.export-description")}
                       </p>
                     </div>
                   </HoverCardContent>
@@ -573,25 +565,25 @@ export const LinkDetailsCard = ({
                         return response;
                       },
                       {
-                        loading: "Preparing your download...",
+                        loading: t("toast.download-preparing"),
                         success: (response) => {
                           if (response.success) {
                             const a = document.createElement("a");
                             a.href = response.url;
                             a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                             a.click();
-                            return `Your download is ready and should start now.`;
+                            return t("toast.download-ready");
                           }
-                          return "There was an error creating your download.";
+                          return t("toast.download-error");
                         },
-                        error: "There was an error creating your download.",
+                        error: t("toast.download-error"),
                       },
                     );
                   }}
                   variant={"outline"}
                   className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
                 >
-                  <FileChartColumn /> Export raw click data
+                  <FileChartColumn /> {t("menu.export-click-data")}
                 </Button>
               )}
             </ScrollPopoverContent>
@@ -644,7 +636,9 @@ export const LinkDetailsCard = ({
                 );
               })}
               {currentLink.tags && currentLink.tags.length > 4 && (
-                <p className="text-xs">+{currentLink.tags.length - 4} more</p>
+                <p className="text-xs">
+                  +{currentLink.tags.length - 4} {t("more")}
+                </p>
               )}
               <Popover open={tagOpen} onOpenChange={tagOpenChange}>
                 <PopoverTrigger asChild>
@@ -653,7 +647,8 @@ export const LinkDetailsCard = ({
                     role="combobox"
                     className="w-fit! justify-between text-primary text-sm gap-1! px-0! py-0! h-fit!"
                   >
-                    <PlusCircle className="text-primary w-3! h-3!" /> Add tag
+                    <PlusCircle className="text-primary w-3! h-3!" />{" "}
+                    {t("add-tag")}
                   </Button>
                 </PopoverTrigger>
                 <ScrollPopoverContent
@@ -665,7 +660,7 @@ export const LinkDetailsCard = ({
                     <CommandInput
                       value={input}
                       onValueChange={setInput}
-                      placeholder="Search tags..."
+                      placeholder={t("search-tags")}
                       className="h-9"
                     />
                     <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -744,7 +739,7 @@ export const LinkDetailsCard = ({
                               tagOpenChange(false);
                             }}
                           >
-                            Create &quot;{input}&quot;
+                            {t("create-tag", { name: input })}
                           </CommandItem>
                         )}
                       </CommandGroup>
@@ -758,11 +753,10 @@ export const LinkDetailsCard = ({
             <Tags className="w-4 h-4" />
             {currentLink.tags && currentLink.tags.length > 0 ? (
               <p className="text-xs">
-                {currentLink.tags.length}{" "}
-                {currentLink.tags.length == 1 ? "tag" : "tags"}
+                {t("tags-count", { count: currentLink.tags.length })}
               </p>
             ) : (
-              <p className="text-xs">No tags</p>
+              <p className="text-xs">{t("no-tags")}</p>
             )}
           </div>
         </div>
@@ -783,12 +777,12 @@ export const LinkDetailsCard = ({
           {justCopied ? (
             <>
               <CopyCheck />
-              Copied
+              {t("copied")}
             </>
           ) : (
             <>
               <Copy />
-              Copy
+              {t("copy")}
             </>
           )}
         </Button>
@@ -796,44 +790,33 @@ export const LinkDetailsCard = ({
           <DialogTrigger asChild>
             <Button variant={"outline"} className="p-1.5! h-fit!">
               <Share2 />
-              Share
+              {t("share")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Share your Shortn Link</DialogTitle>
-              <DialogDescription>
-                Share your link across social media.
-              </DialogDescription>
+              <DialogTitle>{t("share-title")}</DialogTitle>
+              <DialogDescription>{t("share-description")}</DialogDescription>
             </DialogHeader>
             <div className="w-full grid grid-cols-5 gap-4">
-              <FacebookShareButton
-                url={shortUrl}
-                quote={"Check out this link shortened with Shortn.at"}
-              >
+              <FacebookShareButton url={shortUrl} quote={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <FacebookIcon size={32} round />
                 </div>
               </FacebookShareButton>
-              <RedditShareButton
-                url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
-              >
+              <RedditShareButton url={shortUrl} title={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <RedditIcon size={32} round />
                 </div>
               </RedditShareButton>
-              <TwitterShareButton
-                url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
-              >
+              <TwitterShareButton url={shortUrl} title={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <TwitterIcon size={32} round />
                 </div>
               </TwitterShareButton>
               <WhatsappShareButton
                 url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
+                title={t("share-text")}
                 separator=" "
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -842,8 +825,8 @@ export const LinkDetailsCard = ({
               </WhatsappShareButton>
               <EmailShareButton
                 url={shortUrl}
-                subject="Checkout my Shortn.at Link!"
-                body="Checkout this link shortened with Shortn.at"
+                subject={t("email-subject")}
+                body={t("email-body")}
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <EmailIcon size={32} round />
@@ -868,7 +851,7 @@ export const LinkDetailsCard = ({
                 variant={"secondary"}
                 className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
               >
-                {justCopied ? <>Copied</> : <>Copy</>}
+                {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
               </Button>
             </div>
           </DialogContent>
@@ -917,11 +900,11 @@ export const LinkDetailsCard = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="animate-spin" /> Deleting...
+                  <Loader2 className="animate-spin" /> {t("menu.deleting")}
                 </>
               ) : (
                 <>
-                  <Trash2 /> Delete
+                  <Trash2 /> {t("menu.delete")}
                 </>
               )}
             </Button>
@@ -932,21 +915,21 @@ export const LinkDetailsCard = ({
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! relative text-muted-foreground"
                   >
-                    <FileChartColumn /> Export raw click data{" "}
+                    <FileChartColumn /> {t("menu.export-click-data")}{" "}
                     <LockIcon className="ml-auto" />
                   </Button>
                 </HoverCardTrigger>
                 <HoverCardContent asChild>
                   <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                    <p className="text-sm font-bold">Unlock CSV data.</p>
+                    <p className="text-sm font-bold">{t("menu.unlock-csv")}</p>
                     <p>
                       <Link
                         className="underline hover:cursor-pointer"
                         href={`/dashboard/subscription`}
                       >
-                        Upgrade
+                        {t("menu.upgrade")}
                       </Link>{" "}
-                      to export all-time click data.
+                      {t("menu.export-description")}
                     </p>
                   </div>
                 </HoverCardContent>
@@ -963,25 +946,25 @@ export const LinkDetailsCard = ({
                       return response;
                     },
                     {
-                      loading: "Preparing your download...",
+                      loading: t("toast.download-preparing"),
                       success: (response) => {
                         if (response.success) {
                           const a = document.createElement("a");
                           a.href = response.url;
                           a.download = `${currentLink.urlCode}-clicks-${format(Date.now(), "dd-MM-yyyy")}.csv`;
                           a.click();
-                          return `Your download is ready and should start now.`;
+                          return t("toast.download-ready");
                         }
-                        return "There was an error creating your download.";
+                        return t("toast.download-error");
                       },
-                      error: "There was an error creating your download.",
+                      error: t("toast.download-error"),
                     },
                   );
                 }}
                 variant={"outline"}
                 className="w-full border-none! rounded-none! justify-start! shadow-none! relative"
               >
-                <FileChartColumn /> Export raw click data
+                <FileChartColumn /> {t("menu.export-click-data")}
               </Button>
             )}
           </ScrollPopoverContent>

@@ -8,8 +8,10 @@ import {
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { ChevronUp } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export const NavigationBar = () => {
+  const t = useTranslations("settings-nav");
   const pathname = usePathname();
   const prefix = `/dashboard`;
   return (
@@ -22,7 +24,7 @@ export const NavigationBar = () => {
             )}
             href={`${prefix}/settings`}
           >
-            Profile
+            {t("profile")}
           </Link>
           {pathname.endsWith(`/settings`) && (
             <div className="absolute w-full flex flex-col items-center gap-0 top-5">
@@ -37,7 +39,7 @@ export const NavigationBar = () => {
             )}
             href={`${prefix}/settings/security`}
           >
-            Security
+            {t("security")}
           </Link>
           {pathname.endsWith(`/security`) && (
             <div className="absolute w-full flex flex-col items-center gap-0 top-5">
@@ -52,7 +54,7 @@ export const NavigationBar = () => {
             )}
             href={`${prefix}/settings/plan`}
           >
-            Plan & Billing
+            {t("plan-billing")}
           </Link>
           {pathname.endsWith(`/plan`) && (
             <div className="absolute w-full flex flex-col items-center gap-0 top-5">

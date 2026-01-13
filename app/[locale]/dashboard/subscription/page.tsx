@@ -154,6 +154,7 @@ export default async function Home({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("subscription");
   const session = await getServerSession();
   const user = session?.user;
   if (!user) {
@@ -168,12 +169,9 @@ export default async function Home({
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">
-            Plans & Pricing
+            {t("title")}
           </h1>
-          <p className="mt-3 max-w-xl">
-            Choose a plan that fits your needs. Upgrade at any time to unlock
-            Full analytics.
-          </p>
+          <p className="mt-3 max-w-xl">{t("subtitle")}</p>
         </div>
       </header>
 
@@ -183,25 +181,28 @@ export default async function Home({
             <div className="flex-1">
               <h3 className="font-semibold text-amber-900">
                 {pendingChange.changeType === "cancellation"
-                  ? "Subscription Cancellation Scheduled"
-                  : `Downgrade to ${pendingChange.targetPlan} Scheduled`}
+                  ? t("cancellation-scheduled")
+                  : t("downgrade-scheduled", {
+                      plan: pendingChange.targetPlan,
+                    })}
               </h3>
               <p className="text-sm text-amber-800 mt-1">
-                Your {pendingChange.changeType} will take effect on{" "}
-                {new Date(pendingChange.scheduledFor).toLocaleDateString(
-                  "en-US",
-                  {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  },
-                )}
-                . You can revert this change at any time before then.
+                {t("change-effect", {
+                  type: pendingChange.changeType,
+                  date: new Date(pendingChange.scheduledFor).toLocaleDateString(
+                    locale,
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  ),
+                })}
               </p>
             </div>
             <RevertScheduledChangeButton pendingChange={pendingChange}>
               <Button variant="outline" size="sm">
-                Revert
+                {t("revert")}
               </Button>
             </RevertScheduledChangeButton>
           </div>
@@ -221,7 +222,7 @@ export default async function Home({
             >
               {plan.featured && (
                 <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                  Recommended
+                  {t("recommended")}
                 </div>
               )}
 
@@ -240,19 +241,21 @@ export default async function Home({
                   </div>
                 </div>
                 <div className="text-right text-muted-foreground text-sm">
-                  <div>Monthly billing</div>
-                  <div className="mt-2">Cancel anytime</div>
+                  <div>{t("monthly-billing")}</div>
+                  <div className="mt-2">{t("cancel-anytime")}</div>
                 </div>
               </div>
               <div className="mt-6 flex flex-col items-start gap-1">
                 {plan.id === _plan ? (
                   <Button className="w-full" variant="secondary" asChild>
-                    <Link href="/dashboard/settings/plan">{plan.keep}</Link>
+                    <Link href="/dashboard/settings/plan">
+                      {t("manage-usage")}
+                    </Link>
                   </Button>
                 ) : _plan === "free" ? (
                   <CheckoutSessionButton
                     className="w-full"
-                    text={`Upgrade to ${plan.name}`}
+                    text={t("upgrade-to", { plan: plan.name })}
                     slug={plan.id as "pro" | "plus" | "basic"}
                     variant={plan.featured ? "default" : "outline"}
                   />
@@ -260,20 +263,20 @@ export default async function Home({
                   pendingChange?.changeType === "cancellation" ? (
                     <RevertScheduledChangeButton pendingChange={pendingChange}>
                       <Button className="w-full" variant="outline">
-                        Keep Current Plan
+                        {t("keep-current-plan")}
                       </Button>
                     </RevertScheduledChangeButton>
                   ) : (
                     <CancelSubscriptionButton>
                       <Button className="w-full" variant="destructive">
-                        Cancel Plan
+                        {t("cancel-plan")}
                       </Button>
                     </CancelSubscriptionButton>
                   )
                 ) : pendingChange && pendingChange.targetPlan === plan.id ? (
                   <RevertScheduledChangeButton pendingChange={pendingChange}>
                     <Button className="w-full" variant="outline">
-                      Keep Current Plan
+                      {t("keep-current-plan")}
                     </Button>
                   </RevertScheduledChangeButton>
                 ) : pendingChange ? (
@@ -282,7 +285,7 @@ export default async function Home({
                     variant="outline"
                     disabled
                   >
-                    Pending Change
+                    {t("pending-change")}
                   </Button>
                 ) : (
                   <UpgradeSessionButton
@@ -302,8 +305,8 @@ export default async function Home({
                         _plan as SubscriptionsType,
                         plan.id as SubscriptionsType,
                       ) > 0
-                        ? `Upgrade to ${plan.name}`
-                        : `Downgrade to ${plan.name}`}
+                        ? t("upgrade-to", { plan: plan.name })
+                        : t("downgrade-to", { plan: plan.name })}
                     </Button>
                   </UpgradeSessionButton>
                 )}
@@ -312,11 +315,11 @@ export default async function Home({
                   asChild
                   className="text-sm p-0! h-fit!"
                 >
-                  <a href="#compare">Compare plans →</a>
+                  <a href="#compare">{t("compare-plans")}</a>
                 </Button>
 
                 <div className="text-xs text-[#3b4d6b]">
-                  Billed monthly. Taxes may apply.
+                  {t("billed-monthly")}
                 </div>
               </div>
 

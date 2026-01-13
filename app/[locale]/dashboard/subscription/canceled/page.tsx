@@ -1,5 +1,5 @@
 import { redirect } from "@/i18n/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ArrowRight, CalendarX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -15,6 +15,7 @@ export default async function SubscriptionCanceledPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("subscription-canceled");
   const { scheduled } = await searchParams;
 
   if (!scheduled) {
@@ -37,37 +38,36 @@ export default async function SubscriptionCanceledPage({
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight">
-              Cancellation Scheduled
+              {t("title")}
             </h1>
-            <p className="text-lg text-muted-foreground">
-              Your subscription has been set to cancel at the end of your
-              billing period.
-            </p>
+            <p className="text-lg text-muted-foreground">{t("subtitle")}</p>
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Cancellation Details
+              {t("details-heading")}
             </h2>
             <div className="rounded-lg border bg-card">
               <div className="divide-y">
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">
-                    Effective Date
+                    {t("effective-date")}
                   </span>
                   <span className="text-sm font-semibold">{formattedDate}</span>
                 </div>
                 <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("status")}
+                  </span>
                   <span className="text-sm font-semibold text-amber-600">
-                    Pending Cancellation
+                    {t("pending-cancellation")}
                   </span>
                 </div>
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">
-                    Access Until
+                    {t("access-until")}
                   </span>
                   <span className="text-sm font-semibold">{formattedDate}</span>
                 </div>
@@ -77,36 +77,35 @@ export default async function SubscriptionCanceledPage({
 
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              What Happens Next
+              {t("what-happens-heading")}
             </h2>
             <div className="rounded-lg border bg-card p-4">
               <ul className="space-y-3 text-sm">
                 <li className="flex gap-3">
                   <span className="text-muted-foreground mt-0.5">1.</span>
                   <span>
-                    You'll continue to have <strong>full access</strong> to all
-                    features until <strong>{formattedDate}</strong>
+                    {t.rich("step-1", {
+                      date: formattedDate,
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                    })}
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-muted-foreground mt-0.5">2.</span>
                   <span>
-                    On <strong>{formattedDate}</strong>, your subscription will
-                    automatically end and you'll be downgraded to the free plan
+                    {t.rich("step-2", {
+                      date: formattedDate,
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                    })}
                   </span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-muted-foreground mt-0.5">3.</span>
-                  <span>
-                    You won't be charged for any future billing periods
-                  </span>
+                  <span>{t("step-3")}</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="text-muted-foreground mt-0.5">4.</span>
-                  <span>
-                    Your data will be retained according to our data retention
-                    policy
-                  </span>
+                  <span>{t("step-4")}</span>
                 </li>
               </ul>
             </div>
@@ -115,24 +114,20 @@ export default async function SubscriptionCanceledPage({
 
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <h3 className="text-sm font-semibold text-amber-900 mb-2">
-            Changed your mind?
+            {t("changed-mind")}
           </h3>
           <p className="text-sm text-amber-900 mb-3">
-            You can reactivate your subscription at any time before{" "}
-            {formattedDate}. Simply visit your subscription settings and choose
-            a plan.
+            {t("changed-mind-description", { date: formattedDate })}
           </p>
           <Button asChild variant="outline" size="sm" className="bg-white">
-            <Link href="/dashboard/subscription">
-              View Subscription Settings
-            </Link>
+            <Link href="/dashboard/subscription">{t("view-settings")}</Link>
           </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg">
             <Link href="/dashboard">
-              Go to Dashboard
+              {t("go-to-dashboard")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
@@ -140,15 +135,16 @@ export default async function SubscriptionCanceledPage({
 
         <div className="rounded-lg border bg-muted/30 p-4 text-center">
           <p className="text-sm text-muted-foreground">
-            We appreciate your feedback. If you have any questions or concerns,
-            please{" "}
-            <Link
-              href="/contact"
-              className="font-medium text-foreground underline underline-offset-4"
-            >
-              contact our support team
-            </Link>
-            .
+            {t.rich("feedback-note", {
+              link: (chunks) => (
+                <Link
+                  href="/contact"
+                  className="font-medium text-foreground underline underline-offset-4"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
       </div>

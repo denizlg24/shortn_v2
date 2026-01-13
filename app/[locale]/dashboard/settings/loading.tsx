@@ -1,14 +1,16 @@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getTranslations } from "next-intl/server";
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations("loading");
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Profile Details
+        {t("settings-title")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Update your photo and personal details here.
+        {t("settings-subtitle")}
       </h2>
       <Separator className="my-4" />
       <div className="flex flex-row items-stretch justify-start gap-4 w-full">

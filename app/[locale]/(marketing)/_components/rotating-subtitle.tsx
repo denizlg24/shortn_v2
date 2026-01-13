@@ -2,8 +2,10 @@
 
 import RotatingText from "@/components/RotatingText";
 import { LayoutGroup, motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 export const RotatingSubtitle = ({ texts }: { texts: string[] }) => {
+  const t = useTranslations("rotating-subtitle");
   return (
     <div className="inline-block transition-all overflow-hidden px-6">
       <LayoutGroup>
@@ -16,7 +18,7 @@ export const RotatingSubtitle = ({ texts }: { texts: string[] }) => {
             layout
             transition={{ type: "spring", damping: 30, stiffness: 400 }}
           >
-            Your{" "}
+            {t("your")}{" "}
           </motion.span>
           <RotatingText
             texts={texts}

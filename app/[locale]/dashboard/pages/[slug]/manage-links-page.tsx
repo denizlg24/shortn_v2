@@ -50,6 +50,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
+import { useTranslations } from "next-intl";
 
 type LinkData = {
   _id: string;
@@ -73,6 +74,7 @@ export const ManageLinksPage = ({
   initialLinks: LinkData[];
   slug: string;
 }) => {
+  const t = useTranslations("manage-links-page");
   const [links, setLinks] = useState<LinkData[]>(initialLinks);
   const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
@@ -126,9 +128,9 @@ export const ManageLinksPage = ({
         const { [linkId]: _, ...rest } = prev;
         return rest;
       });
-      toast.success("Changes saved");
+      toast.success(t("toast.changes-saved"));
     } else {
-      toast.error("Failed to save changes");
+      toast.error(t("toast.failed-save-changes"));
     }
 
     setSavingLinks((prev) => ({ ...prev, [linkId]: false }));
@@ -152,7 +154,7 @@ export const ManageLinksPage = ({
     const maxSizeInBytes = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+      toast.error(t("toast.invalid-file-type"));
       if (e.target) {
         e.target.value = "";
       }
@@ -161,7 +163,7 @@ export const ManageLinksPage = ({
     }
 
     if (file.size > maxSizeInBytes) {
-      toast.error("File is too large. Must be under 5MB.");
+      toast.error(t("toast.file-too-large"));
       if (e.target) {
         e.target.value = "";
       }
@@ -172,9 +174,9 @@ export const ManageLinksPage = ({
     const uploadPromise = uploadImage(file);
 
     toast.promise(uploadPromise, {
-      loading: "Uploading image...",
-      success: "Image uploaded",
-      error: "Failed to upload image",
+      loading: t("toast.uploading-image"),
+      success: t("toast.image-uploaded"),
+      error: t("toast.failed-upload-image"),
     });
 
     const { success, url } = await uploadPromise;
@@ -200,9 +202,9 @@ export const ManageLinksPage = ({
     const deletePromise = deletePicture(imageUrl);
 
     toast.promise(deletePromise, {
-      loading: "Removing image...",
-      success: "Image removed",
-      error: "Failed to remove image",
+      loading: t("toast.removing-image"),
+      success: t("toast.image-removed"),
+      error: t("toast.failed-remove-image"),
     });
 
     const { success } = await deletePromise;
@@ -224,9 +226,9 @@ export const ManageLinksPage = ({
 
     if (result.success) {
       setLinks((prev) => prev.filter((link) => link._id !== linkId));
-      toast.success("Link removed from bio page");
+      toast.success(t("toast.link-removed"));
     } else {
-      toast.error("Failed to remove link");
+      toast.error(t("toast.failed-remove-link"));
     }
 
     setLinkToDelete(null);
@@ -242,7 +244,7 @@ export const ManageLinksPage = ({
     });
 
     if (!result.success) {
-      toast.error("Failed to reorder links");
+      toast.error(t("toast.failed-reorder"));
       setLinks(oldOrder);
     }
   };
@@ -269,10 +271,12 @@ export const ManageLinksPage = ({
 
     if (result.success) {
       toast.success(
-        `Sorted by ${sortType === "addedAt" ? "date added" : "date created"}`,
+        sortType === "addedAt"
+          ? t("toast.sorted-by-added")
+          : t("toast.sorted-by-created"),
       );
     } else {
-      toast.error("Failed to save sorted order");
+      toast.error(t("toast.failed-save-sorted"));
 
       setLinks(links);
     }
@@ -289,18 +293,18 @@ export const ManageLinksPage = ({
             className="flex items-center gap-1 text-sm font-medium hover:underline"
           >
             <ChevronLeft className="h-4 w-4" />
-            Back to list
+            {t("back-to-list")}
           </Link>
           <Button variant="outline" asChild>
             <Link href={`/dashboard/pages/${slug}/customize`}>
-              <Palette /> Customize
+              <Palette /> {t("customize")}
             </Link>
           </Button>
         </div>
         <div className="flex sm:flex-row flex-col sm:items-center items-start justify-between gap-4">
-          <h1 className="text-3xl font-bold">Manage Links</h1>
+          <h1 className="text-3xl font-bold">{t("title")}</h1>
           <div className="flex items-center gap-2 flex-wrap">
-            <Label className="text-nowrap">Sort by:</Label>
+            <Label className="text-nowrap">{t("sort-by")}</Label>
             <Button
               variant="outline"
               size="sm"
@@ -312,7 +316,7 @@ export const ManageLinksPage = ({
               ) : (
                 <CalendarPlus className="h-4 w-4" />
               )}
-              Date Added
+              {t("date-added")}
             </Button>
             <Button
               variant="outline"
@@ -325,16 +329,14 @@ export const ManageLinksPage = ({
               ) : (
                 <Calendar className="h-4 w-4" />
               )}
-              Date Created
+              {t("date-created")}
             </Button>
           </div>
         </div>
         <Separator />
 
         {links.length === 0 ? (
-          <p className="text-muted-foreground">
-            No links added to this bio page yet.
-          </p>
+          <p className="text-muted-foreground">{t("no-links")}</p>
         ) : (
           <Sortable
             value={links}
@@ -365,7 +367,9 @@ export const ManageLinksPage = ({
 
                           <div className="flex-1 min-w-0 flex flex-col gap-4">
                             <div className="flex flex-col gap-2">
-                              <Label htmlFor={`title-${link._id}`}>Title</Label>
+                              <Label htmlFor={`title-${link._id}`}>
+                                {t("form-title")}
+                              </Label>
                               <Input
                                 id={`title-${link._id}`}
                                 value={currentTitle}
@@ -378,7 +382,7 @@ export const ManageLinksPage = ({
                             </div>
 
                             <div className="flex flex-col gap-2">
-                              <Label>Image</Label>
+                              <Label>{t("form-image")}</Label>
                               <div className="flex items-center gap-2 flex-wrap">
                                 {currentImage ? (
                                   <>
@@ -400,7 +404,7 @@ export const ManageLinksPage = ({
                                       }
                                     >
                                       <Trash2 className="h-4 w-4" />
-                                      Remove
+                                      {t("remove")}
                                     </Button>
                                   </>
                                 ) : (
@@ -432,7 +436,11 @@ export const ManageLinksPage = ({
                                     </div>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>Short URL: {link.shortUrl}</p>
+                                    <p>
+                                      {t("tooltip-short-url", {
+                                        url: link.shortUrl,
+                                      })}
+                                    </p>
                                   </TooltipContent>
                                 </Tooltip>
                                 <Tooltip>
@@ -448,10 +456,11 @@ export const ManageLinksPage = ({
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>
-                                      Created:{" "}
-                                      {new Date(
-                                        link.createdAt,
-                                      ).toLocaleDateString()}
+                                      {t("tooltip-created", {
+                                        date: new Date(
+                                          link.createdAt,
+                                        ).toLocaleDateString(),
+                                      })}
                                     </p>
                                   </TooltipContent>
                                 </Tooltip>
@@ -468,10 +477,11 @@ export const ManageLinksPage = ({
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>
-                                      Added:{" "}
-                                      {new Date(
-                                        link.addedAt,
-                                      ).toLocaleDateString()}
+                                      {t("tooltip-added", {
+                                        date: new Date(
+                                          link.addedAt,
+                                        ).toLocaleDateString(),
+                                      })}
                                     </p>
                                   </TooltipContent>
                                 </Tooltip>
@@ -488,10 +498,10 @@ export const ManageLinksPage = ({
                                   {isSaving ? (
                                     <>
                                       <Spinner className="h-3 w-3" />
-                                      Saving...
+                                      {t("saving")}
                                     </>
                                   ) : (
-                                    "Save Changes"
+                                    t("save-changes")
                                   )}
                                 </Button>
                                 <Button
@@ -500,7 +510,7 @@ export const ManageLinksPage = ({
                                   onClick={() => handleDiscardChanges(link._id)}
                                   disabled={isSaving}
                                 >
-                                  Discard
+                                  {t("discard")}
                                 </Button>
                               </div>
                             )}
@@ -538,18 +548,17 @@ export const ManageLinksPage = ({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Link</AlertDialogTitle>
+            <AlertDialogTitle>{t("dialog-title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this link from your bio page? This
-              action cannot be undone.
+              {t("dialog-description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("dialog-cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => linkToDelete && handleRemoveLink(linkToDelete)}
             >
-              Remove
+              {t("dialog-remove")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

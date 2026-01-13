@@ -51,31 +51,30 @@ import {
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
-const urlFormSchema = z.object({
-  title: z
-    .string()
-    .min(3, "Your title must be at least 3 characters long.")
-    .max(52, "Your title can't be longer than 52 characters."),
-  custom_code: z
-    .union([
-      z
-        .string()
-        .min(3, "Back-half must be at least 3 characters long")
-        .max(52, "Back-half can't be longer than 52 characters")
-        .regex(
-          /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
-        ),
-      z.literal(""),
-    ])
-    .optional(),
-  applyToQR: z.boolean().default(false).optional(),
-  longUrl: z
-    .string()
-    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
-});
+import { useTranslations } from "next-intl";
 
 export const LinksEditContent = ({ url }: { url: IUrl }) => {
+  const t = useTranslations("link-edit");
+
+  const urlFormSchema = z.object({
+    title: z
+      .string()
+      .min(3, t("validation.title-too-short"))
+      .max(52, t("validation.title-too-long")),
+    custom_code: z
+      .union([
+        z
+          .string()
+          .min(3, t("validation.back-half-too-short"))
+          .max(52, t("validation.back-half-too-long"))
+          .regex(/^[a-zA-Z0-9_-]+$/, t("validation.back-half-invalid-chars")),
+        z.literal(""),
+      ])
+      .optional(),
+    applyToQR: z.boolean().default(false).optional(),
+    longUrl: z.string().url(t("validation.invalid-url")),
+  });
+
   const { data, refetch } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
@@ -165,12 +164,12 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
       <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-        Edit your Shortn link
+        {t("page-title")}
       </h1>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
         <div className="flex flex-col gap-2 items-start">
           <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-            Details
+            {t("details")}
           </h1>
         </div>
         <Form {...urlForm}>
@@ -196,33 +195,31 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                   case "duplicate":
                     urlForm.setError("custom_code", {
                       type: "manual",
-                      message: "A shortn with that back half already exists.",
+                      message: t("error-duplicate"),
                     });
                     break;
                   case "no-user":
                     urlForm.setError("root", {
                       type: "manual",
-                      message: "You don't seem to be logged in.",
+                      message: t("error-no-user"),
                     });
                     break;
                   case "custom-restricted":
                     urlForm.setError("custom_code", {
                       type: "manual",
-                      message:
-                        "You are not allowed to use custom back halves without a PRO account.",
+                      message: t("error-custom-restricted"),
                     });
                     break;
                   case "redirect-plan-limit":
                     urlForm.setError("longUrl", {
                       type: "manual",
-                      message:
-                        "You have reached the redirect limit for your plan.",
+                      message: t("error-redirect-limit"),
                     });
                     break;
                   default:
                     urlForm.setError("root", {
                       type: "manual",
-                      message: "An unexpected error occurred.",
+                      message: t("error-unexpected"),
                     });
                 }
                 setCreating(false);
@@ -235,7 +232,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
               name="title"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t("title-label")}</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
                   </FormControl>
@@ -249,7 +246,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Custom Back-half{" "}
+                    {t("custom-back-half")}{" "}
                     {plan != "pro" && (
                       <HoverCard>
                         <HoverCardTrigger>
@@ -258,16 +255,16 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                         <HoverCardContent asChild>
                           <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                             <p className="text-sm font-bold">
-                              Unlock custom codes
+                              {t("unlock-custom-codes")}
                             </p>
                             <p>
                               <Link
                                 href={`/dashboard/subscription`}
                                 className="underline hover:cursor-pointer"
                               >
-                                Upgrade
+                                {t("upgrade")}
                               </Link>{" "}
-                              to access link stats.
+                              {t("to-access-stats")}
                             </p>
                           </div>
                         </HoverCardContent>
@@ -287,7 +284,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
               )}
             />
             <div className="w-full flex flex-col gap-2">
-              <Label className="font-semibold">Tags</Label>
+              <Label className="font-semibold">{t("tags")}</Label>
               {isMobile ? (
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
@@ -322,7 +319,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 </p>
                               );
                             })
-                          : "Add tags..."}
+                          : t("add-tags")}
                       </div>
 
                       <ChevronsUpDown className="opacity-50" />
@@ -330,16 +327,16 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                   </DialogTrigger>
                   <DialogContent className="w-full min-w-[250px] p-0 pt-6">
                     <DialogHeader className="px-4 text-left">
-                      <DialogTitle>Edit tags</DialogTitle>
+                      <DialogTitle>{t("edit-tags")}</DialogTitle>
                       <DialogDescription>
-                        Add or remove tags to make it easier to find your link.
+                        {t("edit-tags-description")}
                       </DialogDescription>
                     </DialogHeader>
                     <Command className="w-full">
                       <CommandInput
                         value={input}
                         onValueChange={setInput}
-                        placeholder="Search tags..."
+                        placeholder={t("search-tags")}
                         className="h-9"
                       />
                       <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -400,7 +397,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 }
                               }}
                             >
-                              Create &quot;{input}&quot;
+                              {t("create-tag", { name: input })}
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -413,7 +410,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                             setOpen(false);
                           }}
                         >
-                          Save
+                          {t("save")}
                         </Button>
                         <Button
                           variant={"secondary"}
@@ -422,7 +419,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                             setOpen(false);
                           }}
                         >
-                          Cancel
+                          {t("cancel")}
                         </Button>
                       </div>
                     )}
@@ -462,7 +459,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 </p>
                               );
                             })
-                          : "Add tags..."}
+                          : t("add-tags")}
                       </div>
 
                       <ChevronsUpDown className="opacity-50" />
@@ -477,7 +474,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                       <CommandInput
                         value={input}
                         onValueChange={setInput}
-                        placeholder="Search tags..."
+                        placeholder={t("search-tags")}
                         className="h-9"
                       />
                       <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -538,7 +535,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 }
                               }}
                             >
-                              Create &quot;{input}&quot;
+                              {t("create-tag", { name: input })}
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -555,18 +552,18 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                 <FormItem className="w-full">
                   <FormLabel>
                     {" "}
-                    Change destination{" "}
+                    {t("change-destination")}{" "}
                     {plan === "pro" || plan === "plus" ? (
                       <span className="text-muted-foreground">
                         (
                         {plan === "pro"
-                          ? "Unlimited "
+                          ? t("unlimited")
                           : Math.max(
                               (usage?.linkRedirects.limit ?? 10) -
                                 (usage?.linkRedirects.consumed ?? 0),
                               0,
                             )}{" "}
-                        left)
+                        {t("left")})
                       </span>
                     ) : (
                       <HoverCard>
@@ -576,16 +573,16 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                         <HoverCardContent asChild>
                           <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                             <p className="text-sm font-bold">
-                              Unlock redirects
+                              {t("unlock-redirects")}
                             </p>
                             <p>
                               <Link
                                 href={`/dashboard/subscription`}
                                 className="underline hover:cursor-pointer"
                               >
-                                Upgrade
+                                {t("upgrade")}
                               </Link>{" "}
-                              to change destination URL.
+                              {t("to-change-destination")}
                             </p>
                           </div>
                         </HoverCardContent>
@@ -617,10 +614,9 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between">
                     <div className="space-y-0.5">
-                      <FormLabel>Apply changes to QR Code</FormLabel>
+                      <FormLabel>{t("apply-to-qr")}</FormLabel>
                       <FormDescription>
-                        Do you want these changes to reflect in the attached QR
-                        Code?
+                        {t("apply-to-qr-description")}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -641,10 +637,10 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                 type="button"
                 variant={"secondary"}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={creating}>
-                {creating ? "Saving..." : "Save changes"}
+                {creating ? t("saving") : t("save-changes")}
               </Button>
               <FormRootError />
             </div>

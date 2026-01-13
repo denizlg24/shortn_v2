@@ -34,12 +34,15 @@ import {
 import { useState } from "react";
 import { authClient } from "@/lib/authClient";
 import logo from "@/public/logo.png";
+import { useTranslations } from "next-intl";
+
 export const AppSidebar = () => {
   const { data } = authClient.useSession();
   const session = data;
   const { toggleSidebar, state } = useSidebar();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const pathname = usePathname();
+  const t = useTranslations("dashboard.sidebar");
 
   return (
     <Sidebar collapsible="icon" className="z-90">
@@ -58,7 +61,7 @@ export const AppSidebar = () => {
                   height={1080}
                   className="w-8 h-8 rounded"
                 />
-                <span>Shortn.at</span>
+                <span>{t("brand")}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -82,7 +85,7 @@ export const AppSidebar = () => {
                 state == "collapsed" && "rotate-180 transition-transform",
               )}
             />
-            <span className="sr-only">Toggle Sidebar</span>
+            <span className="sr-only">{t("toggle-sidebar")}</span>
           </Button>
         </div>
         <SidebarGroup className="mt-4 pt-0!">
@@ -101,14 +104,14 @@ export const AppSidebar = () => {
                             <Plus className="w-5! h-5!" />
                           )}
                           {state != "collapsed" && (
-                            <span className="mx-auto">Create new</span>
+                            <span className="mx-auto">{t("create-new")}</span>
                           )}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="w-full lg:max-w-[800px]! md:max-w-[500px]! z-99">
                         <DialogHeader>
                           <DialogTitle className="mb-2 font-semibold! text-lg!">
-                            What do you want to create?
+                            {t("create-dialog-title")}
                           </DialogTitle>
                           <div className="lg:grid grid-cols-3 flex flex-col w-full gap-4">
                             <Button
@@ -121,7 +124,7 @@ export const AppSidebar = () => {
                             >
                               <Link href={`/dashboard/links/create`}>
                                 <LinkIcon className="text-primary" />
-                                Shorten a link
+                                {t("shorten-link")}
                               </Link>
                             </Button>
                             <Button
@@ -134,7 +137,7 @@ export const AppSidebar = () => {
                             >
                               <Link href={`/dashboard/qr-codes/create`}>
                                 <QrCode className="text-primary" />
-                                Create a QR Code
+                                {t("create-qr-code")}
                               </Link>
                             </Button>
                             <Button
@@ -147,7 +150,7 @@ export const AppSidebar = () => {
                             >
                               <Link href={`/dashboard/pages/create`}>
                                 <NotepadText className="text-primary" />
-                                Build a landing page
+                                {t("build-landing-page")}
                               </Link>
                             </Button>
                           </div>
@@ -173,7 +176,9 @@ export const AppSidebar = () => {
                           <div className="absolute w-1 h-5 bg-primary left-0 my-auto"></div>
                         )}
                         <Home className="w-5! h-5!" />
-                        {state != "collapsed" && <span className="">Home</span>}
+                        {state != "collapsed" && (
+                          <span className="">{t("home")}</span>
+                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -191,7 +196,7 @@ export const AppSidebar = () => {
                         )}
                         <LinkIcon className="w-5! h-5!" />
                         {state != "collapsed" && (
-                          <span className="">Links</span>
+                          <span className="">{t("links")}</span>
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -211,7 +216,7 @@ export const AppSidebar = () => {
                         )}
                         <QrCode className="w-5! h-5!" />
                         {state != "collapsed" && (
-                          <span className="">QR Codes</span>
+                          <span className="">{t("qr-codes")}</span>
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -230,7 +235,7 @@ export const AppSidebar = () => {
                         )}
                         <NotepadText className="w-5! h-5!" />
                         {state != "collapsed" && (
-                          <span className="">Pages</span>
+                          <span className="">{t("pages")}</span>
                         )}
                       </Link>
                     </SidebarMenuButton>
@@ -250,7 +255,7 @@ export const AppSidebar = () => {
                         )}
                         <Folder className="w-5! h-5!" />
                         {state != "collapsed" && (
-                          <span className="">Campaigns</span>
+                          <span className="">{t("campaigns")}</span>
                         )}
                       </Link>
                     </SidebarMenuButton>

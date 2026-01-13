@@ -33,6 +33,7 @@ import { DateRange } from "react-day-picker";
 import { exportCampaignData } from "@/app/actions/linkActions";
 import { toast } from "sonner";
 import { CampaignStats } from "@/app/actions/linkActions";
+import { useTranslations } from "next-intl";
 
 interface CampaignExportDialogProps {
   campaignId: string;
@@ -47,6 +48,7 @@ export function CampaignExportDialog({
   stats,
   trigger,
 }: CampaignExportDialogProps) {
+  const t = useTranslations("campaign-export");
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -97,14 +99,14 @@ export function CampaignExportDialog({
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast.success("Export downloaded successfully");
+        toast.success(t("toast.export-success"));
         setOpen(false);
       } else {
-        toast.error(result.message || "Failed to export data");
+        toast.error(result.message || t("toast.export-failed"));
       }
     } catch (error) {
       console.error("Export failed:", error);
-      toast.error("An error occurred during export");
+      toast.error(t("toast.export-error"));
     } finally {
       setExporting(false);
     }
@@ -175,7 +177,7 @@ export function CampaignExportDialog({
         {trigger || (
           <Button variant="outline">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            {t("export")}
           </Button>
         )}
       </DialogTrigger>
@@ -183,16 +185,16 @@ export function CampaignExportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5" />
-            Export Campaign Data
+            {t("title")}
           </DialogTitle>
           <DialogDescription>
-            Download click data for "{campaignTitle}" as CSV
+            {t("description", { campaign: campaignTitle })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Date Range</Label>
+            <Label className="text-sm font-medium">{t("date-range")}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
@@ -213,7 +215,7 @@ export function CampaignExportDialog({
                       format(dateRange.from, "LLL dd, y")
                     )
                   ) : (
-                    "All time"
+                    t("all-time")
                   )}
                 </Button>
               </PopoverTrigger>
@@ -233,7 +235,7 @@ export function CampaignExportDialog({
 
           <div className="grid grid-cols-2 gap-4">
             <FilterSection
-              label="Sources"
+              label={t("sources")}
               items={availableSources}
               selected={selectedSources}
               onToggle={(v) =>
@@ -241,7 +243,7 @@ export function CampaignExportDialog({
               }
             />
             <FilterSection
-              label="Mediums"
+              label={t("mediums")}
               items={availableMediums}
               selected={selectedMediums}
               onToggle={(v) =>
@@ -249,7 +251,7 @@ export function CampaignExportDialog({
               }
             />
             <FilterSection
-              label="Terms"
+              label={t("terms")}
               items={availableTerms}
               selected={selectedTerms}
               onToggle={(v) =>
@@ -257,7 +259,7 @@ export function CampaignExportDialog({
               }
             />
             <FilterSection
-              label="Contents"
+              label={t("contents")}
               items={availableContents}
               selected={selectedContents}
               onToggle={(v) =>
@@ -303,7 +305,7 @@ export function CampaignExportDialog({
                 className="shrink-0"
               >
                 <X className="w-3.5 h-3.5 mr-1" />
-                Clear
+                {t("clear")}
               </Button>
             </div>
           )}
@@ -311,7 +313,7 @@ export function CampaignExportDialog({
 
         <div className="flex justify-end gap-2 pt-2 border-t">
           <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleExport} disabled={exporting}>
             {exporting ? (
@@ -319,7 +321,7 @@ export function CampaignExportDialog({
             ) : (
               <Download className="w-4 h-4 mr-2" />
             )}
-            Export CSV
+            {t("export-csv")}
           </Button>
         </div>
       </DialogContent>

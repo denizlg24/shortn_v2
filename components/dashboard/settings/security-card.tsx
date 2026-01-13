@@ -38,21 +38,26 @@ import { authClient } from "@/lib/authClient";
 import { Card } from "@/components/ui/card";
 import { parseUserAgent } from "@/lib/user-agent-parser";
 import { useRouter } from "@/i18n/navigation";
-const updatePasswordFormSchema = z
-  .object({
-    old_password: z.string().min(1, "Required"),
-    password: z
-      .string()
-      .min(6, "Password must be at least 6 characters")
-      .regex(/[A-Z]/, "Must include one uppercase letter")
-      .regex(/[0-9]/, "Must include one number")
-      .regex(/[^a-zA-Z0-9]/, "Must include one special character"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+import { useTranslations } from "next-intl";
+
+const usePasswordFormSchema = () => {
+  const t = useTranslations("security.validation");
+  return z
+    .object({
+      old_password: z.string().min(1, t("required")),
+      password: z
+        .string()
+        .min(6, t("password-min"))
+        .regex(/[A-Z]/, t("uppercase"))
+        .regex(/[0-9]/, t("number"))
+        .regex(/[^a-zA-Z0-9]/, t("special")),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("mismatch"),
+      path: ["confirmPassword"],
+    });
+};
 
 export const SecurityCard = ({
   loginRecords,
@@ -74,6 +79,9 @@ export const SecurityCard = ({
     geo_longitude?: string;
   }[];
 }) => {
+  const t = useTranslations("security");
+  const tToast = useTranslations("security.toast");
+  const updatePasswordFormSchema = usePasswordFormSchema();
   const form = useForm<z.infer<typeof updatePasswordFormSchema>>({
     resolver: zodResolver(updatePasswordFormSchema),
     defaultValues: {
@@ -116,14 +124,12 @@ export const SecurityCard = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountActivity),
       });
-      toast.success("Your password has been updated!");
+      toast.success(tToast("password-updated"));
       form.reset();
       setChangesLoading(false);
       return;
     } else if (error) {
-      toast.error(
-        error.message || "There was an error updating your password.",
-      );
+      toast.error(error.message || tToast("password-error"));
       const accountActivity = {
         sub: user.sub,
         type: "password-change-attempt",
@@ -142,10 +148,10 @@ export const SecurityCard = ({
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Security Details
+        {t("title")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Update your password here.
+        {t("subtitle")}
       </h2>
       <Separator className="my-4" />
       <Form {...form}>
@@ -158,7 +164,7 @@ export const SecurityCard = ({
             name="old_password"
             render={({ field }) => (
               <FormItem className="relative">
-                <FormLabel>Current Password</FormLabel>
+                <FormLabel>{t("current-password")}</FormLabel>
                 <FormControl>
                   <Input
                     className="bg-background"
@@ -186,7 +192,7 @@ export const SecurityCard = ({
             name="password"
             render={({ field }) => (
               <FormItem className="relative">
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("new-password")}</FormLabel>
                 <FormControl>
                   <Input
                     className="bg-background"
@@ -214,7 +220,7 @@ export const SecurityCard = ({
             name="confirmPassword"
             render={({ field }) => (
               <FormItem className="relative">
-                <FormLabel>Confirm New Password</FormLabel>
+                <FormLabel>{t("confirm-password")}</FormLabel>
                 <FormControl>
                   <Input
                     className="bg-background"
@@ -244,10 +250,10 @@ export const SecurityCard = ({
                   {changesLoading ? (
                     <>
                       <Loader2 className="animate-spin" />
-                      Saving...
+                      {t("saving")}
                     </>
                   ) : (
-                    <>Save Changes</>
+                    <>{t("save-changes")}</>
                   )}
                 </Button>
                 <Button
@@ -257,7 +263,7 @@ export const SecurityCard = ({
                   }}
                   variant={"outline"}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </>
             )}
@@ -267,10 +273,10 @@ export const SecurityCard = ({
       <Separator className="my-4" />
       <Card className="p-4 w-full max-w-xl flex flex-col gap-4">
         <h1 className="lg:text-lg sm:text-base text-sm font-semibold">
-          Active Sessions
+          {t("active-sessions")}
         </h1>
         {loggedInDevices.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No active sessions.</p>
+          <p className="text-sm text-muted-foreground">{t("no-sessions")}</p>
         ) : (
           <div className="flex flex-col gap-3">
             {loggedInDevices.map((device) => {
@@ -296,7 +302,7 @@ export const SecurityCard = ({
                       </div>
                       {isCurrentSession && (
                         <span className="sm:block hidden text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary whitespace-nowrap shrink-0">
-                          Current Session
+                          {t("current-session")}
                         </span>
                       )}
                     </div>
@@ -311,17 +317,17 @@ export const SecurityCard = ({
                         ? `${device.geo_city || ""}${device.geo_city && device.geo_region ? ", " : ""}${device.geo_region || ""}${(device.geo_city || device.geo_region) && device.geo_country ? ", " : ""}${device.geo_country || ""}`
                             .trim()
                             .replace(/^,\s*|,\s*$/g, "") || "Unknown location"
-                        : "Unknown location"}
+                        : t("unknown-location")}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Active since{" "}
+                      {t("active-since")}{" "}
                       {format(device.createdAt, "MMM d, yyyy h:mm a")}
                     </p>
                   </div>
                   <div className="flex flex-col h-full gap-1 items-center justify-between">
                     {isCurrentSession && (
                       <span className="sm:hidden block text-xs font-medium px-2 py-0.5 rounded-full bg-primary/20 text-primary whitespace-nowrap shrink-0">
-                        Current Session
+                        {t("current-session")}
                       </span>
                     )}
                     <Dialog>
@@ -331,67 +337,68 @@ export const SecurityCard = ({
                           size="sm"
                           className="ml-2 shrink-0"
                         >
-                          Revoke
+                          {t("revoke")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-md">
                         <DialogHeader>
                           <DialogTitle>
                             {isCurrentSession
-                              ? "Revoke current session?"
-                              : "Revoke session?"}
+                              ? t("revoke-current-title")
+                              : t("revoke-title")}
                           </DialogTitle>
                           <DialogDescription>
                             {isCurrentSession ? (
                               <>
                                 <span className="font-semibold text-destructive">
-                                  Warning:
+                                  {t("warning")}
                                 </span>{" "}
-                                You are about to revoke your current session.
-                                You will be logged out immediately and
-                                redirected to the login page.
+                                {t("revoke-current-warning")}
                               </>
                             ) : (
-                              <>
-                                Are you sure you want to revoke this session?
-                                The device will be logged out immediately.
-                              </>
+                              <>{t("revoke-warning")}</>
                             )}
                           </DialogDescription>
                         </DialogHeader>
                         <div className="flex flex-col gap-2 mt-4">
                           <p className="text-sm">
-                            <span className="font-semibold">Device:</span>{" "}
+                            <span className="font-semibold">{t("device")}</span>{" "}
                             {userAgentInfo.browser} on {userAgentInfo.os}
                           </p>
                           <p className="text-sm">
-                            <span className="font-semibold">Device Type:</span>{" "}
+                            <span className="font-semibold">
+                              {t("device-type")}
+                            </span>{" "}
                             {userAgentInfo.device}
                           </p>
                           <p className="text-sm">
-                            <span className="font-semibold">IP:</span>{" "}
+                            <span className="font-semibold">{t("ip")}</span>{" "}
                             {device.ipAddress || "Unknown"}
                           </p>
                           <p className="text-sm">
-                            <span className="font-semibold">Location:</span>{" "}
+                            <span className="font-semibold">
+                              {t("location")}
+                            </span>{" "}
                             {device.geo_city ||
                             device.geo_region ||
                             device.geo_country
                               ? `${device.geo_city || ""}${device.geo_city && device.geo_region ? ", " : ""}${device.geo_region || ""}${(device.geo_city || device.geo_region) && device.geo_country ? ", " : ""}${device.geo_country || ""}`
                                   .trim()
                                   .replace(/^,\s*|,\s*$/g, "") ||
-                                "Unknown location"
-                              : "Unknown location"}
+                                t("unknown-location")
+                              : t("unknown-location")}
                           </p>
                           <p className="text-sm">
-                            <span className="font-semibold">Active since:</span>{" "}
+                            <span className="font-semibold">
+                              {t("active-since")}
+                            </span>{" "}
                             {format(device.createdAt, "MMM d, yyyy h:mm a")}
                           </p>
                         </div>
                         <div className="flex flex-row gap-2 mt-4">
                           <DialogTrigger asChild>
                             <Button variant="outline" className="flex-1">
-                              Cancel
+                              {t("cancel")}
                             </Button>
                           </DialogTrigger>
                           <Button
@@ -427,7 +434,7 @@ export const SecurityCard = ({
                                     }),
                                   });
 
-                                  toast.success("Session revoked successfully");
+                                  toast.success(t("session-revoked"));
                                   if (isCurrentSession) {
                                     await authClient.signOut({
                                       fetchOptions: {
@@ -445,15 +452,13 @@ export const SecurityCard = ({
                                 } else {
                                   const error = await response.json();
                                   toast.error(
-                                    error.error || "Failed to revoke session",
+                                    error.error || t("revoke-failed"),
                                   );
                                   setRevokingSessionId(null);
                                 }
                               } catch (error) {
                                 console.error("Error revoking session:", error);
-                                toast.error(
-                                  "An error occurred. Please try again.",
-                                );
+                                toast.error(t("revoke-error"));
                                 setRevokingSessionId(null);
                               }
                             }}
@@ -462,14 +467,14 @@ export const SecurityCard = ({
                               <>
                                 <Loader2 className="animate-spin" />
                                 {isCurrentSession
-                                  ? "Logging out..."
-                                  : "Revoking..."}
+                                  ? t("logging-out")
+                                  : t("revoking")}
                               </>
                             ) : (
                               <>
                                 {isCurrentSession
-                                  ? "Revoke & Log Out"
-                                  : "Revoke Session"}
+                                  ? t("revoke-logout")
+                                  : t("revoke-session")}
                               </>
                             )}
                           </Button>
@@ -485,17 +490,15 @@ export const SecurityCard = ({
       </Card>
       <Separator className="my-4" />
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Account Activity History
+        {t("activity-history")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        You&apos;re viewing recent activity on your account.
+        {t("activity-description")}
       </h2>
       <Separator className="my-4" />
       <div className="w-full max-w-xl flex flex-col gap-4 items-start">
         {loginRecords.length == 0 && (
-          <p className="font-semibold text-left text-sm">
-            No account activity records yet.
-          </p>
+          <p className="font-semibold text-left text-sm">{t("no-activity")}</p>
         )}
         {loginRecords.map((record) => {
           return (
@@ -513,7 +516,7 @@ export const SecurityCard = ({
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {record.location == ", "
-                      ? "Unknown location"
+                      ? t("unknown-location")
                       : record.location}
                   </p>
                 </div>
@@ -532,15 +535,15 @@ export const SecurityCard = ({
           <Dialog>
             <DialogTrigger asChild>
               <p className="text-sm font-semibold text-left hover:cursor-pointer hover:underline flex flex-row items-baseline gap-1 justify-start">
-                See all {fullLoginRecords.length} activity logs.
+                {t("see-all", { count: fullLoginRecords.length })}
                 <SquareArrowOutUpRight className="w-3 h-3 shrink-0 translate-y-0.5" />
               </p>
             </DialogTrigger>
             <DialogContent className="w-[calc(100vw-16px)] mx-auto max-w-[800px] z-95">
               <DialogHeader>
-                <DialogTitle>Account activity logs</DialogTitle>
+                <DialogTitle>{t("activity-logs")}</DialogTitle>
                 <DialogDescription>
-                  Check detailed account activity logs, with filters.
+                  {t("activity-logs-description")}
                 </DialogDescription>
               </DialogHeader>
               <FullLoginRecordsCard records={fullLoginRecords} />

@@ -4,7 +4,6 @@ import { Link } from "@/i18n/navigation";
 import { Globe, MoveRight, Target } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
-import { use } from "react";
 import polarLogo from "@/public/polar-sh.webp";
 import shadcnLogo from "@/public/shadcn-ui.png";
 import headshot from "@/public/headshot-square.png";
@@ -32,14 +31,14 @@ export async function generateMetadata() {
   };
 }
 
-export default function Home({
+export default async function Home({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("about");
   return (
     <main className="flex flex-col items-center w-full mx-auto relative">
       <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
@@ -60,15 +59,16 @@ export default function Home({
 
       <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          Brand management affordable for everyone
+          {t("brand-management-affordable-for-everyone")}{" "}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl">
-          We believe powerful tools shouldn't come with enterprise price tags.
-          That's why we built shortn.at.
+          {t(
+            "we-believe-powerful-tools-shouldnt-come-with-enterprise-price-tags-thats-why-we-built-shortn-at",
+          )}{" "}
         </h2>
         <Button asChild className="rounded-full w-full max-w-sm" size={"lg"}>
           <Link href={"/register"}>
-            Get Started Today <MoveRight />
+            {t("get-started-today")} <MoveRight />
           </Link>
         </Button>
       </div>
@@ -76,22 +76,20 @@ export default function Home({
         <div className="flex flex-col gap-4 md:items-start md:text-left text-center items-center md:w-[65%] shrink-0 hover:backdrop-blur-3xl">
           <div className="rounded-full py-1.5 px-4 bg-muted border shadow flex items-center justify-center gap-2 text-muted-foreground">
             <Target className="w-4 h-4" />
-            <span className="text-sm font-medium">Our mission</span>
+            <span className="text-sm font-medium">{t("our-mission")}</span>
           </div>
           <h1 className="md:text-4xl sm:text-3xl xs:text-2xl text-xl font-bold">
-            Democratizing professional link management
+            {t("democratizing-professional-link-management")}{" "}
           </h1>
           <p className="xs:text-base text-sm text-muted-foreground">
-            We started shortn.at because we were frustrated with the high costs
-            of existing link management platforms. Small businesses, creators,
-            and startups were paying hundreds of dollars per month for basic
-            features.
+            {t(
+              "we-started-shortn-at-because-we-were-frustrated-with-the-high-costs-of-existing-link-management-platforms-small-businesses-creators-and-startups-were-paying-hundreds-of-dollars-per-month-for-basic-features",
+            )}{" "}
           </p>
           <p className="xs:text-base text-sm text-muted-foreground">
-            We knew there was a better way. By building efficient infrastructure
-            and focusing on what matters, we created a platform that offers
-            enterprise features at 85% lower prices without compromising on
-            quality or reliability.
+            {t(
+              "we-knew-there-was-a-better-way-by-building-efficient-infrastructure-and-focusing-on-what-matters-we-created-a-platform-that-offers-enterprise-features-at-85-lower-prices-without-compromising-on-quality-or-reliability",
+            )}{" "}
           </p>
         </div>
         <div className="md:w-auto w-full bg-muted rounded-xl shadow-sm border p-3 flex flex-col gap-4">
@@ -101,10 +99,12 @@ export default function Home({
             </div>
             <div className="flex flex-col items-start gap-1.55">
               <h2 className="text-sm xs:text-base font-semibold">
-                Fast & Reliable
+                {t("fast-and-reliable")}{" "}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Global CDN ensures lightning-fast redirects worldwide
+                {t(
+                  "global-cdn-ensures-lightning-fast-redirects-worldwide",
+                )}{" "}
               </p>
             </div>
           </div>
@@ -114,10 +114,10 @@ export default function Home({
             </div>
             <div className="flex flex-col items-start gap-1.55">
               <h2 className="text-sm xs:text-base font-semibold">
-                Customer First
+                {t("customer-first")}{" "}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                Built with feedback from hundreds of users
+                {t("built-with-feedback-from-hundreds-of-users")}{" "}
               </p>
             </div>
           </div>
@@ -127,10 +127,10 @@ export default function Home({
             </div>
             <div className="flex flex-col items-start gap-1.55">
               <h2 className="text-sm xs:text-base font-semibold">
-                Quality Focused
+                {t("quality-focused")}{" "}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                99.9% uptime SLA with enterprise-grade infrastructure
+                {t("99-9-uptime-sla-with-enterprise-grade-infrastructure")}{" "}
               </p>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function Home({
         <div className="w-full max-w-7xl mx-auto grid grid-cols-3 text-center">
           <div className="col-span-full w-full mb-12 mt-6">
             <h1 className="md:text-5xl sm:text-4xl xs:text-3xl text-2xl font-black">
-              Growing fast, staying focused
+              {t("growing-fast-staying-focused")}{" "}
             </h1>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
@@ -148,7 +148,7 @@ export default function Home({
               2023
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Founded
+              {t("founded")}{" "}
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
@@ -156,7 +156,7 @@ export default function Home({
               15K+
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Links served
+              {t("links-served")}{" "}
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
@@ -164,18 +164,19 @@ export default function Home({
               35+
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Countries reached
+              {t("countries-reached")}{" "}
             </span>
           </div>
         </div>
       </div>
       <div className="hover:backdrop-blur-3xl transition-all sm:mb-20 mb-12 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
         <h1 className="md:text-5xl sm:text-4xl xs:text-3xl text-2xl font-black hover:backdrop-blur-3xl ">
-          Built by a passionate team
+          {t("built-by-a-passionate-team")}{" "}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl">
-          We're passionate about creating tools that empower individuals and
-          businesses to succeed online. Your support means the world to us.
+          {t(
+            "were-passionate-about-creating-tools-that-empower-individuals-and-businesses-to-succeed-online-your-support-means-the-world-to-us",
+          )}{" "}
         </h2>
       </div>
 
@@ -191,10 +192,12 @@ export default function Home({
             </div>
             <h3 className="font-semibold text-lg mb-1">Deniz</h3>
             <p className="text-sm text-primary font-medium mb-2">
-              Founder & Developer
+              {t("founder-and-developer")}{" "}
             </p>
             <p className="text-sm text-muted-foreground">
-              Building the future of link management, one feature at a time.
+              {t(
+                "building-the-future-of-link-management-one-feature-at-a-time",
+              )}{" "}
             </p>
           </div>
 
@@ -210,11 +213,12 @@ export default function Home({
             </div>
             <h3 className="font-semibold text-lg mb-1">GitHub Copilot</h3>
             <p className="text-sm text-primary font-medium mb-2">
-              AI Pair Programmer
+              {t("ai-pair-programmer")}{" "}
             </p>
             <p className="text-sm text-muted-foreground">
-              Accelerating development with intelligent code suggestions and
-              completions.
+              {t(
+                "accelerating-development-with-intelligent-code-suggestions-and-completions",
+              )}{" "}
             </p>
           </div>
 
@@ -228,11 +232,12 @@ export default function Home({
             </div>
             <h3 className="font-semibold text-lg mb-1">Claude</h3>
             <p className="text-sm text-primary font-medium mb-2">
-              AI Assistant
+              {t("ai-assistant")}{" "}
             </p>
             <p className="text-sm text-muted-foreground">
-              Helping architect solutions and solve complex problems with
-              thoughtful analysis.
+              {t(
+                "helping-architect-solutions-and-solve-complex-problems-with-thoughtful-analysis",
+              )}{" "}
             </p>
           </div>
         </div>
@@ -241,7 +246,7 @@ export default function Home({
       <div className="w-full border-t py-10 sm:mb-8 mb-4">
         <div className="max-w-4xl mx-auto px-4">
           <p className="text-center text-xs text-muted-foreground mb-6 uppercase tracking-wider">
-            Built with
+            {t("built-with")}{" "}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 opacity-60 hover:opacity-80 transition-opacity">
             <div className="flex items-center gap-2 text-muted-foreground">

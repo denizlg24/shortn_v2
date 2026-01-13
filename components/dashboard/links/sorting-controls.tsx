@@ -10,6 +10,7 @@ import {
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 export const SortingControls = ({
   label,
@@ -22,6 +23,7 @@ export const SortingControls = ({
   const sort = searchParams.get("sortBy") || "date_desc";
   const pathname = usePathname();
   const router = useRouter();
+  const t = useTranslations("dashboard.sorting");
 
   const setSort = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -37,10 +39,10 @@ export const SortingControls = ({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="date_desc">Most recent first</SelectItem>
-          <SelectItem value="date_asc">Oldest first</SelectItem>
-          <SelectItem value="clicks_desc">Best performing first</SelectItem>
-          <SelectItem value="clicks_asc">Worst performing first</SelectItem>
+          <SelectItem value="date_desc">{t("most-recent")}</SelectItem>
+          <SelectItem value="date_asc">{t("oldest")}</SelectItem>
+          <SelectItem value="clicks_desc">{t("best-performing")}</SelectItem>
+          <SelectItem value="clicks_asc">{t("worst-performing")}</SelectItem>
         </SelectContent>
       </Select>
     </div>

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { Download, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
 export const DownloadButtonCSV = ({
   filename,
@@ -22,6 +23,7 @@ export const DownloadButtonCSV = ({
   title?: string;
 }) => {
   const { plan } = usePlan();
+  const t = useTranslations("download-csv");
   return plan == "pro" ? (
     <Button
       className={cn("min-[420px]:text-sm text-xs", className)}
@@ -35,30 +37,29 @@ export const DownloadButtonCSV = ({
             return response;
           },
           {
-            loading: "Preparing your download...",
+            loading: t("toast.loading"),
             success: (response) => {
               if (response.success) {
                 const a = document.createElement("a");
                 a.href = response.url;
                 a.download = `${filename}.csv`;
                 a.click();
-                return `Your download is ready and should start now.`;
+                return t("toast.success");
               }
-              return "There was an error creating your download.";
+              return t("toast.error");
             },
-            error: "There was an error creating your download.",
+            error: t("toast.error"),
           },
         );
       }}
       variant={"secondary"}
     >
-      {title ?? "Export to CSV file"} <Download />
+      {title ?? t("export")} <Download />
     </Button>
   ) : (
     <Button className="min-[420px]:text-sm text-xs" asChild>
       <Link href={"/dashboard/subscription"}>
-        {lockedTitle ?? "Upgrade to download data as a CSV file."}{" "}
-        <Lock className="w-3! h-3!" />
+        {lockedTitle ?? t("upgrade")} <Lock className="w-3! h-3!" />
       </Link>
     </Button>
   );

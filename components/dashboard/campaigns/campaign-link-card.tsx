@@ -6,6 +6,7 @@ import { getShortUrl } from "@/lib/utils";
 import { TUrl } from "@/models/url/UrlV3";
 import { ChartNoAxesColumn, Copy, CopyCheck, ExternalLink } from "lucide-react";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export const CampaignLinkCard = ({
   link,
@@ -14,6 +15,7 @@ export const CampaignLinkCard = ({
   link: TUrl;
   clicks?: number;
 }) => {
+  const t = useTranslations("campaign-link-card");
   const shortUrl = getShortUrl(link.urlCode);
   const [justCopied, setJustCopied] = useState(false);
 
@@ -46,7 +48,7 @@ export const CampaignLinkCard = ({
           <button
             onClick={handleCopy}
             className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-            title="Copy short URL"
+            title={t("copy-url")}
           >
             {justCopied ? (
               <CopyCheck className="w-3 h-3" />
@@ -62,14 +64,14 @@ export const CampaignLinkCard = ({
           <div className="flex flex-row items-center gap-1 text-muted-foreground">
             <ChartNoAxesColumn className="w-4 h-4" />
             <span className="text-xs font-medium">
-              {clicks} {clicks === 1 ? "click" : "clicks"}
+              {t("clicks", { count: clicks })}
             </span>
           </div>
         )}
         <Button asChild variant="ghost" size="sm" className="h-8 px-2 text-xs">
           <Link href={`/dashboard/links/${link.urlCode}/details`}>
             <ExternalLink className="w-3.5 h-3.5 mr-1" />
-            View
+            {t("view")}
           </Link>
         </Button>
       </div>

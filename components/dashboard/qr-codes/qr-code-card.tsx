@@ -4,6 +4,7 @@ import {
   removeTagFromQRCode,
 } from "@/app/actions/tagActions";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import {
   Command,
   CommandGroup,
@@ -77,6 +78,7 @@ export const QRCodeCard = ({
   onTagSearchChange?: (search: string) => void;
   linksLeft?: number;
 }) => {
+  const t = useTranslations("qr-code-card");
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
@@ -103,10 +105,10 @@ export const QRCodeCard = ({
     setIsDeleting(true);
     const response = await deleteQRCode(qrCode.qrCodeId);
     if (response.success) {
-      toast.success(`QR Code ${qrCode.title} was successfully deleted.`);
+      toast.success(t("toast.deleted", { title: qrCode.title || "Untitled" }));
       router.refresh();
     } else {
-      toast.error("There was a problem deleting your QR Code.");
+      toast.error(t("toast.delete-error"));
       setIsDeleting(false);
     }
   };
@@ -171,7 +173,7 @@ export const QRCodeCard = ({
                       <Link
                         href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                       >
-                        <LinkIcon /> View short link
+                        <LinkIcon /> {t("menu.view-short-link")}
                       </Link>
                     </Button>
                   ) : (
@@ -184,31 +186,28 @@ export const QRCodeCard = ({
                           variant={"outline"}
                           className="w-full border-none! rounded-none! justify-start! shadow-none! "
                         >
-                          <LinkIcon /> Create short link
+                          <LinkIcon /> {t("menu.create-short-link")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
                           <DialogTitle className="text-left!">
-                            Create a link for your Code
+                            {t("create-link-dialog.title")}
                           </DialogTitle>
                           <DialogDescription asChild>
                             <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
-                              <p>
-                                Creating a link for this QR Code will use up one
-                                of your monthly links.
-                              </p>
+                              <p>{t("create-link-dialog.description")}</p>
                               {linksLeft == undefined ? (
                                 <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                                   <Skeleton className="w-3 h-3" />
-                                  <p>left</p>
+                                  <p>{t("create-link-dialog.left")}</p>
                                 </div>
                               ) : linksLeft > 0 ? (
                                 <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
                                   <span className="font-semibold">
                                     {linksLeft}
                                   </span>{" "}
-                                  left
+                                  {t("create-link-dialog.left")}
                                 </p>
                               ) : (
                                 <></>
@@ -218,19 +217,21 @@ export const QRCodeCard = ({
                         </DialogHeader>
                         <div className="w-full flex flex-col text-left gap-1 items-start">
                           <p className="font-semibold xs:text-base text-sm">
-                            Destination
+                            {t("create-link-dialog.destination")}
                           </p>
                           <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
                         </div>
                         <div className="w-full flex flex-col text-left gap-1 items-start">
                           <p className="font-semibold xs:text-base text-sm">
-                            Title
+                            {t("create-link-dialog.link-title")}
                           </p>
                           <p className="xs:text-sm text-xs">{qrCode.title}</p>
                         </div>
                         <DialogFooter className="flex flex-row items-center justify-end gap-2">
                           <DialogClose asChild>
-                            <Button variant={"secondary"}>Cancel</Button>
+                            <Button variant={"secondary"}>
+                              {t("create-link-dialog.cancel")}
+                            </Button>
                           </DialogClose>
                           <Button
                             onClick={async () => {
@@ -244,24 +245,32 @@ export const QRCodeCard = ({
                               if (!response.success) {
                                 switch (response.message) {
                                   case "no-user":
-                                    setError("User session error.");
+                                    setError(
+                                      t(
+                                        "create-link-dialog.errors.session-error",
+                                      ),
+                                    );
                                     setCreating(false);
                                     return;
                                   case "custom-restricted":
                                     setError(
-                                      "Custom back-halves are restricted to pro accounts.",
+                                      t(
+                                        "create-link-dialog.errors.custom-restricted",
+                                      ),
                                     );
                                     setCreating(false);
                                     return;
                                   case "plan-limit":
                                     setError(
-                                      "You have reached your plan's link limit.",
+                                      t("create-link-dialog.errors.plan-limit"),
                                     );
                                     setCreating(false);
                                     return;
                                   default:
                                     setError(
-                                      "There was a problem creating your link.",
+                                      t(
+                                        "create-link-dialog.errors.create-error",
+                                      ),
                                     );
                                     setCreating(false);
                                     return;
@@ -284,10 +293,10 @@ export const QRCodeCard = ({
                             {creating ? (
                               <>
                                 <Loader2 className="animate-spin" />
-                                Creating...
+                                {t("create-link-dialog.creating")}
                               </>
                             ) : (
-                              <>Create link</>
+                              <>{t("create-link-dialog.create-link")}</>
                             )}
                           </Button>
                         </DialogFooter>
@@ -302,11 +311,12 @@ export const QRCodeCard = ({
                   >
                     {isDeleting ? (
                       <>
-                        <Loader2 className="animate-spin" /> Deleting...
+                        <Loader2 className="animate-spin" />{" "}
+                        {t("menu.deleting")}
                       </>
                     ) : (
                       <>
-                        <Trash2 /> Delete
+                        <Trash2 /> {t("menu.delete")}
                       </>
                     )}
                   </Button>
@@ -351,13 +361,13 @@ export const QRCodeCard = ({
                   href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}
                 >
                   <ChartNoAxesColumn />
-                  View Details
+                  {t("view-details")}
                 </Link>
               </Button>
             </div>
           </div>
           <div className="lg:text-base text-sm truncate font-semibold lg:-mt-4">
-            Website
+            {t("website")}
           </div>
           <div className="w-full flex flex-row justify-start items-center gap-1">
             <CornerDownRight className="w-4 h-4 shrink-0" />
@@ -379,27 +389,28 @@ export const QRCodeCard = ({
                   gap-1! hover:cursor-help"
                     >
                       <LockIcon className="w-3! h-3!" />
-                      Scan Data
+                      {t("scan-data.title")}
                     </HoverCardTrigger>
                     <HoverCardContent asChild>
                       <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                        <p className="text-sm font-bold">Unlock scan data</p>
+                        <p className="text-sm font-bold">
+                          {t("scan-data.unlock-title")}
+                        </p>
                         <div className="w-full flex flex-row gap-1 items-center">
                           <Link
                             href={`/dashboard/subscription`}
                             className="underline hover:cursor-pointer"
                           >
-                            Upgrade
+                            {t("scan-data.upgrade")}
                           </Link>
-                          <p>to access QR Code stats.</p>
+                          <p>{t("scan-data.access-stats")}</p>
                         </div>
                       </div>
                     </HoverCardContent>
                   </HoverCard>
                 ) : (
                   <p className="p-0! px-1! rounded-none! h-fit text-xs font-normal gap-1!">
-                    {currentQrCode.clicks.total}
-                    {currentQrCode.clicks.total == 1 ? " scan" : " scans"}
+                    {t("scans", { count: currentQrCode.clicks.total })}
                   </p>
                 )}
               </div>
@@ -439,7 +450,7 @@ export const QRCodeCard = ({
                   })}
                   {currentQrCode.tags && currentQrCode.tags.length > 4 && (
                     <p className="text-xs">
-                      +{currentQrCode.tags.length - 4} more
+                      +{currentQrCode.tags.length - 4} {t("more")}
                     </p>
                   )}
                   <Popover open={tagOpen} onOpenChange={tagOpenChange}>
@@ -449,8 +460,8 @@ export const QRCodeCard = ({
                         role="combobox"
                         className="w-fit! justify-between text-primary text-sm gap-1! px-0! py-0! h-fit!"
                       >
-                        <PlusCircle className="text-primary w-3! h-3!" /> Add
-                        tag
+                        <PlusCircle className="text-primary w-3! h-3!" />{" "}
+                        {t("add-tag")}
                       </Button>
                     </PopoverTrigger>
                     <ScrollPopoverContent
@@ -462,7 +473,7 @@ export const QRCodeCard = ({
                         <CommandInput
                           value={input}
                           onValueChange={setInput}
-                          placeholder="Search tags..."
+                          placeholder={t("search-tags")}
                           className="h-9"
                         />
                         <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -542,7 +553,7 @@ export const QRCodeCard = ({
                                   tagOpenChange(false);
                                 }}
                               >
-                                Create &quot;{input}&quot;
+                                {t("create-tag", { name: input })}
                               </CommandItem>
                             )}
                           </CommandGroup>
@@ -556,11 +567,10 @@ export const QRCodeCard = ({
                 <Tags className="w-4 h-4" />
                 {currentQrCode.tags && currentQrCode.tags.length > 0 ? (
                   <p className="text-xs">
-                    {currentQrCode.tags.length}{" "}
-                    {currentQrCode.tags.length == 1 ? "tag" : "tags"}
+                    {t("tags-count", { count: currentQrCode.tags.length })}
                   </p>
                 ) : (
-                  <p className="text-xs">No tags</p>
+                  <p className="text-xs">{t("no-tags")}</p>
                 )}
               </div>
             </div>
@@ -589,7 +599,7 @@ export const QRCodeCard = ({
                     <Link
                       href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                     >
-                      <LinkIcon /> View short link
+                      <LinkIcon /> {t("menu.view-short-link")}
                     </Link>
                   </Button>
                 ) : (
@@ -602,31 +612,28 @@ export const QRCodeCard = ({
                         variant={"outline"}
                         className="w-full border-none! rounded-none! justify-start! shadow-none! "
                       >
-                        <LinkIcon /> Create short link
+                        <LinkIcon /> {t("menu.create-short-link")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle className="text-left!">
-                          Create a link for your Code
+                          {t("create-link-dialog.title")}
                         </DialogTitle>
                         <DialogDescription asChild>
                           <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
-                            <p>
-                              Creating a link for this QR Code will use up one
-                              of your monthly links.
-                            </p>
+                            <p>{t("create-link-dialog.description")}</p>
                             {linksLeft == undefined ? (
                               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                                 <Skeleton className="w-3 h-3" />
-                                <p>left</p>
+                                <p>{t("create-link-dialog.left")}</p>
                               </div>
                             ) : linksLeft > 0 ? (
                               <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
                                 <span className="font-semibold">
                                   {linksLeft}
                                 </span>{" "}
-                                left
+                                {t("create-link-dialog.left")}
                               </p>
                             ) : (
                               <></>
@@ -636,13 +643,13 @@ export const QRCodeCard = ({
                       </DialogHeader>
                       <div className="w-full flex flex-col text-left gap-1 items-start">
                         <p className="font-semibold xs:text-base text-sm">
-                          Destination
+                          {t("create-link-dialog.destination")}
                         </p>
                         <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
                       </div>
                       <div className="w-full flex flex-col text-left gap-1 items-start">
                         <p className="font-semibold xs:text-base text-sm">
-                          Title
+                          {t("create-link-dialog.link-title")}
                         </p>
                         <p className="xs:text-sm text-xs">{qrCode.title}</p>
                       </div>
@@ -653,7 +660,9 @@ export const QRCodeCard = ({
                       )}
                       <DialogFooter className="flex flex-row items-center justify-end gap-2">
                         <DialogClose asChild>
-                          <Button variant={"secondary"}>Cancel</Button>
+                          <Button variant={"secondary"}>
+                            {t("create-link-dialog.cancel")}
+                          </Button>
                         </DialogClose>
                         <Button
                           onClick={async () => {
@@ -667,24 +676,30 @@ export const QRCodeCard = ({
                             if (!response.success) {
                               switch (response.message) {
                                 case "no-user":
-                                  setError("User session error.");
+                                  setError(
+                                    t(
+                                      "create-link-dialog.errors.session-error",
+                                    ),
+                                  );
                                   setCreating(false);
                                   return;
                                 case "custom-restricted":
                                   setError(
-                                    "Custom back-halves are restricted to pro accounts.",
+                                    t(
+                                      "create-link-dialog.errors.custom-restricted",
+                                    ),
                                   );
                                   setCreating(false);
                                   return;
                                 case "plan-limit":
                                   setError(
-                                    "You have reached your plan's link limit.",
+                                    t("create-link-dialog.errors.plan-limit"),
                                   );
                                   setCreating(false);
                                   return;
                                 default:
                                   setError(
-                                    "There was a problem creating your link.",
+                                    t("create-link-dialog.errors.create-error"),
                                   );
                                   setCreating(false);
                                   return;
@@ -704,10 +719,10 @@ export const QRCodeCard = ({
                           {creating ? (
                             <>
                               <Loader2 className="animate-spin" />
-                              Creating...
+                              {t("create-link-dialog.creating")}
                             </>
                           ) : (
-                            <>Create link</>
+                            <>{t("create-link-dialog.create-link")}</>
                           )}
                         </Button>
                       </DialogFooter>
@@ -722,11 +737,11 @@ export const QRCodeCard = ({
                 >
                   {isDeleting ? (
                     <>
-                      <Loader2 className="animate-spin" /> Deleting...
+                      <Loader2 className="animate-spin" /> {t("menu.deleting")}
                     </>
                   ) : (
                     <>
-                      <Trash2 /> Delete
+                      <Trash2 /> {t("menu.delete")}
                     </>
                   )}
                 </Button>
@@ -771,7 +786,7 @@ export const QRCodeCard = ({
                 href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}
               >
                 <ChartNoAxesColumn />
-                View Details
+                {t("view-details")}
               </Link>
             </Button>
           </div>
@@ -801,7 +816,7 @@ export const QRCodeCard = ({
                 <Link
                   href={`/dashboard/links/${currentQrCode.attachedUrl}/details`}
                 >
-                  <LinkIcon /> View short link
+                  <LinkIcon /> {t("menu.view-short-link")}
                 </Link>
               </Button>
             ) : (
@@ -814,29 +829,26 @@ export const QRCodeCard = ({
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! "
                   >
-                    <LinkIcon /> Create short link
+                    <LinkIcon /> {t("menu.create-short-link")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle className="text-left!">
-                      Create a link for your Code
+                      {t("create-link-dialog.title")}
                     </DialogTitle>
                     <DialogDescription asChild>
                       <div className="flex flex-row gap-1 w-full flex-wrap text-left!">
-                        <p>
-                          Creating a link for this QR Code will use up one of
-                          your monthly links.
-                        </p>
+                        <p>{t("create-link-dialog.description")}</p>
                         {linksLeft == undefined ? (
                           <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                             <Skeleton className="w-3 h-3" />
-                            <p>left</p>
+                            <p>{t("create-link-dialog.left")}</p>
                           </div>
                         ) : linksLeft > 0 ? (
                           <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
                             <span className="font-semibold">{linksLeft}</span>{" "}
-                            left
+                            {t("create-link-dialog.left")}
                           </p>
                         ) : (
                           <></>
@@ -846,12 +858,14 @@ export const QRCodeCard = ({
                   </DialogHeader>
                   <div className="w-full flex flex-col text-left gap-1 items-start">
                     <p className="font-semibold xs:text-base text-sm">
-                      Destination
+                      {t("create-link-dialog.destination")}
                     </p>
                     <p className="xs:text-sm text-xs">{qrCode.longUrl}</p>
                   </div>
                   <div className="w-full flex flex-col text-left gap-1 items-start">
-                    <p className="font-semibold xs:text-base text-sm">Title</p>
+                    <p className="font-semibold xs:text-base text-sm">
+                      {t("create-link-dialog.link-title")}
+                    </p>
                     <p className="xs:text-sm text-xs">{qrCode.title}</p>
                   </div>
                   {error && (
@@ -861,7 +875,9 @@ export const QRCodeCard = ({
                   )}
                   <DialogFooter className="flex flex-row items-center justify-end gap-2">
                     <DialogClose asChild>
-                      <Button variant={"secondary"}>Cancel</Button>
+                      <Button variant={"secondary"}>
+                        {t("create-link-dialog.cancel")}
+                      </Button>
                     </DialogClose>
                     <Button
                       onClick={async () => {
@@ -875,24 +891,28 @@ export const QRCodeCard = ({
                         if (!response.success) {
                           switch (response.message) {
                             case "no-user":
-                              setError("User session error.");
+                              setError(
+                                t("create-link-dialog.errors.session-error"),
+                              );
                               setCreating(false);
                               return;
                             case "custom-restricted":
                               setError(
-                                "Custom back-halves are restricted to pro accounts.",
+                                t(
+                                  "create-link-dialog.errors.custom-restricted",
+                                ),
                               );
                               setCreating(false);
                               return;
                             case "plan-limit":
                               setError(
-                                "You have reached your plan's link limit.",
+                                t("create-link-dialog.errors.plan-limit"),
                               );
                               setCreating(false);
                               return;
                             default:
                               setError(
-                                "There was a problem creating your link.",
+                                t("create-link-dialog.errors.create-error"),
                               );
                               setCreating(false);
                               return;
@@ -908,10 +928,10 @@ export const QRCodeCard = ({
                       {creating ? (
                         <>
                           <Loader2 className="animate-spin" />
-                          Creating...
+                          {t("create-link-dialog.creating")}
                         </>
                       ) : (
-                        <>Create link</>
+                        <>{t("create-link-dialog.create-link")}</>
                       )}
                     </Button>
                   </DialogFooter>
@@ -926,11 +946,11 @@ export const QRCodeCard = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="animate-spin" /> Deleting...
+                  <Loader2 className="animate-spin" /> {t("menu.deleting")}
                 </>
               ) : (
                 <>
-                  <Trash2 /> Delete
+                  <Trash2 /> {t("menu.delete")}
                 </>
               )}
             </Button>
@@ -973,7 +993,7 @@ export const QRCodeCard = ({
         <Button variant={"secondary"} className="p-1.5! h-fit!" asChild>
           <Link href={`/dashboard/qr-codes/${currentQrCode.qrCodeId}/details`}>
             <ChartNoAxesColumn />
-            View Details
+            {t("view-details")}
           </Link>
         </Button>
       </div>
