@@ -54,8 +54,8 @@ const options = {
     max: 10,
     customRules: {
       "/sign-in/email": {
-        window: 900,
-        max: 5,
+        window: 120,
+        max: 10,
       },
       "/sign-up/email": {
         window: 3600,
