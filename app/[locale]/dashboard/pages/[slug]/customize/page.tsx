@@ -9,6 +9,7 @@ import { IUrl } from "@/models/url/UrlV3";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { BASEURL } from "@/lib/utils";
+import { Types } from "mongoose";
 
 export default async function Home({
   params,
@@ -41,7 +42,7 @@ export default async function Home({
   }
 
   const bioLinks = (
-    bioPage.links as {
+    bioPage.links.filter((link) => !(link.link instanceof Types.ObjectId)) as {
       link: IUrl;
       image?: string;
       title?: string;
