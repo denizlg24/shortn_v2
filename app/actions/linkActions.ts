@@ -23,6 +23,7 @@ import {
   canPerformAction,
 } from "@/lib/polar-usage";
 import { FlattenMaps } from "mongoose";
+import { BioPage } from "@/models/link-in-bio/BioPage";
 
 interface CreateUrlInput {
   longUrl: string;
@@ -307,6 +308,12 @@ export const deleteShortn = async (urlCode: string) => {
         }
       }
     }
+
+    await BioPage.updateMany(
+      { "links.link": foundURL._id },
+      { $pull: { links: { link: foundURL._id } } },
+    );
+
     return { success: true, deleted: urlCode };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

@@ -4,6 +4,7 @@ import { IUrl } from "@/models/url/UrlV3";
 import { notFound } from "next/navigation";
 import { BioPageDisplay } from "../bio-page-display";
 import { BASEURL } from "@/lib/utils";
+import { Types } from "mongoose";
 
 export default async function Home({
   params,
@@ -24,7 +25,9 @@ export default async function Home({
     notFound();
   }
 
-  const bioLinks = bioPage.links as {
+  const bioLinks = bioPage.links.filter(
+    (link) => !(link.link instanceof Types.ObjectId),
+  ) as {
     link: IUrl;
     image?: string;
     title?: string;
