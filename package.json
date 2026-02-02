@@ -143,7 +143,7 @@
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
     "@types/jsdom": "^27.0.0",
-    "@types/node": "^24",
+    "@types/node": "^25",
     "@types/nodemailer": "^7.0.3",
     "@types/qrcode": "^1.5.5",
     "@types/react": "19.2.7",
