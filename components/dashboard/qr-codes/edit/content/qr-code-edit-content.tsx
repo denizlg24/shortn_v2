@@ -51,19 +51,20 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { usePlan } from "@/hooks/use-plan";
-
-const qrCodeFormSchema = z.object({
-  title: z
-    .string()
-    .min(3, "Your title must be at least 3 characters long.")
-    .max(52, "Your title can't be longer than 52 characters."),
-  applyToLink: z.boolean().default(false).optional(),
-  longUrl: z
-    .string()
-    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
-});
+import { useTranslations } from "next-intl";
 
 export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
+  const t = useTranslations("qr-code-edit");
+
+  const qrCodeFormSchema = z.object({
+    title: z
+      .string()
+      .min(3, t("validation.title-too-short"))
+      .max(52, t("validation.title-too-long")),
+    applyToLink: z.boolean().default(false).optional(),
+    longUrl: z.string().url(t("validation.invalid-url")),
+  });
+
   const { data, refetch } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
@@ -157,12 +158,12 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
   return (
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
       <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-        Edit your QR Code
+        {t("title")}
       </h1>
       <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
         <div className="flex flex-col gap-2 items-start">
           <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-            Details
+            {t("details")}
           </h1>
         </div>
         <Form {...qrCodeForm}>
@@ -185,14 +186,13 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                   case "redirect-plan-limit":
                     qrCodeForm.setError("longUrl", {
                       type: "manual",
-                      message:
-                        "You have reached the redirect limit for your plan.",
+                      message: t("error-redirect-limit"),
                     });
                     break;
                   default:
                     qrCodeForm.setError("title", {
                       type: "manual",
-                      message: "There was a problem updating your QR Code.",
+                      message: t("error-updating"),
                     });
                 }
               }
@@ -205,7 +205,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
               name="title"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t("title-label")}</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
                   </FormControl>
@@ -214,7 +214,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
               )}
             />
             <div className="w-full flex flex-col gap-2">
-              <Label className="font-semibold">Tags</Label>
+              <Label className="font-semibold">{t("tags")}</Label>
 
               {isMobile ? (
                 <Dialog open={open} onOpenChange={setOpen}>
@@ -250,7 +250,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 </p>
                               );
                             })
-                          : "Add tags..."}
+                          : t("add-tags")}
                       </div>
 
                       <ChevronsUpDown className="opacity-50" />
@@ -258,16 +258,16 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                   </DialogTrigger>
                   <DialogContent className="w-full min-w-[250px] p-0 pt-6">
                     <DialogHeader className="px-4 text-left">
-                      <DialogTitle>Edit tags</DialogTitle>
+                      <DialogTitle>{t("edit-tags")}</DialogTitle>
                       <DialogDescription>
-                        Add or remove tags to make it easier to find your link.
+                        {t("tags-description")}
                       </DialogDescription>
                     </DialogHeader>
                     <Command className="w-full">
                       <CommandInput
                         value={input}
                         onValueChange={setInput}
-                        placeholder="Search tags..."
+                        placeholder={t("search-tags")}
                         className="h-9"
                       />
                       <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -328,7 +328,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 }
                               }}
                             >
-                              Create &quot;{input}&quot;
+                              {t("create-tag", { name: input })}
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -341,7 +341,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                             setOpen(false);
                           }}
                         >
-                          Save
+                          {t("save")}
                         </Button>
                         <Button
                           variant={"secondary"}
@@ -350,7 +350,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                             setOpen(false);
                           }}
                         >
-                          Cancel
+                          {t("cancel")}
                         </Button>
                       </div>
                     )}
@@ -390,7 +390,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 </p>
                               );
                             })
-                          : "Add tags..."}
+                          : t("add-tags")}
                       </div>
 
                       <ChevronsUpDown className="opacity-50" />
@@ -405,7 +405,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                       <CommandInput
                         value={input}
                         onValueChange={setInput}
-                        placeholder="Search tags..."
+                        placeholder={t("search-tags")}
                         className="h-9"
                       />
                       <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -466,7 +466,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 }
                               }}
                             >
-                              Create &quot;{input}&quot;
+                              {t("create-tag", { name: input })}
                             </CommandItem>
                           )}
                         </CommandGroup>
@@ -482,18 +482,18 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>
-                    Change destination{" "}
+                    {t("change-destination")}{" "}
                     {plan === "pro" || plan === "plus" ? (
                       <span className="text-muted-foreground">
                         (
                         {plan === "pro"
-                          ? "Unlimited "
+                          ? t("unlimited")
                           : Math.max(
                               (usage?.qrCodeRedirects.limit ?? 10) -
                                 (usage?.qrCodeRedirects.consumed ?? 0),
                               0,
                             )}{" "}
-                        left)
+                        {t("left")})
                       </span>
                     ) : (
                       <HoverCard>
@@ -503,16 +503,16 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                         <HoverCardContent asChild>
                           <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                             <p className="text-sm font-bold">
-                              Unlock redirects
+                              {t("unlock-redirects")}
                             </p>
                             <p>
                               <Link
                                 href={`/dashboard/subscription`}
                                 className="underline hover:cursor-pointer"
                               >
-                                Upgrade
+                                {t("upgrade")}
                               </Link>{" "}
-                              to change destination URL.
+                              {t("to-change-destination")}
                             </p>
                           </div>
                         </HoverCardContent>
@@ -543,10 +543,9 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center justify-between">
                     <div className="space-y-0.5">
-                      <FormLabel>Apply changes to Shortn</FormLabel>
+                      <FormLabel>{t("apply-to-shortn")}</FormLabel>
                       <FormDescription>
-                        Do you want these changes to reflect in the attached
-                        short link?
+                        {t("apply-to-shortn-description")}
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -567,10 +566,10 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                 type="button"
                 variant={"secondary"}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button type="submit" disabled={creating}>
-                {creating ? "Saving..." : "Save changes"}
+                {creating ? t("saving") : t("save-changes")}
               </Button>
             </div>
           </form>

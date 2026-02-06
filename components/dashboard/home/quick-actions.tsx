@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { LinkIcon, QrCode, FileText, Zap } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 const ActionCard = ({
   title,
@@ -42,29 +43,31 @@ const ActionCard = ({
 };
 
 export const QuickActions = ({ className }: { className?: string }) => {
+  const t = useTranslations("dashboard.quick-actions");
+
   return (
     <Card className={cn("p-4 flex flex-col gap-4", className)}>
       <div className="flex items-center gap-2">
         <Zap className="w-5 h-5 text-primary" />
-        <h2 className="font-bold text-lg">Quick Actions</h2>
+        <h2 className="font-bold text-lg">{t("title")}</h2>
       </div>
 
       <div className="grid sm:grid-cols-3 grid-cols-1 gap-3">
         <ActionCard
-          title="Create Link"
-          description="Shorten a URL and track clicks"
+          title={t("create-link")}
+          description={t("create-link-description")}
           icon={<LinkIcon className="w-5 h-5" />}
           href="/dashboard/links/create"
         />
         <ActionCard
-          title="Create QR Code"
-          description="Generate a custom QR code"
+          title={t("create-qr-code")}
+          description={t("create-qr-code-description")}
           icon={<QrCode className="w-5 h-5" />}
           href="/dashboard/qr-codes/create"
         />
         <ActionCard
-          title="Create Page"
-          description="Build a landing page"
+          title={t("create-page")}
+          description={t("create-page-description")}
           icon={<FileText className="w-5 h-5" />}
           href="/dashboard/pages/create"
         />

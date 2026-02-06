@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslations } from "next-intl";
 
 export function PasswordVerificationForm({ slug }: { slug: string }) {
   const [password, setPassword] = useState("");
@@ -17,6 +18,7 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
     null,
   );
   const router = useRouter();
+  const t = useTranslations("authentication");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,11 +47,11 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
           setAttemptsRemaining(data.attemptsRemaining);
         }
 
-        setError(data.message || "Incorrect password. Please try again.");
+        setError(data.message || t("incorrect-password-please-try-again"));
       }
     } catch (err) {
       console.error("Error verifying password:", err);
-      setError("An error occurred. Please try again.");
+      setError(t("an-error-occurred-please-try-again"));
     } finally {
       setLoading(false);
     }
@@ -58,14 +60,14 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
+        <Label htmlFor="password">{t("password-password")}</Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter password"
+            placeholder={t("enter-password")}
             required
             className="pr-10"
             disabled={loading}
@@ -93,8 +95,7 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
             {error}
             {attemptsRemaining !== null && attemptsRemaining > 0 && (
               <span className="block mt-1 text-xs">
-                {attemptsRemaining}{" "}
-                {attemptsRemaining === 1 ? "attempt" : "attempts"} remaining
+                {t("attempts-remaining", { count: attemptsRemaining })}
               </span>
             )}
           </AlertDescription>
@@ -105,10 +106,10 @@ export function PasswordVerificationForm({ slug }: { slug: string }) {
         {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Verifying...
+            {t("verifying")}
           </>
         ) : (
-          "Continue"
+          t("continue")
         )}
       </Button>
     </form>

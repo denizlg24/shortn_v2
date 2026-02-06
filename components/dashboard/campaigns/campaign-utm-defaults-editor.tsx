@@ -33,6 +33,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { IUtmDefaults } from "@/models/url/Campaigns";
+import { useTranslations } from "next-intl";
 
 interface CampaignUtmDefaultsEditorProps {
   campaignId: string;
@@ -150,6 +151,7 @@ export function CampaignUtmDefaultsEditor({
   initialDefaults,
   onUpdate,
 }: CampaignUtmDefaultsEditorProps) {
+  const t = useTranslations("utm-defaults-editor");
   const [saving, setSaving] = useState(false);
   const [description, setDescription] = useState(initialDescription);
   const [sources, setSources] = useState<string[]>(
@@ -188,17 +190,17 @@ export function CampaignUtmDefaultsEditor({
       });
 
       if (result.success) {
-        toast.success("Campaign defaults saved successfully");
+        toast.success(t("toast.saved"));
         onUpdate?.({
           description,
           utmDefaults: { sources, mediums, terms, contents },
         });
       } else {
-        toast.error(result.message || "Failed to save campaign defaults");
+        toast.error(result.message || t("toast.save-failed"));
       }
     } catch (error) {
       console.error("Failed to save:", error);
-      toast.error("An error occurred while saving");
+      toast.error(t("toast.error"));
     } finally {
       setSaving(false);
     }
@@ -217,16 +219,13 @@ export function CampaignUtmDefaultsEditor({
       <div className="px-6 py-0">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <CardTitle className="text-lg">Campaign Settings</CardTitle>
-            <CardDescription>
-              Configure default UTM parameters that auto-populate when adding
-              links
-            </CardDescription>
+            <CardTitle className="text-lg">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {hasChanges && (
               <Button variant="ghost" size="sm" onClick={handleReset}>
-                Reset
+                {t("reset")}
               </Button>
             )}
             <Button
@@ -243,7 +242,7 @@ export function CampaignUtmDefaultsEditor({
               ) : (
                 <Save className="w-4 h-4 mr-1.5" />
               )}
-              Save Changes
+              {t("save-changes")}
             </Button>
           </div>
         </div>
@@ -252,56 +251,56 @@ export function CampaignUtmDefaultsEditor({
       <CardContent className="px-6 py-0 space-y-6">
         <div className="space-y-2">
           <Label htmlFor="description" className="font-medium">
-            Description
+            {t("description-label")}
           </Label>
           <Textarea
             id="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Add a description for this campaign..."
+            placeholder={t("description-placeholder")}
             className="resize-none h-20"
           />
           <p className="text-xs text-muted-foreground">
-            A brief description to help identify this campaign's purpose
+            {t("description-help")}
           </p>
         </div>
 
         <div className="pt-2 border-t">
           <p className="text-sm font-medium mb-4 text-muted-foreground">
-            UTM Parameter Defaults
+            {t("utm-defaults-title")}
           </p>
           <div className="grid gap-5">
             <TagInput
-              label="Sources"
+              label={t("sources")}
               icon={<Megaphone className="w-4 h-4" />}
               values={sources}
               onChange={setSources}
-              placeholder="Add source..."
-              helpText="e.g., facebook, twitter, newsletter - identifies where traffic comes from"
+              placeholder={t("sources-placeholder")}
+              helpText={t("sources-help")}
             />
             <TagInput
-              label="Mediums"
+              label={t("mediums")}
               icon={<Share2 className="w-4 h-4" />}
               values={mediums}
               onChange={setMediums}
-              placeholder="Add medium..."
-              helpText="e.g., social, email, cpc - identifies the marketing medium"
+              placeholder={t("mediums-placeholder")}
+              helpText={t("mediums-help")}
             />
             <TagInput
-              label="Terms"
+              label={t("terms")}
               icon={<Tag className="w-4 h-4" />}
               values={terms}
               onChange={setTerms}
-              placeholder="Add term..."
-              helpText="e.g., promo, sale, launch - identifies paid keywords"
+              placeholder={t("terms-placeholder")}
+              helpText={t("terms-help")}
             />
             <TagInput
-              label="Contents"
+              label={t("contents")}
               icon={<FileText className="w-4 h-4" />}
               values={contents}
               onChange={setContents}
-              placeholder="Add content..."
-              helpText="e.g., header-cta, footer-link - differentiates similar content"
+              placeholder={t("contents-placeholder")}
+              helpText={t("contents-help")}
             />
           </div>
         </div>
@@ -312,28 +311,27 @@ export function CampaignUtmDefaultsEditor({
           contents.length > 0) && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground mb-2">
-              These defaults will be available when adding links to this
-              campaign
+              {t("defaults-hint")}
             </p>
             <div className="flex flex-wrap gap-2">
               {sources.map((s) => (
                 <Badge key={`s-${s}`} variant="outline" className="text-xs">
-                  source: {s}
+                  {t("source-label", { value: s })}
                 </Badge>
               ))}
               {mediums.map((m) => (
                 <Badge key={`m-${m}`} variant="outline" className="text-xs">
-                  medium: {m}
+                  {t("medium-label", { value: m })}
                 </Badge>
               ))}
-              {terms.map((t) => (
-                <Badge key={`t-${t}`} variant="outline" className="text-xs">
-                  term: {t}
+              {terms.map((term) => (
+                <Badge key={`t-${term}`} variant="outline" className="text-xs">
+                  {t("term-label", { value: term })}
                 </Badge>
               ))}
               {contents.map((c) => (
                 <Badge key={`c-${c}`} variant="outline" className="text-xs">
-                  content: {c}
+                  {t("content-label", { value: c })}
                 </Badge>
               ))}
             </div>

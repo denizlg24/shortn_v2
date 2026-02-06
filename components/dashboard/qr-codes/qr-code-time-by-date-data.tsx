@@ -33,6 +33,7 @@ import { ClickEntry } from "@/models/url/Click";
 import { useScans } from "@/utils/ScanDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadButtonCSV } from "../links/download-csv-button";
+import { useTranslations } from "next-intl";
 
 export const QRCodeTimeByDateData = ({
   unlocked,
@@ -41,6 +42,7 @@ export const QRCodeTimeByDateData = ({
   unlocked: boolean;
   createdAt: Date;
 }) => {
+  const t = useTranslations("qr-code-time-by-date-data");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [open, setOpen] = useState(false);
   const [mobileStartOpened, mobileStartOpen] = useState(false);
@@ -48,19 +50,28 @@ export const QRCodeTimeByDateData = ({
   const { getScans, urlCode } = useScans();
   const [loading, setLoading] = useState(true);
   const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  const dateRangeOptions = [
+    { key: "this-month", label: t("this-month") },
+    { key: "last-month", label: t("last-month") },
+    { key: "last-3-months", label: t("last-3-months") },
+    { key: "last-6-months", label: t("last-6-months") },
+    { key: "last-9-months", label: t("last-9-months") },
+    { key: "last-year", label: t("last-year") },
+    { key: "all-time", label: t("all-time") },
+  ];
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
     mobileStartOpen(false);
     mobileEndOpen(false);
     switch (option) {
-      case "This month":
+      case "this-month":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
           to: now,
         };
 
-      case "Last month": {
+      case "last-month": {
         const from = startOfDay(
           new Date(now.getFullYear(), now.getMonth() - 1, 1),
         );
@@ -68,31 +79,31 @@ export const QRCodeTimeByDateData = ({
         return { from, to };
       }
 
-      case "Last 3 months":
+      case "last-3-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
           to: now,
         };
 
-      case "Last 6 months":
+      case "last-6-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 5, 1)),
           to: now,
         };
 
-      case "Last 9 months":
+      case "last-9-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 8, 1)),
           to: now,
         };
 
-      case "Last year":
+      case "last-year":
         return {
           from: startOfDay(new Date(now.getFullYear() - 1, now.getMonth(), 1)),
           to: now,
         };
 
-      case "All time":
+      case "all-time":
         return {
           from: startOfDay(new Date(createdAt)),
           to: now,
@@ -107,7 +118,7 @@ export const QRCodeTimeByDateData = ({
     range: DateRange | undefined,
     createdAt: Date,
   ): string {
-    if (!range?.from || !range?.to) return "for this month";
+    if (!range?.from || !range?.to) return t("for-this-month");
 
     const now = endOfDay(new Date());
     const from = startOfDay(range.from);
@@ -117,7 +128,7 @@ export const QRCodeTimeByDateData = ({
       isSameDay(from, startOfDay(createdAt)) &&
       Math.abs(to.getTime() - now.getTime()) < 1000 * 60 * 60 * 24
     ) {
-      return "of all time";
+      return t("of-all-time");
     }
 
     if (Math.abs(to.getTime() - now.getTime()) < 1000 * 60 * 60 * 24) {
@@ -128,14 +139,17 @@ export const QRCodeTimeByDateData = ({
       const diffYears = now.getFullYear() - from.getFullYear();
       if (diffYears >= 1 && diffMonths >= 12)
         return diffYears === 1
-          ? "for last year"
-          : `for the last ${diffYears} years`;
-      if (diffMonths === 0) return "for this month";
-      if (diffMonths === 1) return "for last month";
-      return `for the last ${diffMonths + 1} months`;
+          ? t("for-last-year")
+          : t("for-last-years", { years: diffYears });
+      if (diffMonths === 0) return t("for-this-month");
+      if (diffMonths === 1) return t("for-last-month");
+      return t("for-last-months", { months: diffMonths + 1 });
     }
 
-    return `from ${format(from, "d MMM yyyy")} to ${format(to, "d MMM yyyy")}`;
+    return t("from-to", {
+      start: format(from, "d MMM yyyy"),
+      end: format(to, "d MMM yyyy"),
+    });
   }
 
   useEffect(() => {
@@ -155,12 +169,12 @@ export const QRCodeTimeByDateData = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Scans over Time and Date
+            {t("title")}
           </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
               <Lock className="w-4 h-4" />
-              Upgrade
+              {t("upgrade")}
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
@@ -169,9 +183,9 @@ export const QRCodeTimeByDateData = ({
                     href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </Link>{" "}
-                  to see Scans over Time and Date data.
+                  {t("to-see-data")}
                 </p>
               </div>
             </HoverCardContent>
@@ -180,7 +194,7 @@ export const QRCodeTimeByDateData = ({
         <div className="w-full h-auto">
           <Image
             src={scansOverTimeLocked}
-            alt="Scans over time locked illustration"
+            alt={t("locked-alt")}
             className="w-full h-full object-cover  min-h-[150px]"
           />
         </div>
@@ -192,10 +206,9 @@ export const QRCodeTimeByDateData = ({
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
         <div className="w-full flex flex-col gap-1 items-start">
-          <CardTitle>Scans over Time and Date</CardTitle>
+          <CardTitle>{t("title")}</CardTitle>
           <CardDescription>
-            Showing scans over time and date data{" "}
-            {formatHumanDateRange(dateRange, createdAt)}.
+            {t("description")} {formatHumanDateRange(dateRange, createdAt)}.
           </CardDescription>
           <div className="w-full flex flex-row items-center gap-2 flex-wrap">
             <Popover open={open} onOpenChange={setOpen}>
@@ -215,7 +228,7 @@ export const QRCodeTimeByDateData = ({
                           ? `-${format(dateRange.to, "dd/MM/yyyy")}`
                           : ""
                       }`
-                    : "Select a period"}
+                    : t("select-period")}
                   <ChevronDownIcon />
                 </Button>
               </PopoverTrigger>
@@ -252,22 +265,16 @@ export const QRCodeTimeByDateData = ({
                 />
                 <Separator className="mb-2" />
                 <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
-                  {[
-                    "This month",
-                    "Last month",
-                    "Last 3 months",
-                    "Last 6 months",
-                    "Last 9 months",
-                    "Last year",
-                    "All time",
-                  ].map((opt) => (
+                  {dateRangeOptions.map((opt) => (
                     <Button
-                      key={opt}
+                      key={opt.key}
                       variant="secondary"
                       className="text-xs p-2 h-fit grow"
-                      onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                      onClick={() =>
+                        setDateRange(getDateRange(opt.key, createdAt))
+                      }
                     >
-                      {opt}
+                      {opt.label}
                     </Button>
                   ))}
                 </div>
@@ -282,15 +289,15 @@ export const QRCodeTimeByDateData = ({
                 >
                   {dateRange?.from
                     ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                    : "Select a start date"}
+                    : t("select-start-date")}
                   <ChevronDownIcon />
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
                 <DialogHeader className="px-4">
-                  <DialogTitle>Select start date</DialogTitle>
+                  <DialogTitle>{t("select-start-date-title")}</DialogTitle>
                   <DialogDescription>
-                    Select the date from which to start displaying scan data.
+                    {t("start-date-description")}
                   </DialogDescription>
                 </DialogHeader>
                 <Calendar
@@ -312,22 +319,16 @@ export const QRCodeTimeByDateData = ({
                 />
                 <Separator className="mb-2" />
                 <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                  {[
-                    "This month",
-                    "Last month",
-                    "Last 3 months",
-                    "Last 6 months",
-                    "Last 9 months",
-                    "Last year",
-                    "All time",
-                  ].map((opt) => (
+                  {dateRangeOptions.map((opt) => (
                     <Button
-                      key={opt}
+                      key={opt.key}
                       variant="secondary"
                       className="text-xs p-2 h-fit grow"
-                      onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                      onClick={() =>
+                        setDateRange(getDateRange(opt.key, createdAt))
+                      }
                     >
-                      {opt}
+                      {opt.label}
                     </Button>
                   ))}
                 </div>
@@ -345,14 +346,14 @@ export const QRCodeTimeByDateData = ({
                     >
                       {dateRange?.to
                         ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                        : "End"}
+                        : t("end")}
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
                     <DialogHeader className="px-4">
-                      <DialogTitle>Select end date</DialogTitle>
+                      <DialogTitle>{t("select-end-date")}</DialogTitle>
                       <DialogDescription>
-                        Select the date from which to stop displaying scan data.
+                        {t("end-date-description")}
                       </DialogDescription>
                     </DialogHeader>
                     <Calendar
@@ -374,24 +375,16 @@ export const QRCodeTimeByDateData = ({
                     />
                     <Separator className="mb-2" />
                     <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                      {[
-                        "This month",
-                        "Last month",
-                        "Last 3 months",
-                        "Last 6 months",
-                        "Last 9 months",
-                        "Last year",
-                        "All time",
-                      ].map((opt) => (
+                      {dateRangeOptions.map((opt) => (
                         <Button
-                          key={opt}
+                          key={opt.key}
                           variant="secondary"
                           className="text-xs p-2 h-fit grow"
                           onClick={() =>
-                            setDateRange(getDateRange(opt, createdAt))
+                            setDateRange(getDateRange(opt.key, createdAt))
                           }
                         >
-                          {opt}
+                          {opt.label}
                         </Button>
                       ))}
                     </div>
@@ -409,7 +402,7 @@ export const QRCodeTimeByDateData = ({
                 variant={"ghost"}
               >
                 <X />
-                Clear Period
+                {t("clear-period")}
               </Button>
             )}
           </div>
@@ -428,10 +421,9 @@ export const QRCodeTimeByDateData = ({
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4 justify-between">
       <div className="w-full flex flex-col gap-1 items-start">
-        <CardTitle>Scans over Time and Date</CardTitle>
+        <CardTitle>{t("title")}</CardTitle>
         <CardDescription>
-          Showing scans over time and date data{" "}
-          {formatHumanDateRange(dateRange, createdAt)}.
+          {t("description")} {formatHumanDateRange(dateRange, createdAt)}.
         </CardDescription>
         <div className="w-full flex flex-row items-center gap-2 flex-wrap">
           <Popover open={open} onOpenChange={setOpen}>
@@ -449,7 +441,7 @@ export const QRCodeTimeByDateData = ({
                         ? `-${format(dateRange.to, "dd/MM/yyyy")}`
                         : ""
                     }`
-                  : "Select a period"}
+                  : t("select-period")}
                 <ChevronDownIcon />
               </Button>
             </PopoverTrigger>
@@ -486,22 +478,16 @@ export const QRCodeTimeByDateData = ({
               />
               <Separator className="mb-2" />
               <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
-                {[
-                  "This month",
-                  "Last month",
-                  "Last 3 months",
-                  "Last 6 months",
-                  "Last 9 months",
-                  "Last year",
-                  "All time",
-                ].map((opt) => (
+                {dateRangeOptions.map((opt) => (
                   <Button
-                    key={opt}
+                    key={opt.key}
                     variant="secondary"
                     className="text-xs p-2 h-fit grow"
-                    onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                    onClick={() =>
+                      setDateRange(getDateRange(opt.key, createdAt))
+                    }
                   >
-                    {opt}
+                    {opt.label}
                   </Button>
                 ))}
               </div>
@@ -516,15 +502,15 @@ export const QRCodeTimeByDateData = ({
               >
                 {dateRange?.from
                   ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                  : "Select a start date"}
+                  : t("select-start-date")}
                 <ChevronDownIcon />
               </Button>
             </DialogTrigger>
             <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
               <DialogHeader className="px-4">
-                <DialogTitle>Select start date</DialogTitle>
+                <DialogTitle>{t("select-start-date-title")}</DialogTitle>
                 <DialogDescription>
-                  Select the date from which to start displaying scan data.
+                  {t("start-date-description")}
                 </DialogDescription>
               </DialogHeader>
               <Calendar
@@ -546,22 +532,16 @@ export const QRCodeTimeByDateData = ({
               />
               <Separator className="mb-2" />
               <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                {[
-                  "This month",
-                  "Last month",
-                  "Last 3 months",
-                  "Last 6 months",
-                  "Last 9 months",
-                  "Last year",
-                  "All time",
-                ].map((opt) => (
+                {dateRangeOptions.map((opt) => (
                   <Button
-                    key={opt}
+                    key={opt.key}
                     variant="secondary"
                     className="text-xs p-2 h-fit grow"
-                    onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                    onClick={() =>
+                      setDateRange(getDateRange(opt.key, createdAt))
+                    }
                   >
-                    {opt}
+                    {opt.label}
                   </Button>
                 ))}
               </div>
@@ -579,14 +559,14 @@ export const QRCodeTimeByDateData = ({
                   >
                     {dateRange?.to
                       ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                      : "End"}
+                      : t("end")}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
                   <DialogHeader className="px-4">
-                    <DialogTitle>Select end date</DialogTitle>
+                    <DialogTitle>{t("select-end-date")}</DialogTitle>
                     <DialogDescription>
-                      Select the date from which to stop displaying scan data.
+                      {t("end-date-description")}
                     </DialogDescription>
                   </DialogHeader>
                   <Calendar
@@ -608,24 +588,16 @@ export const QRCodeTimeByDateData = ({
                   />
                   <Separator className="mb-2" />
                   <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                    {[
-                      "This month",
-                      "Last month",
-                      "Last 3 months",
-                      "Last 6 months",
-                      "Last 9 months",
-                      "Last year",
-                      "All time",
-                    ].map((opt) => (
+                    {dateRangeOptions.map((opt) => (
                       <Button
-                        key={opt}
+                        key={opt.key}
                         variant="secondary"
                         className="text-xs p-2 h-fit grow"
                         onClick={() =>
-                          setDateRange(getDateRange(opt, createdAt))
+                          setDateRange(getDateRange(opt.key, createdAt))
                         }
                       >
-                        {opt}
+                        {opt.label}
                       </Button>
                     ))}
                   </div>
@@ -643,7 +615,7 @@ export const QRCodeTimeByDateData = ({
               variant={"ghost"}
             >
               <X />
-              Clear Period
+              {t("clear-period")}
             </Button>
           )}
         </div>

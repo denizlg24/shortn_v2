@@ -37,6 +37,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslations } from "next-intl";
 
 type BioPage = {
   _id: string;
@@ -44,21 +45,6 @@ type BioPage = {
   title: string;
   avatarUrl?: string;
 };
-
-const pageFormSchema = z.object({
-  title: z
-    .string()
-    .max(100, "Title can't be longer than 100 characters")
-    .optional(),
-  slug: z
-    .string()
-    .min(3, "Page URL must be at least 3 characters long")
-    .max(52, "Page URL can't be longer than 52 characters")
-    .regex(
-      /^[a-zA-Z0-9_-]+$/,
-      "Page URL can only contain letters, numbers, dashes (-), and underscores (_)",
-    ),
-});
 
 export const AddToBioPageDialog = ({
   linkId,
@@ -71,6 +57,17 @@ export const AddToBioPageDialog = ({
   trigger?: ReactNode;
   onSuccess?: (_slug: string) => void;
 }) => {
+  const t = useTranslations("add-to-bio-page");
+
+  const pageFormSchema = z.object({
+    title: z.string().max(100, t("validation.title-too-long")).optional(),
+    slug: z
+      .string()
+      .min(3, t("validation.slug-too-short"))
+      .max(52, t("validation.slug-too-long"))
+      .regex(/^[a-zA-Z0-9_-]+$/, t("validation.slug-invalid-chars")),
+  });
+
   const [open, setOpen] = useState(false);
   const [bioPages, setBioPages] = useState<BioPage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -124,42 +121,41 @@ export const AddToBioPageDialog = ({
       });
 
       if (addResult.success) {
-        toast.success("Bio page created and link added");
+        toast.success(t("toast.created-and-added"));
         setOpen(false);
         pageForm.reset();
         onSuccess?.(data.slug);
         router.push(`/dashboard/pages/${data.slug}/customize`);
       } else {
         pageForm.setError("root", {
-          message: "Page created but failed to add link",
+          message: t("errors.page-created-link-failed"),
         });
       }
     } else {
       switch (result.message) {
         case "duplicate":
           pageForm.setError("slug", {
-            message:
-              "This page URL is already taken. Please choose another one.",
+            message: t("errors.duplicate"),
           });
           break;
         case "plan-restricted":
           pageForm.setError("root", {
-            message: "Your current plan does not allow creating a new page.",
+            message: t("errors.plan-restricted"),
           });
           break;
         case "no-user":
           pageForm.setError("root", {
-            message: "User not found. Please log in again.",
+            message: t("errors.no-user"),
           });
           break;
         case "server-error":
           pageForm.setError("root", {
-            message: "Server error. Please try again later.",
+            message: t("errors.server-error"),
           });
           break;
         default:
           pageForm.setError("root", {
-            message: "Failed to create bio page. Please try again.",
+            message: t("errors.create-failed"),
           });
       }
     }
@@ -174,15 +170,15 @@ export const AddToBioPageDialog = ({
     });
 
     if (result.success) {
-      toast.success("Link added to bio page");
+      toast.success(t("toast.link-added"));
       setOpen(false);
       onSuccess?.(slug);
       router.refresh();
     } else {
       if (result.message === "link-already-added") {
-        toast.error("This link is already on this bio page");
+        toast.error(t("toast.link-already-added"));
       } else {
-        toast.error("Failed to add link to bio page");
+        toast.error(t("toast.add-failed"));
       }
     }
     setAdding(null);
@@ -194,34 +190,33 @@ export const AddToBioPageDialog = ({
         {trigger || (
           <Button variant="outline">
             <NotepadText className="h-4 w-4 mr-2" />
-            Add to a page
+            {t("trigger")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add to Bio Page</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Add &quot;{linkTitle}&quot; to an existing bio page or create a new
-            one.
+            {t("description", { linkTitle })}
           </DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="add" className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="add">Add to a page</TabsTrigger>
-            <TabsTrigger value="create">Create a new page</TabsTrigger>
+            <TabsTrigger value="add">{t("tabs.add")}</TabsTrigger>
+            <TabsTrigger value="create">{t("tabs.create")}</TabsTrigger>
           </TabsList>
           <Separator className="mt-1" />
           <TabsContent value="add">
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold">Add to Existing Page</h3>
+              <h3 className="text-sm font-semibold">{t("add-existing")}</h3>
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <Spinner className="h-6 w-6" />
                 </div>
               ) : bioPages.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No bio pages yet. Create one above!
+                  {t("no-pages")}
                 </p>
               ) : (
                 <ScrollArea className="h-60 rounded-md border bg-muted p-2">
@@ -262,7 +257,7 @@ export const AddToBioPageDialog = ({
           </TabsContent>
           <TabsContent value="create">
             <div className="flex flex-col gap-3">
-              <h3 className="text-sm font-semibold">Create New Page</h3>
+              <h3 className="text-sm font-semibold">{t("create-new")}</h3>
               <Form {...pageForm}>
                 <form className="flex flex-col gap-3">
                   <FormField
@@ -270,9 +265,12 @@ export const AddToBioPageDialog = ({
                     name="title"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Title (optional)</FormLabel>
+                        <FormLabel>{t("form.title-label")}</FormLabel>
                         <FormControl>
-                          <Input placeholder="My Bio Page" {...field} />
+                          <Input
+                            placeholder={t("form.title-placeholder")}
+                            {...field}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -283,10 +281,10 @@ export const AddToBioPageDialog = ({
                     name="slug"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Page URL *</FormLabel>
+                        <FormLabel>{t("form.url-label")}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="my-page"
+                            placeholder={t("form.url-placeholder")}
                             {...field}
                             onChange={(e) =>
                               field.onChange(
@@ -309,12 +307,12 @@ export const AddToBioPageDialog = ({
                   >
                     {creating ? (
                       <>
-                        Creating...
+                        {t("form.creating")}
                         <Spinner className="h-4 w-4" />
                       </>
                     ) : (
                       <>
-                        Create & Add Link
+                        {t("form.create-and-add")}
                         <Plus className="h-4 w-4" />
                       </>
                     )}

@@ -9,6 +9,7 @@ import { QRCodeTimeByDateData } from "./qr-code-time-by-date-data";
 import { ScanDataProvider } from "@/utils/ScanDataContext";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
+import { getTranslations } from "next-intl/server";
 
 export const QRCodeDetails = async ({
   qr,
@@ -19,6 +20,7 @@ export const QRCodeDetails = async ({
 }) => {
   const session = await getServerSession();
   const { plan } = await getUserPlan();
+  const t = await getTranslations("dashboard");
   if (!session?.user) {
     redirect({ href: "/dashboard/logout", locale: locale });
     return;
@@ -33,7 +35,7 @@ export const QRCodeDetails = async ({
               href={`/dashboard/qr-codes`}
             >
               <ChevronLeft />
-              Back to list
+              {t("qr-code-details-back")}
             </Link>
           </Button>
           <QRCodeDetailsCard

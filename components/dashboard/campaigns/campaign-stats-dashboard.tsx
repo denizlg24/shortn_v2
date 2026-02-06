@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { IUtmDefaults } from "@/models/url/Campaigns";
+import { useTranslations } from "next-intl";
 
 interface CampaignStatsDashboardProps {
   campaignId: string;
@@ -47,6 +48,7 @@ export function CampaignStatsDashboard({
   linksCount,
   createdAt,
 }: CampaignStatsDashboardProps) {
+  const t = useTranslations("campaign-stats-dashboard");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<CampaignStats | null>(null);
   const [utmTreeData, setUtmTreeData] = useState<UtmTreeNode[]>([]);
@@ -113,7 +115,7 @@ export function CampaignStatsDashboard({
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-bold truncate">{campaignTitle}</h1>
             <Badge variant="secondary" className="shrink-0">
-              {currentLinksCount} link{currentLinksCount !== 1 ? "s" : ""}
+              {t("links-count", { count: currentLinksCount })}
             </Badge>
           </div>
           {description && (
@@ -121,7 +123,11 @@ export function CampaignStatsDashboard({
           )}
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Calendar className="w-3.5 h-3.5" />
-            <span>Created {format(new Date(createdAt), "MMM d, yyyy")}</span>
+            <span>
+              {t("created", {
+                date: format(new Date(createdAt), "MMM d, yyyy"),
+              })}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -131,7 +137,7 @@ export function CampaignStatsDashboard({
             trigger={
               <Button variant="outline" size="sm">
                 <Plus className="w-4 h-4 mr-1.5" />
-                Add Link
+                {t("add-link")}
               </Button>
             }
           />
@@ -142,7 +148,7 @@ export function CampaignStatsDashboard({
             trigger={
               <Button variant="outline" size="sm">
                 <Download className="w-4 h-4 mr-1.5" />
-                Export
+                {t("export")}
               </Button>
             }
           />
@@ -156,19 +162,19 @@ export function CampaignStatsDashboard({
         <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:inline-flex">
           <TabsTrigger value="links" className="gap-1.5">
             <Link2 className="w-4 h-4 hidden sm:block" />
-            Links
+            {t("tabs.links")}
           </TabsTrigger>
           <TabsTrigger value="analytics" className="gap-1.5">
             <BarChart3 className="w-4 h-4 hidden sm:block" />
-            Analytics
+            {t("tabs.analytics")}
           </TabsTrigger>
           <TabsTrigger value="utm-tree" className="gap-1.5">
             <GitBranch className="w-4 h-4 hidden sm:block" />
-            UTM Tree
+            {t("tabs.utm-tree")}
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-1.5">
             <Settings className="w-4 h-4 hidden sm:block" />
-            Settings
+            {t("tabs.settings")}
           </TabsTrigger>
         </TabsList>
 
@@ -188,7 +194,7 @@ export function CampaignStatsDashboard({
             <div className="grid md:grid-cols-2 gap-6">
               <div className="p-4 rounded-xl bg-background shadow">
                 <h3 className="font-semibold pb-2 mb-4 border-b">
-                  Top Countries
+                  {t("top-countries")}
                 </h3>
                 {stats.geographic.length > 0 ? (
                   <div className="space-y-3">
@@ -211,14 +217,14 @@ export function CampaignStatsDashboard({
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No geographic data available
+                    {t("no-geographic-data")}
                   </p>
                 )}
               </div>
 
               <div className="p-4 rounded-xl bg-background shadow">
                 <h3 className="font-semibold pb-2 mb-4 border-b">
-                  Device Breakdown
+                  {t("device-breakdown")}
                 </h3>
                 {stats.devices.length > 0 ? (
                   <div className="space-y-3">
@@ -248,7 +254,7 @@ export function CampaignStatsDashboard({
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    No device data available
+                    {t("no-device-data")}
                   </p>
                 )}
               </div>

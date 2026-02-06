@@ -1,14 +1,16 @@
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getTranslations } from "next-intl/server";
 
-export default function Loading() {
+export default async function Loading() {
+  const t = await getTranslations("loading");
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Security Details
+        {t("settings-security-title")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Update your password here.
+        {t("settings-security-subtitle")}
       </h2>
       <Separator className="my-4" />
       <div className="grid sm:grid-cols-2 grid-cols-1 max-w-xl gap-x-8 gap-y-4 w-full my-4 items-start">
@@ -27,10 +29,10 @@ export default function Loading() {
       </div>
       <Separator className="my-4" />
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Access History
+        {t("settings-security-access-title")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        You&apos;re viewing recent activity on your account.
+        {t("settings-security-access-subtitle")}
       </h2>
       <Separator className="my-4" />
     </div>

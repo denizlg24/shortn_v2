@@ -13,6 +13,7 @@ import { Loader2, AlertCircle, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslations } from "next-intl";
 
 interface PendingChange {
   _id: string;
@@ -33,6 +34,7 @@ export const RevertScheduledChangeButton = ({
   pendingChange: PendingChange;
   onRevertSuccess?: () => void;
 }) => {
+  const t = useTranslations("revert-button");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -62,29 +64,20 @@ export const RevertScheduledChangeButton = ({
 
         router.refresh();
       } else {
-        setError(data.message || "Failed to revert change. Please try again.");
+        setError(data.message || t("error-default"));
       }
     } catch (error) {
       console.error("Failed to revert scheduled change:", error);
-      setError(
-        "An unexpected error occurred. Please try again or contact support.",
-      );
+      setError(t("error-unexpected"));
     }
 
     setLoading(false);
   };
 
-  const scheduledDate = new Date(pendingChange.scheduledFor);
-  const formattedDate = scheduledDate.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-
   const changeTypeLabel =
     pendingChange.changeType === "cancellation"
-      ? "cancellation"
-      : `downgrade to ${pendingChange.targetPlan}`;
+      ? t("cancellation")
+      : t("downgrade-to", { plan: pendingChange.targetPlan });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -95,17 +88,25 @@ export const RevertScheduledChangeButton = ({
             <RotateCcw className="h-6 w-6 text-primary" />
           </div>
           <DialogTitle className="text-center text-xl">
-            Revert Scheduled{" "}
             {pendingChange.changeType === "cancellation"
-              ? "Cancellation"
-              : "Downgrade"}
+              ? t("title-cancellation")
+              : t("title-downgrade")}
           </DialogTitle>
           <DialogDescription className="text-center pt-2">
-            You have a scheduled {changeTypeLabel} set for{" "}
-            <span className="font-semibold text-foreground">
-              {formattedDate}
-            </span>
-            . Would you like to revert this change and keep your current plan?
+            {t.rich("description", {
+              changeType: changeTypeLabel,
+              date: new Date(pendingChange.scheduledFor).toLocaleDateString(
+                "en-US",
+                {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
+                },
+              ),
+              strong: (chunks) => (
+                <span className="font-semibold text-foreground">{chunks}</span>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -126,10 +127,10 @@ export const RevertScheduledChangeButton = ({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Reverting...
+                {t("reverting")}
               </>
             ) : (
-              "Yes, Revert Change"
+              t("confirm")
             )}
           </Button>
           <Button
@@ -139,12 +140,12 @@ export const RevertScheduledChangeButton = ({
             className="w-full"
             size="lg"
           >
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          This will restore your subscription to its current active state.
+          {t("note")}
         </p>
       </DialogContent>
     </Dialog>

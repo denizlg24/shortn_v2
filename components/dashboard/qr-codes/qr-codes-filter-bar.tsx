@@ -47,8 +47,10 @@ import {
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
+import { useTranslations } from "next-intl";
 
 export const QRCodesFilterBar = () => {
+  const t = useTranslations("link-filter");
   const [open, setOpen] = useState(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -292,7 +294,7 @@ export const QRCodesFilterBar = () => {
           type="text"
           name="qr-code-search"
           id="qr-code-search"
-          placeholder="Search codes"
+          placeholder={t("search-codes")}
           value={query}
           autoComplete="off"
           data-form-type="other"
@@ -327,7 +329,7 @@ export const QRCodesFilterBar = () => {
                         dateRange.to,
                         "MMM dd",
                       )}`
-                    : "Filter by created date"}
+                    : t("filter-by-date")}
                 </p>
               </Button>
             </PopoverTrigger>
@@ -335,10 +337,10 @@ export const QRCodesFilterBar = () => {
               <div className="p-0 w-full">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
-                    Filter by created date
+                    {t("filter-by-date")}
                   </h1>
                   <p className="text-muted-foreground xs:text-sm text-xs text-left">
-                    Display only QR Codes created on the selected range.
+                    {t("qr-date-description")}
                   </p>
                 </div>
                 <Separator className="my-2" />
@@ -402,7 +404,7 @@ export const QRCodesFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -411,7 +413,7 @@ export const QRCodesFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>
@@ -433,15 +435,15 @@ export const QRCodesFilterBar = () => {
                   <p className="font-semibold">
                     {dateRange?.from
                       ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                      : "Filter by created date"}
+                      : t("filter-by-date")}
                   </p>
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[320px]">
                 <DialogHeader>
-                  <DialogTitle>Filter by created date</DialogTitle>
+                  <DialogTitle>{t("filter-by-date")}</DialogTitle>
                   <DialogDescription>
-                    Display only short links created on the selected range.
+                    {t("qr-date-description")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="p-0 w-full">
@@ -523,7 +525,7 @@ export const QRCodesFilterBar = () => {
                       <p className="font-semibold">
                         {dateRange?.to
                           ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                          : "End"}
+                          : t("end")}
                       </p>
                     </Button>
                   </DialogTrigger>
@@ -609,13 +611,13 @@ export const QRCodesFilterBar = () => {
                 <Settings2 className="size-3.5" />
                 <p className="font-semibold">
                   {tags.length === 0 && attachedQR === "all" ? (
-                    <>Add Filters</>
+                    <>{t("add-filters")}</>
                   ) : (
                     <>
                       {(() => {
                         let count = tags.length;
                         if (attachedQR !== "all") count++;
-                        return `${count} filter${count > 1 ? "s" : ""}`;
+                        return `${count} ${t("filters")}`;
                       })()}
                     </>
                   )}
@@ -624,14 +626,14 @@ export const QRCodesFilterBar = () => {
             </DialogTrigger>
             <DialogContent className="w-full min-w-[250px] overflow-hidden p-0 pt-6">
               <DialogHeader className="px-4 text-left">
-                <DialogTitle>Filters</DialogTitle>
+                <DialogTitle>{t("filters")}</DialogTitle>
                 <DialogDescription>
-                  Apply filters to better find your QR Codes.
+                  {t("qr-filters-description")}
                 </DialogDescription>
               </DialogHeader>
               <div className="p-4 pt-0 w-full flex flex-col gap-4">
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Tags</Label>
+                  <Label className="font-semibold">{t("tags")}</Label>
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -665,7 +667,7 @@ export const QRCodesFilterBar = () => {
                                   </p>
                                 );
                               })
-                            : "Select tags..."}
+                            : t("select-tags")}
                         </div>
 
                         <ChevronsUpDown className="opacity-50" />
@@ -673,21 +675,20 @@ export const QRCodesFilterBar = () => {
                     </DialogTrigger>
                     <DialogContent className="w-full min-w-[250px] p-0 pt-6">
                       <DialogHeader className="px-4 text-left">
-                        <DialogTitle>Edit tags</DialogTitle>
+                        <DialogTitle>{t("edit-tags")}</DialogTitle>
                         <DialogDescription>
-                          Add or remove tags to make it easier to find your QR
-                          Code.
+                          {t("edit-tags-qr-description")}
                         </DialogDescription>
                       </DialogHeader>
                       <Command>
                         <CommandInput
-                          placeholder="Search tags..."
+                          placeholder={t("search-tags")}
                           className="h-9"
                           value={input}
                           onValueChange={setInput}
                         />
                         <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandEmpty>{t("no-options")}</CommandEmpty>
                           <CommandGroup className="w-full">
                             {tagOptions.map((tag) => (
                               <CommandItem
@@ -733,7 +734,7 @@ export const QRCodesFilterBar = () => {
                   </Dialog>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Attached Link</Label>
+                  <Label className="font-semibold">{t("attached-link")}</Label>
                   <Select
                     value={attachedQR}
                     onValueChange={setAttachedQR}
@@ -744,22 +745,20 @@ export const QRCodesFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="all">
-                          QR Codes
-                          <span className="font-semibold -mx-1">
-                            with or without
-                          </span>
-                          attached Links
-                        </SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          QR Codes
-                          <span className="font-semibold -mx-1">with</span>
-                          attached Links
+                          {t("qr-codes")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("links")}
                         </SelectItem>
                         <SelectItem value="off">
-                          QR Codes
-                          <span className="font-semibold -mx-1">without</span>
-                          attached Links
+                          {t("qr-codes")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("links")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -774,7 +773,7 @@ export const QRCodesFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -783,7 +782,7 @@ export const QRCodesFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>
@@ -800,13 +799,13 @@ export const QRCodesFilterBar = () => {
                 <Settings2 className="size-3.5" />
                 <p className="font-semibold">
                   {tags.length === 0 && attachedQR === "all" ? (
-                    <>Add Filters</>
+                    <>{t("add-filters")}</>
                   ) : (
                     <>
                       {(() => {
                         let count = tags.length;
                         if (attachedQR !== "all") count++;
-                        return `${count} filter${count > 1 ? "s" : ""}`;
+                        return `${count} ${t("filters")}`;
                       })()}
                     </>
                   )}
@@ -817,11 +816,11 @@ export const QRCodesFilterBar = () => {
               <div className="p-4 w-full flex flex-col gap-4">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
-                    Filters
+                    {t("filters")}
                   </h1>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Tags</Label>
+                  <Label className="font-semibold">{t("tags")}</Label>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <Button
@@ -855,7 +854,7 @@ export const QRCodesFilterBar = () => {
                                   </p>
                                 );
                               })
-                            : "Select tags..."}
+                            : t("select-tags")}
                         </div>
 
                         <ChevronsUpDown className="opacity-50" />
@@ -868,13 +867,13 @@ export const QRCodesFilterBar = () => {
                     >
                       <Command>
                         <CommandInput
-                          placeholder="Search tags..."
+                          placeholder={t("search-tags")}
                           className="h-9"
                           value={input}
                           onValueChange={setInput}
                         />
                         <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandEmpty>{t("no-options")}</CommandEmpty>
                           <CommandGroup className="w-full">
                             {tagOptions.map((tag) => (
                               <CommandItem
@@ -920,7 +919,7 @@ export const QRCodesFilterBar = () => {
                   </Popover>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Attached Link</Label>
+                  <Label className="font-semibold">{t("attached-link")}</Label>
                   <Select
                     value={attachedQR}
                     onValueChange={setAttachedQR}
@@ -931,22 +930,20 @@ export const QRCodesFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="all">
-                          QR Codes
-                          <span className="font-semibold -mx-1">
-                            with or without
-                          </span>
-                          attached Links
-                        </SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          QR Codes
-                          <span className="font-semibold -mx-1">with</span>
-                          attached Links
+                          {t("qr-codes")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("links")}
                         </SelectItem>
                         <SelectItem value="off">
-                          QR Codes
-                          <span className="font-semibold -mx-1">without</span>
-                          attached Links
+                          {t("qr-codes")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("links")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -961,7 +958,7 @@ export const QRCodesFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -970,7 +967,7 @@ export const QRCodesFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>

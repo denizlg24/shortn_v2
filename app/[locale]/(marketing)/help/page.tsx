@@ -9,7 +9,6 @@ import {
   ScrollText,
 } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { use } from "react";
 import { HelpSearch } from "@/components/marketing/help-search";
 
 export async function generateMetadata() {
@@ -35,14 +34,15 @@ export async function generateMetadata() {
   };
 }
 
-export default function Home({
+export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("help");
   return (
     <main className="flex flex-col items-center w-full mx-auto relative">
       <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
@@ -63,17 +63,17 @@ export default function Home({
 
       <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16 text-center  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          How can we help you?
+          {t("title")}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl text-center">
-          Search our knowledge base or browse popular topics below
+          {t("subtitle")}
         </h2>
         <HelpSearch />
       </div>
       <div className="flex flex-row items-center gap-2 w-full max-w-7xl mx-auto px-4">
         <Separator className="grow flex-1" />
         <p className="shrink-0 xs:text-sm text-xs text-muted-foreground font-medium">
-          OR
+          {t("or")}
         </p>
         <Separator className="grow flex-1" />
       </div>
@@ -87,10 +87,10 @@ export default function Home({
               <BookOpen className="sm:w-5 sm:h-5 xs:w-4 xs:h-4 w-3.5 h-3.5" />
             </div>
             <h2 className="text-base xs:text-lg sm:text-xl font-bold">
-              Getting Started
+              {t("category-cards.getting-started.title")}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-auto">
-              Your first steps with Shortn
+              {t("category-cards.getting-started.description")}
             </p>
           </div>
         </Link>
@@ -102,9 +102,11 @@ export default function Home({
             <div className="flex items-center justify-center p-2 rounded-lg bg-muted-foreground/15">
               <BookOpen className="sm:w-5 sm:h-5 xs:w-4 xs:h-4 w-3.5 h-3.5" />
             </div>
-            <h2 className="text-base xs:text-lg sm:text-xl font-bold">Links</h2>
+            <h2 className="text-base xs:text-lg sm:text-xl font-bold">
+              {t("category-cards.links.title")}
+            </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-auto">
-              Create and manage links
+              {t("category-cards.links.description")}
             </p>
           </div>
         </Link>
@@ -117,10 +119,10 @@ export default function Home({
               <CircleQuestionMark className="sm:w-5 sm:h-5 xs:w-4 xs:h-4 w-3.5 h-3.5" />
             </div>
             <h2 className="text-base xs:text-lg sm:text-xl font-bold">
-              QR Codes
+              {t("category-cards.qr-codes.title")}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-auto">
-              Generate custom QR codes
+              {t("category-cards.qr-codes.description")}
             </p>
           </div>
         </Link>
@@ -133,10 +135,10 @@ export default function Home({
               <ScrollText className="sm:w-5 sm:h-5 xs:w-4 xs:h-4 w-3.5 h-3.5" />
             </div>
             <h2 className="text-base xs:text-lg sm:text-xl font-bold">
-              Billing
+              {t("category-cards.billing.title")}
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-muted-foreground mt-auto">
-              Plans and pricing info
+              {t("category-cards.billing.description")}
             </p>
           </div>
         </Link>
@@ -144,18 +146,19 @@ export default function Home({
 
       <div className="w-full max-w-6xl mx-auto px-4 space-y-12 my-16">
         <section className="space-y-6">
-          <h2 className="text-3xl font-bold text-center">Popular Articles</h2>
+          <h2 className="text-3xl font-bold text-center">
+            {t("popular-articles")}
+          </h2>
           <div className="grid md:grid-cols-2 gap-4">
             <Link
               href="/help/articles/getting-started"
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Getting Started with Shortn
+                {t("articles.getting-started.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Learn the basics of creating links, tracking analytics, and
-                navigating your dashboard
+                {t("articles.getting-started.description")}
               </p>
             </Link>
 
@@ -164,11 +167,10 @@ export default function Home({
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Creating Short Links
+                {t("articles.creating-links.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Master link creation with custom back-halves, password
-                protection, and tags
+                {t("articles.creating-links.description")}
               </p>
             </Link>
 
@@ -177,11 +179,10 @@ export default function Home({
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Understanding Analytics
+                {t("articles.understanding-analytics.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Track clicks, locations, devices, and measure your link
-                performance
+                {t("articles.understanding-analytics.description")}
               </p>
             </Link>
 
@@ -190,10 +191,10 @@ export default function Home({
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Creating QR Codes
+                {t("articles.creating-qr-codes.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Generate and customize QR codes for print and digital use
+                {t("articles.creating-qr-codes.description")}
               </p>
             </Link>
 
@@ -202,11 +203,10 @@ export default function Home({
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Creating Bio Pages
+                {t("articles.creating-bio-pages.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Build beautiful link-in-bio pages for Instagram, TikTok, and
-                more (Pro)
+                {t("articles.creating-bio-pages.description")}
               </p>
             </Link>
 
@@ -215,10 +215,10 @@ export default function Home({
               className="group p-6 bg-muted rounded-lg border hover:shadow-lg transition-all"
             >
               <h3 className="text-xl font-semibold mb-2 group-hover:underline">
-                Plans & Pricing
+                {t("articles.plans-pricing.title")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                Compare plans and find the perfect fit for your needs
+                {t("articles.plans-pricing.description")}
               </p>
             </Link>
           </div>
@@ -227,18 +227,22 @@ export default function Home({
         <Separator />
 
         <section className="space-y-6">
-          <h2 className="text-3xl font-bold text-center">All Categories</h2>
+          <h2 className="text-3xl font-bold text-center">
+            {t("all-categories")}
+          </h2>
 
           <div className="grid md:grid-cols-3 xs:grid-cols-2 gap-6 items-center">
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">Links</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.links.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/links/creating-links"
                     className="text-muted-foreground hover:underline"
                   >
-                    Creating Links
+                    {t("articles.creating-links.title")}
                   </Link>
                 </li>
                 <li>
@@ -246,7 +250,7 @@ export default function Home({
                     href="/help/articles/links/managing-links"
                     className="text-muted-foreground hover:underline"
                   >
-                    Managing Links
+                    {t("articles.managing-links")}
                   </Link>
                 </li>
                 <li>
@@ -254,21 +258,23 @@ export default function Home({
                     href="/help/articles/links/utm-parameters"
                     className="text-muted-foreground hover:underline"
                   >
-                    UTM Parameters
+                    {t("articles.utm-parameters")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">QR Codes</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.qr-codes.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/qr-codes/creating-qr-codes"
                     className="text-muted-foreground hover:underline"
                   >
-                    Creating QR Codes
+                    {t("articles.creating-qr-codes.title")}
                   </Link>
                 </li>
                 <li>
@@ -276,21 +282,23 @@ export default function Home({
                     href="/help/articles/qr-codes/managing-qr-codes"
                     className="text-muted-foreground hover:underline"
                   >
-                    Managing QR Codes
+                    {t("articles.managing-qr-codes")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">Bio Pages</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.bio-pages.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/bio-pages/creating-bio-pages"
                     className="text-muted-foreground hover:underline"
                   >
-                    Creating Bio Pages
+                    {t("articles.creating-bio-pages.title")}
                   </Link>
                 </li>
                 <li>
@@ -298,49 +306,55 @@ export default function Home({
                     href="/help/articles/bio-pages/customizing-bio-pages"
                     className="text-muted-foreground hover:underline"
                   >
-                    Customizing Bio Pages
+                    {t("articles.customizing-bio-pages")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">Analytics</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.analytics.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/analytics/understanding-analytics"
                     className="text-muted-foreground hover:underline"
                   >
-                    Understanding Analytics
+                    {t("articles.understanding-analytics.title")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">Campaigns</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.campaigns.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/campaigns/organizing-campaigns"
                     className="text-muted-foreground hover:underline"
                   >
-                    Organizing Campaigns
+                    {t("articles.organizing-campaigns")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div className="space-y-3 mx-auto text-center">
-              <h3 className="text-xl font-semibold">Billing</h3>
+              <h3 className="text-xl font-semibold">
+                {t("category-cards.billing.title")}
+              </h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link
                     href="/help/articles/billing/plans-pricing"
                     className="text-muted-foreground hover:underline"
                   >
-                    Plans & Pricing
+                    {t("articles.plans-pricing.title")}
                   </Link>
                 </li>
                 <li>
@@ -348,7 +362,7 @@ export default function Home({
                     href="/help/articles/billing/upgrading-plans"
                     className="text-muted-foreground hover:underline"
                   >
-                    Upgrading Plans
+                    {t("articles.upgrading-plans")}
                   </Link>
                 </li>
               </ul>
@@ -359,15 +373,14 @@ export default function Home({
       <div className="w-full bg-muted px-4 py-12 border-b-2">
         <div className="flex flex-col items-center text-center max-w-5xl mx-auto gap-6">
           <h1 className="md:text-4xl sm:text-3xl xs:text-2xl text-xl font-bold">
-            Still need help?
+            {t("still-need-help.title")}
           </h1>
           <h2 className="text-lg text-muted-foreground max-w-xl">
-            Can't find what you're looking for? Our support team is here to
-            help.
+            {t("still-need-help.subtitle")}
           </h2>
           <Button asChild className="rounded-full w-full max-w-sm" size={"lg"}>
             <Link href={"/contact"}>
-              Contact us <MoveRight />
+              {t("still-need-help.contact-us")} <MoveRight />
             </Link>
           </Button>
         </div>

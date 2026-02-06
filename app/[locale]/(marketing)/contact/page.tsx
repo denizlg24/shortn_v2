@@ -1,6 +1,5 @@
 import DotGrid from "@/components/DotGrid";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { use } from "react";
 import { ContactForm } from "./contact-form";
 import { FaXTwitter } from "react-icons/fa6";
 import { Facebook, Instagram, Mail, PhoneCall } from "lucide-react";
@@ -29,14 +28,15 @@ export async function generateMetadata() {
   };
 }
 
-export default function Home({
+export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("contact");
   return (
     <main className="flex flex-col items-center w-full mx-auto relative">
       <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
@@ -57,11 +57,10 @@ export default function Home({
 
       <div className="hover:backdrop-blur-3xl transition-all px-4 sm:my-24 my-16 text-center  w-full max-w-4xl mx-auto flex flex-col items-center gap-6 ">
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          Get in touch
+          {t("title")}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl text-center">
-          Have a question or need help? We'd love to hear from you. Send us a
-          message and we'll respond as soon as possible.
+          {t("subtitle")}
         </h2>
       </div>
       <div className="w-full pb-12 px-2">
@@ -73,10 +72,10 @@ export default function Home({
       </div>
       <div className="sm:my-20 my-12 text-center flex flex-col items-center gap-6 px-4 w-full max-w-4xl mx-auto">
         <h1 className="md:text-4xl sm:text-3xl xs:text-2xl text-xl font-bold">
-          Keep in touch with us
+          {t("keep-in-touch")}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl text-center">
-          Follow us on social media for the latest updates, tips, and news.
+          {t("social-subtitle")}
         </h2>
         <div className="w-full flex flex-row items-center gap-4 flex-wrap justify-center hover:backdrop-blur-3xl p-4">
           <a
@@ -104,7 +103,7 @@ export default function Home({
         <div className="flex flex-row items-center gap-2 w-full max-w-3xl mx-auto px-4">
           <Separator className="grow flex-1" />
           <p className="shrink-0 xs:text-sm text-xs text-muted-foreground font-medium">
-            OR
+            {t("or")}
           </p>
           <Separator className="grow flex-1" />
         </div>

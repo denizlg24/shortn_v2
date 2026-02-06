@@ -1,5 +1,5 @@
 import { redirect } from "@/i18n/navigation";
-import { setRequestLocale } from "next-intl/server";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -27,6 +27,7 @@ export default async function SubscriptionSuccessPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("subscription-success");
   const { checkout_id, sid, sig, action, status } = await searchParams;
 
   if (checkout_id) {
@@ -68,10 +69,10 @@ export default async function SubscriptionSuccessPage({
             </div>
             <div className="space-y-2">
               <h1 className="text-3xl font-semibold tracking-tight">
-                Subscription Confirmed!
+                {t("confirmed-title")}
               </h1>
               <p className="text-lg text-muted-foreground">
-                Welcome to {planName}! Your subscription is now active.
+                {t("confirmed-subtitle", { plan: planName })}
               </p>
             </div>
           </div>
@@ -79,34 +80,36 @@ export default async function SubscriptionSuccessPage({
           <div className="space-y-6">
             <div className="space-y-2">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Subscription Details
+                {t("details-heading")}
               </h2>
               <div className="rounded-lg border bg-card">
                 <div className="divide-y">
                   <div className="flex justify-between p-4">
-                    <span className="text-sm text-muted-foreground">Plan</span>
+                    <span className="text-sm text-muted-foreground">
+                      {t("plan")}
+                    </span>
                     <span className="text-sm font-semibold">{planName}</span>
                   </div>
                   <div className="flex justify-between p-4">
                     <span className="text-sm text-muted-foreground">
-                      Status
+                      {t("status")}
                     </span>
                     <span className="text-sm font-semibold capitalize text-green-600">
-                      Active
+                      {t("active")}
                     </span>
                   </div>
                   <div className="flex justify-between p-4">
                     <span className="text-sm text-muted-foreground">
-                      Billing Amount
+                      {t("billing-amount")}
                     </span>
                     <span className="text-sm font-semibold">
-                      {formattedPrice}/month
+                      {t("per-month", { price: formattedPrice })}
                     </span>
                   </div>
                   {checkout.createdAt && (
                     <div className="flex justify-between p-4">
                       <span className="text-sm text-muted-foreground">
-                        Activated On
+                        {t("activated-on")}
                       </span>
                       <span className="text-sm font-medium">
                         {formatDateTime(checkout.createdAt)}
@@ -120,7 +123,7 @@ export default async function SubscriptionSuccessPage({
             {product?.description && (
               <div className="space-y-2">
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  What You Get
+                  {t("what-you-get")}
                 </h2>
                 <div className="rounded-lg border bg-card p-4">
                   <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
@@ -135,20 +138,17 @@ export default async function SubscriptionSuccessPage({
 
           <div className="rounded-lg border border-green-200 bg-green-50 p-4">
             <h3 className="text-sm font-semibold text-green-900 mb-2">
-              What happens next?
+              {t("next-title")}
             </h3>
             <p className="text-sm text-green-900">
-              Your subscription is now active and all features are available
-              immediately. You'll be billed {formattedPrice} every month. You
-              can manage your subscription or cancel at any time from your
-              dashboard.
+              {t("next-description", { price: formattedPrice })}
             </p>
           </div>
 
           <div className="flex justify-center pt-4">
             <Button asChild size="lg">
               <Link href="/dashboard">
-                Go to Dashboard
+                {t("go-to-dashboard")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
@@ -168,29 +168,26 @@ export default async function SubscriptionSuccessPage({
             </div>
             <div className="space-y-2">
               <h1 className="text-3xl font-semibold tracking-tight">
-                Payment Failed
+                {t("payment-failed-title")}
               </h1>
               <p className="text-muted-foreground">
-                We couldn't process your payment. Please update your payment
-                method and try again.
+                {t("payment-failed-subtitle")}
               </p>
             </div>
           </div>
 
           <div className="rounded-lg border border-red-200 bg-red-50 p-4">
             <p className="text-sm text-red-900">
-              Your card was declined or there was an issue processing the
-              payment. This could be due to insufficient funds, an expired card,
-              or your bank declining the transaction.
+              {t("payment-failed-description")}
             </p>
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Button asChild size="lg">
-              <Link href="/dashboard/subscription">Update Payment Method</Link>
+              <Link href="/dashboard/subscription">{t("update-payment")}</Link>
             </Button>
             <Button variant="outline" asChild size="lg">
-              <Link href="/dashboard">Return to Dashboard</Link>
+              <Link href="/dashboard">{t("return-to-dashboard")}</Link>
             </Button>
           </div>
         </div>
@@ -282,12 +279,12 @@ export default async function SubscriptionSuccessPage({
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold tracking-tight">
-              {isUpgrade ? "Subscription Updated" : "Downgrade Scheduled"}
+              {isUpgrade ? t("updated-title") : t("downgrade-scheduled-title")}
             </h1>
             <p className="text-lg text-muted-foreground">
               {isUpgrade
-                ? "Your subscription has been upgraded successfully."
-                : "Your subscription will be downgraded at the end of the billing period."}
+                ? t("updated-subtitle")
+                : t("downgrade-scheduled-subtitle")}
             </p>
           </div>
         </div>
@@ -295,36 +292,45 @@ export default async function SubscriptionSuccessPage({
         <div className="space-y-6">
           <div className="space-y-2">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Subscription Details
+              {t("details-heading")}
             </h2>
             <div className="rounded-lg border bg-card">
               <div className="divide-y">
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">
-                    {isUpgrade ? "Plan" : "New Plan"}
+                    {isUpgrade ? t("plan") : t("new-plan")}
                   </span>
                   <span className="text-sm font-semibold">
                     {displayPlanName}
                   </span>
                 </div>
                 <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("status")}
+                  </span>
                   <span className="text-sm font-semibold capitalize">
-                    {isUpgrade ? subscription.status || "Active" : "Scheduled"}
+                    {isUpgrade
+                      ? subscription.status || t("active")
+                      : t("scheduled")}
                   </span>
                 </div>
                 <div className="flex justify-between p-4">
                   <span className="text-sm text-muted-foreground">
-                    {isUpgrade ? "Billing Amount" : "New Billing Amount"}
+                    {isUpgrade ? t("billing-amount") : t("new-billing-amount")}
                   </span>
                   <span className="text-sm font-semibold">
-                    {formattedPrice}/{displayInterval}
+                    {t("per-interval", {
+                      price: formattedPrice,
+                      interval: displayInterval,
+                    })}
                   </span>
                 </div>
                 {currentPeriodEnd && (
                   <div className="flex justify-between p-4">
                     <span className="text-sm text-muted-foreground">
-                      {isUpgrade ? "Next Billing Date" : "Changes Effective"}
+                      {isUpgrade
+                        ? t("next-billing-date")
+                        : t("changes-effective")}
                     </span>
                     <span className="text-sm font-medium">
                       {formatDate(currentPeriodEnd)}
@@ -338,7 +344,7 @@ export default async function SubscriptionSuccessPage({
           {displayDescription && (
             <div className="space-y-2">
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {isUpgrade ? "What You Get" : "What's Included"}
+                {isUpgrade ? t("what-you-get") : t("whats-included")}
               </h2>
               <div className="rounded-lg border bg-card p-4">
                 <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
@@ -354,12 +360,10 @@ export default async function SubscriptionSuccessPage({
         {isUpgrade && (
           <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
             <h3 className="text-sm font-semibold text-blue-900 mb-2">
-              What happens next?
+              {t("upgrade-next-title")}
             </h3>
             <p className="text-sm text-blue-900">
-              You'll receive an invoice for the prorated amount based on your
-              remaining billing period. The charge will appear on your next
-              statement, and your new features are now available immediately.
+              {t("upgrade-next-description")}
             </p>
           </div>
         )}
@@ -367,16 +371,14 @@ export default async function SubscriptionSuccessPage({
         {!isUpgrade && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
             <h3 className="text-sm font-semibold text-amber-900 mb-2">
-              What happens next?
+              {t("downgrade-next-title")}
             </h3>
             <p className="text-sm text-amber-900">
-              Your downgrade has been scheduled to take effect on{" "}
-              {currentPeriodEnd
-                ? formatDate(currentPeriodEnd)
-                : "the end of your billing period"}
-              . Until then, you'll continue to have access to all your current
-              features. A prorated credit will automatically be applied to your
-              account when the change takes effect.
+              {t("downgrade-next-description", {
+                date: currentPeriodEnd
+                  ? formatDate(currentPeriodEnd)
+                  : "the end of your billing period",
+              })}
             </p>
           </div>
         )}
@@ -384,7 +386,7 @@ export default async function SubscriptionSuccessPage({
         <div className="flex justify-center pt-4">
           <Button asChild size="lg">
             <Link href="/dashboard">
-              Go to Dashboard
+              {t("go-to-dashboard")}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>

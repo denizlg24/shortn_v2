@@ -20,7 +20,7 @@ import { z } from "zod";
 
 import { isValidPhoneNumber } from "react-phone-number-input";
 import { PhoneInput } from "@/components/ui/phone-input";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import en from "react-phone-number-input/locale/en";
 import pt from "react-phone-number-input/locale/pt";
 import es from "react-phone-number-input/locale/es";
@@ -44,48 +44,42 @@ import { BASEURL } from "@/lib/utils";
 import Cookies from "js-cookie";
 import { clearPlanCacheGlobal } from "@/hooks/use-plan";
 
-const updateEmailFormSchema = z.object({
-  email: z
-    .string()
-    .min(1, "Please provide an email")
-    .email("Must be a valid email address"),
-});
+const useEmailFormSchema = () => {
+  const t = useTranslations("settings.profile.validation");
+  return z.object({
+    email: z.string().min(1, t("provide-email")).email(t("valid-email")),
+  });
+};
 
-const updateProfileFormSchema = z.object({
-  name: z
-    .string()
-    .min(1, "Please provide a display name")
-    .max(64, "Can't be longer than 64 characters"),
-  username: z
-    .string()
-    .min(1, "Please provide a username")
-    .max(32, "Username must be at most 32 characters")
-    .regex(
-      /^[a-zA-Z0-9_]+$/,
-      "Only letters, numbers, and underscores are allowed",
+const useProfileFormSchema = () => {
+  const t = useTranslations("settings.profile.validation");
+  return z.object({
+    name: z
+      .string()
+      .min(1, t("display-name-required"))
+      .max(64, t("display-name-max")),
+    username: z
+      .string()
+      .min(1, t("display-name-required"))
+      .max(32, t("display-name-max"))
+      .regex(/^[a-zA-Z0-9_]+$/, t("display-name-required")),
+    phone: z.string().refine(
+      (t) => {
+        if (t) return isValidPhoneNumber(t);
+        return true;
+      },
+      { message: t("invalid-phone") },
     ),
-  /*"tax-id": z.string().refine(
-    (val) => {
-      if (val) {
-        return checkVAT(val, countries).isValid;
-      }
-      return true;
-    },
-    {
-      message: "Must be a valid tax number",
-    }
-  ),*/
-  phone: z.string().refine(
-    (t) => {
-      if (t) return isValidPhoneNumber(t);
-      return true;
-    },
-    { message: "Invalid phone number" },
-  ),
-});
+  });
+};
 
 export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
   const locale = useLocale();
+  const t = useTranslations("settings.profile");
+  const tToast = useTranslations("settings.profile.toast");
+  const tValidation = useTranslations("settings.profile.validation");
+  const updateEmailFormSchema = useEmailFormSchema();
+  const updateProfileFormSchema = useProfileFormSchema();
   const localeMap = {
     en: en,
     pt: pt,
@@ -111,12 +105,12 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       const maxSizeInBytes = 10 * 1024 * 1024;
 
       if (!validTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only JPG, PNG, and GIF are allowed.");
+        toast.error(tValidation("invalid-file-type"));
         return;
       }
 
       if (file.size > maxSizeInBytes) {
-        toast.error("File is too large. Must be under 10MB.");
+        toast.error(tValidation("file-too-large"));
         return;
       }
       setUploading(true);
@@ -126,7 +120,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
           image: url as string,
         });
         if (!error) {
-          toast.success("Profile picture has been updated!");
+          toast.success(tToast("picture-updated"));
           setUser((prev) => ({
             ...prev,
             image: url as string,
@@ -143,7 +137,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
           });
           await refresh();
         } else {
-          toast.success("There was a problem updating profile picture.");
+          toast.error(tToast("picture-error"));
         }
       }
       setUploading(false);
@@ -198,7 +192,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
     } else if (error) {
       updateEmailForm.setError("email", {
         type: "manual",
-        message: error.message || "There was a problem updating your email.",
+        message: error.message || tToast("display-name-error"),
       });
     }
     setUpdatingEmail(false);
@@ -236,8 +230,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       } else {
         form.setError("phone", {
           type: "manual",
-          message:
-            error.message || "There was a problem updating your phone number.",
+          message: error.message || tToast("phone-error"),
         });
       }
     }
@@ -255,8 +248,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       } else {
         form.setError("username", {
           type: "manual",
-          message:
-            error.message || "There was a problem updating your username.",
+          message: error.message || tToast("username-error"),
         });
       }
     }
@@ -272,8 +264,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       } else {
         form.setError("name", {
           type: "manual",
-          message:
-            error.message || "There was a problem updating your display name.",
+          message: error.message || tToast("display-name-error"),
         });
       }
     }
@@ -289,7 +280,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountActivity),
       });
-      toast.success("Your profile has been updated!");
+      toast.success(tToast("profile-updated"));
       await refresh();
       setUser((prev) => ({
         ...prev,
@@ -309,10 +300,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
     return (
       <div className="w-full flex flex-col">
         <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-          Profile Details
+          {t("title")}
         </h1>
         <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-          Update your photo and personal details here.
+          {t("subtitle")}
         </h2>
         <Separator className="my-4" />
         <div className="flex flex-row items-stretch justify-start gap-4 w-full">
@@ -348,10 +339,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Profile Details
+        {t("title")}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Update your photo and personal details here.
+        {t("subtitle")}
       </h2>
       <Separator className="my-4" />
       <div className="flex sm:flex-row flex-col items-stretch justify-start gap-4 w-full">
@@ -375,7 +366,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
         </Avatar>
 
         <div className="w-full grow h-full flex flex-col justify-between py-1">
-          <p className="font-semibold">Profile Picture</p>
+          <p className="font-semibold">{t("picture")}</p>
           <div className="flex flex-col gap-0 items-start w-full">
             <div className="flex flex-row items-center justify-start gap-2">
               <Button
@@ -386,10 +377,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                 {uploading ? (
                   <>
                     <Loader2 className="animate-spin" />
-                    Uploading...
+                    {t("uploading")}
                   </>
                 ) : (
-                  <>Upload Image</>
+                  <>{t("upload-image")}</>
                 )}
                 <Upload />
               </Button>
@@ -408,17 +399,13 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                             image: `https://robohash.org/${user.email}`,
                           });
                           if (!error) {
-                            toast.success(
-                              "Successfully removed profile picture.",
-                            );
+                            toast.success(tToast("picture-removed"));
                             setUser((prev) => ({
                               ...prev,
                               image: `https://robohash.org/${user.email}`,
                             }));
                           } else {
-                            toast.error(
-                              "Couldn't remove your profile picture.",
-                            );
+                            toast.error(tToast("picture-remove-error"));
                           }
                         }
 
@@ -428,10 +415,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                   >
                     {removing ? (
                       <>
-                        <Loader2 className="animate-spin" /> Removing...
+                        <Loader2 className="animate-spin" /> {t("removing")}
                       </>
                     ) : (
-                      <>Remove</>
+                      <>{t("remove")}</>
                     )}
                     <Trash2 />
                   </Button>
@@ -445,7 +432,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
               className="hidden"
             />
             <p className="text-xs text-muted-foreground">
-              We support PNGs, JPEGS and GIF&apos;s under 10MB.
+              {t("picture-support")}
             </p>
           </div>
         </div>
@@ -461,7 +448,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full name</FormLabel>
+                <FormLabel>{t("full-name")}</FormLabel>
                 <FormControl>
                   <Input className="bg-background" placeholder="" {...field} />
                 </FormControl>
@@ -474,7 +461,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
             name="username"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Username</FormLabel>
+                <FormLabel>{t("username")}</FormLabel>
                 <FormControl>
                   <Input className="bg-background" placeholder="" {...field} />
                 </FormControl>
@@ -488,7 +475,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
             name="phone"
             render={({ field }) => (
               <FormItem className="flex flex-col items-start">
-                <FormLabel className="text-left">Phone Number</FormLabel>
+                <FormLabel className="text-left">{t("phone-number")}</FormLabel>
                 <FormControl className="w-full">
                   <PhoneInput
                     labels={localeMap[locale as "en" | "es" | "pt"]}
@@ -507,10 +494,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                   {changesLoading ? (
                     <>
                       <Loader2 className="animate-spin" />
-                      Saving...
+                      {t("saving")}
                     </>
                   ) : (
-                    <>Save Changes</>
+                    <>{t("save-changes")}</>
                   )}
                 </Button>
                 <Button
@@ -524,7 +511,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                   }}
                   variant={"outline"}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
               </>
             )}
@@ -534,20 +521,20 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
       <Separator className="my-4" />
       <div className="w-full flex flex-col gap-0">
         <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-          Email address
+          {t("email-address")}
         </h1>
         <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-          Add or update your email address
+          {t("add-update-email")}
         </h2>
       </div>
       <Separator className="my-4" />
       <div className="flex flex-col w-full">
         <div className="grid grid-cols-4 w-full max-w-xl gap-1">
           <p className="text-left w-full sm:col-span-2 col-span-3 font-semibold">
-            Email address
+            {t("email-address")}
           </p>
           <p className="text-left w-full sm:col-span-2 col-span-1 font-semibold">
-            Status
+            {t("status")}
           </p>
           <Separator className="col-span-full" />
           <p className="text-left w-full sm:col-span-2 col-span-3 truncate">
@@ -556,7 +543,8 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
           <p className="text-left w-full sm:col-span-2 col-span-1 truncate flex flex-row items-center gap-1">
             {user.emailVerified && (
               <>
-                <CheckCircle2 className="text-green-600 h-4 w-4" /> Verified
+                <CheckCircle2 className="text-green-600 h-4 w-4" />{" "}
+                {t("verified")}
               </>
             )}
           </p>
@@ -568,21 +556,19 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                 className="mt-2 w-fit"
               >
                 {user.sub.startsWith("authS|") ? (
-                  "Update Email"
+                  t("update-email")
                 ) : (
                   <>
-                    Social Login <LockIcon />
+                    {t("social-login")} <LockIcon />
                   </>
                 )}
               </Button>
             </DialogTrigger>
             <DialogContent className="z-99">
               <DialogHeader>
-                <DialogTitle>Update your email address</DialogTitle>
+                <DialogTitle>{t("update-email-title")}</DialogTitle>
                 <DialogDescription>
-                  A verification email will be sent to this address after
-                  clicking Save.{" "}
-                  <span className="font-semibold">You will be signed out!</span>
+                  {t("update-email-description")}
                 </DialogDescription>
               </DialogHeader>
               <Form {...updateEmailForm}>
@@ -595,7 +581,7 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>New email address</FormLabel>
+                        <FormLabel>{t("new-email")}</FormLabel>
                         <FormControl>
                           <Input placeholder="" {...field} />
                         </FormControl>
@@ -607,10 +593,10 @@ export const ProfileCard = ({ initialUser }: { initialUser: ServerUser }) => {
                     {updatingEmail ? (
                       <>
                         <Loader2 className="animate-spin" />
-                        Updating...
+                        {t("updating")}
                       </>
                     ) : (
-                      <>Update email</>
+                      <>{t("update-email")}</>
                     )}
                   </Button>
                 </form>

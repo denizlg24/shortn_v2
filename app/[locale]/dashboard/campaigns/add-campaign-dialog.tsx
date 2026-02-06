@@ -17,12 +17,14 @@ import { Label } from "@/components/ui/label";
 import { createCampaign } from "@/app/actions/linkActions";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export const AddCampaignDialog = ({
   trigger,
 }: {
   trigger?: React.ReactNode;
 }) => {
+  const t = useTranslations("add-campaign-dialog");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -31,7 +33,7 @@ export const AddCampaignDialog = ({
 
   const handleCreate = async () => {
     if (!title.trim()) {
-      setError("Campaign name is required");
+      setError(t("error-required"));
       return;
     }
 
@@ -41,7 +43,7 @@ export const AddCampaignDialog = ({
     const result = await createCampaign({ title: title.trim() });
 
     if (result.success && result.campaign) {
-      toast.success(`Campaign "${title}" created successfully`);
+      toast.success(t("toast-success", { title }));
       setOpen(false);
       setTitle("");
       setCreating(false);
@@ -49,13 +51,13 @@ export const AddCampaignDialog = ({
     } else {
       switch (result.message) {
         case "duplicate":
-          setError("A campaign with this name already exists");
+          setError(t("error-duplicate"));
           break;
         case "plan-restricted":
-          setError("Campaigns are only available for Pro users");
+          setError(t("error-plan-restricted"));
           break;
         default:
-          setError("Failed to create campaign");
+          setError(t("error-failed"));
       }
       setCreating(false);
     }
@@ -74,23 +76,20 @@ export const AddCampaignDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button className="w-full">
-            Create campaign <Plus />
+            {t("create-campaign")} <Plus />
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create New Campaign</DialogTitle>
-          <DialogDescription>
-            Create a campaign to group your links and track aggregated
-            analytics.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="campaign-name">Campaign Name</Label>
+          <Label htmlFor="campaign-name">{t("campaign-name-label")}</Label>
           <Input
             id="campaign-name"
-            placeholder="e.g., Summer Sale 2025"
+            placeholder={t("placeholder")}
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
@@ -111,16 +110,16 @@ export const AddCampaignDialog = ({
             onClick={() => handleOpenChange(false)}
             disabled={creating}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button onClick={handleCreate} disabled={creating || !title.trim()}>
             {creating ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating...
+                {t("creating")}
               </>
             ) : (
-              <>Create</>
+              <>{t("create")}</>
             )}
           </Button>
         </DialogFooter>

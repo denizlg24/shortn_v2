@@ -16,6 +16,7 @@ import { getClicks } from "@/utils/fetching-functions";
 import { getServerSession } from "@/lib/session";
 import { getUserPlan } from "@/app/actions/polarActions";
 import { SubscriptionsType } from "@/utils/plan-utils";
+import { getTranslations } from "next-intl/server";
 
 export const LinkDetails = async ({
   url,
@@ -32,6 +33,7 @@ export const LinkDetails = async ({
     redirect({ href: "/dashboard/logout", locale: locale });
     return;
   }
+  const t = await getTranslations("link-details");
   const { plan } = await getUserPlan();
   const clicks = await getClicks(url.urlCode, undefined, undefined);
 
@@ -45,7 +47,7 @@ export const LinkDetails = async ({
           <Button variant={"link"} asChild>
             <Link className="font-semibold mr-auto" href={`/dashboard/links`}>
               <ChevronLeft />
-              Back to list
+              {t("back-to-list")}
             </Link>
           </Button>
           <LinkDetailsCard currentLink={url} campaign={linkedCampaign} />

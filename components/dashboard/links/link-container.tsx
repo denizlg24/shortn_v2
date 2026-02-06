@@ -7,6 +7,7 @@ import { LinkCard } from "./link-card";
 import { cn, fetchApi } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { ITag } from "@/models/url/Tag";
+import { useTranslations } from "next-intl";
 
 export const LinkContainer = ({
   links,
@@ -23,6 +24,7 @@ export const LinkContainer = ({
   limit: number;
   hideEndTag?: boolean;
 }) => {
+  const t = useTranslations("link-container");
   const router = useRouter();
   const [tagOptions, setTagOptions] = useState<ITag[]>([]);
   const [tagSearchInput, setTagSearchInput] = useState("");
@@ -121,7 +123,7 @@ export const LinkContainer = ({
               <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
                 <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
                 <p className="text-muted-foreground grow font-semibold w-full text-center">
-                  You&apos;ve reached the end of your links
+                  {t("end-of-links")}
                 </p>
                 <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               </div>
@@ -133,7 +135,7 @@ export const LinkContainer = ({
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You&apos;ve reached the end of your links
+            {t("end-of-links")}
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

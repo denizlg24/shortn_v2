@@ -22,23 +22,25 @@ import { Loader2, AlertCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslations } from "next-intl";
 
-const cancellationReasons = [
-  { value: "too_expensive", label: "Too expensive" },
-  { value: "missing_features", label: "Missing features" },
-  { value: "switched_service", label: "Switched to another service" },
-  { value: "unused", label: "Not using the service" },
-  { value: "customer_service", label: "Customer service issues" },
-  { value: "low_quality", label: "Quality below expectations" },
-  { value: "too_complex", label: "Too complex to use" },
-  { value: "other", label: "Other" },
-];
+const cancellationReasonKeys = [
+  "too_expensive",
+  "missing_features",
+  "switched_service",
+  "unused",
+  "customer_service",
+  "low_quality",
+  "too_complex",
+  "other",
+] as const;
 
 export const CancelSubscriptionButton = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
+  const t = useTranslations("cancel-button");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,9 +48,14 @@ export const CancelSubscriptionButton = ({
   const [comment, setComment] = useState<string>("");
   const router = useRouter();
 
+  const cancellationReasons = cancellationReasonKeys.map((key) => ({
+    value: key,
+    label: t(`reasons.${key}`),
+  }));
+
   const handleCancel = async () => {
     if (!reason) {
-      setError("Please select a reason for cancellation");
+      setError(t("error-select-reason"));
       return;
     }
 
@@ -73,15 +80,11 @@ export const CancelSubscriptionButton = ({
           `/dashboard/subscription/canceled?scheduled=${data.scheduledFor}`,
         );
       } else {
-        setError(
-          data.message || "Failed to schedule cancellation. Please try again.",
-        );
+        setError(data.message || t("error-default"));
       }
     } catch (error) {
       console.error("Failed to schedule cancellation:", error);
-      setError(
-        "An unexpected error occurred. Please try again or contact support.",
-      );
+      setError(t("error-unexpected"));
     }
 
     setLoading(false);
@@ -96,23 +99,22 @@ export const CancelSubscriptionButton = ({
             <XCircle className="h-6 w-6 text-red-600" />
           </div>
           <DialogTitle className="text-center text-xl">
-            Cancel Subscription
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="text-center pt-2">
-            We're sorry to see you go. Your subscription will be set to cancel
-            at the end of your current billing period, and you'll continue to
-            have access to all features until then.
+            {t("description")}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="reason">
-              Reason for cancellation <span className="text-red-500">*</span>
+              {t("reason-label")}{" "}
+              <span className="text-red-500">{t("required")}</span>
             </Label>
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger className="w-full" id="reason">
-                <SelectValue placeholder="Select a reason" />
+                <SelectValue placeholder={t("reason-placeholder")} />
               </SelectTrigger>
               <SelectContent className="z-99">
                 {cancellationReasons.map((r) => (
@@ -125,17 +127,17 @@ export const CancelSubscriptionButton = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="comment">Additional feedback (optional)</Label>
+            <Label htmlFor="comment">{t("feedback-label")}</Label>
             <Textarea
               id="comment"
-              placeholder="Help us improve by sharing more details..."
+              placeholder={t("feedback-placeholder")}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               rows={4}
               maxLength={500}
             />
             <p className="text-xs text-muted-foreground">
-              {comment.length}/500 characters
+              {t("characters", { count: comment.length })}
             </p>
           </div>
         </div>
@@ -158,10 +160,10 @@ export const CancelSubscriptionButton = ({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {t("processing")}
               </>
             ) : (
-              "Confirm Cancellation"
+              t("confirm")
             )}
           </Button>
           <Button
@@ -171,13 +173,11 @@ export const CancelSubscriptionButton = ({
             className="w-full"
             size="lg"
           >
-            Keep My Subscription
+            {t("keep")}
           </Button>
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Cancellation takes effect at the end of your billing period
-        </p>
+        <p className="text-center text-xs text-muted-foreground">{t("note")}</p>
       </DialogContent>
     </Dialog>
   );

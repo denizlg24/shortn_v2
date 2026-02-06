@@ -66,27 +66,7 @@ import { uploadImage } from "@/app/actions/uploadImage";
 import { deletePicture } from "@/app/actions/deletePicture";
 import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
-
-const qrCodeFormSchema = z.object({
-  destination: z
-    .string()
-    .min(1, 'We\'ll need a valid URL, like "yourbrnd.co/niceurl"')
-    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
-  title: z.string().optional(),
-  customCode: z
-    .union([
-      z
-        .string()
-        .min(3, "Back-half must be at least 3 characters long")
-        .max(52, "Back-half can't be longer than 52 characters")
-        .regex(
-          /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
-        ),
-      z.literal(""),
-    ])
-    .optional(),
-});
+import { useTranslations } from "next-intl";
 
 export const QRCodeCreate = ({
   state,
@@ -95,6 +75,26 @@ export const QRCodeCreate = ({
   state: "configure" | "customize";
   setState: (arg0: "configure" | "customize") => void;
 }) => {
+  const t = useTranslations("create-qr");
+
+  const qrCodeFormSchema = z.object({
+    destination: z
+      .string()
+      .min(1, t("validation.url-required"))
+      .url(t("validation.invalid-url")),
+    title: z.string().optional(),
+    customCode: z
+      .union([
+        z
+          .string()
+          .min(3, t("validation.back-half-too-short"))
+          .max(52, t("validation.back-half-too-long"))
+          .regex(/^[a-zA-Z0-9_-]+$/, t("validation.back-half-invalid-chars")),
+        z.literal(""),
+      ])
+      .optional(),
+  });
+
   const { data } = authClient.useSession();
   const user = data?.user;
   const { plan } = usePlan();
@@ -166,7 +166,7 @@ export const QRCodeCreate = ({
       const maxSizeInBytes = 5 * 1024 * 1024;
 
       if (!validTypes.includes(file.type)) {
-        toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+        toast.error(t("toast.invalid-file-type"));
         if (logoRef && logoRef.current) {
           logoRef.current.value = "";
         }
@@ -174,7 +174,7 @@ export const QRCodeCreate = ({
       }
 
       if (file.size > maxSizeInBytes) {
-        toast.error("File is too large. Must be under 5MB.");
+        toast.error(t("toast.file-too-large"));
         if (logoRef && logoRef.current) {
           logoRef.current.value = "";
         }
@@ -221,7 +221,7 @@ export const QRCodeCreate = ({
             ) : (
               <CheckCircle2 className="h-4 w-auto aspect-square" />
             )}
-            <p>Configure code</p>
+            <p>{t("steps.configure")}</p>
           </div>
           <div
             className={cn(
@@ -237,14 +237,14 @@ export const QRCodeCreate = ({
             )}
           >
             <Circle className="h-4 w-auto aspect-square" />
-            <p>Customize design</p>
+            <p>{t("steps.customize")}</p>
           </div>
         </div>
         {state == "configure" && (
           <>
             <div className="flex flex-col gap-1 w-full items-start">
               <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-                Create a new QR Code
+                {t("title")}
               </h1>
               {getLinksLeft(
                 plan,
@@ -261,7 +261,7 @@ export const QRCodeCreate = ({
                     name="destination"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Destination</FormLabel>
+                        <FormLabel>{t("destination")}</FormLabel>
                         <FormControl>
                           <Input className="w-full" placeholder="" {...field} />
                         </FormControl>
@@ -274,7 +274,7 @@ export const QRCodeCreate = ({
                     name="title"
                     render={({ field }) => (
                       <FormItem className="w-full">
-                        <FormLabel>Tittle (optional)</FormLabel>
+                        <FormLabel>{t("title-optional")}</FormLabel>
                         <FormControl>
                           <Input className="w-full" placeholder="" {...field} />
                         </FormControl>
@@ -283,33 +283,32 @@ export const QRCodeCreate = ({
                     )}
                   />
                   <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-                    Ways to share
+                    {t("ways-to-share")}
                   </h2>
                   <div className="flex flex-row w-full justify-between items-start">
                     <div className="flex flex-col gap-1 items-start w-full max-w-3xs">
                       <p className="font-semibold sm:text-sm text-xs">
-                        Short Link
+                        {t("short-link")}
                       </p>
                       <p className="text-muted-foreground sm:text-sm text-xs">
-                        Create a link that directs users to the same destination
-                        as your QR Code
+                        {t("short-link-description")}
                       </p>
                     </div>
                     <div className="flex flex-row gap-2 items-center">
                       {plan == "pro" ? (
                         <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                           <InfinityIcon className="min-w-3! w-3! h-3!" />
-                          <p>left</p>
+                          <p>{t("left")}</p>
                         </div>
                       ) : linksLeft == undefined ? (
                         <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                           <Skeleton className="w-3 h-3" />
-                          <p>left</p>
+                          <p>{t("left")}</p>
                         </div>
                       ) : linksLeft > 0 ? (
                         <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
                           <span className="font-semibold">{linksLeft}</span>{" "}
-                          left
+                          {t("left")}
                         </p>
                       ) : (
                         <></>
@@ -325,7 +324,7 @@ export const QRCodeCreate = ({
                     <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
                       <div className="w-full grow flex flex-col items-start gap-2">
                         <p className="sm:text-sm text-xs font-semibold">
-                          Domain
+                          {t("domain")}
                         </p>
                         <Input disabled className="w-full" value={BASEURL} />
                       </div>
@@ -335,7 +334,7 @@ export const QRCodeCreate = ({
                       <div className="w-full grow flex flex-col items-start gap-2">
                         <div className="flex flex-row items-center gap-1">
                           <p className="sm:text-sm text-xs font-semibold">
-                            Custom back-half (optional)
+                            {t("custom-backhalf")}
                           </p>
                           {plan != "pro" && (
                             <HoverCard>
@@ -345,16 +344,16 @@ export const QRCodeCreate = ({
                               <HoverCardContent asChild>
                                 <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                                   <p className="text-sm font-bold">
-                                    Unlock custom codes
+                                    {t("unlock-custom")}
                                   </p>
                                   <p>
                                     <Link
                                       className="underline hover:cursor-pointer"
                                       href={`/dashboard/subscription`}
                                     >
-                                      Upgrade
+                                      {t("upgrade")}
                                     </Link>{" "}
-                                    to access link stats.
+                                    {t("access-stats")}
                                   </p>
                                 </div>
                               </HoverCardContent>
@@ -391,7 +390,7 @@ export const QRCodeCreate = ({
                   }}
                   variant={"secondary"}
                 >
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={qrCodeForm.handleSubmit(() => {
@@ -403,7 +402,7 @@ export const QRCodeCreate = ({
                   })}
                   variant={"default"}
                 >
-                  Customize your code <ChevronRight />
+                  {t("customize-code")} <ChevronRight />
                 </Button>
               </div>
             </div>
@@ -413,9 +412,11 @@ export const QRCodeCreate = ({
           <div className="rounded bg-background lg:p-6 md:p-4 p-3 w-full flex flex-col gap-4">
             <div className="flex flex-col gap-2 items-start">
               <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-                Select styles
+                {t("select-styles")}
               </h1>
-              <p className="lg:text-base text-sm font-semibold">Patterns</p>
+              <p className="lg:text-base text-sm font-semibold">
+                {t("patterns")}
+              </p>
               <div className="w-full grid grid-cols-6 gap-2">
                 <Button
                   variant={"outline"}
@@ -546,8 +547,10 @@ export const QRCodeCreate = ({
               </div>
             </div>
             <div className="w-full flex flex-col gap-2 items-start">
-              <p className="lg:text-base text-sm font-semibold">Corners</p>
-              <p className="lg:text-sm text-xs font-medium">Borders</p>
+              <p className="lg:text-base text-sm font-semibold">
+                {t("corners")}
+              </p>
+              <p className="lg:text-sm text-xs font-medium">{t("borders")}</p>
               <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
                 <Button
                   variant={"outline"}
@@ -688,7 +691,7 @@ export const QRCodeCreate = ({
                   />
                 </Button>
               </div>
-              <p className="lg:text-sm text-xs font-medium">Dots</p>
+              <p className="lg:text-sm text-xs font-medium">{t("dots")}</p>
               <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
                 <Button
                   variant={"outline"}
@@ -832,9 +835,11 @@ export const QRCodeCreate = ({
             </div>
             <div className="w-full flex flex-col gap-2 items-start">
               <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-                Choose your colors
+                {t("choose-colors")}
               </h1>
-              <p className="lg:text-base text-sm font-semibold">Presets</p>
+              <p className="lg:text-base text-sm font-semibold">
+                {t("presets")}
+              </p>
               <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
                 <Button
                   variant={"outline"}
@@ -980,7 +985,7 @@ export const QRCodeCreate = ({
               <InputColor
                 className="w-full"
                 onBlur={() => {}}
-                label="Code Color"
+                label={t("code-color")}
                 value={options.dotsOptions?.color || "#000"}
                 onChange={(v) => {
                   setPresetChosen(undefined);
@@ -993,7 +998,7 @@ export const QRCodeCreate = ({
               <InputColor
                 className="w-full"
                 onBlur={() => {}}
-                label="Background Color"
+                label={t("background-color")}
                 value={options.backgroundOptions?.color || "#ffffff"}
                 onChange={(v) => {
                   setPresetChosen(undefined);
@@ -1011,32 +1016,32 @@ export const QRCodeCreate = ({
                     className="px-1 rounded-none! h-fit flex flex-row items-baseline
                   gap-1! hover:cursor-help lg:text-2xl md:text-xl sm:text-lg text-base font-bold"
                   >
-                    Add a logo
+                    {t("add-logo")}
                     <LockIcon className="w-4! h-4!" />
                   </HoverCardTrigger>
                   <HoverCardContent align="end" asChild>
                     <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                      <p className="text-sm font-bold">Unlock adding logos</p>
+                      <p className="text-sm font-bold">{t("unlock-logos")}</p>
                       <p>
                         <Link
                           className="underline hover:cursor-pointer"
                           href={`/dashboard/subscription`}
                         >
-                          Upgrade
+                          {t("upgrade")}
                         </Link>{" "}
-                        to be able to add logos to your QR Codes.
+                        {t("logo-upgrade-description")}
                       </p>
                     </div>
                   </HoverCardContent>
                 </HoverCard>
               ) : (
                 <h1 className="lg:text-2xl md:text-xl sm:text-lg text-base font-bold">
-                  Add a logo
+                  {t("add-logo")}
                 </h1>
               )}
 
               <p className="lg:text-base text-sm font-semibold">
-                Choose a picture to place in the middle of your QR Code
+                {t("choose-picture")}
               </p>
               <div className="w-full flex flex-col gap-1 items-start sm:max-w-sm">
                 <div className="w-full flex flex-row items-center gap-1 sm:max-w-sm">
@@ -1052,7 +1057,7 @@ export const QRCodeCreate = ({
                   {uploading && (
                     <Button variant={"secondary"} disabled>
                       <Loader2 className="animate-spin" />
-                      Uploading
+                      {t("uploading")}
                     </Button>
                   )}
                   {options.image && (
@@ -1072,14 +1077,13 @@ export const QRCodeCreate = ({
                       variant={"secondary"}
                     >
                       <Trash2Icon />
-                      Remove logo
+                      {t("remove-logo")}
                     </Button>
                   )}
                 </div>
 
                 <p className="text-muted-foreground font-light text-xs">
-                  PNG, JPG, or SVG. Max 5 MB. Transparent PNG recommended for
-                  best results.
+                  {t("file-requirements")}
                 </p>
               </div>
             </div>
@@ -1093,7 +1097,7 @@ export const QRCodeCreate = ({
                 }}
                 variant={"secondary"}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={async () => {
@@ -1109,7 +1113,7 @@ export const QRCodeCreate = ({
                         case "no-user":
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message: "User session error.",
+                            message: t("toast.session-error"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1117,8 +1121,7 @@ export const QRCodeCreate = ({
                         case "custom-restricted":
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message:
-                              "Custom back-halves are restricted to pro accounts.",
+                            message: t("toast.custom-restricted"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1126,7 +1129,7 @@ export const QRCodeCreate = ({
                         case "plan-limit":
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message: "You have reached your plan's link limit.",
+                            message: t("toast.link-limit"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1134,8 +1137,7 @@ export const QRCodeCreate = ({
                         case "duplicate":
                           qrCodeForm.setError("customCode", {
                             type: "manual",
-                            message:
-                              "You already have a shortn link with that custom back-half.",
+                            message: t("toast.duplicate-backhalf"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1143,8 +1145,7 @@ export const QRCodeCreate = ({
                         default:
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message:
-                              "There was a problem creating your QR Code.",
+                            message: t("toast.qr-error"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1166,7 +1167,7 @@ export const QRCodeCreate = ({
                           case "no-user":
                             qrCodeForm.setError("destination", {
                               type: "destination",
-                              message: "User session error.",
+                              message: t("toast.session-error"),
                             });
                             setState("configure");
                             setCreating(false);
@@ -1174,8 +1175,7 @@ export const QRCodeCreate = ({
                           case "plan-limit":
                             qrCodeForm.setError("destination", {
                               type: "destination",
-                              message:
-                                "You have reached your plan's QR Code limit.",
+                              message: t("toast.qr-limit"),
                             });
                             setState("configure");
                             setCreating(false);
@@ -1183,8 +1183,7 @@ export const QRCodeCreate = ({
                           default:
                             qrCodeForm.setError("destination", {
                               type: "manual",
-                              message:
-                                "There was a problem creating your QR Code.",
+                              message: t("toast.qr-error"),
                             });
                             setState("configure");
                             setCreating(false);
@@ -1199,8 +1198,7 @@ export const QRCodeCreate = ({
                         if (!updateResponse.success) {
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message:
-                              "There was a problem creating your QR Code.",
+                            message: t("toast.qr-error"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1226,7 +1224,7 @@ export const QRCodeCreate = ({
                         case "no-user":
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message: "User session error.",
+                            message: t("toast.session-error"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1234,8 +1232,7 @@ export const QRCodeCreate = ({
                         case "plan-limit":
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message:
-                              "You have reached your plan's QR Code limit.",
+                            message: t("toast.qr-limit"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1243,8 +1240,7 @@ export const QRCodeCreate = ({
                         default:
                           qrCodeForm.setError("destination", {
                             type: "manual",
-                            message:
-                              "There was a problem creating your QR Code.",
+                            message: t("toast.qr-error"),
                           });
                           setState("configure");
                           setCreating(false);
@@ -1266,10 +1262,10 @@ export const QRCodeCreate = ({
               >
                 {creating ? (
                   <>
-                    <Loader2 className="animate-spin" /> Creating...
+                    <Loader2 className="animate-spin" /> {t("creating")}
                   </>
                 ) : (
-                  <>Create your code</>
+                  <>{t("create-code")}</>
                 )}
               </Button>
             </div>
@@ -1278,14 +1274,13 @@ export const QRCodeCreate = ({
       </div>
       <div className="w-full max-w-xs lg:flex hidden flex-col gap-4 items-center text-center">
         <p className="font-semibold text-muted-foreground lg:text-lg text-base">
-          Preview
+          {t("preview")}
         </p>
         <div className="w-full h-auto max-w-52 aspect-square bg-background p-4 flex flex-col">
           <StyledQRCode className="w-full" options={options} />
         </div>
         <p className="text-xs text-muted-foreground">
-          This code is preview only, so don&apos;t copy it just yet.
-          <br /> Your code will be generated once you finish creating it.
+          {t("preview-disclaimer")}
         </p>
       </div>
     </div>

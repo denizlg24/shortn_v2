@@ -20,6 +20,7 @@ import {
   TrendingDown,
 } from "lucide-react";
 import React, { useState } from "react";
+import { useTranslations } from "next-intl";
 
 const plans = [
   {
@@ -75,6 +76,7 @@ export const DowngradeForm = ({
   tier: SubscriptionsType;
   currentPlan: SubscriptionsType;
 }) => {
+  const t = useTranslations("downgrade-form");
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
@@ -103,15 +105,11 @@ export const DowngradeForm = ({
         setOpen(false);
         router.push(`/dashboard/subscription/success?status=payment_failed`);
       } else {
-        setError(
-          data.message || "Failed to update subscription. Please try again.",
-        );
+        setError(data.message || t("error-default"));
       }
     } catch (error) {
       console.error("Failed to downgrade subscription:", error);
-      setError(
-        "An unexpected error occurred. Please try again or contact support.",
-      );
+      setError(t("error-unexpected"));
     }
     setLoading(false);
   };
@@ -123,22 +121,19 @@ export const DowngradeForm = ({
       <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">
-            Are you sure?
+            {t("title")}
           </h1>
-          <p className="mt-3 max-w-2xl">
-            We are sorry to see you go. If you decide to downgrade, you will
-            lose access to all the features of the current plan.
-          </p>
+          <p className="mt-3 max-w-2xl">{t("subtitle")}</p>
         </div>
       </header>
 
       <section className="lg:mt-12 sm:mt-6 mt-4 grid sm:grid-cols-2 gap-x-12 gap-y-6 w-full items-stretch">
         <h2 className="col-span-full text-xl font-bold leading-tight">
-          Here&apos;s what you&apos;ll be loosing!
+          {t("losing-title")}
         </h2>
         <div className="flex flex-col gap-4 items-start w-full ">
           <p className="md:text-lg text-base font-semibold flex flex-row items-end gap-2 justify-start">
-            Your current plan
+            {t("current-plan")}
             <CornerRightDown className="w-4 h-4 shrink-0" />
           </p>
           {plans
@@ -155,7 +150,7 @@ export const DowngradeForm = ({
                 >
                   {plan.featured && (
                     <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                      Recommended
+                      {t("recommended")}
                     </div>
                   )}
 
@@ -174,8 +169,8 @@ export const DowngradeForm = ({
                       </div>
                     </div>
                     <div className="text-right text-muted-foreground text-sm">
-                      <div>Monthly billing</div>
-                      <div className="mt-2">Cancel anytime</div>
+                      <div>{t("monthly-billing")}</div>
+                      <div className="mt-2">{t("cancel-anytime")}</div>
                     </div>
                   </div>
                   <ul className="mt-6 space-y-3 mb-4">
@@ -194,7 +189,7 @@ export const DowngradeForm = ({
                     className="self-end place-self-end w-full mt-auto"
                   >
                     <Link href={"/dashboard/settings/plan"}>
-                      Keep {plan.name}
+                      {t("keep-plan", { plan: plan.name })}
                     </Link>
                   </Button>
                 </article>
@@ -204,7 +199,8 @@ export const DowngradeForm = ({
 
         <div className="flex flex-col gap-4 items-start w-full">
           <p className="md:text-lg text-base font-semibold sm:text-right text-left w-full flex flex-row items-end justify-end gap-2">
-            <CornerLeftDown className="w-4 h-4 shrink-0" /> Downgrading to
+            <CornerLeftDown className="w-4 h-4 shrink-0" />{" "}
+            {t("downgrading-to")}
           </p>
           {plans
             .filter((p) => p.id == tier)
@@ -220,7 +216,7 @@ export const DowngradeForm = ({
                 >
                   {plan.featured && (
                     <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                      Recommended
+                      {t("recommended")}
                     </div>
                   )}
 
@@ -239,8 +235,8 @@ export const DowngradeForm = ({
                       </div>
                     </div>
                     <div className="text-right text-muted-foreground text-sm">
-                      <div>Monthly billing</div>
-                      <div className="mt-2">Cancel anytime</div>
+                      <div>{t("monthly-billing")}</div>
+                      <div className="mt-2">{t("cancel-anytime")}</div>
                     </div>
                   </div>
                   <ul className="mt-6 space-y-3 mb-4">
@@ -274,7 +270,7 @@ export const DowngradeForm = ({
                     className="self-end place-self-end w-full mt-auto"
                     variant={"secondary"}
                   >
-                    Change to {plan.name}
+                    {t("change-to", { plan: plan.name })}
                   </Button>
                 </article>
               );
@@ -289,16 +285,17 @@ export const DowngradeForm = ({
               <TrendingDown className="h-6 w-6 text-primary" />
             </div>
             <DialogTitle className="text-center text-xl">
-              Confirm Downgrade
+              {t("confirm-title")}
             </DialogTitle>
             <DialogDescription className="text-center pt-2">
-              You're about to downgrade to the{" "}
-              <span className="font-semibold text-foreground">
-                {targetPlan?.name}
-              </span>{" "}
-              plan. Your subscription will be prorated and the downgrade will
-              take effect at the end of your current billing period. You'll
-              receive a credit for the unused time.
+              {t.rich("confirm-description", {
+                plan: targetPlan?.name || "no-plan",
+                strong: (chunks) => (
+                  <span className="font-semibold text-foreground">
+                    {chunks}
+                  </span>
+                ),
+              })}
             </DialogDescription>
           </DialogHeader>
 
@@ -319,10 +316,10 @@ export const DowngradeForm = ({
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
+                  {t("processing")}
                 </>
               ) : (
-                "Confirm Downgrade"
+                t("confirm")
               )}
             </Button>
             <Button
@@ -332,13 +329,12 @@ export const DowngradeForm = ({
               className="w-full"
               size="lg"
             >
-              Cancel
+              {t("cancel")}
             </Button>
           </div>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Your downgrade will be scheduled for the end of your current billing
-            period.
+            {t("note")}
           </p>
         </DialogContent>
       </Dialog>

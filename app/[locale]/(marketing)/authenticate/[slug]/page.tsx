@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import UrlV3 from "@/models/url/UrlV3";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { PasswordVerificationForm } from "./password-verification-form";
 import Link from "next/link";
@@ -13,6 +13,7 @@ export default async function AuthenticateLinkPage({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("authentication");
 
   await connectDB();
   const urlDoc = await UrlV3.findOne({ urlCode: slug })
@@ -37,13 +38,13 @@ export default async function AuthenticateLinkPage({
             </div>
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">
-                Password Protected Link
+                {t("password-protected-link")}{" "}
               </h1>
               {urlDoc.title && (
                 <p className="text-sm text-muted-foreground">{urlDoc.title}</p>
               )}
               <p className="text-sm text-muted-foreground">
-                This link requires a password to access
+                {t("this-link-requires-a-password-to-access")}{" "}
               </p>
             </div>
           </div>
@@ -51,7 +52,7 @@ export default async function AuthenticateLinkPage({
           {urlDoc.passwordHint && (
             <div className="bg-secondary border rounded-lg p-4">
               <p className="text-sm text-secondary-foreground">
-                <span className="font-semibold">Hint:</span>{" "}
+                <span className="font-semibold">{t("hint")}:</span>{" "}
                 {urlDoc.passwordHint}
               </p>
             </div>
@@ -61,7 +62,7 @@ export default async function AuthenticateLinkPage({
 
           <div className="text-center pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              Protected by{" "}
+              {t("protected-by")}{" "}
               <Link href="/" className="hover:underline">
                 Shortn
               </Link>

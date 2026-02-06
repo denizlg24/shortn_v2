@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CampaignStats } from "@/app/actions/linkActions";
+import { useTranslations } from "next-intl";
 
 interface StatCardProps {
   title: string;
@@ -103,6 +104,8 @@ export const CampaignOverviewCards = ({
   stats?: CampaignStats;
   loading?: boolean;
 }) => {
+  const t = useTranslations("campaign-overview");
+
   if (loading || !stats) {
     return (
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
@@ -119,33 +122,37 @@ export const CampaignOverviewCards = ({
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
       <StatCard
-        title="Total Clicks"
+        title={t("total-clicks")}
         value={stats.totalClicks}
-        subtitle="Campaign engagements"
+        subtitle={t("campaign-engagements")}
         icon={<MousePointerClick className="w-5 h-5" />}
         accentColor="from-chart-1/10 to-transparent"
       />
       <StatCard
-        title="Active Links"
+        title={t("active-links")}
         value={stats.uniqueLinks}
-        subtitle="Linked to campaign"
+        subtitle={t("linked-to-campaign")}
         icon={<Link2 className="w-5 h-5" />}
         accentColor="from-chart-2/10 to-transparent"
       />
       <StatCard
-        title="Top Source"
-        value={topSource?.name || "N/A"}
+        title={t("top-source")}
+        value={topSource?.name || t("na")}
         subtitle={
-          topSource ? `${topSource.clicks.toLocaleString()} clicks` : "No data"
+          topSource
+            ? t("clicks-count", { count: topSource.clicks })
+            : t("no-data")
         }
         icon={<Megaphone className="w-5 h-5" />}
         accentColor="from-chart-3/10 to-transparent"
       />
       <StatCard
-        title="Top Medium"
-        value={topMedium?.name || "N/A"}
+        title={t("top-medium")}
+        value={topMedium?.name || t("na")}
         subtitle={
-          topMedium ? `${topMedium.clicks.toLocaleString()} clicks` : "No data"
+          topMedium
+            ? t("clicks-count", { count: topMedium.clicks })
+            : t("no-data")
         }
         icon={<Share2 className="w-5 h-5" />}
         accentColor="from-chart-4/10 to-transparent"

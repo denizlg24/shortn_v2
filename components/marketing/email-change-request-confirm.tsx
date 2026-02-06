@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { CheckCircle2, XCircle, Mail, AlertTriangle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Status =
   | { kind: "idle" }
@@ -17,6 +18,8 @@ type Status =
   | { kind: "failed"; message: string };
 
 export const EmailChangeRequestConfirm = () => {
+  const t = useTranslations("verify.request-change");
+  const tVerify = useTranslations("verify");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -31,7 +34,7 @@ export const EmailChangeRequestConfirm = () => {
     !token || !oldEmail || !newEmail
       ? {
           kind: "failed",
-          message: "This email change link is missing required information.",
+          message: t("missing-info"),
         }
       : status;
 
@@ -48,7 +51,7 @@ export const EmailChangeRequestConfirm = () => {
       if (error) {
         setStatus({
           kind: "failed",
-          message: "This verification link is invalid or has expired.",
+          message: t("invalid-or-expired"),
         });
         return;
       }
@@ -58,8 +61,7 @@ export const EmailChangeRequestConfirm = () => {
     } catch {
       setStatus({
         kind: "failed",
-        message:
-          "We couldn't process your request right now. Please try again.",
+        message: t("process-error"),
       });
     }
   };
@@ -71,11 +73,11 @@ export const EmailChangeRequestConfirm = () => {
       return;
     }
 
-    const t = window.setTimeout(() => {
+    const timer = window.setTimeout(() => {
       setRedirectIn((s) => (s == null ? s : Math.max(0, s - 1)));
     }, 1000);
 
-    return () => window.clearTimeout(t);
+    return () => window.clearTimeout(timer);
   }, [redirectIn, router]);
 
   return (
@@ -112,10 +114,10 @@ export const EmailChangeRequestConfirm = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Confirm Email Change
+                {t("confirm-title")}
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                Please review and confirm this email address change.
+                {t("confirm-subtitle")}
               </p>
             </motion.div>
 
@@ -126,14 +128,14 @@ export const EmailChangeRequestConfirm = () => {
             >
               <Alert>
                 <Mail className="h-4 w-4" />
-                <AlertTitle>Email Address Change</AlertTitle>
+                <AlertTitle>{t("email-change-title")}</AlertTitle>
                 <AlertDescription className="space-y-2">
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">From:</p>
+                    <p className="text-xs text-muted-foreground">{t("from")}</p>
                     <p className="font-medium">{oldEmail}</p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-xs text-muted-foreground">To:</p>
+                    <p className="text-xs text-muted-foreground">{t("to")}</p>
                     <p className="font-medium">{newEmail}</p>
                   </div>
                 </AlertDescription>
@@ -146,13 +148,13 @@ export const EmailChangeRequestConfirm = () => {
               transition={{ duration: 0.3, delay: 0.4 }}
               className="rounded-lg border bg-card p-4"
             >
-              <h3 className="font-medium text-sm mb-2">What happens next?</h3>
+              <h3 className="font-medium text-sm mb-2">
+                {t("what-happens-next")}
+              </h3>
               <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                <li>Click confirm to proceed with the email change</li>
-                <li>
-                  We&apos;ll send a verification email to your new address
-                </li>
-                <li>Verify your new email to complete the change</li>
+                <li>{t("step-1")}</li>
+                <li>{t("step-2")}</li>
+                <li>{t("step-3")}</li>
               </ol>
             </motion.div>
           </motion.div>
@@ -179,13 +181,13 @@ export const EmailChangeRequestConfirm = () => {
             </motion.div>
 
             <p className="text-sm text-muted-foreground text-center">
-              Please wait while we process your email change request.
+              {t("processing")}
             </p>
 
             <div className="rounded-lg border bg-card px-4 py-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner />
-                <span>Processing email change…</span>
+                <span>{t("processing-change")}</span>
               </div>
               <div className="mt-2 h-1 w-full overflow-hidden rounded bg-muted">
                 <motion.div
@@ -229,10 +231,10 @@ export const EmailChangeRequestConfirm = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Email Change Confirmed!
+                {t("success-title")}
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                Your email address has been updated.
+                {t("success-subtitle")}
               </p>
             </motion.div>
 
@@ -243,17 +245,13 @@ export const EmailChangeRequestConfirm = () => {
             >
               <Alert>
                 <Mail className="h-4 w-4" />
-                <AlertTitle>Verify Your New Email</AlertTitle>
+                <AlertTitle>{t("verify-new-title")}</AlertTitle>
                 <AlertDescription className="space-y-2">
                   <p>
-                    We&apos;ve sent a verification email to{" "}
-                    <strong>{newEmail}</strong>. Please check your inbox and
-                    click the verification link to complete the process.
+                    {t("verify-new-description")} <strong>{newEmail}</strong>.{" "}
+                    {t("verify-new-instruction")}
                   </p>
-                  <p className="text-xs">
-                    Don&apos;t forget to check your spam folder if you
-                    don&apos;t see it.
-                  </p>
+                  <p className="text-xs">{t("check-spam")}</p>
                 </AlertDescription>
               </Alert>
             </motion.div>
@@ -265,12 +263,14 @@ export const EmailChangeRequestConfirm = () => {
             >
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Redirecting to Login</AlertTitle>
+                <AlertTitle>{t("redirecting-login-title")}</AlertTitle>
                 <AlertDescription>
                   {redirectIn != null ? (
-                    <>Redirecting you to login in {redirectIn} seconds…</>
+                    <>
+                      {t("redirecting-login-seconds", { seconds: redirectIn })}
+                    </>
                   ) : (
-                    "Redirecting you to login…"
+                    t("redirecting-login")
                   )}
                 </AlertDescription>
               </Alert>
@@ -320,10 +320,10 @@ export const EmailChangeRequestConfirm = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Change Request Failed
+                {t("failed-title")}
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                We couldn&apos;t process your email change request.
+                {t("failed-subtitle")}
               </p>
             </motion.div>
 
@@ -334,7 +334,7 @@ export const EmailChangeRequestConfirm = () => {
             >
               <Alert variant="destructive">
                 <XCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>{t("error")}</AlertTitle>
                 <AlertDescription>{effectiveStatus.message}</AlertDescription>
               </Alert>
             </motion.div>
@@ -345,13 +345,13 @@ export const EmailChangeRequestConfirm = () => {
               transition={{ duration: 0.3, delay: 0.4 }}
               className="rounded-lg border bg-card p-4"
             >
-              <h3 className="font-medium text-sm mb-2">What can you do?</h3>
+              <h3 className="font-medium text-sm mb-2">
+                {t("what-can-you-do")}
+              </h3>
               <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                <li>
-                  Request a new email change link from your account settings
-                </li>
-                <li>Make sure you&apos;re using the latest link sent to you</li>
-                <li>Contact support if the issue persists</li>
+                <li>{t("tip-1")}</li>
+                <li>{t("tip-2")}</li>
+                <li>{t("tip-3")}</li>
               </ul>
             </motion.div>
           </motion.div>
@@ -370,7 +370,7 @@ export const EmailChangeRequestConfirm = () => {
           onClick={() => router.push("/login")}
           className="w-full sm:w-auto"
         >
-          Back to Login
+          {tVerify("back-to-login")}
         </Button>
 
         {effectiveStatus.kind === "idle" && (
@@ -379,14 +379,14 @@ export const EmailChangeRequestConfirm = () => {
             onClick={handleConfirm}
             className="w-full sm:w-auto"
           >
-            Confirm Email Change
+            {t("confirm-button")}
           </Button>
         )}
       </motion.div>
 
       {effectiveStatus.kind === "idle" && (
         <p className="text-center text-xs text-muted-foreground pt-4">
-          Only confirm if you requested this email change.
+          {t("confirm-note")}
         </p>
       )}
     </motion.div>

@@ -51,6 +51,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { IUtmDefaults } from "@/models/url/Campaigns";
+import { useTranslations } from "next-intl";
 
 interface UtmLink {
   source?: string;
@@ -101,6 +102,7 @@ export function CampaignLinkUtmEditor({
   initialUtmLinks,
   onSave,
 }: CampaignLinkUtmEditorProps) {
+  const t = useTranslations("utm-editor");
   const shortUrl = getShortUrl(urlCode);
 
   const campaignUtmLinks = initialUtmLinks.filter(
@@ -138,7 +140,7 @@ export function CampaignLinkUtmEditor({
     await navigator.clipboard.writeText(url);
     setJustCopied(index);
     setTimeout(() => setJustCopied(null), 1500);
-    toast.success("Link copied to clipboard");
+    toast.success(t("toast.copied"));
   };
 
   const getUtmLabel = (utm: UtmLink, index: number): string => {
@@ -147,7 +149,9 @@ export function CampaignLinkUtmEditor({
     if (utm.medium) parts.push(utm.medium);
     if (utm.term) parts.push(utm.term);
     if (utm.content) parts.push(utm.content);
-    return parts.length > 0 ? parts.join(" / ") : `Variant ${index + 1}`;
+    return parts.length > 0
+      ? parts.join(" / ")
+      : t("variant-number", { number: index + 1 });
   };
 
   const hasUtmParams = (utm: UtmLink): boolean => {
@@ -181,7 +185,7 @@ export function CampaignLinkUtmEditor({
 
   const removeUtmVariant = (index: number) => {
     if (utmLinks.length <= 1) {
-      toast.error("You need at least one UTM configuration");
+      toast.error(t("toast.need-one-utm"));
       return;
     }
     setUtmLinks((prev) => prev.filter((_, i) => i !== index));
@@ -197,7 +201,7 @@ export function CampaignLinkUtmEditor({
     );
 
     if (!isValid) {
-      toast.error("Please fill in at least one UTM parameter for each variant");
+      toast.error(t("toast.fill-one-param"));
       return;
     }
 
@@ -222,16 +226,16 @@ export function CampaignLinkUtmEditor({
       });
 
       if (result.success) {
-        toast.success("UTM parameters saved successfully");
+        toast.success(t("toast.saved"));
         setSavedBaseline([...utmLinks]);
         setEditingIndex(null);
         onSave?.();
       } else {
-        toast.error("Failed to save UTM parameters");
+        toast.error(t("toast.save-failed"));
       }
     } catch (error) {
       console.error("Error saving UTM:", error);
-      toast.error("An error occurred while saving");
+      toast.error(t("toast.error"));
     } finally {
       setSaving(false);
     }
@@ -256,7 +260,7 @@ export function CampaignLinkUtmEditor({
               htmlFor={`source-${index}`}
               className="flex items-center gap-1.5"
             >
-              Source
+              {t("form.source")}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -264,8 +268,7 @@ export function CampaignLinkUtmEditor({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs text-xs">
-                      Identifies which site sent the traffic (e.g., google,
-                      newsletter, facebook)
+                      {t("form.source-tooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -274,7 +277,7 @@ export function CampaignLinkUtmEditor({
             {(utmDefaults?.sources?.length ?? 0) > 0 && (
               <Select onValueChange={(v) => applyDefault(index, "source", v)}>
                 <SelectTrigger className="w-[140px] h-7 text-xs">
-                  <SelectValue placeholder="Apply default" />
+                  <SelectValue placeholder={t("form.apply-default")} />
                 </SelectTrigger>
                 <SelectContent>
                   {utmDefaults?.sources?.map((s) => (
@@ -296,7 +299,7 @@ export function CampaignLinkUtmEditor({
                 e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""),
               )
             }
-            placeholder="e.g., newsletter"
+            placeholder={t("form.source-placeholder")}
           />
         </div>
 
@@ -306,7 +309,7 @@ export function CampaignLinkUtmEditor({
               htmlFor={`medium-${index}`}
               className="flex items-center gap-1.5"
             >
-              Medium
+              {t("form.medium")}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -314,7 +317,7 @@ export function CampaignLinkUtmEditor({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs text-xs">
-                      The marketing medium (e.g., email, social, cpc, banner)
+                      {t("form.medium-tooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -323,7 +326,7 @@ export function CampaignLinkUtmEditor({
             {(utmDefaults?.mediums?.length ?? 0) > 0 && (
               <Select onValueChange={(v) => applyDefault(index, "medium", v)}>
                 <SelectTrigger className="w-[140px] h-7 text-xs">
-                  <SelectValue placeholder="Apply default" />
+                  <SelectValue placeholder={t("form.apply-default")} />
                 </SelectTrigger>
                 <SelectContent>
                   {utmDefaults?.mediums?.map((m) => (
@@ -345,7 +348,7 @@ export function CampaignLinkUtmEditor({
                 e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""),
               )
             }
-            placeholder="e.g., email"
+            placeholder={t("form.medium-placeholder")}
           />
         </div>
 
@@ -355,16 +358,14 @@ export function CampaignLinkUtmEditor({
               htmlFor={`term-${index}`}
               className="flex items-center gap-1.5"
             >
-              Term
+              {t("form.term")}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs text-xs">
-                      Identifies search terms or keywords (e.g., running+shoes)
-                    </p>
+                    <p className="max-w-xs text-xs">{t("form.term-tooltip")}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -372,7 +373,7 @@ export function CampaignLinkUtmEditor({
             {(utmDefaults?.terms?.length ?? 0) > 0 && (
               <Select onValueChange={(v) => applyDefault(index, "term", v)}>
                 <SelectTrigger className="w-[140px] h-7 text-xs">
-                  <SelectValue placeholder="Apply default" />
+                  <SelectValue placeholder={t("form.apply-default")} />
                 </SelectTrigger>
                 <SelectContent>
                   {utmDefaults?.terms?.map((t) => (
@@ -394,7 +395,7 @@ export function CampaignLinkUtmEditor({
                 e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""),
               )
             }
-            placeholder="e.g., discount"
+            placeholder={t("form.term-placeholder")}
           />
         </div>
 
@@ -404,7 +405,7 @@ export function CampaignLinkUtmEditor({
               htmlFor={`content-${index}`}
               className="flex items-center gap-1.5"
             >
-              Content
+              {t("form.content")}
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
@@ -412,8 +413,7 @@ export function CampaignLinkUtmEditor({
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-xs text-xs">
-                      Differentiates similar content or links (e.g., cta-button,
-                      header-link)
+                      {t("form.content-tooltip")}
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -422,7 +422,7 @@ export function CampaignLinkUtmEditor({
             {(utmDefaults?.contents?.length ?? 0) > 0 && (
               <Select onValueChange={(v) => applyDefault(index, "content", v)}>
                 <SelectTrigger className="w-[140px] h-7 text-xs">
-                  <SelectValue placeholder="Apply default" />
+                  <SelectValue placeholder={t("form.apply-default")} />
                 </SelectTrigger>
                 <SelectContent>
                   {utmDefaults?.contents?.map((c) => (
@@ -444,7 +444,7 @@ export function CampaignLinkUtmEditor({
                 e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""),
               )
             }
-            placeholder="e.g., cta-button"
+            placeholder={t("form.content-placeholder")}
           />
         </div>
       </div>
@@ -468,7 +468,7 @@ export function CampaignLinkUtmEditor({
           <Button variant="outline" size="sm" asChild className="shrink-0">
             <Link href={`/dashboard/links/${urlCode}/details`}>
               <ExternalLink className="w-3.5 h-3.5 sm:mr-1.5" />
-              <span className="hidden sm:inline">View Link</span>
+              <span className="hidden sm:inline">{t("view-link")}</span>
             </Link>
           </Button>
         </div>
@@ -480,15 +480,13 @@ export function CampaignLinkUtmEditor({
             <div>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Share2 className="w-5 h-5" />
-                Share Links
+                {t("share-links")}
               </CardTitle>
-              <CardDescription>
-                Copy the UTM-tagged links below to share them
-              </CardDescription>
+              <CardDescription>{t("share-links-description")}</CardDescription>
             </div>
             <Button variant="outline" size="sm" onClick={addUtmVariant}>
               <Plus className="w-4 h-4 mr-1.5" />
-              Add Variant
+              {t("add-variant")}
             </Button>
           </div>
         </CardHeader>
@@ -496,9 +494,13 @@ export function CampaignLinkUtmEditor({
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[200px]">Variant</TableHead>
-                <TableHead>URL</TableHead>
-                <TableHead className="w-[140px] text-right">Actions</TableHead>
+                <TableHead className="w-[200px]">
+                  {t("table.variant")}
+                </TableHead>
+                <TableHead>{t("table.url")}</TableHead>
+                <TableHead className="w-[140px] text-right">
+                  {t("table.actions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -517,7 +519,7 @@ export function CampaignLinkUtmEditor({
                             variant="outline"
                             className="text-[10px] text-amber-600 border-amber-300"
                           >
-                            Empty
+                            {t("empty")}
                           </Badge>
                         )}
                       </div>
@@ -547,7 +549,7 @@ export function CampaignLinkUtmEditor({
                                 )}
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Copy link</TooltipContent>
+                            <TooltipContent>{t("copy-link")}</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                         <TooltipProvider>
@@ -568,7 +570,9 @@ export function CampaignLinkUtmEditor({
                                 />
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Edit parameters</TooltipContent>
+                            <TooltipContent>
+                              {t("edit-parameters")}
+                            </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                         {utmLinks.length > 1 && (
@@ -584,7 +588,9 @@ export function CampaignLinkUtmEditor({
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>Delete variant</TooltipContent>
+                              <TooltipContent>
+                                {t("delete-variant")}
+                              </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         )}
@@ -605,11 +611,11 @@ export function CampaignLinkUtmEditor({
               <div>
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Pencil className="w-4 h-4" />
-                  Edit: {getUtmLabel(utmLinks[editingIndex], editingIndex)}
+                  {t("edit-label", {
+                    label: getUtmLabel(utmLinks[editingIndex], editingIndex),
+                  })}
                 </CardTitle>
-                <CardDescription>
-                  Modify UTM parameters for this variant
-                </CardDescription>
+                <CardDescription>{t("modify-utm-params")}</CardDescription>
               </div>
               <Button
                 variant="ghost"
@@ -626,7 +632,7 @@ export function CampaignLinkUtmEditor({
               <div className="mb-4 p-3 bg-muted/50 rounded-lg">
                 <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  Campaign defaults - click to apply
+                  {t("campaign-defaults")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {utmDefaults?.sources?.map((s) => (
@@ -680,7 +686,7 @@ export function CampaignLinkUtmEditor({
       <div className="flex justify-end gap-3">
         <Button variant="outline" asChild>
           <Link href={`/dashboard/campaigns/${campaignId}`}>
-            {hasChanges ? "Cancel" : "Back to Campaign"}
+            {hasChanges ? t("cancel") : t("back-to-campaign")}
           </Link>
         </Button>
         {hasChanges && (
@@ -688,10 +694,10 @@ export function CampaignLinkUtmEditor({
             {saving ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Saving...
+                {t("saving")}
               </>
             ) : (
-              "Save Changes"
+              t("save-changes")
             )}
           </Button>
         )}

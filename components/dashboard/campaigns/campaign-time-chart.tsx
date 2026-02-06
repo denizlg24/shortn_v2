@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BarChart3 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface TimelineData {
   date: string;
@@ -26,22 +27,21 @@ interface CampaignTimeChartProps {
   loading?: boolean;
 }
 
-const chartConfig = {
-  clicks: {
-    label: "Clicks",
-    color: "var(--chart-1)",
-  },
-} satisfies ChartConfig;
-
 export function CampaignTimeChart({ data, loading }: CampaignTimeChartProps) {
+  const t = useTranslations("campaign-time-chart");
+
+  const chartConfig = {
+    clicks: {
+      label: t("clicks"),
+      color: "var(--chart-1)",
+    },
+  } satisfies ChartConfig;
   if (loading) {
     return (
       <Card className="w-full">
         <div className="px-6 py-0">
-          <CardTitle className="text-lg">Clicks Over Time</CardTitle>
-          <CardDescription>
-            Daily engagement metrics for this campaign
-          </CardDescription>
+          <CardTitle className="text-lg">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <CardContent className="px-6 py-0">
           <Skeleton className="w-full h-[300px] rounded-lg" />
@@ -54,18 +54,14 @@ export function CampaignTimeChart({ data, loading }: CampaignTimeChartProps) {
     return (
       <Card className="w-full">
         <div className="px-6 py-0">
-          <CardTitle className="text-lg">Clicks Over Time</CardTitle>
-          <CardDescription>
-            Daily engagement metrics for this campaign
-          </CardDescription>
+          <CardTitle className="text-lg">{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <CardContent className="px-6 py-0">
           <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
             <BarChart3 className="w-12 h-12 mb-3 opacity-50" />
-            <p className="font-medium">No click data yet</p>
-            <p className="text-sm">
-              Clicks will appear here once your campaign starts tracking
-            </p>
+            <p className="font-medium">{t("no-data-title")}</p>
+            <p className="text-sm">{t("no-data-description")}</p>
           </div>
         </CardContent>
       </Card>
@@ -81,28 +77,30 @@ export function CampaignTimeChart({ data, loading }: CampaignTimeChartProps) {
       <div className="px-6 py-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div>
-            <CardTitle className="text-lg">Clicks Over Time</CardTitle>
-            <CardDescription>
-              Daily engagement metrics for this campaign
-            </CardDescription>
+            <CardTitle className="text-lg">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           <div className="flex items-center gap-4 text-sm">
             <div className="flex flex-col items-end">
-              <span className="text-muted-foreground text-xs">Total</span>
+              <span className="text-muted-foreground text-xs">
+                {t("total")}
+              </span>
               <span className="font-semibold">
                 {totalClicks.toLocaleString()}
               </span>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="flex flex-col items-end">
-              <span className="text-muted-foreground text-xs">Daily Avg</span>
+              <span className="text-muted-foreground text-xs">
+                {t("daily-avg")}
+              </span>
               <span className="font-semibold">
                 {avgClicks.toLocaleString()}
               </span>
             </div>
             <div className="w-px h-8 bg-border" />
             <div className="flex flex-col items-end">
-              <span className="text-muted-foreground text-xs">Peak</span>
+              <span className="text-muted-foreground text-xs">{t("peak")}</span>
               <span className="font-semibold">
                 {maxClicks.toLocaleString()}
               </span>

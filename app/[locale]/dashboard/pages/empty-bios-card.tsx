@@ -10,22 +10,22 @@ import {
   EmptyContent,
 } from "@/components/ui/empty";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+
 export const EmptyBiosCard = () => {
+  const t = useTranslations("empty-bios-card");
   return (
     <Empty className="h-fit! flex-none!">
       <EmptyHeader>
         <EmptyMedia variant="icon">
           <NotepadText />
         </EmptyMedia>
-        <EmptyTitle>No Pages Yet</EmptyTitle>
-        <EmptyDescription>
-          You haven&apos;t created any Link-in-bio pages yet. Get started by
-          creating your first Link-in-bio page.
-        </EmptyDescription>
+        <EmptyTitle>{t("title")}</EmptyTitle>
+        <EmptyDescription>{t("description")}</EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
         <Button className="w-full" asChild>
-          <Link href={"/dashboard/pages/create"}>Create Page</Link>
+          <Link href={"/dashboard/pages/create"}>{t("create-page")}</Link>
         </Button>
       </EmptyContent>
     </Empty>

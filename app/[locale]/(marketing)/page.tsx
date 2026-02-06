@@ -1,6 +1,5 @@
 import DotGrid from "@/components/DotGrid";
-import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { RotatingSubtitle } from "./_components/rotating-subtitle";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,14 +17,16 @@ import {
 import { Link } from "@/i18n/navigation";
 import GradientText from "@/components/GradientText";
 
-export default function Home({
+export default async function Home({
   params,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   params: any;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const tRotating = await getTranslations("rotating-subtitle");
+  const t = await getTranslations("homepage");
 
   return (
     <main className="flex flex-col items-center w-full mx-auto relative">
@@ -47,16 +48,13 @@ export default function Home({
       <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
         <div className="rounded-full py-1.5 px-4 bg-muted border shadow flex items-center justify-center gap-2 text-muted-foreground">
           <Zap className="w-4 h-4" />
-          <span className="text-sm font-medium">
-            85% cheaper than competitors
-          </span>
+          <span className="text-sm font-medium">{t("badge")}</span>
         </div>
         <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          The low-cost option for brand management
+          {t("hero-title")}
         </h1>
         <h2 className="text-lg text-muted-foreground max-w-xl">
-          Shorten URLs, generate QR codes, track analytics, and create
-          link-in-bio pages. Everything you need at a fraction of the cost.
+          {t("hero-subtitle")}
         </h2>
         {/* <RotatingSubtitle
           texts={[
@@ -70,8 +68,8 @@ export default function Home({
         <div className="flex sm:flex-row flex-col gap-2 items-center justify-center w-full">
           <Button asChild size={"lg"} className="rounded-full w-full sm:flex-1">
             <Link href={"/register"}>
-              Get started for <span className="-ml-1 font-bold">free</span>{" "}
-              <MoveRight />
+              {t("get-started-free")}{" "}
+              <span className="-ml-1 font-bold">{t("free")}</span> <MoveRight />
             </Link>
           </Button>
           <Button
@@ -80,21 +78,21 @@ export default function Home({
             size={"lg"}
             className="rounded-full w-full sm:flex-1"
           >
-            <Link href={"/pricing"}>Compare plans</Link>
+            <Link href={"/pricing"}>{t("compare-plans")}</Link>
           </Button>
         </div>
         <div className="w-full max-w-xl flex flex-row items-center justify-center flex-wrap gap-y-2 gap-x-0.5">
           <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
             <Check className="w-4 h-4" />
-            No credit card required
+            {t("no-credit-card")}
           </div>
           <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
             <Check className="w-4 h-4" />
-            No onboarding required
+            {t("no-onboarding")}
           </div>
           <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
             <Check className="w-4 h-4" />
-            Free forever plan available
+            {t("free-forever")}
           </div>
         </div>
       </div>
@@ -102,40 +100,34 @@ export default function Home({
         <div className="w-full max-w-7xl mx-auto grid grid-cols-4 text-center">
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              85%
+              {t("stats.affordable-value")}
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              More <br className="xs:hidden block" /> affordable
+              {t("stats.affordable-label")}
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              99%
+              {t("stats.uptime-value")}
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Uptime <br className="xs:hidden block" /> SLA
+              {t("stats.uptime-label")}
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              5K
-              <span className="text-sm xs:text-base sm:text-lg md:text-xl">
-                +
-              </span>
+              {t("stats.links-value")}
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Links <br className="xs:hidden block" /> shortened
+              {t("stats.links-label")}
             </span>
           </div>
           <div className="flex flex-col gap-2 col-span-1 w-full items-center">
             <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              35
-              <span className="text-sm xs:text-base sm:text-lg md:text-xl">
-                +
-              </span>
+              {t("stats.countries-value")}
             </span>
             <span className="sm:text-base text-xs text-muted-foreground">
-              Countries <br className="xs:hidden block" /> reached
+              {t("stats.countries-label")}
             </span>
           </div>
         </div>
@@ -148,9 +140,9 @@ export default function Home({
             showBorder={false}
             className="inline-flex rounded-none! wrap-break-word"
           >
-            Level up
+            {t("level-up")}
           </GradientText>{" "}
-          your marketing strategy with{" "}
+          {t("marketing-strategy")}{" "}
           <GradientText
             colors={["#131954", " #4079ff", " #131954", " #4079ff", "#131954"]}
             animationSpeed={8}
@@ -162,11 +154,11 @@ export default function Home({
         </h1>
         <RotatingSubtitle
           texts={[
-            "Link shortener",
-            "QR Code generator",
-            "Marketing platform",
-            "Analytics dashboard",
-            "Personal page",
+            tRotating("link-shortener"),
+            tRotating("qr-code-generator"),
+            tRotating("marketing-platform"),
+            tRotating("analytics-dashboard"),
+            tRotating("personal-page"),
           ]}
         />
       </div>
@@ -177,30 +169,33 @@ export default function Home({
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
               <Link2 className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Shorten Links</h3>
+            <h3 className="font-semibold text-lg mb-2">
+              {t("features.shorten-links.title")}
+            </h3>
             <p className="text-muted-foreground text-sm">
-              Transform long URLs into memorable, branded short links that drive
-              clicks and build trust.
+              {t("features.shorten-links.description")}
             </p>
           </div>
           <div className="group bg-background border rounded-xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
               <QrCode className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Generate QR Codes</h3>
+            <h3 className="font-semibold text-lg mb-2">
+              {t("features.qr-codes.title")}
+            </h3>
             <p className="text-muted-foreground text-sm">
-              Create stunning, customizable QR codes with your brand colors and
-              logo in seconds.
+              {t("features.qr-codes.description")}
             </p>
           </div>
           <div className="group bg-background border rounded-xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300">
             <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
               <BarChart3 className="w-6 h-6 text-primary" />
             </div>
-            <h3 className="font-semibold text-lg mb-2">Track Analytics</h3>
+            <h3 className="font-semibold text-lg mb-2">
+              {t("features.analytics.title")}
+            </h3>
             <p className="text-muted-foreground text-sm">
-              Get real-time insights on clicks, locations, devices, and more to
-              optimize your campaigns.
+              {t("features.analytics.description")}
             </p>
           </div>
         </div>
@@ -296,11 +291,10 @@ export default function Home({
 
       <div className="w-full max-w-6xl mx-auto px-4 sm:mb-20 mb-12">
         <h2 className="text-center text-2xl font-bold mb-2">
-          Why choose Shortn.at?
+          {t("why-choose.title")}
         </h2>
         <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-          We built the tool we wished existed — powerful, affordable, and easy
-          to use.
+          {t("why-choose.subtitle")}
         </p>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex items-start gap-3 p-4 rounded-lg border bg-background">
@@ -308,9 +302,11 @@ export default function Home({
               <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Secure & Private</h4>
+              <h4 className="font-medium mb-1">
+                {t("why-choose.secure.title")}
+              </h4>
               <p className="text-xs text-muted-foreground">
-                Your data is encrypted and never sold to third parties.
+                {t("why-choose.secure.description")}
               </p>
             </div>
           </div>
@@ -319,9 +315,9 @@ export default function Home({
               <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Lightning Fast</h4>
+              <h4 className="font-medium mb-1">{t("why-choose.fast.title")}</h4>
               <p className="text-xs text-muted-foreground">
-                Sub-100ms redirects with our global edge network.
+                {t("why-choose.fast.description")}
               </p>
             </div>
           </div>
@@ -330,9 +326,11 @@ export default function Home({
               <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <h4 className="font-medium mb-1">Global Analytics</h4>
+              <h4 className="font-medium mb-1">
+                {t("why-choose.global.title")}
+              </h4>
               <p className="text-xs text-muted-foreground">
-                Track clicks from every country in real-time.
+                {t("why-choose.global.description")}
               </p>
             </div>
           </div>
@@ -341,9 +339,11 @@ export default function Home({
               <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
-              <h4 className="font-medium mb-1">No Setup Needed</h4>
+              <h4 className="font-medium mb-1">
+                {t("why-choose.no-setup.title")}
+              </h4>
               <p className="text-xs text-muted-foreground">
-                Start shortening links in under 30 seconds.
+                {t("why-choose.no-setup.description")}
               </p>
             </div>
           </div>
@@ -354,11 +354,10 @@ export default function Home({
         <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary/80 p-8 sm:p-12 text-center text-primary-foreground">
           <div className="absolute inset-0 bg-grid-white/10 mask-[linear-gradient(0deg,transparent,white)]" />
           <h2 className="relative text-2xl sm:text-3xl font-bold mb-3">
-            Ready to get started?
+            {t("cta.title")}
           </h2>
           <p className="relative text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-            Join thousands of marketers who are already saving time and money
-            with Shortn.at.
+            {t("cta.subtitle")}
           </p>
           <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
             <Button
@@ -368,7 +367,7 @@ export default function Home({
               className="rounded-full"
             >
               <Link href="/register">
-                Start for free <ArrowRight className="ml-2 w-4 h-4" />
+                {t("cta.start-free")} <ArrowRight className="ml-2 w-4 h-4" />
               </Link>
             </Button>
             <Button
@@ -377,7 +376,7 @@ export default function Home({
               variant="outline"
               className="rounded-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
             >
-              <Link href="/pricing">View pricing</Link>
+              <Link href="/pricing">{t("cta.view-pricing")}</Link>
             </Button>
           </div>
         </div>
