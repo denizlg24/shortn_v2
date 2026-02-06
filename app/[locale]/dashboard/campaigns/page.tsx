@@ -49,6 +49,8 @@ export default async function Home({
     return;
   }
   const { plan } = await getUserPlan();
+  const t = await getTranslations("dashboard.campaigns");
+
   if (plan != "pro") {
     return (
       <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
@@ -58,33 +60,22 @@ export default async function Home({
               <Star className="w-6 h-6" />
             </div>
             <div>
-              <CardTitle className="text-lg">Campaigns (Pro)</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Group links and get aggregated campaign analytics.
-              </p>
+              <CardTitle className="text-lg">{t("title")}</CardTitle>
+              <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
             </div>
           </CardHeader>
 
           <CardContent className="flex flex-col gap-4">
             <ul className="list-disc ml-5 text-sm text-muted-foreground">
-              <li>
-                Create, track, and manage marketing campaigns with real-time
-                analytics for clicks and conversions.
-              </li>
-              <li>
-                Segment performance by source, medium, and campaign to identify
-                top-performing channels.
-              </li>
-              <li>
-                Export campaign data for reporting and share insights with your
-                team.
-              </li>
+              <li>{t("feature-1")}</li>
+              <li>{t("feature-2")}</li>
+              <li>{t("feature-3")}</li>
             </ul>
 
             <div className="flex flex-col items-center gap-3 pt-2">
               <Button asChild className="w-full">
                 <Link href="/dashboard/subscription" className="w-full">
-                  Upgrade to Pro
+                  {t("upgrade-to-pro")}
                 </Link>
               </Button>
             </div>
@@ -101,7 +92,7 @@ export default async function Home({
         {campaigns.length > 0 && (
           <div className="w-full col-span-full flex flex-row items-center gap-2 justify-between">
             <h1 className="col-span-full lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-              Your Campaigns
+              {t("your-campaigns")}
             </h1>
             <AddCampaignDialog
               trigger={
@@ -119,26 +110,28 @@ export default async function Home({
                 <Rocket className="w-6 h-6" />
               </div>
               <div>
-                <CardTitle className="text-lg">Your Campaigns</CardTitle>
+                <CardTitle className="text-lg">
+                  {t("no-campaigns-title")}
+                </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Start tracking campaigns by adding UTM tags to your links.
+                  {t("no-campaigns-subtitle")}
                 </p>
               </div>
             </CardHeader>
 
             <CardContent className="flex flex-col gap-4 text-left">
               <p className="text-muted-foreground text-sm">
-                You haven&apos;t created any campaigns yet.
-                <br /> To get started, add a{" "}
+                {t("no-campaigns-description")}
+                <br /> {t("to-get-started")}{" "}
                 <span className="font-medium text-foreground">
-                  UTM campaign
+                  {t("utm-campaign")}
                 </span>{" "}
-                to one of your Shortn&apos;s on the{" "}
+                {t("to-one-of-your")}{" "}
                 <Link
                   href="/dashboard/links"
                   className="text-primary hover:underline font-medium"
                 >
-                  Links page
+                  {t("links-page")}
                 </Link>
                 .
               </p>
@@ -166,7 +159,7 @@ export default async function Home({
                         {campaign.title}
                       </Link>
                       <p className="text-xs font-semibold text-muted-foreground underline">
-                        {campaign.links.length} links
+                        {t("links-count", { count: campaign.links.length })}
                       </p>
                     </div>
 
@@ -178,7 +171,7 @@ export default async function Home({
                       <Link
                         href={`/dashboard/campaigns/${(campaign._id as string).toString()}`}
                       >
-                        View Links <LinkIcon />
+                        {t("view-links")} <LinkIcon />
                       </Link>
                     </Button>
                   </div>

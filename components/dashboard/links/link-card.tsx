@@ -72,6 +72,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
 export const LinkCard = ({
   link,
@@ -92,6 +93,7 @@ export const LinkCard = ({
 }) => {
   const { plan } = usePlan();
   const router = useRouter();
+  const t = useTranslations("link-card");
 
   const [currentLink, setCurrentLink] = useState(link);
   const shortUrl = getShortUrl(currentLink.urlCode);
@@ -122,14 +124,14 @@ export const LinkCard = ({
     try {
       const response = await deleteShortn(currentLink.urlCode);
       if (response.success) {
-        toast.success(`Link ${currentLink.urlCode} was successfully deleted.`);
+        toast.success(t("toast.deleted", { code: currentLink.urlCode }));
       } else {
-        toast.error("There was a problem deleting your link.");
+        toast.error(t("toast.delete-error"));
         setIsDeleting(false);
       }
       router.refresh();
     } catch {
-      toast.error("There was a problem deleting your link.");
+      toast.error(t("toast.delete-error"));
       setIsDeleting(false);
     }
   };
@@ -145,7 +147,7 @@ export const LinkCard = ({
 
   const handlePasswordSubmit = async () => {
     if (!isPro) {
-      toast.error("Password protection is only available for Pro users.");
+      toast.error(t("toast.password-pro-only"));
       return;
     }
 
@@ -162,7 +164,7 @@ export const LinkCard = ({
       });
 
       if (response.success) {
-        toast.success("Password protection enabled successfully!");
+        toast.success(t("toast.password-enabled"));
         setCurrentLink((prev) => ({
           ...prev,
           passwordProtected: true,
@@ -173,11 +175,11 @@ export const LinkCard = ({
         setPasswordHint("");
         router.refresh();
       } else {
-        toast.error("Failed to enable password protection.");
+        toast.error(t("toast.password-enable-failed"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while updating the link.");
+      toast.error(t("toast.update-error"));
     } finally {
       setIsPasswordLoading(false);
     }
@@ -196,7 +198,7 @@ export const LinkCard = ({
       });
 
       if (response.success) {
-        toast.success("Password protection removed successfully!");
+        toast.success(t("toast.password-removed"));
         setCurrentLink((prev) => ({
           ...prev,
           passwordProtected: false,
@@ -208,11 +210,11 @@ export const LinkCard = ({
         setPasswordHint("");
         router.refresh();
       } else {
-        toast.error("Failed to remove password protection.");
+        toast.error(t("toast.password-remove-failed"));
       }
     } catch (error) {
       console.error(error);
-      toast.error("An error occurred while updating the link.");
+      toast.error(t("toast.update-error"));
     } finally {
       setIsPasswordLoading(false);
     }
@@ -245,12 +247,12 @@ export const LinkCard = ({
             {justCopied ? (
               <>
                 <CopyCheck />
-                Copied
+                {t("copied")}
               </>
             ) : (
               <>
                 <Copy />
-                Copy
+                {t("copy")}
               </>
             )}
           </Button>
@@ -258,44 +260,33 @@ export const LinkCard = ({
             <DialogTrigger asChild>
               <Button variant={"outline"}>
                 <Share2 />
-                Share
+                {t("share")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Share your Shortn Link</DialogTitle>
-                <DialogDescription>
-                  Share your link across social media.
-                </DialogDescription>
+                <DialogTitle>{t("share-title")}</DialogTitle>
+                <DialogDescription>{t("share-description")}</DialogDescription>
               </DialogHeader>
               <div className="w-full grid grid-cols-5 gap-4">
-                <FacebookShareButton
-                  url={shortUrl}
-                  quote={"Check out this link shortened with Shortn.at"}
-                >
+                <FacebookShareButton url={shortUrl} quote={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <FacebookIcon size={32} round />
                   </div>
                 </FacebookShareButton>
-                <RedditShareButton
-                  url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
-                >
+                <RedditShareButton url={shortUrl} title={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <RedditIcon size={32} round />
                   </div>
                 </RedditShareButton>
-                <TwitterShareButton
-                  url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
-                >
+                <TwitterShareButton url={shortUrl} title={t("share-text")}>
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <TwitterIcon size={32} round />
                   </div>
                 </TwitterShareButton>
                 <WhatsappShareButton
                   url={shortUrl}
-                  title={"Check out this link shortened with Shortn.at"}
+                  title={t("share-text")}
                   separator=" "
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -304,8 +295,8 @@ export const LinkCard = ({
                 </WhatsappShareButton>
                 <EmailShareButton
                   url={shortUrl}
-                  subject="Checkout my Shortn.at Link!"
-                  body="Checkout this link shortened with Shortn.at"
+                  subject={t("email-subject")}
+                  body={t("email-body")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <EmailIcon size={32} round />
@@ -330,7 +321,7 @@ export const LinkCard = ({
                   variant={"secondary"}
                   className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
                 >
-                  {justCopied ? <>Copied</> : <>Copy</>}
+                  {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
                 </Button>
               </div>
             </DialogContent>
@@ -366,15 +357,15 @@ export const LinkCard = ({
               <DialogHeader>
                 <DialogTitle>
                   {currentLink.passwordProtected
-                    ? "Manage Password Protection"
-                    : "Add Password Protection"}
+                    ? t("password.manage-title")
+                    : t("password.add-title")}
                 </DialogTitle>
                 <DialogDescription>
                   {currentLink.passwordProtected
-                    ? "This link is currently password protected. You can remove the password below."
+                    ? t("password.manage-description")
                     : isPro
-                      ? "Protect your link with a password. Only users with the password can access it."
-                      : "Password protection is a Pro feature. Upgrade to enable this feature."}
+                      ? t("password.add-description")
+                      : t("password.upgrade-description")}
                 </DialogDescription>
               </DialogHeader>
 
@@ -382,13 +373,13 @@ export const LinkCard = ({
                 <div className="flex flex-col gap-4">
                   <div className="p-4 bg-secondary rounded-lg border">
                     <p className="text-sm text-secondary-foreground">
-                      Upgrade to Pro to protect your links with passwords.
+                      {t("password.upgrade-prompt")}
                     </p>
                   </div>
                   <Button asChild>
                     <Link href="/dashboard/subscription">
                       <LockIcon className="w-4 h-4 mr-2" />
-                      Upgrade to Pro
+                      {t("password.upgrade-button")}
                     </Link>
                   </Button>
                 </div>
@@ -398,16 +389,16 @@ export const LinkCard = ({
                     <div className="flex items-center gap-2 mb-2">
                       <LockIcon className="w-4 h-4 text-secondary-foreground" />
                       <p className="text-sm font-semibold text-secondary-foreground">
-                        Password Protected
+                        {t("password.protected")}
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      This link is currently protected. Users must enter the
-                      password to access it.
+                      {t("password.protected-description")}
                     </p>
                     {currentLink.passwordHint && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        <strong>Hint:</strong> {currentLink.passwordHint}
+                        <strong>{t("password.hint-label")}</strong>{" "}
+                        {currentLink.passwordHint}
                       </p>
                     )}
                   </div>
@@ -417,8 +408,8 @@ export const LinkCard = ({
                     disabled={isPasswordLoading}
                   >
                     {isPasswordLoading
-                      ? "Removing..."
-                      : "Remove Password Protection"}
+                      ? t("password.removing")
+                      : t("password.remove-button")}
                   </Button>
                 </div>
               ) : (
@@ -428,7 +419,7 @@ export const LinkCard = ({
                       htmlFor="link-authorization"
                       className="text-sm font-medium"
                     >
-                      Password
+                      {t("password.password-label")}
                     </label>
                     <div className="relative">
                       <Input
@@ -437,7 +428,7 @@ export const LinkCard = ({
                         type={showPassword ? "text" : "password"}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        placeholder="Enter password"
+                        placeholder={t("password.password-placeholder")}
                         className="pr-10"
                       />
                       <Button
@@ -460,19 +451,18 @@ export const LinkCard = ({
                       htmlFor="passwordHint"
                       className="text-sm font-medium"
                     >
-                      Password Hint (Optional)
+                      {t("password.hint-optional")}
                     </label>
                     <Input
                       id="passwordHint"
                       type="text"
                       value={passwordHint}
                       onChange={(e) => setPasswordHint(e.target.value)}
-                      placeholder="e.g., Your birthday"
+                      placeholder={t("password.hint-placeholder")}
                       maxLength={100}
                     />
                     <p className="text-xs text-muted-foreground">
-                      This hint will be shown to users who need to enter the
-                      password.
+                      {t("password.hint-description")}
                     </p>
                   </div>
                   <Button
@@ -480,8 +470,8 @@ export const LinkCard = ({
                     disabled={!password || isPasswordLoading}
                   >
                     {isPasswordLoading
-                      ? "Enabling..."
-                      : "Enable Password Protection"}
+                      ? t("password.enabling")
+                      : t("password.enable-button")}
                   </Button>
                 </div>
               )}
@@ -506,11 +496,11 @@ export const LinkCard = ({
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 className="animate-spin" /> Deleting...
+                    <Loader2 className="animate-spin" /> {t("menu.deleting")}
                   </>
                 ) : (
                   <>
-                    <Trash2 /> Delete
+                    <Trash2 /> {t("menu.delete")}
                   </>
                 )}
               </Button>
@@ -520,7 +510,7 @@ export const LinkCard = ({
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
                 <Link href={`/dashboard/links/${link.urlCode}/details`}>
-                  <LinkIcon /> View link details
+                  <LinkIcon /> {t("menu.view-details")}
                 </Link>
               </Button>
               <Button
@@ -536,7 +526,9 @@ export const LinkCard = ({
                   }
                 >
                   <QrCode />
-                  {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
+                  {currentLink.qrCodeId
+                    ? t("menu.view-qr")
+                    : t("menu.create-qr")}
                 </Link>
               </Button>
               {bioPageSlug ? (
@@ -546,7 +538,7 @@ export const LinkCard = ({
                   className="w-full border-none! rounded-none! justify-start! shadow-none! "
                 >
                   <Link href={`/dashboard/pages/${bioPageSlug}/customize`}>
-                    <NotepadText /> View page
+                    <NotepadText /> {t("menu.view-page")}
                   </Link>
                 </Button>
               ) : isPro ? (
@@ -559,7 +551,7 @@ export const LinkCard = ({
                       variant={"outline"}
                       className="w-full border-none! rounded-none! justify-start! shadow-none! "
                     >
-                      <NotepadText /> Add to a page
+                      <NotepadText /> {t("menu.add-to-page")}
                     </Button>
                   }
                 />
@@ -570,7 +562,7 @@ export const LinkCard = ({
                   className="w-full border-none! rounded-none! justify-start! shadow-none! "
                 >
                   <Link href={`/dashboard/subscription`}>
-                    <LockIcon className="h-4 w-4 mr-2" /> Upgrade to Pro
+                    <LockIcon className="h-4 w-4 mr-2" /> {t("menu.upgrade")}
                   </Link>
                 </Button>
               )}
@@ -607,27 +599,28 @@ export const LinkCard = ({
                   gap-1! hover:cursor-help"
                 >
                   <LockIcon className="w-3! h-3!" />
-                  Click Data
+                  {t("click-data")}
                 </HoverCardTrigger>
                 <HoverCardContent asChild>
                   <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
-                    <p className="text-sm font-bold">Unlock click data</p>
+                    <p className="text-sm font-bold">
+                      {t("unlock-click-data")}
+                    </p>
                     <p>
                       <Link
                         className="underline hover:cursor-pointer"
                         href={`/dashboard/subscription`}
                       >
-                        Upgrade
+                        {t("upgrade")}
                       </Link>{" "}
-                      to access link stats.
+                      {t("access-stats")}
                     </p>
                   </div>
                 </HoverCardContent>
               </HoverCard>
             ) : (
               <p className="p-0! px-1! rounded-none! h-fit text-xs font-normal gap-1!">
-                {link.clicks.total}
-                {link.clicks.total == 1 ? " click" : " clicks"}
+                {t("clicks", { count: link.clicks.total })}
               </p>
             )}
           </div>
@@ -667,7 +660,9 @@ export const LinkCard = ({
                 );
               })}
               {currentLink.tags && currentLink.tags.length > 4 && (
-                <p className="text-xs">+{currentLink.tags.length - 4} more</p>
+                <p className="text-xs">
+                  +{currentLink.tags.length - 4} {t("more")}
+                </p>
               )}
               <Popover open={tagOpen} onOpenChange={tagOpenChange}>
                 <PopoverTrigger asChild>
@@ -676,7 +671,8 @@ export const LinkCard = ({
                     role="combobox"
                     className="w-fit! justify-between text-primary text-sm gap-1! px-0! py-0! h-fit!"
                   >
-                    <PlusCircle className="text-primary w-3! h-3!" /> Add tag
+                    <PlusCircle className="text-primary w-3! h-3!" />{" "}
+                    {t("add-tag")}
                   </Button>
                 </PopoverTrigger>
                 <ScrollPopoverContent
@@ -688,7 +684,7 @@ export const LinkCard = ({
                     <CommandInput
                       value={input}
                       onValueChange={setInput}
-                      placeholder="Search tags..."
+                      placeholder={t("search-tags")}
                       className="h-9"
                     />
                     <CommandList className="items-stretch flex flex-col gap-1 w-full">
@@ -769,7 +765,7 @@ export const LinkCard = ({
                               tagOpenChange(false);
                             }}
                           >
-                            Create &quot;{input}&quot;
+                            {t("create-tag", { name: input })}
                           </CommandItem>
                         )}
                       </CommandGroup>
@@ -783,11 +779,10 @@ export const LinkCard = ({
             <Tags className="w-4 h-4" />
             {currentLink.tags && currentLink.tags.length > 0 ? (
               <p className="text-xs">
-                {currentLink.tags.length}{" "}
-                {currentLink.tags.length == 1 ? "tag" : "tags"}
+                {t("tags-count", { count: currentLink.tags.length })}
               </p>
             ) : (
-              <p className="text-xs">No tags</p>
+              <p className="text-xs">{t("no-tags")}</p>
             )}
           </div>
         </div>
@@ -815,7 +810,7 @@ export const LinkCard = ({
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                 <p className="text-sm font-bold">
-                  {link.qrCodeId ? "View QR Code" : "Create QR Code"}
+                  {link.qrCodeId ? t("menu.view-qr") : t("menu.create-qr")}
                 </p>
               </div>
             </HoverCardContent>
@@ -863,10 +858,10 @@ export const LinkCard = ({
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                 <p className="text-sm font-bold">
                   {bioPageSlug
-                    ? "View page"
+                    ? t("menu.view-page")
                     : isPro
-                      ? "Add to a page"
-                      : "Upgrade to Pro"}
+                      ? t("menu.add-to-page")
+                      : t("menu.upgrade")}
                 </p>
               </div>
             </HoverCardContent>
@@ -889,12 +884,12 @@ export const LinkCard = ({
           {justCopied ? (
             <>
               <CopyCheck />
-              Copied
+              {t("copied")}
             </>
           ) : (
             <>
               <Copy />
-              Copy
+              {t("copy")}
             </>
           )}
         </Button>
@@ -902,44 +897,33 @@ export const LinkCard = ({
           <DialogTrigger asChild>
             <Button className="p-1.5! h-fit!" variant={"outline"}>
               <Share2 />
-              Share
+              {t("share")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Share your Shortn Link</DialogTitle>
-              <DialogDescription>
-                Share your link across social media.
-              </DialogDescription>
+              <DialogTitle>{t("share-title")}</DialogTitle>
+              <DialogDescription>{t("share-description")}</DialogDescription>
             </DialogHeader>
             <div className="w-full grid grid-cols-5 gap-4">
-              <FacebookShareButton
-                url={shortUrl}
-                quote={"Check out this link shortened with Shortn.at"}
-              >
+              <FacebookShareButton url={shortUrl} quote={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <FacebookIcon size={32} round />
                 </div>
               </FacebookShareButton>
-              <RedditShareButton
-                url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
-              >
+              <RedditShareButton url={shortUrl} title={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <RedditIcon size={32} round />
                 </div>
               </RedditShareButton>
-              <TwitterShareButton
-                url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
-              >
+              <TwitterShareButton url={shortUrl} title={t("share-text")}>
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <TwitterIcon size={32} round />
                 </div>
               </TwitterShareButton>
               <WhatsappShareButton
                 url={shortUrl}
-                title={"Check out this link shortened with Shortn.at"}
+                title={t("share-text")}
                 separator=" "
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -948,8 +932,8 @@ export const LinkCard = ({
               </WhatsappShareButton>
               <EmailShareButton
                 url={shortUrl}
-                subject="Checkout my Shortn.at Link!"
-                body="Checkout this link shortened with Shortn.at"
+                subject={t("email-subject")}
+                body={t("email-body")}
               >
                 <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                   <EmailIcon size={32} round />
@@ -974,7 +958,7 @@ export const LinkCard = ({
                 variant={"secondary"}
                 className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
               >
-                {justCopied ? <>Copied</> : <>Copy</>}
+                {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
               </Button>
             </div>
           </DialogContent>
@@ -1024,11 +1008,11 @@ export const LinkCard = ({
             >
               {isDeleting ? (
                 <>
-                  <Loader2 className="animate-spin" /> Deleting...
+                  <Loader2 className="animate-spin" /> {t("menu.deleting")}
                 </>
               ) : (
                 <>
-                  <Trash2 /> Delete
+                  <Trash2 /> {t("menu.delete")}
                 </>
               )}
             </Button>
@@ -1039,7 +1023,7 @@ export const LinkCard = ({
             >
               <Link href={`/dashboard/links/${link.urlCode}/details`}>
                 <LinkIcon />
-                View link details
+                {t("menu.view-details")}
               </Link>
             </Button>
             <Button
@@ -1055,7 +1039,7 @@ export const LinkCard = ({
                 }
               >
                 <QrCode />
-                {currentLink.qrCodeId ? "View QR Code" : "Create QR Code"}
+                {currentLink.qrCodeId ? t("menu.view-qr") : t("menu.create-qr")}
               </Link>
             </Button>
             {bioPageSlug ? (
@@ -1065,7 +1049,7 @@ export const LinkCard = ({
                 className="w-full border-none! rounded-none! justify-start! shadow-none! "
               >
                 <Link href={`/dashboard/pages/${bioPageSlug}/customize`}>
-                  <NotepadText /> View page
+                  <NotepadText /> {t("menu.view-page")}
                 </Link>
               </Button>
             ) : isPro ? (
@@ -1078,7 +1062,7 @@ export const LinkCard = ({
                     variant={"outline"}
                     className="w-full border-none! rounded-none! justify-start! shadow-none! "
                   >
-                    <NotepadText /> Add to a page
+                    <NotepadText /> {t("menu.add-to-page")}
                   </Button>
                 }
               />
@@ -1089,7 +1073,7 @@ export const LinkCard = ({
                 asChild
               >
                 <Link href="/dashboard/subscription">
-                  <LockIcon className="h-4 w-4" /> Upgrade to Pro
+                  <LockIcon className="h-4 w-4" /> {t("menu.upgrade")}
                 </Link>
               </Button>
             )}

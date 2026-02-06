@@ -26,20 +26,23 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { sendToSlack } from "@/lib/send-to-slack";
-
-const formSchema = z.object({
-  first_name: z.string().min(2, "First name must be at least 2 characters"),
-  last_name: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  company: z.string().optional(),
-  subject: z.string().min(5, "Subject must be at least 5 characters"),
-  message: z
-    .string()
-    .min(20, "Message must be at least 20 characters")
-    .max(2000, "Message must be at most 2000 characters"),
-});
+import { useTranslations } from "next-intl";
 
 export function ContactForm({ className }: { className?: string }) {
+  const t = useTranslations("contact.form");
+
+  const formSchema = z.object({
+    first_name: z.string().min(2, t("validation.first-name-min")),
+    last_name: z.string().min(2, t("validation.last-name-min")),
+    email: z.string().email(t("validation.email-invalid")),
+    company: z.string().optional(),
+    subject: z.string().min(5, t("validation.subject-min")),
+    message: z
+      .string()
+      .min(20, t("validation.message-min"))
+      .max(2000, t("validation.message-max")),
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -84,10 +87,7 @@ export function ContactForm({ className }: { className?: string }) {
 
       if (!response.ok) {
         setStatus("error");
-        setStatusMessage(
-          result.error ||
-            "There was a problem sending your message, try again later.",
-        );
+        setStatusMessage(result.error || t("error-message"));
         return;
       }
 
@@ -99,16 +99,14 @@ export function ContactForm({ className }: { className?: string }) {
       });
 
       setStatus("success");
-      setStatusMessage("We've gotten your message, thank you!");
+      setStatusMessage(t("success-message"));
       setTicketId(result.ticketId);
 
       form.reset();
     } catch (error) {
       console.error("Error submitting form:", error);
       setStatus("error");
-      setStatusMessage(
-        "There was a problem sending your message, try again later.",
-      );
+      setStatusMessage(t("error-message"));
     } finally {
       setIsSubmitting(false);
     }
@@ -132,14 +130,14 @@ export function ContactForm({ className }: { className?: string }) {
                 </h3>
                 {ticketId && (
                   <p className="text-sm text-foreground/60">
-                    Ticket ID:{" "}
+                    {t("ticket-id")}{" "}
                     <span className="font-mono font-semibold text-foreground/80">
                       {ticketId}
                     </span>
                   </p>
                 )}
                 <p className="text-sm text-foreground/50">
-                  You'll receive a confirmation email shortly.
+                  {t("confirmation-email")}
                 </p>
               </div>
               <Button
@@ -147,7 +145,7 @@ export function ContactForm({ className }: { className?: string }) {
                 variant="outline"
                 className="mt-8"
               >
-                Send Another Message
+                {t("send-another")}
               </Button>
             </>
           )}
@@ -157,7 +155,7 @@ export function ContactForm({ className }: { className?: string }) {
               <XCircle className="w-16 h-16 mx-auto text-red-600 dark:text-red-400 animate-in zoom-in duration-500" />
               <div className="space-y-3">
                 <h3 className="text-2xl font-medium text-foreground">
-                  Something went wrong
+                  {t("error-title")}
                 </h3>
                 <p className="text-sm text-foreground/60 max-w-md mx-auto">
                   {statusMessage}
@@ -168,7 +166,7 @@ export function ContactForm({ className }: { className?: string }) {
                 variant="outline"
                 className="mt-8"
               >
-                Try Again
+                {t("try-again")}
               </Button>
             </>
           )}
@@ -190,13 +188,13 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-1">
               <FieldLabel htmlFor="shortn-contact-form-first_name">
-                First Name
+                {t("first-name")}
               </FieldLabel>
               <Input
                 {...field}
                 id="shortn-contact-form-first_name"
                 aria-invalid={fieldState.invalid}
-                placeholder="Eg: John"
+                placeholder={t("first-name-placeholder")}
                 autoComplete="off"
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -209,12 +207,12 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-1">
               <FieldLabel htmlFor="shortn-contact-form-last_name">
-                Last Name
+                {t("last-name")}
               </FieldLabel>
               <Input
                 {...field}
                 id="shortn-contact-form-last_name"
-                placeholder="Eg: Doe"
+                placeholder={t("last-name-placeholder")}
                 className=""
                 aria-invalid={fieldState.invalid}
               />
@@ -228,12 +226,12 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-full">
               <FieldLabel htmlFor="shortn-contact-form-email">
-                Email Address
+                {t("email")}
               </FieldLabel>
               <Input
                 {...field}
                 id="shortn-contact-form-email"
-                placeholder="Eg: john.doe@example.com"
+                placeholder={t("email-placeholder")}
                 className=""
                 type="email"
                 aria-invalid={fieldState.invalid}
@@ -248,12 +246,12 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-full">
               <FieldLabel htmlFor="shortn-contact-form-company">
-                Company (optional)
+                {t("company")}
               </FieldLabel>
               <Input
                 {...field}
                 id="shortn-contact-form-company"
-                placeholder="Eg: Acme Corporation"
+                placeholder={t("company-placeholder")}
                 className=""
                 type="text"
                 aria-invalid={fieldState.invalid}
@@ -268,12 +266,12 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-full">
               <FieldLabel htmlFor="shortn-contact-form-subject">
-                Subject
+                {t("subject")}
               </FieldLabel>
               <Input
                 {...field}
                 id="shortn-contact-form-subject"
-                placeholder="Eg: Inquiry about services"
+                placeholder={t("subject-placeholder")}
                 className=""
                 type="text"
                 aria-invalid={fieldState.invalid}
@@ -288,20 +286,20 @@ export function ContactForm({ className }: { className?: string }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid} className="col-span-full">
               <FieldLabel htmlFor="shortn-contact-form-message">
-                Message
+                {t("message")}
               </FieldLabel>
               <InputGroup>
                 <InputGroupTextarea
                   {...field}
                   id="shortn-contact-form-message"
-                  placeholder="Type your message here..."
+                  placeholder={t("message-placeholder")}
                   rows={6}
                   className="min-h-24 resize-none"
                   aria-invalid={fieldState.invalid}
                 />
                 <InputGroupAddon align="block-end">
                   <InputGroupText className="tabular-nums">
-                    {field.value.length}/2000 characters
+                    {t("characters", { count: field.value.length })}
                   </InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
@@ -315,7 +313,7 @@ export function ContactForm({ className }: { className?: string }) {
         className="col-span-full w-full mt-6"
         disabled={isSubmitting}
       >
-        {isSubmitting ? "Sending..." : "Send Message"}{" "}
+        {isSubmitting ? t("sending") : t("send-message")}{" "}
         {isSubmitting ? (
           <Loader2Icon className="animate-spin" />
         ) : (

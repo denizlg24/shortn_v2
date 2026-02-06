@@ -26,6 +26,8 @@ import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -35,9 +37,10 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations("location-table");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [hideUnknown, setHideUnknown] = React.useState(false);
   const table = useReactTable({
@@ -59,7 +62,7 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-col w-full gap-2">
       <div className="flex flex-row items-center gap-2 w-full justify-between relative">
         <Input
-          placeholder="Search for..."
+          placeholder={t("search")}
           value={(
             (table.getColumn("location")?.getFilterValue() as string) ?? ""
           ).replace("__HIDE_UNKNOWN__", "")}
@@ -67,14 +70,14 @@ export function DataTable<TData, TValue>({
             table
               .getColumn("location")
               ?.setFilterValue(
-                event.target.value.replace("__HIDE_UNKNOWN__", "")
+                event.target.value.replace("__HIDE_UNKNOWN__", ""),
               )
           }
           className="grow sm:max-w-md pl-6"
         />
         <Search className="absolute w-3 h-3 left-2 top-3.25" />
         <div className="flex flex-row gap-1 items-center justify-start">
-          <p className="text-xs font-semibold">Unknown</p>
+          <p className="text-xs font-semibold">{t("unknown")}</p>
           <Switch
             checked={!hideUnknown}
             className="shrink-0"
@@ -100,8 +103,8 @@ export function DataTable<TData, TValue>({
                         header.id == "location"
                           ? "w-[70%]!"
                           : header.id == "clicks"
-                          ? "w-[15%]!"
-                          : "w-[15%]!"
+                            ? "w-[15%]!"
+                            : "w-[15%]!",
                       )}
                       style={{
                         width: header.getSize(),
@@ -112,7 +115,7 @@ export function DataTable<TData, TValue>({
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -137,7 +140,7 @@ export function DataTable<TData, TValue>({
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -149,7 +152,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-12 text-center"
                 >
-                  No results.
+                  {t("no-results")}
                 </TableCell>
               </TableRow>
             )}
@@ -163,7 +166,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
+          {t("previous")}
         </Button>
         <Button
           variant="outline"
@@ -171,7 +174,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
+          {t("next")}
         </Button>
       </div>
     </div>

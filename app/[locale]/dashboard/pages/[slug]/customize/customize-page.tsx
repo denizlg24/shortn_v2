@@ -48,105 +48,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { updateBioPage } from "@/app/actions/bioPageActions";
 import { FontPicker } from "@/components/font-picker";
 import { ButtonGroup } from "@/components/ui/button-group";
-const bioSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, "Title is required")
-    .max(52, "Title must be 52 characters or less"),
-  description: z
-    .string()
-    .max(256, "Description must be 256 characters or less")
-    .optional(),
-  socials: z
-    .array(
-      z
-        .object({
-          platform: z.string(),
-          url: z.string(),
-        })
-        .superRefine((data, ctx) => {
-          const { url, platform } = data;
-
-          if (!url || url.trim() === "") return;
-
-          try {
-            const urlObj = new URL(
-              url.startsWith("http") ? url : `https://${url}`,
-            );
-            let isValid = true;
-
-            let errorMessage = "";
-
-            switch (platform) {
-              case "instagram":
-                isValid = urlObj.hostname.includes("instagram.com");
-                errorMessage =
-                  "Please enter a valid Instagram URL (e.g., instagram.com/username)";
-                break;
-              case "twitter":
-                isValid =
-                  urlObj.hostname.includes("twitter.com") ||
-                  urlObj.hostname.includes("x.com");
-                errorMessage =
-                  "Please enter a valid Twitter/X URL (e.g., twitter.com/username or x.com/username)";
-                break;
-              case "github":
-                isValid = urlObj.hostname.includes("github.com");
-                errorMessage =
-                  "Please enter a valid GitHub URL (e.g., github.com/username)";
-                break;
-              case "facebook":
-                isValid =
-                  urlObj.hostname.includes("facebook.com") ||
-                  urlObj.hostname.includes("fb.com");
-                errorMessage =
-                  "Please enter a valid Facebook URL (e.g., facebook.com/username)";
-                break;
-              case "youtube":
-                isValid =
-                  urlObj.hostname.includes("youtube.com") ||
-                  urlObj.hostname.includes("youtu.be");
-                errorMessage =
-                  "Please enter a valid YouTube URL (e.g., youtube.com/@channel)";
-                break;
-              case "linkedin":
-                isValid = urlObj.hostname.includes("linkedin.com");
-                errorMessage =
-                  "Please enter a valid LinkedIn URL (e.g., linkedin.com/in/username)";
-                break;
-              case "whatsapp":
-                isValid =
-                  urlObj.hostname.includes("wa.me") ||
-                  urlObj.hostname.includes("whatsapp.com");
-                errorMessage =
-                  "Please enter a valid WhatsApp URL (e.g., wa.me/1234567890)";
-                break;
-              case "website":
-                isValid = true;
-                break;
-              default:
-                isValid = true;
-            }
-
-            if (!isValid) {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                path: ["url"],
-                message: errorMessage,
-              });
-            }
-          } catch {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: ["url"],
-              message: "Please enter a valid URL",
-            });
-          }
-        }),
-    )
-    .optional(),
-});
+import { useTranslations } from "next-intl";
 
 export const GetSocialIcon = ({
   platform,
@@ -254,6 +156,7 @@ export const CustomizeBioPage = ({
     updatedAt: Date;
   };
 }) => {
+  const t = useTranslations("customize-bio-page");
   const [bio, updateBio] = useState(initialBio);
   const [uploading, setUploading] = useState("");
 
@@ -267,6 +170,99 @@ export const CustomizeBioPage = ({
   const [saving, setSaving] = useState(false);
   const router = useRouter();
 
+  const bioSchema = z.object({
+    title: z
+      .string()
+      .trim()
+      .min(1, t("validation.title-required"))
+      .max(52, t("validation.title-max")),
+    description: z
+      .string()
+      .max(256, t("validation.description-max"))
+      .optional(),
+    socials: z
+      .array(
+        z
+          .object({
+            platform: z.string(),
+            url: z.string(),
+          })
+          .superRefine((data, ctx) => {
+            const { url, platform } = data;
+
+            if (!url || url.trim() === "") return;
+
+            try {
+              const urlObj = new URL(
+                url.startsWith("http") ? url : `https://${url}`,
+              );
+              let isValid = true;
+
+              let errorMessage = "";
+
+              switch (platform) {
+                case "instagram":
+                  isValid = urlObj.hostname.includes("instagram.com");
+                  errorMessage = t("validation.instagram-url");
+                  break;
+                case "twitter":
+                  isValid =
+                    urlObj.hostname.includes("twitter.com") ||
+                    urlObj.hostname.includes("x.com");
+                  errorMessage = t("validation.twitter-url");
+                  break;
+                case "github":
+                  isValid = urlObj.hostname.includes("github.com");
+                  errorMessage = t("validation.github-url");
+                  break;
+                case "facebook":
+                  isValid =
+                    urlObj.hostname.includes("facebook.com") ||
+                    urlObj.hostname.includes("fb.com");
+                  errorMessage = t("validation.facebook-url");
+                  break;
+                case "youtube":
+                  isValid =
+                    urlObj.hostname.includes("youtube.com") ||
+                    urlObj.hostname.includes("youtu.be");
+                  errorMessage = t("validation.youtube-url");
+                  break;
+                case "linkedin":
+                  isValid = urlObj.hostname.includes("linkedin.com");
+                  errorMessage = t("validation.linkedin-url");
+                  break;
+                case "whatsapp":
+                  isValid =
+                    urlObj.hostname.includes("wa.me") ||
+                    urlObj.hostname.includes("whatsapp.com");
+                  errorMessage = t("validation.whatsapp-url");
+                  break;
+                case "website":
+                  isValid = true;
+                  break;
+                default:
+                  isValid = true;
+              }
+
+              if (!isValid) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: ["url"],
+                  message: errorMessage,
+                });
+              }
+            } catch {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: ["url"],
+                message: t("validation.invalid-url"),
+              });
+            }
+          }),
+      )
+      .optional(),
+  });
+
   const uploadFile = async (
     e: React.ChangeEvent<HTMLInputElement>,
     callback: (_arg0: string) => void,
@@ -278,7 +274,7 @@ export const CustomizeBioPage = ({
     const maxSizeInBytes = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
-      toast.error("Invalid file type. Only JPG, PNG, and SVG are allowed.");
+      toast.error(t("toast.invalid-file-type"));
       if (e.target) {
         e.target.value = "";
       }
@@ -286,13 +282,13 @@ export const CustomizeBioPage = ({
     }
 
     if (file.size > maxSizeInBytes) {
-      toast.error("File is too large. Must be under 5MB.");
+      toast.error(t("toast.file-too-large"));
       if (e.target) {
         e.target.value = "";
       }
       return;
     }
-    setUploading("Uploading...");
+    setUploading(t("uploading"));
     const { success, url } = await uploadImage(file);
     if (success && url) {
       callback(url as string);
@@ -301,7 +297,7 @@ export const CustomizeBioPage = ({
   };
 
   const removeFile = async (url: string, callback: () => void) => {
-    setUploading("Removing...");
+    setUploading(t("removing"));
     await deletePicture(url);
     callback();
     setUploading("");
@@ -314,11 +310,11 @@ export const CustomizeBioPage = ({
       setValidationErrors({});
       const response = await updateBioPage({ bio });
       if (!response.success) {
-        toast.error("Failed to save changes");
+        toast.error(t("toast.failed-save"));
         setSaving(false);
         return;
       }
-      toast.success("Changes saved successfully");
+      toast.success(t("toast.save-success"));
       router.refresh();
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -334,7 +330,7 @@ export const CustomizeBioPage = ({
           }
         });
         setValidationErrors(errors);
-        toast.error("Please fix the validation errors");
+        toast.error(t("toast.fix-validation-errors"));
       }
     } finally {
       setSaving(false);
@@ -350,29 +346,29 @@ export const CustomizeBioPage = ({
         <Button variant={"link"} asChild>
           <Link className="font-semibold p-0!" href={`/dashboard/pages`}>
             <ChevronLeft />
-            Back to list
+            {t("back-to-list")}
           </Link>
         </Button>
         <Button variant={"outline"} asChild>
           <Link href={`/dashboard/pages/${bio.slug}`}>
             <LinkIcon className="h-4 w-4 mr-2" />
-            Manage Links
+            {t("manage-links")}
           </Link>
         </Button>
       </div>
       <div className="flex sm:flex-row flex-col items-center justify-between gap-2">
         <h1 className="font-black lg:text-3xl md:text-2xl text-xl">
-          Customize your page
+          {t("title")}
         </h1>
         {hasChanges && (
           <div className="flex flex-row items-center gap-1 justify-end">
             <Button disabled={saving} onClick={handleSave}>
               {saving ? (
                 <>
-                  <Spinner /> Saving...
+                  <Spinner /> {t("saving")}
                 </>
               ) : (
-                "Save Changes"
+                t("save-changes")
               )}
             </Button>
             <Button
@@ -382,7 +378,7 @@ export const CustomizeBioPage = ({
                 updateBio(initialBio);
               }}
             >
-              Discard Changes
+              {t("discard-changes")}
             </Button>
           </div>
         )}
@@ -391,11 +387,11 @@ export const CustomizeBioPage = ({
       <div className="w-full max-w-7xl mx-auto flex lg:flex-row lg:items-start items-center gap-6 flex-col-reverse">
         <div className="grow w-full flex flex-col gap-6">
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
-            <CardTitle className="text-lg font-bold">Profile</CardTitle>
+            <CardTitle className="text-lg font-bold">{t("profile")}</CardTitle>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
               <div className="flex sm:flex-row flex-col sm:items-center gap-2 justify-start">
                 <div className="flex flex-col gap-2 shrink-0 items-start">
-                  <Label>Profile Image</Label>
+                  <Label>{t("profile-image")}</Label>
                   <Avatar className="w-24 h-24  shadow border">
                     <AvatarImage
                       className="object-cover"
@@ -444,7 +440,7 @@ export const CustomizeBioPage = ({
                       </Button>
                     )}
                   </div>
-                  <Label className="mt-2">Profile Image Shape</Label>
+                  <Label className="mt-2">{t("profile-image-shape")}</Label>
                   <RadioGroup
                     value={bio.avatarShape ?? "circle"}
                     onValueChange={(v) => {
@@ -457,24 +453,24 @@ export const CustomizeBioPage = ({
                   >
                     <div className="flex grow items-center gap-3">
                       <RadioGroupItem value="circle" id="r1" />
-                      <Label htmlFor="r1">Circle</Label>
+                      <Label htmlFor="r1">{t("shape-circle")}</Label>
                     </div>
                     <div className="flex grow items-center gap-3">
                       <RadioGroupItem value="rounded" id="r2" />
-                      <Label htmlFor="r2">Rounded</Label>
+                      <Label htmlFor="r2">{t("shape-rounded")}</Label>
                     </div>
                     <div className="flex grow items-center gap-3">
                       <RadioGroupItem value="square" id="r3" />
-                      <Label htmlFor="r3">Square</Label>
+                      <Label htmlFor="r3">{t("shape-square")}</Label>
                     </div>
                   </RadioGroup>
                 </div>
               </div>
             </CardContent>
-            <CardTitle className="text-lg font-bold">About</CardTitle>
+            <CardTitle className="text-lg font-bold">{t("about")}</CardTitle>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
               <Field data-invalid={hasFieldError("title")} className="w-full ">
-                <FieldLabel>Title</FieldLabel>
+                <FieldLabel>{t("title-label")}</FieldLabel>
                 <Input
                   type="text"
                   className="w-full"
@@ -502,7 +498,7 @@ export const CustomizeBioPage = ({
                 data-invalid={hasFieldError("description")}
                 className="w-full "
               >
-                <FieldLabel>Description</FieldLabel>
+                <FieldLabel>{t("description-label")}</FieldLabel>
                 <Input
                   type="text"
                   className="w-full"
@@ -529,9 +525,9 @@ export const CustomizeBioPage = ({
             </CardContent>
           </Card>
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
-            <CardTitle className="text-lg font-bold">Page</CardTitle>
+            <CardTitle className="text-lg font-bold">{t("page")}</CardTitle>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label>Layout</Label>
+              <Label>{t("layout")}</Label>
 
               <RadioGroup
                 onValueChange={(v) => {
@@ -575,7 +571,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="no-header" id="r1" />
-                    <Label htmlFor="r1">No Header</Label>
+                    <Label htmlFor="r1">{t("layout-no-header")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
@@ -590,7 +586,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="centered" id="r2" />
-                    <Label htmlFor="r2">Centered</Label>
+                    <Label htmlFor="r2">{t("layout-centered")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="relative flex items-center flex-col w-full h-8 bg-primary">
@@ -608,7 +604,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="left-aligned" id="r3" />
-                    <Label htmlFor="r3">Leftmost</Label>
+                    <Label htmlFor="r3">{t("layout-leftmost")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="relative flex items-start flex-col w-full h-8 bg-primary">
@@ -626,7 +622,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="right-aligned" id="r4" />
-                    <Label htmlFor="r4">Rightmost</Label>
+                    <Label htmlFor="r4">{t("layout-rightmost")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-0 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="relative flex items-end flex-col w-full h-8 bg-primary">
@@ -651,10 +647,14 @@ export const CustomizeBioPage = ({
                   }
                 >
                   <div className="flex flex-row items-center justify-between">
-                    <Label>Header</Label>
+                    <Label>{t("header")}</Label>
                     <TabsList>
-                      <TabsTrigger value="color">Solid Color</TabsTrigger>
-                      <TabsTrigger value="image">Background Image</TabsTrigger>
+                      <TabsTrigger value="color">
+                        {t("solid-color")}
+                      </TabsTrigger>
+                      <TabsTrigger value="image">
+                        {t("background-image")}
+                      </TabsTrigger>
                     </TabsList>
                   </div>
 
@@ -663,7 +663,7 @@ export const CustomizeBioPage = ({
                       className="mt-0! w-full"
                       size="h-8"
                       onBlur={() => {}}
-                      label="Background Color"
+                      label={t("background-color")}
                       value={
                         bio.theme?.header.headerBackgroundColor || "#0f172b"
                       }
@@ -684,7 +684,7 @@ export const CustomizeBioPage = ({
                   <TabsContent value="image">
                     <div className="flex flex-col gap-4 w-full">
                       <div className="flex flex-col gap-2 w-full">
-                        <Label>Background Image</Label>
+                        <Label>{t("background-image")}</Label>
                         <div className="flex flex-row items-center justify-start gap-1">
                           <Input
                             ref={headerBackgroundRef}
@@ -742,7 +742,7 @@ export const CustomizeBioPage = ({
                         className="mt-0! w-full"
                         size="h-8"
                         onBlur={() => {}}
-                        label="Image Background Color"
+                        label={t("image-background-color")}
                         value={
                           bio.theme?.header.headerBackgroundColor || "#0f172b"
                         }
@@ -766,13 +766,13 @@ export const CustomizeBioPage = ({
             )}
 
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label className="text-lg font-bold">Colors</Label>
+              <Label className="text-lg font-bold">{t("colors")}</Label>
               <div className="flex flex-row items-center gap-2 justify-start flex-wrap">
                 <InputColor
                   className="mt-0! w-full"
                   size="h-8"
                   onBlur={() => {}}
-                  label="Background Color"
+                  label={t("background-color")}
                   value={bio.theme?.background || "#ffffff"}
                   onChange={(v) => {
                     updateBio((prev) => ({
@@ -785,7 +785,7 @@ export const CustomizeBioPage = ({
                   className="mt-0! w-full"
                   size="h-8"
                   onBlur={() => {}}
-                  label="Text Color"
+                  label={t("text-color")}
                   value={bio.theme?.textColor || "#000000"}
                   onChange={(v) => {
                     updateBio((prev) => ({
@@ -797,9 +797,9 @@ export const CustomizeBioPage = ({
               </div>
             </CardContent>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label className="text-lg font-bold">Typography</Label>
+              <Label className="text-lg font-bold">{t("typography")}</Label>
               <div className="flex flex-col gap-2">
-                <Label>Font Family</Label>
+                <Label>{t("font-family")}</Label>
                 <FontPicker
                   value={bio.theme?.font}
                   onChange={(fontFamily) => {
@@ -812,7 +812,7 @@ export const CustomizeBioPage = ({
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Title Font Size</Label>
+                <Label>{t("title-font-size")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -828,7 +828,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Small
+                    {t("size-small")}
                   </Button>
                   <Button
                     type="button"
@@ -845,7 +845,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Medium
+                    {t("size-medium")}
                   </Button>
                   <Button
                     type="button"
@@ -861,7 +861,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Large
+                    {t("size-large")}
                   </Button>
                   <Button
                     type="button"
@@ -877,12 +877,12 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    XLarge
+                    {t("size-xlarge")}
                   </Button>
                 </ButtonGroup>
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Title Font Weight</Label>
+                <Label>{t("title-font-weight")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -898,7 +898,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Normal
+                    {t("weight-normal")}
                   </Button>
                   <Button
                     type="button"
@@ -914,7 +914,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Semibold
+                    {t("weight-semibold")}
                   </Button>
                   <Button
                     type="button"
@@ -930,7 +930,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Bold
+                    {t("weight-bold")}
                   </Button>
                   <Button
                     type="button"
@@ -947,12 +947,12 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Black
+                    {t("weight-black")}
                   </Button>
                 </ButtonGroup>
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Description Font Size</Label>
+                <Label>{t("description-font-size")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -971,7 +971,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Small
+                    {t("size-small")}
                   </Button>
                   <Button
                     type="button"
@@ -991,7 +991,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Medium
+                    {t("size-medium")}
                   </Button>
                   <Button
                     type="button"
@@ -1007,12 +1007,12 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Large
+                    {t("size-large")}
                   </Button>
                 </ButtonGroup>
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Description Font Weight</Label>
+                <Label>{t("description-font-weight")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -1029,7 +1029,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Light
+                    {t("weight-light")}
                   </Button>
                   <Button
                     type="button"
@@ -1045,7 +1045,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Normal
+                    {t("weight-normal")}
                   </Button>
                   <Button
                     type="button"
@@ -1061,16 +1061,16 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Semibold
+                    {t("weight-semibold")}
                   </Button>
                 </ButtonGroup>
               </div>
             </CardContent>
           </Card>
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
-            <CardTitle className="text-lg font-bold">Buttons</CardTitle>
+            <CardTitle className="text-lg font-bold">{t("buttons")}</CardTitle>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label>Button Style</Label>
+              <Label>{t("button-style")}</Label>
               <RadioGroup
                 onValueChange={(v) => {
                   updateBio((prev) => ({
@@ -1087,7 +1087,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="rounded" id="btn-rounded" />
-                    <Label htmlFor="btn-rounded">Rounded</Label>
+                    <Label htmlFor="btn-rounded">{t("button-rounded")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
@@ -1102,7 +1102,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="square" id="btn-square" />
-                    <Label htmlFor="btn-square">Square</Label>
+                    <Label htmlFor="btn-square">{t("button-square")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
@@ -1121,7 +1121,7 @@ export const CustomizeBioPage = ({
                 <div className="flex flex-col gap-2 items-start grow">
                   <div className="flex grow items-center gap-3">
                     <RadioGroupItem value="pill" id="btn-pill" />
-                    <Label htmlFor="btn-pill">Pill</Label>
+                    <Label htmlFor="btn-pill">{t("button-pill")}</Label>
                   </div>
                   <div className="w-full max-w-20 p-1 h-auto aspect-9/16 border flex flex-col items-center">
                     <div className="w-6 h-6 rounded-full bg-muted mx-auto mt-2 flex items-center justify-center">
@@ -1136,9 +1136,11 @@ export const CustomizeBioPage = ({
               </RadioGroup>
             </CardContent>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label className="text-lg font-bold">Button Typography</Label>
+              <Label className="text-lg font-bold">
+                {t("button-typography")}
+              </Label>
               <div className="flex flex-col gap-2">
-                <Label>Button Font Size</Label>
+                <Label>{t("button-font-size")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -1154,7 +1156,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Small
+                    {t("size-small")}
                   </Button>
                   <Button
                     type="button"
@@ -1171,7 +1173,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Medium
+                    {t("size-medium")}
                   </Button>
                   <Button
                     type="button"
@@ -1187,12 +1189,12 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Large
+                    {t("size-large")}
                   </Button>
                 </ButtonGroup>
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Button Font Weight</Label>
+                <Label>{t("button-font-weight")}</Label>
                 <ButtonGroup>
                   <Button
                     type="button"
@@ -1208,7 +1210,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Normal
+                    {t("weight-normal")}
                   </Button>
                   <Button
                     type="button"
@@ -1225,7 +1227,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Medium
+                    {t("weight-medium")}
                   </Button>
                   <Button
                     type="button"
@@ -1241,7 +1243,7 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Semibold
+                    {t("weight-semibold")}
                   </Button>
                   <Button
                     type="button"
@@ -1257,19 +1259,19 @@ export const CustomizeBioPage = ({
                       }))
                     }
                   >
-                    Bold
+                    {t("weight-bold")}
                   </Button>
                 </ButtonGroup>
               </div>
             </CardContent>
             <CardContent className="p-0 flex flex-col gap-4 flex-wrap w-full">
-              <Label className="text-lg font-bold">Button Colors</Label>
+              <Label className="text-lg font-bold">{t("button-colors")}</Label>
               <div className="flex flex-row items-center gap-2 justify-start flex-wrap">
                 <InputColor
                   className="mt-0! w-full"
                   size="h-8"
                   onBlur={() => {}}
-                  label="Button Background"
+                  label={t("button-background")}
                   value={bio.theme?.primaryColor || "#0f172b"}
                   onChange={(v) => {
                     updateBio((prev) => ({
@@ -1282,7 +1284,7 @@ export const CustomizeBioPage = ({
                   className="mt-0! w-full"
                   size="h-8"
                   onBlur={() => {}}
-                  label="Button Text Color"
+                  label={t("button-text-color")}
                   value={bio.theme?.buttonTextColor || "#ffffff"}
                   onChange={(v) => {
                     updateBio((prev) => ({
@@ -1295,8 +1297,8 @@ export const CustomizeBioPage = ({
             </CardContent>
           </Card>
           <Card className="w-full flex flex-col gap-4 p-4! rounded!">
-            <CardTitle className="text-lg font-bold">Socials</CardTitle>
-            <Label className="">Select icons</Label>
+            <CardTitle className="text-lg font-bold">{t("socials")}</CardTitle>
+            <Label className="">{t("select-icons")}</Label>
             <CardContent className="p-0 flex flex-row items-center justify-start gap-2 flex-wrap w-full">
               <SocialButton
                 platform="instagram"
@@ -1437,7 +1439,7 @@ export const CustomizeBioPage = ({
             </CardContent>
 
             {(bio.socials || []).length > 0 && (
-              <Label className="">Edit links</Label>
+              <Label className="">{t("edit-links")}</Label>
             )}
             <Sortable
               value={bio.socials || []}
@@ -1560,10 +1562,14 @@ export const CustomizeBioPage = ({
                   }
                 >
                   <div className="flex flex-row items-center justify-between">
-                    <Label>Icon color</Label>
+                    <Label>{t("icon-color")}</Label>
                     <TabsList>
-                      <TabsTrigger value="original">Original</TabsTrigger>
-                      <TabsTrigger value="color">Custom Color</TabsTrigger>
+                      <TabsTrigger value="original">
+                        {t("original")}
+                      </TabsTrigger>
+                      <TabsTrigger value="color">
+                        {t("custom-color")}
+                      </TabsTrigger>
                     </TabsList>
                   </div>
 
@@ -1595,15 +1601,15 @@ export const CustomizeBioPage = ({
                     >
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="original" id="r1" />
-                        <Label htmlFor="r1">Original</Label>
+                        <Label htmlFor="r1">{t("original")}</Label>
                       </div>
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="#000000" id="r2" />
-                        <Label htmlFor="r2">Black</Label>
+                        <Label htmlFor="r2">{t("black")}</Label>
                       </div>
                       <div className="flex items-center gap-3">
                         <RadioGroupItem value="#ffffff" id="r3" />
-                        <Label htmlFor="r3">White</Label>
+                        <Label htmlFor="r3">{t("white")}</Label>
                       </div>
                     </RadioGroup>
                   </TabsContent>
@@ -1618,7 +1624,7 @@ export const CustomizeBioPage = ({
             <BioPageDisplay bio={bio} />
           </div>
           <h1 className="font-semibold text-base text-yellow-800 bg-yellow-50 px-3 py-1 rounded border border-yellow-800">
-            Draft preview
+            {t("draft-preview")}
           </h1>
         </div>
 
@@ -1626,7 +1632,7 @@ export const CustomizeBioPage = ({
           <CollapsibleTrigger className="w-full group">
             <div className="flex items-center justify-between p-2! bg-background border rounded-md">
               <div className="font-semibold xs:text-sm text-xs text-yellow-800 bg-yellow-50 px-2 py-0.5 rounded border border-yellow-800">
-                Draft preview
+                {t("draft-preview")}
               </div>
               <ChevronDown className="h-5 w-5 text-muted-foreground transition-transform duration-200 group-data-[state=open]:rotate-180" />
             </div>

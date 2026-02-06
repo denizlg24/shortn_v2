@@ -7,6 +7,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { useTranslations } from "next-intl";
 export const description = "An interactive bar chart";
 export function QRCodeTimeBarChart({
   chartData,
@@ -15,9 +16,10 @@ export function QRCodeTimeBarChart({
   type: "click" | "scan";
   chartData: { date: string; scans: number }[];
 }) {
+  const t = useTranslations("qr-code-time-bar-chart");
   const chartConfig = {
     scans: {
-      label: type == "click" ? "Clicks" : "Scans",
+      label: type == "click" ? t("clicks") : t("scans"),
       color: "var(--chart-1)",
     },
   } satisfies ChartConfig;

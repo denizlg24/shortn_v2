@@ -15,7 +15,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { BASEURL } from "@/lib/utils";
@@ -27,6 +27,7 @@ const resetFormSchema = z.object({
 });
 export const RecoverPassword = () => {
   const locale = useLocale();
+  const t = useTranslations("recover");
   const router = useRouter();
   const [loading, setLoading] = useState(0);
 
@@ -44,13 +45,11 @@ export const RecoverPassword = () => {
       redirectTo: `${BASEURL}/${locale}/reset`,
     });
     if (error) {
-      toast.error(
-        error.message || "There was a problem sending the recovery email.",
-      );
+      toast.error(error.message || t("error-sending"));
       form.reset();
       setLoading(0);
     } else {
-      toast.success("Recovery email sent! Please check your inbox.");
+      toast.success(t("recovery-sent"));
       router.push(`/login`);
       setLoading(0);
     }
@@ -59,12 +58,9 @@ export const RecoverPassword = () => {
     <>
       <div className="flex flex-col gap-0 w-full items-center text-center">
         <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-          Forgot your password?
+          {t("title")}
         </h1>
-        <h2 className="lg:text-lg md:text-base text-sm">
-          No problem, we&apos;ll send you a link to recover it easily through
-          your email.
-        </h2>
+        <h2 className="lg:text-lg md:text-base text-sm">{t("subtitle")}</h2>
       </div>
       <Form {...form}>
         <form
@@ -77,7 +73,8 @@ export const RecoverPassword = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Your email<span className="text-destructive text-xs">*</span>
+                  {t("your-email")}
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="" {...field} />
@@ -87,7 +84,7 @@ export const RecoverPassword = () => {
             )}
           />
           <Button disabled={loading > 0} className="w-full" type="submit">
-            {loading == 1 ? "Sending..." : "Send me a link"}
+            {loading == 1 ? t("sending") : t("send-me-link")}
             {loading == 1 && <Loader2 className="animate-spin" />}
           </Button>
         </form>

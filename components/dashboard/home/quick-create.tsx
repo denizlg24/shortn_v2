@@ -24,20 +24,27 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
-const urlFormSchema = z.object({
-  destination: z
-    .string()
-    .min(1, 'We\'ll need a valid URL, like "yourbrnd.co/niceurl"')
-    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
-});
+const useUrlFormSchema = () => {
+  const t = useTranslations("quick-create.validation");
+  return z.object({
+    destination: z.string().min(1, t("invalid-url")).url(t("invalid-url")),
+  });
+};
 
-export const getLinksLeft = (
-  subscription: string,
-  thisMonth: number,
-  qr?: boolean,
-  className?: string,
-) => {
+export const LinksLeftDisplay = ({
+  subscription,
+  thisMonth,
+  qr,
+  className,
+}: {
+  subscription: string;
+  thisMonth: number;
+  qr?: boolean;
+  className?: string;
+}) => {
+  const t = useTranslations("quick-create");
   const allowedLinks = {
     free: 3,
     basic: 25,
@@ -49,11 +56,13 @@ export const getLinksLeft = (
       ? allowedLinks[subscription as "free" | "basic" | "plus"] - thisMonth
       : undefined;
 
+  const typeLabel = qr ? t("qr-codes") : t("shortn-links");
+
   if (subscription == "pro") {
     return (
       <p className={cn("text-sm font-semibold", className)}>
-        You can create <span className="font-bold">UNLIMITED</span>{" "}
-        {qr ? "QR Codes" : "Shortn Links"} this month.
+        You can create <span className="font-bold">{t("unlimited")}</span>{" "}
+        {typeLabel} this month.
       </p>
     );
   }
@@ -63,7 +72,7 @@ export const getLinksLeft = (
       <p className={cn("text-sm font-semibold", className)}>
         You can create{" "}
         <span className="bg-accent animate-pulse text-accent rounded">00</span>{" "}
-        more {qr ? "QR Codes" : "Shortn Links"} this month.
+        more {typeLabel} this month.
       </p>
     );
   }
@@ -71,25 +80,44 @@ export const getLinksLeft = (
     return (
       <p className={cn("text-sm font-semibold", className)}>
         You can create <span className="font-bold">{linksLeft}</span> more{" "}
-        {qr ? "QR Codes" : "Shortn Links"} this month.
+        {typeLabel} this month.
       </p>
     );
   }
   if (linksLeft <= 0) {
     return (
       <p className={cn("text-sm font-semibold", className)}>
-        You can&apos;t create any more {qr ? "QR Codes" : "Shortn Links"} this
-        month.{" "}
+        You can&apos;t create any more {typeLabel} this month.{" "}
         <Button asChild className="h-fit px-4 py-1 rounded w-fit">
-          <Link href={`/dashboard/subscription`}>Upgrade</Link>
+          <Link href={`/dashboard/subscription`}>{t("upgrade")}</Link>
         </Button>
       </p>
     );
   }
+  return null;
 };
+
+export function getLinksLeft(
+  subscription: string,
+  thisMonth: number,
+  qr?: boolean,
+  className?: string,
+) {
+  return (
+    <LinksLeftDisplay
+      subscription={subscription}
+      thisMonth={thisMonth}
+      qr={qr}
+      className={className}
+    />
+  );
+}
 
 export const QuickCreate = ({ className }: { className?: string }) => {
   const { plan } = usePlan();
+  const t = useTranslations("quick-create");
+  const tToast = useTranslations("quick-create.toast");
+  const urlFormSchema = useUrlFormSchema();
 
   const [usage, setUsage] = useState<UsageData | null>(null);
   const [usageLoading, setUsageLoading] = useState(true);
@@ -133,7 +161,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
       <Tabs defaultValue="link" className="w-full col-span-full h-full">
         <div className="w-full flex sm:flex-row flex-col items-center justify-between gap-2">
           <h1 className="col-span-1 lg:text-2xl md:text-xl sm:text-lg text-base font-bold text-left sm:w-auto w-full">
-            Quick Create
+            {t("title")}
           </h1>
           <TabsList className="rounded-full! sm:w-auto w-full">
             <TabsTrigger
@@ -141,14 +169,14 @@ export const QuickCreate = ({ className }: { className?: string }) => {
               value="link"
             >
               <LinkIcon />
-              Short Link
+              {t("short-link")}
             </TabsTrigger>
             <TabsTrigger
               className="font-semibold flex flex-row items-center gap-1 p-4! rounded-full"
               value="qrcode"
             >
               <QrCode />
-              QR Code
+              {t("qr-code")}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -157,7 +185,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
             {usageLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (
-              getLinksLeft(plan ?? "free", usage?.links.consumed ?? 0)
+              <LinksLeftDisplay
+                subscription={plan ?? "free"}
+                thisMonth={usage?.links.consumed ?? 0}
+              />
             )}
 
             <Form {...urlForm}>
@@ -177,12 +208,13 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                       <div className="w-full flex flex-col gap-2">
                         <div className="flex flex-row items-center justify-start gap-2">
                           <XCircle className="text-destructive" />
-                          <p className="text-lg font-bold">Duplicate Shortn.</p>
+                          <p className="text-lg font-bold">
+                            {tToast("duplicate")}
+                          </p>
                         </div>
                         <div className="w-full">
                           <p className="text-sm">
-                            You have already created a shortened url with that
-                            custom back-half.{" "}
+                            {tToast("duplicate-desc")}{" "}
                             <Link
                               onClick={async () => {
                                 toast.dismiss("duplicate-shortn-toast");
@@ -190,7 +222,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                               href={`/dashboard/links/${response.existingUrl}/details`}
                               className="underline text-primary font-semibold"
                             >
-                              View details.
+                              {tToast("view-details")}
                             </Link>
                           </p>
                         </div>
@@ -203,21 +235,19 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                       case "server-error":
                         urlForm.setError("destination", {
                           type: "manual",
-                          message:
-                            "There was an unexpected error while creating your short url",
+                          message: tToast("error"),
                         });
                         break;
                       case "no-user":
                         urlForm.setError("destination", {
                           type: "manual",
-                          message: "You are not authenticated",
+                          message: tToast("not-authenticated"),
                         });
                         break;
                       case "plan-limit":
                         urlForm.setError("destination", {
                           type: "manual",
-                          message:
-                            "You have exceeded your plan's monthly link limit.",
+                          message: tToast("link-limit"),
                         });
                         break;
                       default:
@@ -233,7 +263,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   name="destination"
                   render={({ field }) => (
                     <FormItem className="col-span-4 sm:relative w-full">
-                      <FormLabel>Enter your destination URL</FormLabel>
+                      <FormLabel>{t("destination-placeholder")}</FormLabel>
                       <FormControl>
                         <Input className="w-full" placeholder="" {...field} />
                       </FormControl>
@@ -248,10 +278,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                 >
                   {linkLoading ? (
                     <>
-                      <Loader2 className="animate-spin" /> Creating link...
+                      <Loader2 className="animate-spin" /> {t("creating-link")}
                     </>
                   ) : (
-                    <>Create your Shortn</>
+                    <>{t("create-shortn")}</>
                   )}
                 </Button>
               </form>
@@ -263,7 +293,11 @@ export const QuickCreate = ({ className }: { className?: string }) => {
             {usageLoading ? (
               <Skeleton className="h-5 w-64 mb-1" />
             ) : (
-              getLinksLeft(plan ?? "free", usage?.qrCodes.consumed ?? 0, true)
+              <LinksLeftDisplay
+                subscription={plan ?? "free"}
+                thisMonth={usage?.qrCodes.consumed ?? 0}
+                qr
+              />
             )}
 
             <Form {...qrCodeForm}>
@@ -283,21 +317,19 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                       case "server-error":
                         qrCodeForm.setError("destination", {
                           type: "manual",
-                          message:
-                            "There was an unexpected error while creating your QR Code",
+                          message: tToast("qr-error"),
                         });
                         break;
                       case "no-user":
                         qrCodeForm.setError("destination", {
                           type: "manual",
-                          message: "You are not authenticated",
+                          message: tToast("not-authenticated"),
                         });
                         break;
                       case "plan-limit":
                         qrCodeForm.setError("destination", {
                           type: "manual",
-                          message:
-                            "You have exceeded your plan's monthly QR Code limit.",
+                          message: tToast("qr-limit"),
                         });
                         break;
                       default:
@@ -313,7 +345,7 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                   name="destination"
                   render={({ field }) => (
                     <FormItem className="col-span-4 sm:relative w-full">
-                      <FormLabel>Enter your destination URL</FormLabel>
+                      <FormLabel>{t("destination-placeholder")}</FormLabel>
                       <FormControl>
                         <Input className="w-full" placeholder="" {...field} />
                       </FormControl>
@@ -328,10 +360,10 @@ export const QuickCreate = ({ className }: { className?: string }) => {
                 >
                   {qrCodeLoading ? (
                     <>
-                      <Loader2 className="animate-spin" /> Creating QR Code...
+                      <Loader2 className="animate-spin" /> {t("creating-qr")}
                     </>
                   ) : (
-                    <>Create your QR Code</>
+                    <>{t("create-qr")}</>
                   )}
                 </Button>
               </form>

@@ -40,6 +40,7 @@ import {
 import Image from "next/image";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export const PageCard = ({
   page,
@@ -54,6 +55,7 @@ export const PageCard = ({
 }) => {
   const [justCopied, setJustCopied] = useState(false);
   const router = useRouter();
+  const t = useTranslations("page-card");
   return (
     <div className="w-full md:p-6 sm:p-4 p-3 bg-background rounded-md border flex sm:flex-row flex-col gap-4 sm:items-stretch">
       <div className="w-full sm:max-w-[15%] max-w-[35%] sm:mx-0 mx-auto aspect-square h-auto sm:flex hidden items-center justify-center relative">
@@ -87,7 +89,7 @@ export const PageCard = ({
           </div>
           <div className="w-fit max-w-[30%] flex flex-col gap-1">
             <p className="sm:text-sm text-xs text-right font-medium w-max">
-              {page.linkCount} Links
+              {t("links-count", { count: page.linkCount })}
             </p>
             <Popover>
               <PopoverTrigger asChild>
@@ -108,7 +110,7 @@ export const PageCard = ({
                   >
                     <Link href={`/dashboard/pages/${page.slug}`}>
                       <LinkIcon />
-                      Manage links
+                      {t("manage-links")}
                     </Link>
                   </Button>
                   <Button
@@ -118,7 +120,7 @@ export const PageCard = ({
                   >
                     <Link href={`/dashboard/pages/${page.slug}/customize`}>
                       <Palette />
-                      Customize
+                      {t("customize")}
                     </Link>
                   </Button>
                   <Dialog>
@@ -128,22 +130,20 @@ export const PageCard = ({
                         className="w-full border-none! rounded-none! justify-start! shadow-none!"
                       >
                         <Share2 />
-                        Share
+                        {t("share")}
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Share your Shortn Page</DialogTitle>
+                        <DialogTitle>{t("share-dialog-title")}</DialogTitle>
                         <DialogDescription>
-                          Share your page across social media.
+                          {t("share-dialog-description")}
                         </DialogDescription>
                       </DialogHeader>
                       <div className="w-full grid grid-cols-5 gap-4">
                         <FacebookShareButton
                           url={`${BASEURL}/b/${page.slug}`}
-                          quote={
-                            "Check out my landing page built with Shortn.at"
-                          }
+                          quote={t("share-message")}
                         >
                           <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                             <FacebookIcon size={32} round />
@@ -151,9 +151,7 @@ export const PageCard = ({
                         </FacebookShareButton>
                         <RedditShareButton
                           url={`${BASEURL}/b/${page.slug}`}
-                          title={
-                            "Check out my landing page built with Shortn.at"
-                          }
+                          title={t("share-message")}
                         >
                           <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                             <RedditIcon size={32} round />
@@ -161,9 +159,7 @@ export const PageCard = ({
                         </RedditShareButton>
                         <TwitterShareButton
                           url={`${BASEURL}/b/${page.slug}`}
-                          title={
-                            "Check out my landing page built with Shortn.at"
-                          }
+                          title={t("share-message")}
                         >
                           <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                             <TwitterIcon size={32} round />
@@ -171,9 +167,7 @@ export const PageCard = ({
                         </TwitterShareButton>
                         <WhatsappShareButton
                           url={`${BASEURL}/b/${page.slug}`}
-                          title={
-                            "Check out my landing page built with Shortn.at"
-                          }
+                          title={t("share-message")}
                           separator=" "
                         >
                           <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -182,8 +176,8 @@ export const PageCard = ({
                         </WhatsappShareButton>
                         <EmailShareButton
                           url={`${BASEURL}/b/${page.slug}`}
-                          subject="Checkout my Shortn.at landing page!"
-                          body="Check out my landing page built with Shortn.at"
+                          subject={t("email-subject")}
+                          body={t("share-message")}
                         >
                           <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                             <EmailIcon size={32} round />
@@ -210,7 +204,7 @@ export const PageCard = ({
                           variant={"secondary"}
                           className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
                         >
-                          {justCopied ? <>Copied</> : <>Copy</>}
+                          {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
                         </Button>
                       </div>
                     </DialogContent>
@@ -220,12 +214,12 @@ export const PageCard = ({
                       toast.promise<{ success: boolean }>(
                         () => deleteBioPage({ slug: page.slug }),
                         {
-                          loading: "Loading...",
+                          loading: t("toast-loading"),
                           success: () => {
                             router.refresh();
-                            return "Your page has been deleted successfully.";
+                            return t("toast-success");
                           },
-                          error: "Error",
+                          error: t("toast-error"),
                         },
                       );
                     }}
@@ -233,7 +227,7 @@ export const PageCard = ({
                     className="w-full border-none! rounded-none! justify-start! shadow-none!"
                   >
                     <Trash2 />
-                    Delete Page
+                    {t("delete-page")}
                   </Button>
                 </div>
               </ScrollPopoverContent>
@@ -244,33 +238,33 @@ export const PageCard = ({
           <Button asChild variant={"outline"}>
             <Link href={`/dashboard/pages/${page.slug}`}>
               <LinkIcon />
-              Manage links
+              {t("manage-links")}
             </Link>
           </Button>
           <Button asChild variant={"outline"}>
             <Link href={`/dashboard/pages/${page.slug}/customize`}>
               <Palette />
-              Customize
+              {t("customize")}
             </Link>
           </Button>
           <Dialog>
             <DialogTrigger asChild>
               <Button variant={"outline"}>
                 <Share2 />
-                Share
+                {t("share")}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Share your Shortn Page</DialogTitle>
+                <DialogTitle>{t("share-dialog-title")}</DialogTitle>
                 <DialogDescription>
-                  Share your page across social media.
+                  {t("share-dialog-description")}
                 </DialogDescription>
               </DialogHeader>
               <div className="w-full grid grid-cols-5 gap-4">
                 <FacebookShareButton
                   url={`${BASEURL}/b/${page.slug}`}
-                  quote={"Check out my landing page built with Shortn.at"}
+                  quote={t("share-message")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <FacebookIcon size={32} round />
@@ -278,7 +272,7 @@ export const PageCard = ({
                 </FacebookShareButton>
                 <RedditShareButton
                   url={`${BASEURL}/b/${page.slug}`}
-                  title={"Check out my landing page built with Shortn.at"}
+                  title={t("share-message")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <RedditIcon size={32} round />
@@ -286,7 +280,7 @@ export const PageCard = ({
                 </RedditShareButton>
                 <TwitterShareButton
                   url={`${BASEURL}/b/${page.slug}`}
-                  title={"Check out my landing page built with Shortn.at"}
+                  title={t("share-message")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <TwitterIcon size={32} round />
@@ -294,7 +288,7 @@ export const PageCard = ({
                 </TwitterShareButton>
                 <WhatsappShareButton
                   url={`${BASEURL}/b/${page.slug}`}
-                  title={"Check out my landing page built with Shortn.at"}
+                  title={t("share-message")}
                   separator=" "
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
@@ -303,8 +297,8 @@ export const PageCard = ({
                 </WhatsappShareButton>
                 <EmailShareButton
                   url={`${BASEURL}/b/${page.slug}`}
-                  subject="Checkout my Shortn.at landing page!"
-                  body="Check out my landing page built with Shortn.at"
+                  subject={t("email-subject")}
+                  body={t("share-message")}
                 >
                   <div className="col-span-1 w-full h-auto aspect-square border rounded flex items-center justify-center p-1 max-w-16 mx-auto">
                     <EmailIcon size={32} round />
@@ -331,7 +325,7 @@ export const PageCard = ({
                   variant={"secondary"}
                   className="h-fit! py-1! px-2 text-xs font-bold z-10 hover:cursor-pointer absolute right-2"
                 >
-                  {justCopied ? <>Copied</> : <>Copy</>}
+                  {justCopied ? <>{t("copied")}</> : <>{t("copy")}</>}
                 </Button>
               </div>
             </DialogContent>
@@ -341,19 +335,19 @@ export const PageCard = ({
               toast.promise<{ success: boolean }>(
                 () => deleteBioPage({ slug: page.slug }),
                 {
-                  loading: "Loading...",
+                  loading: t("toast-loading"),
                   success: () => {
                     router.refresh();
-                    return "Your page has been deleted successfully.";
+                    return t("toast-success");
                   },
-                  error: "Error",
+                  error: t("toast-error"),
                 },
               );
             }}
             variant={"outline"}
           >
             <Trash2 />
-            Delete Page
+            {t("delete-page")}
           </Button>
         </div>
       </div>

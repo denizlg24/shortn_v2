@@ -47,12 +47,14 @@ import { PopoverClose } from "@radix-ui/react-popover";
 import { authClient } from "@/lib/authClient";
 import { Avatar, AvatarImage } from "./avatar";
 import { AvatarFallback } from "@radix-ui/react-avatar";
+import { useTranslations } from "next-intl";
 
 export const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setOpen] = useState(false);
   const { data } = authClient.useSession();
   const user = data?.user;
+  const t = useTranslations("header");
   useEffect(() => {
     const onScroll = () => {
       setIsScrolled(window.scrollY > 0);
@@ -91,7 +93,7 @@ export const Header = () => {
                     navigationMenuTriggerStyle(),
                   )}
                 >
-                  Platform
+                  {t("platform")}
                   <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
                 </Button>
               </PopoverTrigger>
@@ -99,7 +101,7 @@ export const Header = () => {
                 <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4 z-99">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
                     <h1 className="font-semibold uppercase text-muted-foreground">
-                      Products
+                      {t("products")}
                     </h1>
                     <Separator className="col-span-full w-full" />
                   </div>
@@ -118,10 +120,10 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            URL Shortener
+                            {t("url-shortener.title")}
                           </h2>
                           <p className="text-xs">
-                            Customize, share and track links
+                            {t("url-shortener.description")}
                           </p>
                         </div>
                       </Link>
@@ -143,11 +145,9 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            QR Code Generator
+                            {t("qr-code.title")}
                           </h2>
-                          <p className="text-xs">
-                            Dynamic solutions to fit every business need
-                          </p>
+                          <p className="text-xs">{t("qr-code.description")}</p>
                         </div>
                       </Link>
                     </PopoverClose>
@@ -167,11 +167,9 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            Pages
+                            {t("pages.title")}
                           </h2>
-                          <p className="text-xs">
-                            Mobile-friendly, no-code landing pages
-                          </p>
+                          <p className="text-xs">{t("pages.description")}</p>
                         </div>
                       </Link>
                     </PopoverClose>
@@ -191,10 +189,10 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            Analytics
+                            {t("analytics.title")}
                           </h2>
                           <p className="text-xs">
-                            A central place to track performance
+                            {t("analytics.description")}
                           </p>
                         </div>
                       </Link>
@@ -212,7 +210,7 @@ export const Header = () => {
                   navigationMenuTriggerStyle(),
                 )}
               >
-                <Link href="/pricing">Pricing</Link>
+                <Link href="/pricing">{t("pricing")}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
             <Popover>
@@ -224,7 +222,7 @@ export const Header = () => {
                     navigationMenuTriggerStyle(),
                   )}
                 >
-                  Resources
+                  {t("resources")}
                   <ChevronDown className="group-data-[state=open]:rotate-180 transition-transform" />
                 </Button>
               </PopoverTrigger>
@@ -232,7 +230,7 @@ export const Header = () => {
                 <div className="md:w-[400px] lg:w-[650px] w-[300px] grid lg:grid-cols-2 grid-cols-1 py-6 px-4 gap-4 z-99">
                   <div className="col-span-full w-full flex flex-col items-start gap-2">
                     <h1 className="font-semibold uppercase text-muted-foreground">
-                      Find Answers
+                      {t("find-answers")}
                     </h1>
                     <Separator className="col-span-full w-full" />
                   </div>
@@ -251,9 +249,11 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            Help Center
+                            {t("help-center.title")}
                           </h2>
-                          <p className="text-xs">Get help for our products.</p>
+                          <p className="text-xs">
+                            {t("help-center.description")}
+                          </p>
                         </div>
                       </Link>
                     </PopoverClose>
@@ -274,9 +274,11 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            Contact Us
+                            {t("contact-us.title")}
                           </h2>
-                          <p className="text-xs">Get in touch with our team.</p>
+                          <p className="text-xs">
+                            {t("contact-us.description")}
+                          </p>
                         </div>
                       </Link>
                     </PopoverClose>
@@ -296,9 +298,9 @@ export const Header = () => {
                         </div>
                         <div className="flex flex-col gap-0 w-full">
                           <h2 className="text-primary font-semibold text-sm">
-                            About Us
+                            {t("about-us.title")}
                           </h2>
-                          <p className="text-xs">Find out more about shortn.</p>
+                          <p className="text-xs">{t("about-us.description")}</p>
                         </div>
                       </Link>
                     </PopoverClose>
@@ -354,7 +356,7 @@ export const Header = () => {
             <SheetContent className="sm:pt-16! pt-12! w-full sm:max-w-[540px] max-w-[300px] border-l">
               <div className="hidden">
                 <SheetHeader>
-                  <SheetTitle>Hamburguer Menu</SheetTitle>
+                  <SheetTitle>{t("hamburger-menu")}</SheetTitle>
                 </SheetHeader>
               </div>
               <NavigationMenu className="flex flex-col w-full max-w-full! px-4 py-4 items-stretch relative justify-start border-t">
@@ -362,7 +364,7 @@ export const Header = () => {
                   <NavigationMenuItem>
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="item-1">
-                        <AccordionTrigger>Products</AccordionTrigger>
+                        <AccordionTrigger>{t("products")}</AccordionTrigger>
                         <AccordionContent>
                           <Separator />
                           <SheetClose asChild>
@@ -380,10 +382,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    URL Shortener
+                                    {t("url-shortener.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Customize, share and track links
+                                    {t("url-shortener.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -404,10 +406,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    QR Code Generator
+                                    {t("qr-code.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Dynamic solutions to fit every business need
+                                    {t("qr-code.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -428,10 +430,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    Pages
+                                    {t("pages.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Mobile-friendly, no-code landing pages
+                                    {t("pages.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -452,10 +454,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    Analytics
+                                    {t("analytics.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    A central place to track performance
+                                    {t("analytics.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -471,14 +473,14 @@ export const Header = () => {
                         asChild
                         className={cn(navigationMenuTriggerStyle(), "pl-0")}
                       >
-                        <Link href="/pricing">Pricing</Link>
+                        <Link href="/pricing">{t("pricing")}</Link>
                       </NavigationMenuLink>
                     </SheetClose>
                   </NavigationMenuItem>
                   <NavigationMenuItem>
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="item-1">
-                        <AccordionTrigger>Resources</AccordionTrigger>
+                        <AccordionTrigger>{t("resources")}</AccordionTrigger>
                         <AccordionContent>
                           <Separator />
                           <SheetClose asChild>
@@ -496,10 +498,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    Help Center
+                                    {t("help-center.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Get help for our products.
+                                    {t("help-center.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -520,10 +522,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    Contact Us
+                                    {t("contact-us.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Get in touch with our team.
+                                    {t("contact-us.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -544,10 +546,10 @@ export const Header = () => {
                                 </div>
                                 <div className="flex flex-col gap-0 w-full">
                                   <h2 className="text-primary font-semibold text-sm">
-                                    About Us
+                                    {t("about-us.title")}
                                   </h2>
                                   <p className="text-xs">
-                                    Find out more about shortn.
+                                    {t("about-us.description")}
                                   </p>
                                 </div>
                               </Link>
@@ -562,7 +564,7 @@ export const Header = () => {
                       <SheetClose asChild>
                         <Button asChild>
                           <Link href="/dashboard">
-                            Dashboard <ExternalLink />
+                            {t("dashboard")} <ExternalLink />
                           </Link>
                         </Button>
                       </SheetClose>
@@ -572,14 +574,14 @@ export const Header = () => {
                       <NavigationMenuItem asChild>
                         <SheetClose asChild>
                           <Button asChild>
-                            <Link href="/login">Login</Link>
+                            <Link href="/login">{t("login")}</Link>
                           </Button>
                         </SheetClose>
                       </NavigationMenuItem>
                       <NavigationMenuItem asChild>
                         <SheetClose asChild>
                           <Button variant={"outline"} asChild>
-                            <Link href="/register">Register</Link>
+                            <Link href="/register">{t("register")}</Link>
                           </Button>
                         </SheetClose>
                       </NavigationMenuItem>

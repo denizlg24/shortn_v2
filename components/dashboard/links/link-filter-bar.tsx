@@ -47,8 +47,10 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { authClient } from "@/lib/authClient";
+import { useTranslations } from "next-intl";
 
 export const LinkFilterBar = () => {
+  const t = useTranslations("link-filter");
   const [open, setOpen] = useState(false);
   const [moreFiltersOpen, setMoreFiltersOpen] = useState(false);
   const [calendarOpen, setCalendarOpen] = useState(false);
@@ -298,7 +300,7 @@ export const LinkFilterBar = () => {
           type="text"
           name="link-search"
           id="link-search"
-          placeholder="Search links"
+          placeholder={t("search-links")}
           autoComplete="off"
           data-form-type="other"
           data-lpignore="true"
@@ -329,7 +331,7 @@ export const LinkFilterBar = () => {
                         dateRange.to,
                         "MMM dd",
                       )}`
-                    : "Filter by created date"}
+                    : t("filter-by-date")}
                 </p>
               </Button>
             </PopoverTrigger>
@@ -337,10 +339,10 @@ export const LinkFilterBar = () => {
               <div className="p-0 w-full">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
-                    Filter by created date
+                    {t("filter-by-date")}
                   </h1>
                   <p className="text-muted-foreground xs:text-sm text-xs text-left">
-                    Display only QR Codes created on the selected range.
+                    {t("date-description")}
                   </p>
                 </div>
                 <Separator className="my-2" />
@@ -406,7 +408,7 @@ export const LinkFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -415,7 +417,7 @@ export const LinkFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>
@@ -437,16 +439,14 @@ export const LinkFilterBar = () => {
                   <p className="font-semibold">
                     {dateRange?.from
                       ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                      : "Filter by created date"}
+                      : t("filter-by-date")}
                   </p>
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[320px]">
                 <DialogHeader>
-                  <DialogTitle>Filter by created date</DialogTitle>
-                  <DialogDescription>
-                    Display only short links created on the selected range.
-                  </DialogDescription>
+                  <DialogTitle>{t("filter-by-date")}</DialogTitle>
+                  <DialogDescription>{t("date-description")}</DialogDescription>
                 </DialogHeader>
                 <div className="p-0 w-full">
                   <Separator className="my-2" />
@@ -529,7 +529,7 @@ export const LinkFilterBar = () => {
                       <p className="font-semibold">
                         {dateRange?.to
                           ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                          : "End"}
+                          : t("end")}
                       </p>
                     </Button>
                   </DialogTrigger>
@@ -619,14 +619,14 @@ export const LinkFilterBar = () => {
                   {tags.length === 0 &&
                   customLink === "all" &&
                   attachedQR === "all" ? (
-                    <>Add Filters</>
+                    <>{t("add-filters")}</>
                   ) : (
                     <>
                       {(() => {
                         let count = tags.length;
                         if (customLink !== "all") count++;
                         if (attachedQR !== "all") count++;
-                        return `${count} filter${count > 1 ? "s" : ""}`;
+                        return `${count} ${t("filters")}`;
                       })()}
                     </>
                   )}
@@ -635,14 +635,14 @@ export const LinkFilterBar = () => {
             </DialogTrigger>
             <DialogContent className="w-full min-w-[250px] overflow-hidden p-0 pt-6">
               <DialogHeader className="px-4 text-left">
-                <DialogTitle>Filters</DialogTitle>
+                <DialogTitle>{t("filters")}</DialogTitle>
                 <DialogDescription>
-                  Apply filters to better find your short links.
+                  {t("filters-description")}
                 </DialogDescription>
               </DialogHeader>
               <div className="p-4 pt-0 w-full flex flex-col gap-4">
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Tags</Label>
+                  <Label className="font-semibold">{t("tags")}</Label>
                   <Dialog open={open} onOpenChange={setOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -676,7 +676,7 @@ export const LinkFilterBar = () => {
                                   </p>
                                 );
                               })
-                            : "Select tags..."}
+                            : t("select-tags")}
                         </div>
 
                         <ChevronsUpDown className="opacity-50" />
@@ -684,21 +684,20 @@ export const LinkFilterBar = () => {
                     </DialogTrigger>
                     <DialogContent className="w-full min-w-[250px] p-0 pt-6">
                       <DialogHeader className="px-4 text-left">
-                        <DialogTitle>Edit tags</DialogTitle>
+                        <DialogTitle>{t("edit-tags")}</DialogTitle>
                         <DialogDescription>
-                          Add or remove tags to make it easier to find your
-                          link.
+                          {t("edit-tags-description")}
                         </DialogDescription>
                       </DialogHeader>
                       <Command>
                         <CommandInput
-                          placeholder="Search tags..."
+                          placeholder={t("search-tags")}
                           className="h-9"
                           value={input}
                           onValueChange={setInput}
                         />
                         <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandEmpty>{t("no-options")}</CommandEmpty>
                           <CommandGroup className="w-full">
                             {tagOptions.map((tag) => (
                               <CommandItem
@@ -744,7 +743,7 @@ export const LinkFilterBar = () => {
                   </Dialog>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Link Type</Label>
+                  <Label className="font-semibold">{t("link-type")}</Label>
                   <Select
                     value={customLink}
                     onValueChange={setCustomLink}
@@ -755,22 +754,27 @@ export const LinkFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent className="z-99">
                       <SelectGroup>
-                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          Links<span className="font-semibold -mx-1">with</span>
-                          custom back-halves
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("custom-backhalves")}
                         </SelectItem>
                         <SelectItem value="off" className="gap-0!">
-                          Links
-                          <span className="font-semibold -mx-1">without</span>
-                          custom back-halves
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("custom-backhalves")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Attached QR Code</Label>
+                  <Label className="font-semibold">{t("attached-qr")}</Label>
                   <Select
                     value={attachedQR}
                     onValueChange={setAttachedQR}
@@ -781,22 +785,20 @@ export const LinkFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent className="z-99">
                       <SelectGroup>
-                        <SelectItem value="all">
-                          Links
-                          <span className="font-semibold -mx-1">
-                            with or without
-                          </span>
-                          attached QR Codes
-                        </SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          Links
-                          <span className="font-semibold -mx-1">with</span>
-                          attached QR Codes only
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("qr-codes")}
                         </SelectItem>
                         <SelectItem value="off">
-                          Links
-                          <span className="font-semibold -mx-1">without</span>
-                          attached QR Codes only
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("qr-codes")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -811,7 +813,7 @@ export const LinkFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -820,7 +822,7 @@ export const LinkFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>
@@ -835,14 +837,14 @@ export const LinkFilterBar = () => {
                   {tags.length === 0 &&
                   customLink === "all" &&
                   attachedQR === "all" ? (
-                    <>Add Filters</>
+                    <>{t("add-filters")}</>
                   ) : (
                     <>
                       {(() => {
                         let count = tags.length;
                         if (customLink !== "all") count++;
                         if (attachedQR !== "all") count++;
-                        return `${count} filter${count > 1 ? "s" : ""}`;
+                        return `${count} ${t("filters")}`;
                       })()}
                     </>
                   )}
@@ -853,11 +855,11 @@ export const LinkFilterBar = () => {
               <div className="p-4 w-full flex flex-col gap-4">
                 <div className="text-left flex flex-col gap-0">
                   <h1 className="font-bold xs:text-base text-sm text-left">
-                    Filters
+                    {t("filters")}
                   </h1>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Tags</Label>
+                  <Label className="font-semibold">{t("tags")}</Label>
                   <Popover open={open} onOpenChange={setOpen}>
                     <PopoverTrigger asChild>
                       <Button
@@ -891,7 +893,7 @@ export const LinkFilterBar = () => {
                                   </p>
                                 );
                               })
-                            : "Select tags..."}
+                            : t("select-tags")}
                         </div>
 
                         <ChevronsUpDown className="opacity-50" />
@@ -904,13 +906,13 @@ export const LinkFilterBar = () => {
                     >
                       <Command>
                         <CommandInput
-                          placeholder="Search tags..."
+                          placeholder={t("search-tags")}
                           className="h-9"
                           value={input}
                           onValueChange={setInput}
                         />
                         <CommandList className="items-stretch flex flex-col gap-1 w-full">
-                          <CommandEmpty>No options.</CommandEmpty>
+                          <CommandEmpty>{t("no-options")}</CommandEmpty>
                           <CommandGroup className="w-full">
                             {tagOptions.map((tag) => (
                               <CommandItem
@@ -956,7 +958,7 @@ export const LinkFilterBar = () => {
                   </Popover>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Link Type</Label>
+                  <Label className="font-semibold">{t("link-type")}</Label>
                   <Select
                     value={customLink}
                     onValueChange={setCustomLink}
@@ -967,22 +969,27 @@ export const LinkFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          Links<span className="font-semibold -mx-1">with</span>
-                          custom back-halves
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("custom-backhalves")}
                         </SelectItem>
                         <SelectItem value="off" className="gap-0!">
-                          Links
-                          <span className="font-semibold -mx-1">without</span>
-                          custom back-halves
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("custom-backhalves")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="w-full flex flex-col gap-2">
-                  <Label className="font-semibold">Attached QR Code</Label>
+                  <Label className="font-semibold">{t("attached-qr")}</Label>
                   <Select
                     value={attachedQR}
                     onValueChange={setAttachedQR}
@@ -993,22 +1000,20 @@ export const LinkFilterBar = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        <SelectItem value="all">
-                          Links
-                          <span className="font-semibold -mx-1">
-                            with or without
-                          </span>
-                          attached QR Codes
-                        </SelectItem>
+                        <SelectItem value="all">{t("all")}</SelectItem>
                         <SelectItem value="on">
-                          Links
-                          <span className="font-semibold -mx-1">with</span>
-                          attached QR Codes only
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("with")}
+                          </span>
+                          {t("qr-codes")}
                         </SelectItem>
                         <SelectItem value="off">
-                          Links
-                          <span className="font-semibold -mx-1">without</span>
-                          attached QR Codes only
+                          {t("links")}
+                          <span className="font-semibold -mx-1">
+                            {t("without")}
+                          </span>
+                          {t("qr-codes")}
                         </SelectItem>
                       </SelectGroup>
                     </SelectContent>
@@ -1023,7 +1028,7 @@ export const LinkFilterBar = () => {
                     variant={"ghost"}
                   >
                     <X />
-                    Clear Filters
+                    {t("clear-filters")}
                   </Button>
                   <Button
                     onClick={() => {
@@ -1032,7 +1037,7 @@ export const LinkFilterBar = () => {
                     }}
                     variant={"default"}
                   >
-                    Apply
+                    {t("apply")}
                   </Button>
                 </div>
               </div>

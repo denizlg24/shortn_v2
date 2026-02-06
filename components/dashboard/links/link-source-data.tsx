@@ -19,6 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ClickEntry } from "@/models/url/Click";
 import { format } from "date-fns";
 import { DownloadButtonCSV } from "./download-csv-button";
+import { useTranslations } from "next-intl";
 
 export const LinkSourceData = ({
   unlocked,
@@ -31,17 +32,18 @@ export const LinkSourceData = ({
   const [loading] = useState(false);
   const [clicks] = useState<ClickEntry[]>(initialClicks);
   const dateToday = format(new Date(), "yyyy-MM-dd");
+  const t = useTranslations("link-source-data");
   if (!unlocked) {
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Referrer data
+            {t("title")}
           </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
               <Lock className="w-4 h-4" />
-              Upgrade
+              {t("upgrade")}
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
@@ -50,9 +52,9 @@ export const LinkSourceData = ({
                     href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </Link>{" "}
-                  to see referrer data.
+                  {t("to-see-referrer-data")}
                 </p>
               </div>
             </HoverCardContent>
@@ -61,7 +63,7 @@ export const LinkSourceData = ({
         <div className="w-full h-auto">
           <Image
             src={scansOverTimeLocked}
-            alt="Scans over time locked illustration"
+            alt={t("locked-alt")}
             className="w-full h-full object-cover  min-h-[150px]"
           />
         </div>
@@ -73,10 +75,8 @@ export const LinkSourceData = ({
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
         <div className="w-full flex flex-col gap-1 items-start">
-          <CardTitle>Referrer Data</CardTitle>
-          <CardDescription>
-            Showing referrer data of short link&apos;s clicks
-          </CardDescription>
+          <CardTitle>{t("title-capitalized")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <div className="w-full flex flex-col gap-2">
           <Skeleton className="w-full h-[323px]" />
@@ -91,19 +91,17 @@ export const LinkSourceData = ({
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle className="w-full flex flex-row items-center justify-between">
-          <>Referrer Data</>
+          <>{t("title-capitalized")}</>
         </CardTitle>
-        <CardDescription>
-          Showing referrer data of short link&apos;s clicks
-        </CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">
         {data.length > 0 && (
-          <ReferrerDonutChart chartData={data} labelTitle="Clicks" />
+          <ReferrerDonutChart chartData={data} labelTitle={t("clicks")} />
         )}
         {data.length == 0 && (
           <p className="text-sm font-semibold mx-auto text-center my-8">
-            No data available for this link
+            {t("no-data")}
           </p>
         )}
       </div>
@@ -111,8 +109,8 @@ export const LinkSourceData = ({
         <DownloadButtonCSV
           filename={`${urlCode}-referrer-data-${dateToday}`}
           data={data.map((val) => ({
-            "Referrer (Where click is coming from)": val.referrer,
-            Clicks: val.clicks,
+            [t("referrer-column")]: val.referrer,
+            [t("clicks")]: val.clicks,
           }))}
         />
       )}

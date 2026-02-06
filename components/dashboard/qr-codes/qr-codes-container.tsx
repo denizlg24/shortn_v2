@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ITag } from "@/models/url/Tag";
 import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { usePlan } from "@/hooks/use-plan";
+import { useTranslations } from "next-intl";
 
 export const QRCodesContainer = ({
   qrCodes,
@@ -23,6 +24,7 @@ export const QRCodesContainer = ({
   page: number;
   limit: number;
 }) => {
+  const t = useTranslations("qr-codes-container");
   const router = useRouter();
   const { plan } = usePlan();
 
@@ -121,7 +123,7 @@ export const QRCodesContainer = ({
             <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
               <p className="text-muted-foreground grow font-semibold w-full text-center">
-                You&apos;ve reached the end of your QR Codes
+                {t("reached-end")}
               </p>
               <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
             </div>
@@ -131,7 +133,7 @@ export const QRCodesContainer = ({
         <div className="w-full max-w-3xl flex flex-row items-center gap-4 mx-auto">
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
           <p className="text-muted-foreground font-semibold w-full text-center">
-            You&apos;ve reached the end of your QR Codes
+            {t("reached-end")}
           </p>
           <div className="h-1 grow w-[45%] bg-muted-foreground"></div>
         </div>

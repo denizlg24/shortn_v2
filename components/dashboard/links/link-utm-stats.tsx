@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, useMemo } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -102,20 +103,30 @@ export const LinkUtmStats = ({
   createdAt: Date;
   campaign?: { _id: string; title: string };
 }) => {
+  const t = useTranslations("link-utm-stats");
   const [viewMode, setViewMode] = useState<ViewMode>("grouped");
+  const dateRangeOptions = [
+    { key: "this-month", label: t("this-month") },
+    { key: "last-month", label: t("last-month") },
+    { key: "last-3-months", label: t("last-3-months") },
+    { key: "last-6-months", label: t("last-6-months") },
+    { key: "last-9-months", label: t("last-9-months") },
+    { key: "last-year", label: t("last-year") },
+    { key: "all-time", label: t("all-time") },
+  ];
   function getDateRange(option: string, createdAt: Date): DateRange {
     const now = endOfDay(new Date());
     setOpen(false);
     mobileStartOpen(false);
     mobileEndOpen(false);
     switch (option) {
-      case "This month":
+      case "this-month":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth(), 1)),
           to: now,
         };
 
-      case "Last month": {
+      case "last-month": {
         const from = startOfDay(
           new Date(now.getFullYear(), now.getMonth() - 1, 1),
         );
@@ -123,31 +134,31 @@ export const LinkUtmStats = ({
         return { from, to };
       }
 
-      case "Last 3 months":
+      case "last-3-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 2, 1)),
           to: now,
         };
 
-      case "Last 6 months":
+      case "last-6-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 5, 1)),
           to: now,
         };
 
-      case "Last 9 months":
+      case "last-9-months":
         return {
           from: startOfDay(new Date(now.getFullYear(), now.getMonth() - 8, 1)),
           to: now,
         };
 
-      case "Last year":
+      case "last-year":
         return {
           from: startOfDay(new Date(now.getFullYear() - 1, now.getMonth(), 1)),
           to: now,
         };
 
-      case "All time":
+      case "all-time":
         return {
           from: startOfDay(new Date(createdAt)),
           to: now,
@@ -195,11 +206,13 @@ export const LinkUtmStats = ({
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
-          <h1 className="font-bold md:text-lg text-base truncate">UTM stats</h1>
+          <h1 className="font-bold md:text-lg text-base truncate">
+            {t("title")}
+          </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
               <Lock className="w-4 h-4" />
-              Upgrade
+              {t("upgrade")}
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
@@ -208,9 +221,9 @@ export const LinkUtmStats = ({
                     href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </Link>{" "}
-                  to see UTM data.
+                  {t("to-see-data")}
                 </p>
               </div>
             </HoverCardContent>
@@ -219,7 +232,7 @@ export const LinkUtmStats = ({
         <div className="w-full h-auto">
           <Image
             src={scansOverTimeLocked}
-            alt="Scans over time locked illustration"
+            alt={t("locked-alt")}
             className="w-full h-full object-cover  min-h-[150px]"
           />
         </div>
@@ -232,11 +245,9 @@ export const LinkUtmStats = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
         <div className="w-full flex flex-col gap-1 items-start">
           <CardTitle className="w-full flex flex-row items-center justify-between">
-            <>UTM Stats</>
+            <>{t("title")}</>
           </CardTitle>
-          <CardDescription>
-            Showing UTM stats of short link&apos;s clicks
-          </CardDescription>
+          <CardDescription>{t("description")}</CardDescription>
         </div>
         <Skeleton className="w-full h-[200px]" />
       </div>
@@ -270,7 +281,7 @@ export const LinkUtmStats = ({
             <Icon className="w-4 h-4 text-muted-foreground" />
             <span className="font-medium">{title}</span>
             <Badge variant="secondary" className="text-xs">
-              {items.length} unique
+              {t("unique-count", { count: items.length })}
             </Badge>
           </div>
           <ChevronDownIcon
@@ -318,7 +329,7 @@ export const LinkUtmStats = ({
       <div className="w-full flex flex-col gap-1 items-start">
         <div className="w-full flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            UTM Stats
+            {t("title")}
             {campaign && (
               <Link
                 href={`/dashboard/campaigns/${campaign._id}`}
@@ -339,7 +350,7 @@ export const LinkUtmStats = ({
               onClick={() => setViewMode("table")}
             >
               <Table2 className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">Table</span>
+              <span className="hidden sm:inline">{t("table")}</span>
             </Button>
             <Button
               variant={viewMode === "grouped" ? "default" : "ghost"}
@@ -348,14 +359,16 @@ export const LinkUtmStats = ({
               onClick={() => setViewMode("grouped")}
             >
               <LayoutGrid className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">Grouped</span>
+              <span className="hidden sm:inline">{t("grouped")}</span>
             </Button>
           </div>
         </div>
         <CardDescription>
-          Showing UTM stats of short link&apos;s clicks
-          {totalUtmClicks > 0 &&
-            ` (${totalUtmClicks.toLocaleString()} with UTM params)`}
+          {totalUtmClicks > 0
+            ? t("description-with-count", {
+                count: totalUtmClicks.toLocaleString(),
+              })
+            : t("description")}
         </CardDescription>
       </div>
       <div className="w-full flex flex-row items-center gap-2 flex-wrap">
@@ -372,7 +385,7 @@ export const LinkUtmStats = ({
                   }${
                     dateRange.to ? `-${format(dateRange.to, "dd/MM/yyyy")}` : ""
                   }`
-                : "Select a period"}
+                : t("select-period")}
               <ChevronDownIcon />
             </Button>
           </PopoverTrigger>
@@ -409,22 +422,14 @@ export const LinkUtmStats = ({
             />
             <Separator className="mb-2" />
             <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3">
-              {[
-                "This month",
-                "Last month",
-                "Last 3 months",
-                "Last 6 months",
-                "Last 9 months",
-                "Last year",
-                "All time",
-              ].map((opt) => (
+              {dateRangeOptions.map((opt) => (
                 <Button
-                  key={opt}
+                  key={opt.key}
                   variant="secondary"
                   className="text-xs p-2 h-fit grow"
-                  onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                  onClick={() => setDateRange(getDateRange(opt.key, createdAt))}
                 >
-                  {opt}
+                  {opt.label}
                 </Button>
               ))}
             </div>
@@ -439,15 +444,15 @@ export const LinkUtmStats = ({
             >
               {dateRange?.from
                 ? `${format(dateRange.from, "dd/MM/yyyy")}`
-                : "Select a start date"}
+                : t("select-start-date")}
               <ChevronDownIcon />
             </Button>
           </DialogTrigger>
           <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
             <DialogHeader className="px-4">
-              <DialogTitle>Select start date</DialogTitle>
+              <DialogTitle>{t("select-start-date-title")}</DialogTitle>
               <DialogDescription>
-                Select the date from which to start displaying click data.
+                {t("start-date-description")}
               </DialogDescription>
             </DialogHeader>
             <Calendar
@@ -469,22 +474,14 @@ export const LinkUtmStats = ({
             />
             <Separator className="mb-2" />
             <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-              {[
-                "This month",
-                "Last month",
-                "Last 3 months",
-                "Last 6 months",
-                "Last 9 months",
-                "Last year",
-                "All time",
-              ].map((opt) => (
+              {dateRangeOptions.map((opt) => (
                 <Button
-                  key={opt}
+                  key={opt.key}
                   variant="secondary"
                   className="text-xs p-2 h-fit grow"
-                  onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                  onClick={() => setDateRange(getDateRange(opt.key, createdAt))}
                 >
-                  {opt}
+                  {opt.label}
                 </Button>
               ))}
             </div>
@@ -502,14 +499,14 @@ export const LinkUtmStats = ({
                 >
                   {dateRange?.to
                     ? `${format(dateRange.to, "dd/MM/yyyy")}`
-                    : "End"}
+                    : t("end")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="w-[320px] overflow-hidden p-0 md:hidden flex flex-col gap-0 pt-6">
                 <DialogHeader className="px-4">
-                  <DialogTitle>Select end date</DialogTitle>
+                  <DialogTitle>{t("select-end-date")}</DialogTitle>
                   <DialogDescription>
-                    Select the date from which to stop displaying click data.
+                    {t("end-date-description")}
                   </DialogDescription>
                 </DialogHeader>
                 <Calendar
@@ -531,22 +528,16 @@ export const LinkUtmStats = ({
                 />
                 <Separator className="mb-2" />
                 <div className="flex flex-row items-center w-full flex-wrap gap-2 p-3 md:max-w-[488px] max-w-[320px]">
-                  {[
-                    "This month",
-                    "Last month",
-                    "Last 3 months",
-                    "Last 6 months",
-                    "Last 9 months",
-                    "Last year",
-                    "All time",
-                  ].map((opt) => (
+                  {dateRangeOptions.map((opt) => (
                     <Button
-                      key={opt}
+                      key={opt.key}
                       variant="secondary"
                       className="text-xs p-2 h-fit grow"
-                      onClick={() => setDateRange(getDateRange(opt, createdAt))}
+                      onClick={() =>
+                        setDateRange(getDateRange(opt.key, createdAt))
+                      }
                     >
-                      {opt}
+                      {opt.label}
                     </Button>
                   ))}
                 </div>
@@ -564,14 +555,14 @@ export const LinkUtmStats = ({
             variant={"ghost"}
           >
             <X />
-            Clear Period
+            {t("clear-period")}
           </Button>
         )}
       </div>
 
       {viewMode === "table" ? (
         <DataTable
-          columns={utmColumns()}
+          columns={utmColumns(t)}
           data={clicks
             .filter(
               (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
@@ -590,67 +581,73 @@ export const LinkUtmStats = ({
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
             {[
               {
-                label: "Campaigns",
+                labelKey: "campaigns" as const,
                 count: groupedData.campaigns.length,
                 icon: Megaphone,
               },
               {
-                label: "Sources",
+                labelKey: "sources" as const,
                 count: groupedData.sources.length,
                 icon: Globe,
               },
               {
-                label: "Mediums",
+                labelKey: "mediums" as const,
                 count: groupedData.mediums.length,
                 icon: Radio,
               },
-              { label: "Terms", count: groupedData.terms.length, icon: Tag },
               {
-                label: "Contents",
+                labelKey: "terms" as const,
+                count: groupedData.terms.length,
+                icon: Tag,
+              },
+              {
+                labelKey: "contents" as const,
                 count: groupedData.contents.length,
                 icon: FileText,
               },
-            ].map(({ label, count, icon: Icon }) => (
+            ].map(({ labelKey, count, icon: Icon }) => (
               <div
-                key={label}
+                key={labelKey}
                 className="flex flex-col items-center justify-center p-3 rounded-lg border bg-muted/30"
               >
                 <Icon className="w-4 h-4 text-muted-foreground mb-1" />
                 <span className="text-xl font-bold tabular-nums">{count}</span>
-                <span className="text-xs text-muted-foreground">{label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {t(labelKey)}
+                </span>
               </div>
             ))}
           </div>
 
           <div className="space-y-3">
             <GroupedSection
-              title="Campaigns"
+              title={t("campaigns")}
               icon={Megaphone}
               items={groupedData.campaigns}
               total={totalUtmClicks}
               defaultOpen={true}
             />
             <GroupedSection
-              title="Sources"
+              title={t("sources")}
               icon={Globe}
               items={groupedData.sources}
               total={totalUtmClicks}
               defaultOpen={true}
             />
             <GroupedSection
-              title="Mediums"
+              title={t("mediums")}
               icon={Radio}
               items={groupedData.mediums}
               total={totalUtmClicks}
             />
             <GroupedSection
-              title="Terms"
+              title={t("terms")}
               icon={Tag}
               items={groupedData.terms}
               total={totalUtmClicks}
             />
             <GroupedSection
-              title="Contents"
+              title={t("contents")}
               icon={FileText}
               items={groupedData.contents}
               total={totalUtmClicks}
@@ -660,10 +657,8 @@ export const LinkUtmStats = ({
           {totalUtmClicks === 0 && (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <LayoutGrid className="w-12 h-12 mb-3 opacity-50" />
-              <p className="font-medium">No UTM data available</p>
-              <p className="text-sm">
-                Clicks with UTM parameters will appear here
-              </p>
+              <p className="font-medium">{t("no-data")}</p>
+              <p className="text-sm">{t("no-data-description")}</p>
             </div>
           )}
         </div>

@@ -17,6 +17,7 @@ import { Link } from "@/i18n/navigation";
 import scansOverTimeLocked from "@/public/scans-over-time-upgrade.png";
 import Image from "next/image";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { DataTable } from "../tables/location-table/data-table";
 import {
@@ -35,18 +36,19 @@ import { DownloadButtonCSV } from "./download-csv-button";
 
 export function getDataTitle(
   selected: "country" | "city" | "device" | "browser" | "os",
+  t: (key: string) => string,
 ) {
   switch (selected) {
     case "country":
-      return "Country";
+      return t("country");
     case "city":
-      return "City";
+      return t("city");
     case "device":
-      return "Device";
+      return t("device");
     case "browser":
-      return "Browser";
+      return t("browser");
     case "os":
-      return "OS";
+      return t("os");
   }
 }
 
@@ -57,6 +59,7 @@ export const LinkLocationAnalytics = ({
   unlocked: "none" | "location" | "all";
   initialClicks: ClickEntry[];
 }) => {
+  const t = useTranslations("link-location-analytics");
   const [selected, setSelected] = useState<
     "country" | "city" | "device" | "browser" | "os"
   >("country");
@@ -70,12 +73,12 @@ export const LinkLocationAnalytics = ({
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-0">
         <div className="flex xs:flex-row flex-col xs:gap-0 gap-2 items-center justify-between w-full">
           <h1 className="font-bold md:text-lg text-base truncate">
-            Advanced data
+            {t("advanced-data")}
           </h1>
           <HoverCard>
             <HoverCardTrigger className="xs:rounded-xl! bg-primary flex flex-row items-center text-primary-foreground p-1! px-2! h-fit! rounded! text-xs gap-2 font-semibold xs:w-fit w-full hover:cursor-help">
               <Lock className="w-4 h-4" />
-              Upgrade
+              {t("upgrade")}
             </HoverCardTrigger>
             <HoverCardContent asChild>
               <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
@@ -84,9 +87,9 @@ export const LinkLocationAnalytics = ({
                     href={`/dashboard/subscription`}
                     className="underline hover:cursor-pointer"
                   >
-                    Upgrade
+                    {t("upgrade")}
                   </Link>{" "}
-                  to see advanced data.
+                  {t("to-see-advanced-data")}
                 </p>
               </div>
             </HoverCardContent>
@@ -107,10 +110,8 @@ export const LinkLocationAnalytics = ({
     return (
       <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
         <div className="w-full flex flex-col gap-1 items-start">
-          <CardTitle>Advanced data</CardTitle>
-          <CardDescription>
-            Showing advanced data of short link&apos;s clicks
-          </CardDescription>
+          <CardTitle>{t("advanced-data")}</CardTitle>
+          <CardDescription>{t("showing-advanced-data")}</CardDescription>
         </div>
         <div className="w-full flex flex-col gap-2">
           <Tabs
@@ -124,11 +125,11 @@ export const LinkLocationAnalytics = ({
             <TabsList className="w-full sm:max-w-md">
               <TabsTrigger className="h-fit!" value="country">
                 <Earth />
-                Countries
+                {t("countries")}
               </TabsTrigger>
               <TabsTrigger className="h-fit!" value="city">
                 <MapPinned />
-                Cities
+                {t("cities")}
               </TabsTrigger>
               <TabsTrigger
                 disabled={unlocked == "location"}
@@ -136,7 +137,7 @@ export const LinkLocationAnalytics = ({
                 value="device"
               >
                 <MonitorSmartphone />
-                Device
+                {t("device")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -147,7 +148,7 @@ export const LinkLocationAnalytics = ({
                 value="browser"
               >
                 <Globe />
-                Browser
+                {t("browser")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -158,7 +159,7 @@ export const LinkLocationAnalytics = ({
                 value="os"
               >
                 <AppWindowMac />
-                OS
+                {t("os")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -178,7 +179,7 @@ export const LinkLocationAnalytics = ({
                 value="device"
               >
                 <MonitorSmartphone />
-                Device
+                {t("device")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -189,7 +190,7 @@ export const LinkLocationAnalytics = ({
                 value="browser"
               >
                 <Globe />
-                Browser
+                {t("browser")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -200,7 +201,7 @@ export const LinkLocationAnalytics = ({
                 value="os"
               >
                 <AppWindowMac />
-                OS
+                {t("os")}
                 {unlocked == "location" && (
                   <Lock className="w-3! h-3! absolute -top-2 -right-2" />
                 )}
@@ -218,17 +219,15 @@ export const LinkLocationAnalytics = ({
     country: click.country ? countries.getName(click.country, "en") : undefined,
   })) as ClickEntry[];
 
-  const data = aggregateClicksByLocation(transformed, selected);
+  const data = aggregateClicksByLocation(transformed, selected, t("unknown"));
 
   return (
     <div className="lg:p-6 sm:p-4 p-3 rounded bg-background shadow w-full flex flex-col gap-4">
       <div className="w-full flex flex-col gap-1 items-start">
         <CardTitle className="w-full flex flex-row items-center justify-between">
-          <>Advanced Data</>
+          <>{t("advanced-data")}</>
         </CardTitle>
-        <CardDescription>
-          Showing advanced data of short link&apos;s clicks
-        </CardDescription>
+        <CardDescription>{t("showing-advanced-data")}</CardDescription>
       </div>
       <div className="w-full flex flex-col gap-2">
         <Tabs
@@ -240,11 +239,11 @@ export const LinkLocationAnalytics = ({
           <TabsList className="w-full sm:max-w-md">
             <TabsTrigger className="h-fit!" value="country">
               <Earth />
-              Countries
+              {t("countries")}
             </TabsTrigger>
             <TabsTrigger className="h-fit!" value="city">
               <MapPinned />
-              Cities
+              {t("cities")}
             </TabsTrigger>
             <TabsTrigger
               disabled={unlocked == "location"}
@@ -252,7 +251,7 @@ export const LinkLocationAnalytics = ({
               value="device"
             >
               <MonitorSmartphone />
-              Device
+              {t("device")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -263,7 +262,7 @@ export const LinkLocationAnalytics = ({
               value="browser"
             >
               <Globe />
-              Browser
+              {t("browser")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -274,7 +273,7 @@ export const LinkLocationAnalytics = ({
               value="os"
             >
               <AppWindowMac />
-              OS
+              {t("os")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -294,7 +293,7 @@ export const LinkLocationAnalytics = ({
               value="device"
             >
               <MonitorSmartphone />
-              Device
+              {t("device")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -305,7 +304,7 @@ export const LinkLocationAnalytics = ({
               value="browser"
             >
               <Globe />
-              Browser
+              {t("browser")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -316,7 +315,7 @@ export const LinkLocationAnalytics = ({
               value="os"
             >
               <AppWindowMac />
-              OS
+              {t("os")}
               {unlocked == "location" && (
                 <Lock className="w-3! h-3! absolute -top-2 -right-2" />
               )}
@@ -325,7 +324,7 @@ export const LinkLocationAnalytics = ({
         </Tabs>
         <DataTable
           data={data}
-          columns={locationColumns(getDataTitle(selected), "Click")}
+          columns={locationColumns(getDataTitle(selected, t), t("click"))}
         />
       </div>
       {clicks.length > 0 && (

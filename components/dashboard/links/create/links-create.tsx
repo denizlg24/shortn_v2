@@ -31,42 +31,39 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { getLinksLeft } from "../../home/quick-create";
 import { usePlan } from "@/hooks/use-plan";
-
-const linkFormSchema = z.object({
-  destination: z
-    .string()
-    .min(1, 'We\'ll need a valid URL, like "yourbrnd.co/niceurl"')
-    .url('We\'ll need a valid URL, like "yourbrnd.co/niceurl"'),
-  title: z.string().optional(),
-  customCode: z
-    .union([
-      z
-        .string()
-        .min(3, "Back-half must be at least 3 characters long")
-        .max(52, "Back-half can't be longer than 52 characters")
-        .regex(
-          /^[a-zA-Z0-9_-]+$/,
-          "Back-half can only contain letters, numbers, dashes (-), and underscores (_)",
-        ),
-      z.literal(""),
-    ])
-    .optional(),
-  password: z
-    .union([
-      z
-        .string()
-        .min(6, "Password must be at least 6 characters long")
-        .max(100, "Password can't be longer than 100 characters"),
-      z.literal(""),
-    ])
-    .optional(),
-  passwordHint: z
-    .string()
-    .max(100, "Hint can't be longer than 100 characters")
-    .optional(),
-});
+import { useTranslations } from "next-intl";
 
 export const LinksCreate = () => {
+  const t = useTranslations("create-link");
+
+  const linkFormSchema = z.object({
+    destination: z
+      .string()
+      .min(1, t("validation.url-required"))
+      .url(t("validation.invalid-url")),
+    title: z.string().optional(),
+    customCode: z
+      .union([
+        z
+          .string()
+          .min(3, t("validation.back-half-too-short"))
+          .max(52, t("validation.back-half-too-long"))
+          .regex(/^[a-zA-Z0-9_-]+$/, t("validation.back-half-invalid-chars")),
+        z.literal(""),
+      ])
+      .optional(),
+    password: z
+      .union([
+        z
+          .string()
+          .min(6, t("validation.password-too-short"))
+          .max(100, t("validation.password-too-long")),
+        z.literal(""),
+      ])
+      .optional(),
+    passwordHint: z.string().max(100, t("validation.hint-too-long")).optional(),
+  });
+
   const { plan } = usePlan();
   const router = useRouter();
   const [presetChosen, setPresetChosen] = useState<number | undefined>(0);
@@ -142,7 +139,7 @@ export const LinksCreate = () => {
     <div className="w-full flex flex-col gap-6 items-start col-span-full">
       <div className="flex flex-col gap-1 w-full items-start">
         <h1 className="font-bold lg:text-3xl md:text-2xl sm:text-xl text-lg">
-          Create a new short link
+          {t("title")}
         </h1>
         {usageLoading ? (
           <Skeleton className="h-4 w-48" />
@@ -163,7 +160,7 @@ export const LinksCreate = () => {
               name="destination"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Destination</FormLabel>
+                  <FormLabel>{t("destination")}</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
                   </FormControl>
@@ -176,7 +173,7 @@ export const LinksCreate = () => {
               name="title"
               render={({ field }) => (
                 <FormItem className="w-full">
-                  <FormLabel>Tittle (optional)</FormLabel>
+                  <FormLabel>{t("title-optional")}</FormLabel>
                   <FormControl>
                     <Input className="w-full" placeholder="" {...field} />
                   </FormControl>
@@ -185,11 +182,13 @@ export const LinksCreate = () => {
               )}
             />
             <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-              Short Link
+              {t("short-link")}
             </h2>
             <div className="w-full flex flex-row items-end justify-center gap-2 -mt-2">
               <div className="w-full grow flex flex-col items-start gap-2">
-                <p className="sm:text-sm text-xs font-semibold">Domain</p>
+                <p className="sm:text-sm text-xs font-semibold">
+                  {t("domain")}
+                </p>
                 <Input disabled className="w-full" value={BASEURL} />
               </div>
               <div className="h-9 text-sm flex items-center justify-center">
@@ -198,7 +197,7 @@ export const LinksCreate = () => {
               <div className="w-full grow flex flex-col items-start gap-2">
                 <div className="flex flex-row items-center gap-1">
                   <p className="sm:text-sm text-xs font-semibold">
-                    Custom back-half (optional)
+                    {t("custom-backhalf")}
                   </p>
                   {plan != "pro" && (
                     <HoverCard>
@@ -208,16 +207,16 @@ export const LinksCreate = () => {
                       <HoverCardContent asChild>
                         <div className="w-full max-w-[300px] p-2! px-3! rounded bg-primary text-primary-foreground flex flex-col gap-0 items-start text-xs cursor-help">
                           <p className="text-sm font-bold">
-                            Unlock custom codes
+                            {t("unlock-custom")}
                           </p>
                           <p>
                             <Link
                               href={`/dashboard/subscription`}
                               className="underline hover:cursor-pointer"
                             >
-                              Upgrade
+                              {t("upgrade")}
                             </Link>
-                            to access link stats.
+                            {t("access-stats")}
                           </p>
                         </div>
                       </HoverCardContent>
@@ -250,24 +249,24 @@ export const LinksCreate = () => {
                   <div className="flex flex-row items-center gap-2">
                     <LockIcon className="w-4 h-4" />
                     <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-                      Password Protection
+                      {t("password-protection")}
                     </h2>
                     {plan !== "pro" && (
                       <span className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full font-medium">
-                        PRO
+                        {t("pro")}
                       </span>
                     )}
                   </div>
                   <p className="text-muted-foreground sm:text-sm text-xs">
                     {plan === "pro"
-                      ? "Require a password to access this link"
-                      : "Upgrade to Pro to protect your links with passwords"}
+                      ? t("require-password")
+                      : t("upgrade-password")}
                   </p>
                 </div>
                 {plan !== "pro" && (
                   <Link href="/dashboard/subscription">
                     <Button variant="outline" size="sm">
-                      Upgrade
+                      {t("upgrade")}
                     </Button>
                   </Link>
                 )}
@@ -281,13 +280,13 @@ export const LinksCreate = () => {
                     render={({ field }) => (
                       <FormItem className="w-full relative">
                         <FormLabel className="text-sm font-medium">
-                          Password (optional)
+                          {t("password-optional")}
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Input
                               type={showPassword ? "text" : "password"}
-                              placeholder="Enter password (min 6 characters)"
+                              placeholder={t("password-placeholder")}
                               className="pr-10"
                               minLength={6}
                               {...field}
@@ -317,17 +316,16 @@ export const LinksCreate = () => {
                     render={({ field }) => (
                       <FormItem className="w-full relative">
                         <FormLabel className="text-sm font-medium">
-                          Password Hint (optional)
+                          {t("password-hint")}
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., Company name + year"
+                            placeholder={t("password-hint-example")}
                             {...field}
                           />
                         </FormControl>
                         <p className="text-xs text-muted-foreground mt-1">
-                          This hint will be shown to users when they try to
-                          access the link
+                          {t("password-hint-description")}
                         </p>
                         <FormMessage />
                       </FormItem>
@@ -340,29 +338,29 @@ export const LinksCreate = () => {
         </Form>
 
         <h2 className="font-semibold lg:text-xl sm:text-lg text-base">
-          Ways to share
+          {t("ways-to-share")}
         </h2>
         <div className="flex flex-row w-full justify-between items-start">
           <div className="flex flex-col gap-1 items-start w-full max-w-3xs">
-            <p className="font-semibold sm:text-sm text-xs">QR Code</p>
+            <p className="font-semibold sm:text-sm text-xs">{t("qr-code")}</p>
             <p className="text-muted-foreground sm:text-sm text-xs">
-              Generate a QR Code to share anywhere people can see it
+              {t("qr-description")}
             </p>
           </div>
           <div className="flex flex-row gap-2 items-center">
             {plan == "pro" ? (
               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                 <InfinityIcon className="min-w-3! w-3! h-3!" />
-                <p>left</p>
+                <p>{t("left")}</p>
               </div>
             ) : qrCodesLeft == undefined ? (
               <div className="text-muted-foreground sm:text-sm text-xs w-full flex flex-row items-center gap-1 border-b border-dashed">
                 <Skeleton className="w-3 h-3" />
-                <p>left</p>
+                <p>{t("left")}</p>
               </div>
             ) : qrCodesLeft > 0 ? (
               <p className="text-muted-foreground sm:text-sm text-xs gap-1 flex flex-row items-center border-b border-dashed">
-                <span className="font-semibold">{qrCodesLeft}</span> left
+                <span className="font-semibold">{qrCodesLeft}</span> {t("left")}
               </p>
             ) : (
               <></>
@@ -379,7 +377,7 @@ export const LinksCreate = () => {
             <div className="w-full flex flex-col items-start gap-6">
               <div className="flex flex-col items-start gap-1">
                 <p className="lg:text-base text-sm font-semibold">
-                  Choose a color
+                  {t("choose-color")}
                 </p>
                 <div className="w-full grid grid-cols-6 gap-2 max-w-xs">
                   <Button
@@ -525,13 +523,13 @@ export const LinksCreate = () => {
             </div>
             <div className="w-full bg-background max-w-xs lg:flex hidden flex-col gap-4 p-4 items-center text-center">
               <p className="font-semibold text-muted-foreground lg:text-lg text-base">
-                Preview
+                {t("preview")}
               </p>
               <div className="w-full border h-auto max-w-32 aspect-square bg-background p-1 flex flex-col">
                 <StyledQRCode className="w-full" options={options} />
               </div>
               <p className="text-xs text-muted-foreground">
-                More customizations are available after creating.
+                {t("more-customizations")}
               </p>
             </div>
           </div>
@@ -543,7 +541,7 @@ export const LinksCreate = () => {
             }}
             variant={"secondary"}
           >
-            Cancel
+            {t("cancel")}
           </Button>
           <Button
             onClick={linkForm.handleSubmit(async (data) => {
@@ -561,45 +559,42 @@ export const LinksCreate = () => {
                     case "duplicate":
                       linkForm.setError("customCode", {
                         type: "manual",
-                        message:
-                          "You already have a shortn link with that custom back-half.",
+                        message: t("toast.duplicate-backhalf"),
                       });
                       setCreating(false);
                       return;
                     case "no-user":
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "User session error.",
+                        message: t("toast.session-error"),
                       });
                       setCreating(false);
                       return;
                     case "custom-restricted":
                       linkForm.setError("customCode", {
                         type: "manual",
-                        message:
-                          "Custom back-halves are restricted to pro accounts.",
+                        message: t("toast.custom-restricted"),
                       });
                       setCreating(false);
                       return;
                     case "plan-limit":
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "You have reached your plan's link limit.",
+                        message: t("toast.link-limit"),
                       });
                       setCreating(false);
                       return;
                     case "password-pro-only":
                       linkForm.setError("password", {
                         type: "manual",
-                        message:
-                          "Password protection is only available for Pro accounts.",
+                        message: t("toast.password-pro"),
                       });
                       setCreating(false);
                       return;
                     default:
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "There was a problem creating your QR Code.",
+                        message: t("toast.qr-error"),
                       });
                       setCreating(false);
                       return;
@@ -618,22 +613,21 @@ export const LinksCreate = () => {
                       case "no-user":
                         linkForm.setError("destination", {
                           type: "manual",
-                          message: "User session error.",
+                          message: t("toast.session-error"),
                         });
                         setCreating(false);
                         return;
                       case "plan-limit":
                         linkForm.setError("destination", {
                           type: "manual",
-                          message:
-                            "You have reached your plan's QR Code limit.",
+                          message: t("toast.qr-limit"),
                         });
                         setCreating(false);
                         return;
                       default:
                         linkForm.setError("destination", {
                           type: "manual",
-                          message: "There was a problem creating your QR Code.",
+                          message: t("toast.qr-error"),
                         });
                         setCreating(false);
                         return;
@@ -647,7 +641,7 @@ export const LinksCreate = () => {
                     if (!updateResponse.success) {
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "There was a problem creating your QR Code.",
+                        message: t("toast.qr-error"),
                       });
                       setCreating(false);
                       return;
@@ -671,45 +665,42 @@ export const LinksCreate = () => {
                     case "duplicate":
                       linkForm.setError("customCode", {
                         type: "manual",
-                        message:
-                          "You already have a shortn link with that custom back-half.",
+                        message: t("toast.duplicate-backhalf"),
                       });
                       setCreating(false);
                       return;
                     case "no-user":
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "User session error.",
+                        message: t("toast.session-error"),
                       });
                       setCreating(false);
                       return;
                     case "custom-restricted":
                       linkForm.setError("customCode", {
                         type: "manual",
-                        message:
-                          "Custom back-halves are restricted to pro accounts.",
+                        message: t("toast.custom-restricted"),
                       });
                       setCreating(false);
                       return;
                     case "plan-limit":
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "You have reached your plan's link limit.",
+                        message: t("toast.link-limit"),
                       });
                       setCreating(false);
                       return;
                     case "password-pro-only":
                       linkForm.setError("password", {
                         type: "manual",
-                        message:
-                          "Password protection is only available for Pro accounts.",
+                        message: t("toast.password-pro"),
                       });
                       setCreating(false);
                       return;
                     default:
                       linkForm.setError("destination", {
                         type: "manual",
-                        message: "There was a problem creating your QR Code.",
+                        message: t("toast.qr-error"),
                       });
                       setCreating(false);
                       return;
@@ -729,10 +720,10 @@ export const LinksCreate = () => {
           >
             {creating ? (
               <>
-                <Loader2 className="animate-spin" /> Creating...
+                <Loader2 className="animate-spin" /> {t("creating")}
               </>
             ) : (
-              <>Shorten your link</>
+              <>{t("shorten-link")}</>
             )}
           </Button>
         </div>

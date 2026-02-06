@@ -12,12 +12,14 @@ import { cn } from "@/lib/utils";
 import { TLoginRecord } from "@/models/auth/LoginActivity";
 import { format } from "date-fns";
 import React, { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 export const FullLoginRecordsCard = ({
   records,
 }: {
   records: TLoginRecord[];
 }) => {
+  const t = useTranslations("login-records");
   type IFilter =
     | "password-changed"
     | "profile-changed"
@@ -52,9 +54,7 @@ export const FullLoginRecordsCard = ({
     <div className="flex flex-col gap-4 items-start w-full">
       <div className="flex flex-row gap-1 w-full">
         <div className="grow w-full flex flex-col gap-1 items-start">
-          <p className="text-xs font-semibold text-left">
-            Filter by activity type
-          </p>
+          <p className="text-xs font-semibold text-left">{t("filter-label")}</p>
           <Select
             value={type}
             onValueChange={(v) => {
@@ -62,23 +62,33 @@ export const FullLoginRecordsCard = ({
             }}
           >
             <SelectTrigger className="grow w-full">
-              <SelectValue placeholder="Choose one" />
+              <SelectValue placeholder={t("filter-placeholder")} />
             </SelectTrigger>
             <SelectContent className="z-99">
-              <SelectItem value="password-changed">password-changed</SelectItem>
-              <SelectItem value="profile-changed">profile-changed</SelectItem>
-              <SelectItem value="password-change-attempt">
-                password-change-attempt
+              <SelectItem value="password-changed">
+                {t("types.password-changed")}
               </SelectItem>
-              <SelectItem value="tax-id-changed">tax-id-changed</SelectItem>
-              <SelectItem value="phone-changed">phone-changed</SelectItem>
-              <SelectItem value="email-changed">email-changed</SelectItem>
-              <SelectItem value="all">all</SelectItem>
+              <SelectItem value="profile-changed">
+                {t("types.profile-changed")}
+              </SelectItem>
+              <SelectItem value="password-change-attempt">
+                {t("types.password-change-attempt")}
+              </SelectItem>
+              <SelectItem value="tax-id-changed">
+                {t("types.tax-id-changed")}
+              </SelectItem>
+              <SelectItem value="phone-changed">
+                {t("types.phone-changed")}
+              </SelectItem>
+              <SelectItem value="email-changed">
+                {t("types.email-changed")}
+              </SelectItem>
+              <SelectItem value="all">{t("types.all")}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="grow w-full flex flex-col gap-1 items-start">
-          <p className="text-xs font-semibold text-left">Sort by</p>
+          <p className="text-xs font-semibold text-left">{t("sort-label")}</p>
           <Select
             value={sort == -1 ? "most-recent-first" : "oldest-first"}
             onValueChange={(v) => {
@@ -86,13 +96,15 @@ export const FullLoginRecordsCard = ({
             }}
           >
             <SelectTrigger className="grow w-full">
-              <SelectValue placeholder="Choose one" />
+              <SelectValue placeholder={t("sort-placeholder")} />
             </SelectTrigger>
             <SelectContent className="z-99">
               <SelectItem value="most-recent-first">
-                most-recent-first
+                {t("sort-options.most-recent-first")}
               </SelectItem>
-              <SelectItem value="oldest-first">oldest-first</SelectItem>
+              <SelectItem value="oldest-first">
+                {t("sort-options.oldest-first")}
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -114,7 +126,7 @@ export const FullLoginRecordsCard = ({
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {record.location == ", "
-                      ? "Unknown location"
+                      ? t("unknown-location")
                       : record.location}
                   </p>
                 </div>
@@ -132,7 +144,7 @@ export const FullLoginRecordsCard = ({
         {!sorted ||
           (sorted.length == 0 && (
             <p className="text-xs font-semibold text-center w-full">
-              No logs matching the filters.
+              {t("no-results")}
             </p>
           ))}
       </div>

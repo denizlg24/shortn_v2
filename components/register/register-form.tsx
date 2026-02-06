@@ -19,7 +19,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Loader2, Check, X } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { authClient } from "@/lib/authClient";
 import { BASEURL } from "@/lib/utils";
 import Cookies from "js-cookie";
@@ -77,6 +77,7 @@ const registerFormSchema = z
 const mapBetterAuthError = (
   error: { code?: string; message?: string; status?: number },
   form: ReturnType<typeof useForm<z.infer<typeof registerFormSchema>>>,
+  t: ReturnType<typeof useTranslations<"register">>,
 ) => {
   const code = error.code?.toUpperCase() || "";
   const message = error.message?.toLowerCase() || "";
@@ -87,7 +88,7 @@ const mapBetterAuthError = (
     case "USER_EXISTS":
       form.setError("email", {
         type: "manual",
-        message: "An account with this email already exists",
+        message: t("errors.email-exists"),
       });
       return;
     case "USERNAME_ALREADY_EXISTS":
@@ -96,38 +97,38 @@ const mapBetterAuthError = (
     case "USERNAME_EXISTS":
       form.setError("nickname", {
         type: "manual",
-        message: "This username is already taken",
+        message: t("errors.username-taken"),
       });
       return;
     case "INVALID_EMAIL":
       form.setError("email", {
         type: "manual",
-        message: "Please enter a valid email address",
+        message: t("errors.invalid-email"),
       });
       return;
     case "PASSWORD_TOO_SHORT":
       form.setError("password", {
         type: "manual",
-        message: "Password must be at least 6 characters",
+        message: t("errors.password-too-short"),
       });
       return;
     case "PASSWORD_TOO_LONG":
       form.setError("password", {
         type: "manual",
-        message: "Password is too long",
+        message: t("errors.password-too-long"),
       });
       return;
     case "INVALID_PASSWORD":
       form.setError("password", {
         type: "manual",
-        message: "Password doesn't meet requirements",
+        message: t("errors.password-invalid"),
       });
       return;
     case "RATE_LIMIT_EXCEEDED":
     case "TOO_MANY_REQUESTS":
       form.setError("root", {
         type: "manual",
-        message: "Too many attempts. Please wait a moment and try again.",
+        message: t("errors.too-many-requests"),
       });
       return;
   }
@@ -141,7 +142,7 @@ const mapBetterAuthError = (
   ) {
     form.setError("email", {
       type: "manual",
-      message: "An account with this email already exists",
+      message: t("errors.email-exists"),
     });
     return;
   }
@@ -155,7 +156,7 @@ const mapBetterAuthError = (
   ) {
     form.setError("nickname", {
       type: "manual",
-      message: "This username is already taken",
+      message: t("errors.username-taken"),
     });
     return;
   }
@@ -163,7 +164,7 @@ const mapBetterAuthError = (
   if (message.includes("password")) {
     form.setError("password", {
       type: "manual",
-      message: error.message || "Invalid password",
+      message: error.message || t("errors.invalid-password"),
     });
     return;
   }
@@ -171,19 +172,20 @@ const mapBetterAuthError = (
   if (message.includes("email") && message.includes("invalid")) {
     form.setError("email", {
       type: "manual",
-      message: "Please enter a valid email address",
+      message: t("errors.invalid-email"),
     });
     return;
   }
 
   form.setError("root", {
     type: "manual",
-    message: error.message || "There was a problem creating your account.",
+    message: error.message || t("errors.generic-error"),
   });
 };
 
 export const RegisterForm = () => {
   const locale = useLocale();
+  const t = useTranslations("register");
   const [loading, setLoading] = useState(0);
   const [showPassword, toggleShowPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
@@ -229,7 +231,7 @@ export const RegisterForm = () => {
           router.push("/verify/sent");
         },
         onError(context) {
-          mapBetterAuthError(context.error, form);
+          mapBetterAuthError(context.error, form, t);
         },
       },
     );
@@ -240,10 +242,10 @@ export const RegisterForm = () => {
     <>
       <div className="flex flex-col gap-0 w-full items-center text-center">
         <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-          Create your account!
+          {t("create-account-title")}
         </h1>
         <h2 className="lg:text-lg md:text-base text-sm">
-          Start shortening your links now.
+          {t("create-account-subtitle")}
         </h2>
       </div>
       <Form {...form}>
@@ -257,7 +259,8 @@ export const RegisterForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Full name<span className="text-destructive text-xs">*</span>
+                  {t("full-name")}
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input placeholder="" {...field} />
@@ -272,7 +275,8 @@ export const RegisterForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Email<span className="text-destructive text-xs">*</span>
+                  {t("email")}
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input autoComplete="username" placeholder="" {...field} />
@@ -287,7 +291,7 @@ export const RegisterForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel className="flex items-center gap-1">
-                  Username
+                  {t("username")}
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
@@ -297,7 +301,7 @@ export const RegisterForm = () => {
                     </span>
                     <Input
                       autoComplete="nickname"
-                      placeholder="your_username"
+                      placeholder={t("username-placeholder")}
                       className="pl-7"
                       {...field}
                       onChange={(e) => {
@@ -310,7 +314,7 @@ export const RegisterForm = () => {
                   </div>
                 </FormControl>
                 <p className="text-xs text-muted-foreground">
-                  You can use this instead of email to sign in
+                  {t("username-hint")}
                 </p>
                 <FormMessage />
               </FormItem>
@@ -323,7 +327,8 @@ export const RegisterForm = () => {
             render={({ field }) => (
               <FormItem className="relative">
                 <FormLabel>
-                  Password<span className="text-destructive text-xs">*</span>
+                  {t("password")}
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -339,19 +344,19 @@ export const RegisterForm = () => {
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1">
                     <PasswordRequirement
                       met={passwordRequirements.minLength}
-                      label="At least 6 characters"
+                      label={t("password-requirements.min-length")}
                     />
                     <PasswordRequirement
                       met={passwordRequirements.hasUppercase}
-                      label="One uppercase letter"
+                      label={t("password-requirements.uppercase")}
                     />
                     <PasswordRequirement
                       met={passwordRequirements.hasNumber}
-                      label="One number"
+                      label={t("password-requirements.number")}
                     />
                     <PasswordRequirement
                       met={passwordRequirements.hasSpecial}
-                      label="One special character"
+                      label={t("password-requirements.special")}
                     />
                   </div>
                 )}
@@ -377,7 +382,7 @@ export const RegisterForm = () => {
             render={({ field }) => (
               <FormItem className="relative">
                 <FormLabel>
-                  Repeat Password
+                  {t("repeat-password")}
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
@@ -402,14 +407,14 @@ export const RegisterForm = () => {
             )}
           />
           <Button disabled={loading > 0} className="w-full" type="submit">
-            {loading == 1 ? "Creating account..." : "Create account"}
+            {loading == 1 ? t("creating-account") : t("create-account-button")}
             {loading == 1 && <Loader2 className="animate-spin" />}
           </Button>
           <FormRootError />
           <div className="w-full relative flex flex-row justify-center">
             <Separator className=""></Separator>
             <p className="text-xs text-center text-muted-foreground absolute mx-auto -top-2 bg-background px-2">
-              OR
+              {t("or")}
             </p>
           </div>
 
@@ -439,7 +444,7 @@ export const RegisterForm = () => {
               }}
             >
               <GithubOriginal />
-              {loading == 2 ? "Signing you in..." : "Continue with GitHub"}
+              {loading == 2 ? t("signing-you-in") : t("continue-with-github")}
               {loading == 2 && <Loader2 className="animate-spin" />}
             </Button>
             <Button
@@ -467,14 +472,14 @@ export const RegisterForm = () => {
               }}
             >
               <GoogleOriginal />
-              {loading == 3 ? "Signing you in..." : " Continue with Google"}
+              {loading == 3 ? t("signing-you-in") : t("continue-with-google")}
               {loading == 3 && <Loader2 className="animate-spin" />}
             </Button>
           </div>
           <div className="flex flex-row items-center gap-1 text-sm justify-center w-full">
-            <p>Already have an account? </p>
+            <p>{t("already-have-account")} </p>
             <Link className="text-primary underline" href={"/login"}>
-              Login now.
+              {t("login-now")}
             </Link>
           </div>
         </form>

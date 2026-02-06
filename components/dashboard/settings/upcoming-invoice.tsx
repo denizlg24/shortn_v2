@@ -10,6 +10,7 @@ import { useCallback, useEffect, useState } from "react";
 import { getUpcomingInvoice } from "@/app/actions/polarActions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RevertScheduledChangeButton } from "@/app/[locale]/dashboard/subscription/revert-scheduled-change-button";
+import { useTranslations } from "next-intl";
 
 interface UpcomingInvoiceProps {
   className?: string;
@@ -34,6 +35,7 @@ interface InvoiceData {
 }
 
 export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
+  const t = useTranslations("upcoming-invoice");
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +66,7 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
     return (
       <Card className={className}>
         <CardHeader>
-          <h3 className="text-sm font-semibold">Next Invoice</h3>
+          <h3 className="text-sm font-semibold">{t("title")}</h3>
         </CardHeader>
         <CardContent className="space-y-3">
           <Skeleton className="h-4 w-3/4" />
@@ -98,10 +100,10 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
     <Card className={className}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Next Invoice</h3>
+          <h3 className="text-sm font-semibold">{t("title")}</h3>
           {invoice.status === "trialing" && (
             <Badge variant="secondary" className="text-xs">
-              Trial Period
+              {t("trial-badge")}
             </Badge>
           )}
         </div>
@@ -111,7 +113,7 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <CalendarIcon className="h-4 w-4" />
-              <span>Billing Date</span>
+              <span>{t("billing-date")}</span>
             </div>
             <span className="text-sm font-medium">
               {format(new Date(invoice.nextBillingDate), "MMM dd, yyyy")}
@@ -123,11 +125,13 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Current Plan</span>
+            <span className="text-sm text-muted-foreground">
+              {t("current-plan")}
+            </span>
             <span className="text-sm font-medium">{invoice.currentPlan}</span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Amount</span>
+            <span className="text-sm text-muted-foreground">{t("amount")}</span>
             <span className="text-lg font-semibold">
               {formatCurrency(invoice.currentPriceAmount, invoice.currency)}
             </span>
@@ -142,21 +146,23 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
                 <XCircle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
                 <div className="space-y-1 flex-1">
                   <p className="text-sm font-medium text-destructive">
-                    Subscription Ending
+                    {t("subscription-ending")}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Your subscription will end on{" "}
-                    {format(
-                      new Date(invoice.scheduledChange?.scheduledFor || ""),
-                      "MMM dd, yyyy",
-                    )}
-                    . No charge will be made.
+                    {t("ending-description", {
+                      date: format(
+                        new Date(invoice.scheduledChange?.scheduledFor || ""),
+                        "MMM dd, yyyy",
+                      ),
+                    })}
                   </p>
                 </div>
               </div>
               <div className="pt-2 border-t border-destructive/20">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Next Invoice</span>
+                  <span className="text-sm font-medium">
+                    {t("next-invoice")}
+                  </span>
                   <span className="text-lg font-semibold">
                     {formatCurrency(0, invoice.currency)}
                   </span>
@@ -174,7 +180,7 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
                   onRevertSuccess={fetchInvoice}
                 >
                   <Button variant="outline" size="sm" className="w-full">
-                    Keep My Subscription
+                    {t("keep-subscription")}
                   </Button>
                 </RevertScheduledChangeButton>
               </div>
@@ -190,21 +196,22 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
                 <TrendingDown className="h-4 w-4 text-orange-600 mt-0.5 shrink-0" />
                 <div className="space-y-1 flex-1">
                   <p className="text-sm font-medium text-orange-600 dark:text-orange-500">
-                    Scheduled Downgrade
+                    {t("scheduled-downgrade")}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Your plan will change to{" "}
-                    <strong>{invoice.scheduledChange?.targetPlan}</strong> on{" "}
-                    {format(
-                      new Date(invoice.scheduledChange?.scheduledFor || ""),
-                      "MMM dd, yyyy",
-                    )}
-                    .
+                    {t.rich("downgrade-description", {
+                      plan: invoice.scheduledChange?.targetPlan || "no-plan",
+                      date: format(
+                        new Date(invoice.scheduledChange?.scheduledFor || ""),
+                        "MMM dd, yyyy",
+                      ),
+                      strong: (chunks) => <strong>{chunks}</strong>,
+                    })}
                   </p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground pl-6">
-                You'll be charged the new plan rate on your next billing cycle.
+                {t("downgrade-charge-note")}
               </p>
               <div className="pt-2">
                 <RevertScheduledChangeButton
@@ -218,7 +225,7 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
                   onRevertSuccess={fetchInvoice}
                 >
                   <Button variant="outline" size="sm" className="w-full">
-                    Keep {invoice.currentPlan} Plan
+                    {t("keep-plan", { plan: invoice.currentPlan })}
                   </Button>
                 </RevertScheduledChangeButton>
               </div>
@@ -230,7 +237,9 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
           <>
             <Separator />
             <div className="flex items-center justify-between pt-2">
-              <span className="text-sm font-semibold">Next Invoice Total</span>
+              <span className="text-sm font-semibold">
+                {t("next-invoice-total")}
+              </span>
               <span className="text-xl font-bold text-primary">
                 {formatCurrency(invoice.currentPriceAmount, invoice.currency)}
               </span>
@@ -241,23 +250,23 @@ export function UpcomingInvoice({ className }: UpcomingInvoiceProps) {
         <div className="pt-2 space-y-2">
           <p className="text-xs text-muted-foreground">
             {invoice.status === "trialing"
-              ? "You won't be charged until your trial ends."
-              : "Your payment method will be charged automatically."}
+              ? t("trial-note")
+              : t("auto-charge-note")}
           </p>
           <Separator />
           <p className="text-xs text-muted-foreground leading-relaxed">
-            We partner with{" "}
-            <a
-              href="https://polar.sh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              Polar.sh
-            </a>{" "}
-            for secure payment processing and tax compliance. All invoices are
-            issued by Polar and can be downloaded from the billing portal, where
-            you can also update your billing information and payment method.
+            {t.rich("polar-note", {
+              link: (chunks) => (
+                <a
+                  href="https://polar.sh"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground transition-colors"
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
           </p>
         </div>
       </CardContent>

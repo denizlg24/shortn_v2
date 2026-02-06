@@ -10,6 +10,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "@/i18n/navigation";
 import { authClient } from "@/lib/authClient";
 import { CheckCircle2, XCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 type Status =
   | { kind: "verifying" }
@@ -17,6 +18,7 @@ type Status =
   | { kind: "failed"; message: string };
 
 export const VerifiedPage = () => {
+  const t = useTranslations("verify");
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get("token");
@@ -28,7 +30,7 @@ export const VerifiedPage = () => {
     token === null
       ? {
           kind: "failed",
-          message: "This verification link is missing a token.",
+          message: t("missing-token"),
         }
       : status;
 
@@ -49,7 +51,7 @@ export const VerifiedPage = () => {
         if (error) {
           setStatus({
             kind: "failed",
-            message: "This verification link is invalid or has expired.",
+            message: t("invalid-or-expired"),
           });
           return;
         }
@@ -61,14 +63,14 @@ export const VerifiedPage = () => {
         if (cancelled) return;
         setStatus({
           kind: "failed",
-          message: "We couldn't verify your email right now. Please try again.",
+          message: t("verify-error-try-again"),
         });
       });
 
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, t]);
 
   useEffect(() => {
     if (redirectIn == null) return;
@@ -113,13 +115,13 @@ export const VerifiedPage = () => {
             </motion.div>
 
             <p className="text-sm text-muted-foreground text-center">
-              Please wait while we verify your email address.
+              {t("please-wait-verifying")}
             </p>
 
             <div className="rounded-lg border bg-card px-4 py-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Spinner />
-                <span>Verifying your email…</span>
+                <span>{t("verifying-email-progress")}</span>
               </div>
               <div className="mt-2 h-1 w-full overflow-hidden rounded bg-muted">
                 <motion.div
@@ -163,10 +165,10 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Email Verified!
+                {t("success-title")}
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                Your email has been verified successfully.
+                {t("success-subtitle")}
               </p>
             </motion.div>
 
@@ -177,14 +179,16 @@ export const VerifiedPage = () => {
             >
               <Alert>
                 <CheckCircle2 className="h-4 w-4" />
-                <AlertTitle>Welcome Aboard</AlertTitle>
+                <AlertTitle>{t("welcome-aboard")}</AlertTitle>
                 <AlertDescription>
                   {redirectIn != null ? (
                     <>
-                      Redirecting you to your dashboard in {redirectIn} seconds…
+                      {t("redirecting-dashboard-seconds", {
+                        seconds: redirectIn,
+                      })}
                     </>
                   ) : (
-                    "Redirecting you to your dashboard…"
+                    t("redirecting-dashboard")
                   )}
                 </AlertDescription>
               </Alert>
@@ -234,10 +238,10 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.2 }}
             >
               <h2 className="text-2xl font-semibold text-center mb-2">
-                Verification Failed
+                {t("error-title")}
               </h2>
               <p className="text-sm text-muted-foreground text-center">
-                We couldn&apos;t verify your email address.
+                {t("could-not-verify-email")}
               </p>
             </motion.div>
 
@@ -248,7 +252,7 @@ export const VerifiedPage = () => {
             >
               <Alert variant="destructive">
                 <XCircle className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>{t("error")}</AlertTitle>
                 <AlertDescription>{effectiveStatus.message}</AlertDescription>
               </Alert>
             </motion.div>
@@ -259,11 +263,13 @@ export const VerifiedPage = () => {
               transition={{ duration: 0.3, delay: 0.4 }}
               className="rounded-lg border bg-card p-4"
             >
-              <h3 className="font-medium text-sm mb-2">What can you do?</h3>
+              <h3 className="font-medium text-sm mb-2">
+                {t("what-can-you-do")}
+              </h3>
               <ul className="text-sm text-muted-foreground space-y-2 list-disc list-inside">
-                <li>Request a new verification email</li>
-                <li>Check if you&apos;re using the latest link</li>
-                <li>Try creating a new account if the issue persists</li>
+                <li>{t("request-new-verification")}</li>
+                <li>{t("check-latest-link")}</li>
+                <li>{t("try-new-account")}</li>
               </ul>
             </motion.div>
           </motion.div>
@@ -283,7 +289,7 @@ export const VerifiedPage = () => {
             onClick={() => router.push("/login")}
             className="w-full sm:w-auto"
           >
-            Back to Login
+            {t("back-to-login")}
           </Button>
 
           {effectiveStatus.kind === "failed" && (
@@ -292,7 +298,7 @@ export const VerifiedPage = () => {
               onClick={() => router.push("/register")}
               className="w-full sm:w-auto"
             >
-              Create Account
+              {t("create-account")}
             </Button>
           )}
         </motion.div>

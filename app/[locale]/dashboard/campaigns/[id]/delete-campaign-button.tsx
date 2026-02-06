@@ -6,6 +6,7 @@ import { useRouter } from "@/i18n/navigation";
 import { Loader2, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 export const DeleteCampaignButton = ({
   className,
@@ -14,6 +15,7 @@ export const DeleteCampaignButton = ({
   className?: string;
   title: string;
 }) => {
+  const t = useTranslations("delete-campaign");
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   return (
@@ -22,10 +24,10 @@ export const DeleteCampaignButton = ({
         setDeleting(true);
         const { success } = await deleteCampaign({ campaignTitle: title });
         if (success) {
-          toast.success("Your campaign was deleted successfully");
+          toast.success(t("toast-success"));
           router.push("/dashboard/campaigns");
         } else {
-          toast.error("There was a problem deleting your campaign");
+          toast.error(t("toast-error"));
         }
         setDeleting(false);
       }}
@@ -35,11 +37,11 @@ export const DeleteCampaignButton = ({
     >
       {deleting ? (
         <>
-          Deleting... <Loader2 className="animate-spin" />
+          {t("deleting")} <Loader2 className="animate-spin" />
         </>
       ) : (
         <>
-          Delete Campaign <Trash2 />
+          {t("delete")} <Trash2 />
         </>
       )}
     </Button>

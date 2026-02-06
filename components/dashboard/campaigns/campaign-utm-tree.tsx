@@ -30,6 +30,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { useTranslations } from "next-intl";
 
 interface CampaignUtmTreeProps {
   campaignId: string;
@@ -51,20 +52,21 @@ const levelIcons: Record<string, React.ReactNode> = {
   content: <FileText className="w-4 h-4" />,
 };
 
-const levelLabels: Record<string, string> = {
-  source: "Sources",
-  medium: "Mediums",
-  term: "Terms",
-  content: "Contents",
-};
-
 export const CampaignUtmTree = ({
   campaignId,
   campaignTitle,
   initialData,
 }: CampaignUtmTreeProps) => {
+  const t = useTranslations("campaign-utm-tree");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<UtmTreeNode[]>(initialData || []);
+
+  const levelLabels: Record<string, string> = {
+    source: t("sources"),
+    medium: t("mediums"),
+    term: t("terms"),
+    content: t("contents"),
+  };
   const [currentLevel, setCurrentLevel] = useState<
     "source" | "medium" | "term" | "content"
   >("source");
@@ -138,15 +140,13 @@ export const CampaignUtmTree = ({
       <div className="px-6 py-0 flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">UTM Hierarchy</CardTitle>
-            <CardDescription>
-              Drill down into your campaign's UTM performance
-            </CardDescription>
+            <CardTitle className="text-lg">{t("title")}</CardTitle>
+            <CardDescription>{t("description")}</CardDescription>
           </div>
           {breadcrumb.length > 1 && (
             <Button variant="outline" size="sm" onClick={resetToRoot}>
               <RotateCcw className="w-4 h-4 mr-1.5" />
-              Reset
+              {t("reset")}
             </Button>
           )}
         </div>
@@ -192,10 +192,8 @@ export const CampaignUtmTree = ({
         ) : data.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Hash className="w-12 h-12 mx-auto mb-3 opacity-50" />
-            <p className="font-medium">No data available</p>
-            <p className="text-sm">
-              Start tracking clicks with UTM parameters to see data here
-            </p>
+            <p className="font-medium">{t("no-data-title")}</p>
+            <p className="text-sm">{t("no-data-description")}</p>
           </div>
         ) : (
           <div className="space-y-2">
@@ -204,7 +202,7 @@ export const CampaignUtmTree = ({
                 {levelLabels[currentLevel] || currentLevel}
               </span>
               <span className="font-medium uppercase tracking-wider">
-                Clicks
+                {t("clicks")}
               </span>
             </div>
             {data.map((node, index) => {
@@ -255,7 +253,7 @@ export const CampaignUtmTree = ({
                         {node.name}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {percentage}% of total
+                        {t("percentage-of-total", { percentage })}
                       </span>
                     </div>
                   </div>

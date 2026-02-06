@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/empty";
 import { LinkIcon } from "lucide-react";
 import { AddLinkToCampaignDialog } from "./add-link-to-campaign-dialog";
+import { useTranslations } from "next-intl";
 
 export const CampaignLinkContainer = ({
   links,
@@ -27,6 +28,8 @@ export const CampaignLinkContainer = ({
   clicksMap?: Record<string, number>;
   campaignTitle: string;
 }) => {
+  const t = useTranslations("campaign-link-container");
+
   return (
     <div className="w-full flex flex-col gap-2">
       {links.length > 0 ? (
@@ -45,12 +48,8 @@ export const CampaignLinkContainer = ({
             <EmptyMedia variant="icon">
               <LinkIcon />
             </EmptyMedia>
-            <EmptyTitle>No links yet</EmptyTitle>
-            <EmptyDescription>
-              You still haven&apos;t added any links to this campaign. Add links
-              to this campaign to group your links and get aggregated campaign
-              analytics.
-            </EmptyDescription>
+            <EmptyTitle>{t("no-links-title")}</EmptyTitle>
+            <EmptyDescription>{t("no-links-description")}</EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
             <AddLinkToCampaignDialog campaignTitle={campaignTitle} />

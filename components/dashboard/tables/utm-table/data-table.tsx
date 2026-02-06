@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -40,6 +42,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const t = useTranslations("utm-table");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -76,7 +79,7 @@ export function DataTable<TData, TValue>({
     <div className="flex flex-col w-full gap-2">
       <div className="flex flex-row items-center gap-2 w-full justify-between relative">
         <Input
-          placeholder="Search for campaign or source..."
+          placeholder={t("search")}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
           className="grow sm:max-w-md pl-6  "
@@ -85,7 +88,7 @@ export function DataTable<TData, TValue>({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
-              Columns
+              {t("columns")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -166,7 +169,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-12 text-center"
                 >
-                  No results.
+                  {t("no-results")}
                 </TableCell>
               </TableRow>
             )}
@@ -180,7 +183,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          Previous
+          {t("previous")}
         </Button>
         <Button
           variant="outline"
@@ -188,7 +191,7 @@ export function DataTable<TData, TValue>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          Next
+          {t("next")}
         </Button>
       </div>
     </div>

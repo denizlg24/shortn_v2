@@ -14,7 +14,7 @@ import {
 } from "@/utils/plan-utils";
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Check, ExternalLink, X } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { UpcomingInvoice } from "@/components/dashboard/settings/upcoming-invoice";
 import { redirect as NextRedirect } from "next/navigation";
@@ -48,14 +48,14 @@ export default async function Home({
   const usage = await getUsageSummary(user.id, plan);
   const linksThisMonth = usage?.linksThisMonth?.consumedUnits ?? 0;
   const qrCodesThisMonth = usage?.qrCodesThisMonth?.consumedUnits ?? 0;
-
+  const t = await getTranslations("dashboard-settings-plan");
   return (
     <div className="w-full flex flex-col">
       <h1 className="lg:text-xl md:text-lg sm:text-base text-sm font-semibold">
-        Plan & Billing
+        {t("plan-and-billing")}{" "}
       </h1>
       <h2 className="lg:text-base sm:text-sm text-xs text-muted-foreground">
-        Manage your subscription plan, usage, and billing details.
+        {t("manage-your-subscription-plan-us")}{" "}
       </h2>
       <Separator className="my-4" />
       <div className="max-w-xl flex flex-col gap-4 w-full my-4">
@@ -67,36 +67,42 @@ export default async function Home({
               </h1>
               {plan != "pro" && (
                 <Button className="h-fit!">
-                  <Link href={`/dashboard/subscription`}>Upgrade</Link>
+                  <Link href={`/dashboard/subscription`}>{t("upgrade")}</Link>
                 </Button>
               )}
               {plan == "pro" && (
                 <Button className="h-fit!">
-                  <Link href={`/dashboard/subscription`}>Change Plan</Link>
+                  <Link href={`/dashboard/subscription`}>
+                    {t("change-plan")}
+                  </Link>
                 </Button>
               )}
             </CardHeader>
             <CardContent className="p-3! flex flex-col gap-2">
               <h2 className="sm:text-base text-sm font-semibold">
-                Included in your plan
+                {t("included-in-your-plan")}{" "}
               </h2>
               <div className="flex flex-col gap-2 pl-1">
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   <Check className="w-3 h-3 shrink-0" />
                   <p>
-                    {allowed_links[plan as SubscriptionsType] > 0
-                      ? allowed_links[plan as SubscriptionsType]
-                      : "Unlimited"}{" "}
-                    shortn.at links allowed per month.
+                    {t("shortn-at-links-allowed-per-mont", {
+                      count:
+                        allowed_links[plan as SubscriptionsType] > 0
+                          ? allowed_links[plan as SubscriptionsType]
+                          : t("unlimited"),
+                    })}
                   </p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   <Check className="w-3 h-3 shrink-0" />
                   <p>
-                    {allowed_qr_codes[plan as SubscriptionsType] > 0
-                      ? allowed_qr_codes[plan as SubscriptionsType]
-                      : "Unlimited"}{" "}
-                    QR Codes allowed per month.
+                    {t("qr-codes-allowed-per-month", {
+                      count:
+                        allowed_qr_codes[plan as SubscriptionsType] > 0
+                          ? allowed_qr_codes[plan as SubscriptionsType]
+                          : t("unlimited"),
+                    })}
                   </p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
@@ -105,7 +111,7 @@ export default async function Home({
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
                   )}
-                  <p>Total click and scan count</p>
+                  <p>{t("total-click-and-scan-count")}</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   {plan == "plus" || plan == "pro" ? (
@@ -113,7 +119,7 @@ export default async function Home({
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
                   )}
-                  <p>Time and Date-Based Analytics</p>
+                  <p>{t("time-and-date-based-analytics")}</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   {plan == "plus" || plan == "pro" ? (
@@ -121,7 +127,7 @@ export default async function Home({
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
                   )}
-                  <p>City level location Insights</p>
+                  <p>{t("city-level-location-insights")}</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   {plan == "pro" ? (
@@ -129,7 +135,7 @@ export default async function Home({
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
                   )}
-                  <p>Device, Browser and OS details</p>
+                  <p>{t("device-browser-and-os-details")}</p>
                 </div>
                 <div className="flex flex-row items-center justify-start gap-2 text-sm">
                   {plan == "pro" ? (
@@ -137,7 +143,7 @@ export default async function Home({
                   ) : (
                     <X className="w-3 h-3 shrink-0" />
                   )}
-                  <p>Source Tracking</p>
+                  <p>{t("source-tracking")}</p>
                 </div>
               </div>
             </CardContent>
@@ -146,7 +152,7 @@ export default async function Home({
         <div className="w-full flex flex-col gap-2">
           <div className="flex flex-col gap-0 items-start">
             <h1 className="sm:text-base text:sm font-semibold">
-              Monthly usage
+              {t("monthly-usage")}{" "}
             </h1>
             <p className="text-xs text-muted-foreground">
               {format(startOfMonth(new Date()), "MMM dd")} -{" "}
@@ -156,14 +162,14 @@ export default async function Home({
           <Card className="w-full p-3">
             <Tabs defaultValue="shortn">
               <TabsList className="w-full max-w-full!">
-                <TabsTrigger value="shortn">Short Links</TabsTrigger>
-                <TabsTrigger value="qrs">QR Codes</TabsTrigger>
+                <TabsTrigger value="shortn">{t("short-links")}</TabsTrigger>
+                <TabsTrigger value="qrs">{t("qr-codes")}</TabsTrigger>
               </TabsList>
               <TabsContent value="shortn">
                 <div className="w-full flex flex-col gap-4">
                   <div className="flex flex-col w-full gap-2">
                     <p className="text-sm font-semibold gap-1">
-                      Your short link usage for the month of{" "}
+                      {t("your-short-link-usage-for-the-mo")}{" "}
                       {format(new Date(), "MMMM")}{" "}
                       <span
                         className={cn(
@@ -179,7 +185,7 @@ export default async function Home({
                         (<span className="font-semibold">{linksThisMonth}</span>
                         /
                         {plan == "pro"
-                          ? "Unlimited"
+                          ? t("unlimited")
                           : allowed_links[plan as SubscriptionsType]}
                         )
                       </span>
@@ -194,7 +200,7 @@ export default async function Home({
                     />
                     <p className="text-xs font-medium text-left">
                       <span className="font-semibold">
-                        Total active links:{" "}
+                        {t("total-active-links")}:{" "}
                       </span>
                       {(await getActiveLinks()).total}
                     </p>
@@ -205,7 +211,7 @@ export default async function Home({
                 <div className="w-full flex flex-col gap-4">
                   <div className="flex flex-col w-full gap-2">
                     <p className="text-sm font-semibold gap-1">
-                      Your QR Code usage for the month of{" "}
+                      {t("your-qr-code-usage-for-the-month")}f{" "}
                       {format(new Date(), "MMMM")}{" "}
                       <span
                         className={cn(
@@ -224,7 +230,7 @@ export default async function Home({
                         </span>
                         /
                         {plan == "pro"
-                          ? "Unlimited"
+                          ? t("unlimited")
                           : allowed_links[plan as SubscriptionsType]}
                         )
                       </span>
@@ -239,7 +245,7 @@ export default async function Home({
                     />
                     <p className="text-xs font-medium text-left">
                       <span className="font-semibold">
-                        Total active codes:{" "}
+                        {t("total-active-codes")}:{" "}
                       </span>
                       {(await getActiveCodes()).total}
                     </p>
@@ -253,14 +259,12 @@ export default async function Home({
         {plan !== "free" && (
           <div className="w-full flex flex-col gap-2">
             <h1 className="sm:text-base text-sm font-semibold">
-              Billing Management
+              {t("billing-management")}{" "}
             </h1>
             <Card className="w-full p-0 gap-0!">
               <CardContent className="p-4 flex flex-col gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Manage your payment methods, view invoices, update billing
-                  information, and access your complete billing history through
-                  our secure billing portal.
+                  {t("manage-your-payment-methods-view")}{" "}
                 </p>
                 <form
                   action={async () => {
@@ -273,7 +277,7 @@ export default async function Home({
                 >
                   <Button type="submit" className="w-full sm:w-auto">
                     <ExternalLink className="w-4 h-4 mr-2" />
-                    Open Billing Portal
+                    {t("open-billing-portal")}{" "}
                   </Button>
                 </form>
               </CardContent>

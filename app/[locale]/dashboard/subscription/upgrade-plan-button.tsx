@@ -14,6 +14,7 @@ import { Subscription } from "@polar-sh/sdk/models/components/subscription.js";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslations } from "next-intl";
 
 export const UpgradeSessionButton = ({
   slug,
@@ -24,6 +25,7 @@ export const UpgradeSessionButton = ({
   children: React.ReactNode;
   downgrade?: boolean;
 }) => {
+  const t = useTranslations("upgrade-button");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,23 +69,19 @@ export const UpgradeSessionButton = ({
         setOpen(false);
         router.push(`/dashboard/subscription/success?status=payment_failed`);
       } else {
-        setError(
-          data.message || "Failed to update subscription. Please try again.",
-        );
+        setError(data.message || t("error-default"));
       }
     } catch (error) {
       console.error("Failed to update subscription:", error);
-      setError(
-        "An unexpected error occurred. Please try again or contact support.",
-      );
+      setError(t("error-unexpected"));
     }
     setLoading(false);
   };
 
   const planNames = {
-    basic: "Basic",
-    plus: "Plus",
-    pro: "Pro",
+    basic: t("plans.basic"),
+    plus: t("plans.plus"),
+    pro: t("plans.pro"),
   };
 
   return (
@@ -95,16 +93,15 @@ export const UpgradeSessionButton = ({
             <TrendingUp className="h-6 w-6 text-primary" />
           </div>
           <DialogTitle className="text-center text-xl">
-            Upgrade Plan
+            {t("title")}
           </DialogTitle>
           <DialogDescription className="text-center pt-2">
-            You're about to upgrade to the{" "}
-            <span className="font-semibold text-foreground">
-              {planNames[slug]}
-            </span>{" "}
-            plan. You'll be invoiced for the prorated difference based on your
-            remaining billing period, and your new features will be available
-            immediately.
+            {t.rich("description", {
+              plan: planNames[slug],
+              strong: (chunks) => (
+                <span className="font-semibold text-foreground">{chunks}</span>
+              ),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -125,10 +122,10 @@ export const UpgradeSessionButton = ({
             {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Processing...
+                {t("processing")}
               </>
             ) : (
-              "Confirm Upgrade"
+              t("confirm")
             )}
           </Button>
           <Button
@@ -138,12 +135,12 @@ export const UpgradeSessionButton = ({
             className="w-full"
             size="lg"
           >
-            Cancel
+            {t("cancel")}
           </Button>
         </div>
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
-          Charges appear on your next statement
+          {t("note")}
         </p>
       </DialogContent>
     </Dialog>

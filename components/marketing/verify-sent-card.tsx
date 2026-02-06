@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { authClient } from "@/lib/authClient";
 import { Mail } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { BASEURL } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -25,6 +25,8 @@ function isValidEmail(email: string) {
 }
 
 export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
+  const t = useTranslations("verify.sent");
+  const tVerify = useTranslations("verify");
   const [email, setEmail] = React.useState(initialEmail ?? "");
   const [status, setStatus] = React.useState<Status>({ kind: "idle" });
   const [cooldownLeft, setCooldownLeft] = React.useState(0);
@@ -32,25 +34,30 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
 
   React.useEffect(() => {
     if (cooldownLeft <= 0) return;
-    const t = window.setInterval(() => {
+    const timer = window.setInterval(() => {
       setCooldownLeft((s) => Math.max(0, s - 1));
     }, 1000);
 
-    return () => window.clearInterval(t);
+    return () => window.clearInterval(timer);
   }, [cooldownLeft]);
 
   const canSubmit = email.trim().length > 0 && isValidEmail(email);
 
   const onResend = async () => {
     if (!canSubmit) {
-      toast.error("Please provide a valid email address.");
+      toast.error(t("toast-invalid-email"));
       return;
     }
 
     if (cooldownLeft > 0) {
       setStatus({
         kind: "error",
-        message: `Please wait ${cooldownLeft > 60 ? `${Math.floor(cooldownLeft / 60)}:${cooldownLeft % 60}` : cooldownLeft}s before resending.`,
+        message: t("resend-cooldown", {
+          time:
+            cooldownLeft > 60
+              ? `${Math.floor(cooldownLeft / 60)}:${cooldownLeft % 60}`
+              : cooldownLeft,
+        }),
       });
       return;
     }
@@ -64,14 +71,14 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
       });
 
       if (error) {
-        toast.error("Something went wrong while sending your email.");
+        toast.error(t("toast-error"));
         return;
       }
-      toast.success("Verification email sent. Check your inbox (and spam).");
+      toast.success(t("toast-success"));
       setStatus({ kind: "idle" });
       setCooldownLeft(60 * 5);
     } catch {
-      toast.error("Something went wrong while sending your email.");
+      toast.error(t("toast-error"));
     }
   };
 
@@ -101,15 +108,10 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
         >
           <Alert>
             <Mail className="h-4 w-4" />
-            <AlertTitle>Check Your Inbox</AlertTitle>
+            <AlertTitle>{t("check-inbox-title")}</AlertTitle>
             <AlertDescription className="space-y-2">
-              <p>
-                We&apos;ve sent a verification link to your email address. Click
-                the link to verify your account.
-              </p>
-              <p className="text-xs">
-                If you don&apos;t see the email, check your spam or junk folder.
-              </p>
+              <p>{t("link-sent-description")}</p>
+              <p className="text-xs">{t("check-spam")}</p>
             </AlertDescription>
           </Alert>
         </motion.div>
@@ -121,14 +123,14 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
           className="space-y-3"
         >
           <Label htmlFor="verify-email" className="text-sm">
-            Need to resend? Enter your email
+            {t("resend-label")}
           </Label>
           <Input
             id="verify-email"
             type="email"
             inputMode="email"
             autoComplete="email"
-            placeholder="you@company.com"
+            placeholder={t("placeholder-email")}
             value={email}
             disabled={cooldownLeft > 0}
             onChange={(e) => {
@@ -147,11 +149,12 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
                 transition={{ duration: 0.2 }}
                 className="text-muted-foreground text-xs"
               >
-                You can resend in{" "}
-                {cooldownLeft > 60
-                  ? `${Math.floor(cooldownLeft / 60)}:${cooldownLeft % 60}`
-                  : cooldownLeft}{" "}
-                seconds
+                {t("resend-cooldown", {
+                  time:
+                    cooldownLeft > 60
+                      ? `${Math.floor(cooldownLeft / 60)}:${cooldownLeft % 60}`
+                      : cooldownLeft,
+                })}
               </motion.p>
             )}
           </AnimatePresence>
@@ -170,7 +173,7 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
               <div className="rounded-lg border bg-card px-4 py-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Spinner />
-                  <span>Sending verification email…</span>
+                  <span>{t("sending-email")}</span>
                 </div>
                 <div className="mt-2 h-1 w-full overflow-hidden rounded bg-muted">
                   <motion.div
@@ -197,7 +200,7 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
               transition={{ duration: 0.2 }}
             >
               <Alert>
-                <AlertTitle>Sent</AlertTitle>
+                <AlertTitle>{t("alert-sent")}</AlertTitle>
                 <AlertDescription>{status.message}</AlertDescription>
               </Alert>
             </motion.div>
@@ -212,7 +215,7 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
               transition={{ duration: 0.2 }}
             >
               <Alert variant="destructive">
-                <AlertTitle>Couldn&apos;t send</AlertTitle>
+                <AlertTitle>{t("alert-could-not-send")}</AlertTitle>
                 <AlertDescription>{status.message}</AlertDescription>
               </Alert>
             </motion.div>
@@ -232,7 +235,7 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
           onClick={() => window.location.assign("/login")}
           className="w-full sm:w-auto"
         >
-          Back to Login
+          {tVerify("back-to-login")}
         </Button>
 
         <Button
@@ -244,16 +247,16 @@ export function VerifySentCard({ initialEmail }: { initialEmail?: string }) {
           {status.kind === "loading" ? (
             <>
               <Spinner className="mr-2" />
-              Sending…
+              {t("sending-button")}
             </>
           ) : (
-            "Resend Email"
+            t("resend-button")
           )}
         </Button>
       </motion.div>
 
       <p className="text-center text-xs text-muted-foreground pt-4">
-        For your security, we won&apos;t tell you whether an email exists.
+        {t("security-note")}
       </p>
     </motion.div>
   );

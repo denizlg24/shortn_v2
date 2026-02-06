@@ -19,6 +19,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { authClient } from "@/lib/authClient";
 import { useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 const resetFormSchema = z
   .object({
@@ -36,6 +37,7 @@ const resetFormSchema = z
   });
 
 export const ChangePassword = ({ token }: { token: string }) => {
+  const t = useTranslations("reset");
   const [loading, setLoading] = useState(0);
   const [showPassword, toggleShowPassword] = useState(false);
   const [confirmShowPassword, toggleConfirmShowPassword] = useState(false);
@@ -55,10 +57,10 @@ export const ChangePassword = ({ token }: { token: string }) => {
       token,
     });
     if (!error) {
-      toast.success("Password updated, you can now login.");
+      toast.success(t("success"));
       router.push("/login");
     } else {
-      toast.error("There was a problem resetting your password.");
+      toast.error(t("error"));
       form.reset();
     }
     setLoading(0);
@@ -68,11 +70,9 @@ export const ChangePassword = ({ token }: { token: string }) => {
     <>
       <div className="flex flex-col gap-0 w-full text-center items-center">
         <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-          Update your password
+          {t("title")}
         </h1>
-        <h2 className="lg:text-lg md:text-base text-sm">
-          Enter your new password below to reset it.
-        </h2>
+        <h2 className="lg:text-lg md:text-base text-sm">{t("subtitle")}</h2>
       </div>
       <Form {...form}>
         <form
@@ -85,7 +85,8 @@ export const ChangePassword = ({ token }: { token: string }) => {
             render={({ field }) => (
               <FormItem className="relative">
                 <FormLabel>
-                  Password<span className="text-destructive text-xs">*</span>
+                  {t("password")}
+                  <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -114,7 +115,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
             render={({ field }) => (
               <FormItem className="relative">
                 <FormLabel>
-                  Repeat Password
+                  {t("repeat-password")}
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
@@ -139,7 +140,7 @@ export const ChangePassword = ({ token }: { token: string }) => {
             )}
           />
           <Button disabled={loading > 0} className="w-full" type="submit">
-            {loading == 1 ? "Updating..." : "Update password"}
+            {loading == 1 ? t("updating") : t("update-password")}
             {loading == 1 && <Loader2 className="animate-spin" />}
           </Button>
         </form>

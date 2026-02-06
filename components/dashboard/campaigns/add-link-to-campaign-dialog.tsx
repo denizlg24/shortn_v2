@@ -23,6 +23,7 @@ import { searchUserLinks, addLinkToCampaign } from "@/app/actions/linkActions";
 import { Check, ExternalLink, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface LinkResult {
   _id: string;
@@ -41,6 +42,7 @@ export const AddLinkToCampaignDialog = ({
   trigger?: React.ReactNode;
   onLinkAdded?: (link: { urlCode: string; title: string }) => void;
 }) => {
+  const t = useTranslations("add-link-campaign");
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -74,7 +76,7 @@ export const AddLinkToCampaignDialog = ({
     });
 
     if (result.success) {
-      toast.success(`Added "${link.title || link.urlCode}" to campaign`);
+      toast.success(t("added-success", { title: link.title || link.urlCode }));
       setOpen(false);
       if (onLinkAdded) {
         onLinkAdded({
@@ -87,13 +89,13 @@ export const AddLinkToCampaignDialog = ({
     } else {
       switch (result.message) {
         case "already-in-campaign":
-          toast.error("This link is already in the campaign");
+          toast.error(t("already-in-campaign"));
           break;
         case "url-not-found":
-          toast.error("Link not found");
+          toast.error(t("link-not-found"));
           break;
         default:
-          toast.error("Failed to add link to campaign");
+          toast.error(t("failed"));
       }
     }
     setAdding(null);
@@ -113,20 +115,20 @@ export const AddLinkToCampaignDialog = ({
       <DialogTrigger asChild>
         {trigger || (
           <Button>
-            Add a Link <Plus />
+            {t("add-link")} <Plus />
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add Link to Campaign</DialogTitle>
+          <DialogTitle>{t("title")}</DialogTitle>
           <DialogDescription>
-            Search for a link to add to &quot;{campaignTitle}&quot;
+            {t("description", { campaign: campaignTitle })}
           </DialogDescription>
         </DialogHeader>
         <Command className="rounded-lg border" shouldFilter={false}>
           <CommandInput
-            placeholder="Search links by title, URL, or code..."
+            placeholder={t("search-placeholder")}
             value={query}
             onValueChange={setQuery}
           />
@@ -137,9 +139,7 @@ export const AddLinkToCampaignDialog = ({
               </div>
             ) : links.length === 0 ? (
               <CommandEmpty>
-                {query
-                  ? "No links found matching your search"
-                  : "No links available to add"}
+                {query ? t("no-results") : t("no-links")}
               </CommandEmpty>
             ) : (
               <CommandGroup>

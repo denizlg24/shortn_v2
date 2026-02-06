@@ -7,8 +7,11 @@ import ctaImg from "@/public/dashboard-pages-inspire-action.webp";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 export const PagesCTA = ({ className }: { className?: string }) => {
+  const t = useTranslations("dashboard.pages-cta");
+
   return (
     <Card
       className={cn(
@@ -23,15 +26,12 @@ export const PagesCTA = ({ className }: { className?: string }) => {
       />
       <div className="grow flex flex-col gap-4">
         <h1 className="font-bold lg:text-xl md:text-lg text-base">
-          Pages that inspire action
+          {t("title")}
         </h1>
-        <p className="md:text-sm text-xs">
-          Customize your page with ease, track user engagement, and turn visits
-          into conversions.
-        </p>
+        <p className="md:text-sm text-xs">{t("description")}</p>
         <Button variant="outline" asChild>
           <Link href={`/dashboard/pages`}>
-            Get Started <ArrowRight className="text-primary" />
+            {t("get-started")} <ArrowRight className="text-primary" />
           </Link>
         </Button>
       </div>

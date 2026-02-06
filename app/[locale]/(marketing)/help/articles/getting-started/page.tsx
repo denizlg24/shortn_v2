@@ -2,146 +2,122 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "@/i18n/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { setRequestLocale } from "next-intl/server";
-import { use } from "react";
+import { setRequestLocale, getTranslations } from "next-intl/server";
 
-export default function GettingStarted({
+export default async function GettingStarted({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = use<{ locale: string }>(params);
+  const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations("help-getting-started");
+  const tCommon = await getTranslations("help-common");
 
   return (
     <main className="flex flex-col items-start w-full max-w-4xl mx-auto px-4 py-12 gap-8">
       <Button asChild variant="ghost" size="sm">
         <Link href="/help">
           <ArrowLeft className="w-4 h-4" />
-          Back to Help
+          {tCommon("back-to-help")}
         </Link>
       </Button>
 
       <div className="w-full space-y-2">
-        <h1 className="text-4xl md:text-5xl font-bold">
-          Getting Started with Shortn
-        </h1>
-        <p className="text-lg text-muted-foreground">
-          Everything you need to know to start shortening links and tracking
-          engagement
-        </p>
+        <h1 className="text-4xl md:text-5xl font-bold">{t("title")}</h1>
+        <p className="text-lg text-muted-foreground">{t("subtitle")}</p>
       </div>
 
       <Separator />
 
       <article className="w-full space-y-8 text-base leading-relaxed">
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Welcome to Shortn</h2>
-          <p className="text-muted-foreground">
-            Shortn is your all-in-one link management platform. Whether
-            you&apos;re a marketer, creator, or business owner, we help you
-            create short links, track engagement, and understand your audience
-            better.
-          </p>
-          {/* [SCREENSHOT: Dashboard home view] */}
+          <h2 className="text-2xl font-semibold">{t("welcome-title")}</h2>
+          <p className="text-muted-foreground">{t("welcome-text")}</p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">
-            Creating Your First Short Link
-          </h2>
-          <p className="text-muted-foreground">Getting started is simple:</p>
+          <h2 className="text-2xl font-semibold">{t("first-link-title")}</h2>
+          <p className="text-muted-foreground">{t("first-link-intro")}</p>
           <ol className="list-decimal pl-6 space-y-3 text-muted-foreground">
-            <li>
-              From your dashboard, paste any URL into the quick create box
-            </li>
-            <li>
-              Click &quot;Shorten&quot; to generate your short link instantly
-            </li>
-            <li>Copy and share your new shortn.at link anywhere</li>
+            <li>{t("first-link-step1")}</li>
+            <li>{t("first-link-step2")}</li>
+            <li>{t("first-link-step3")}</li>
           </ol>
-          {/* [SCREENSHOT: Quick create widget with URL input] */}
-          <p className="text-muted-foreground mt-4">
-            That&apos;s it! Your link is now live and ready to track clicks.
-            Want more control? Click on the link to access advanced options like
-            custom back-halves, tags, and password protection.
-          </p>
+          <p className="text-muted-foreground mt-4">{t("first-link-outro")}</p>
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Understanding Plans</h2>
-          <p className="text-muted-foreground">
-            Shortn offers four plans to fit your needs:
-          </p>
+          <h2 className="text-2xl font-semibold">{t("plans-title")}</h2>
+          <p className="text-muted-foreground">{t("plans-intro")}</p>
           <div className="space-y-4 mt-4">
             <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Free Plan</h3>
+              <h3 className="font-semibold mb-2">{t("plan-free-title")}</h3>
               <p className="text-sm text-muted-foreground">
-                Perfect for trying out Shortn. Create up to 3 links and 3 QR
-                codes per month.
+                {t("plan-free-text")}
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Basic Plan - $5/month</h3>
+              <h3 className="font-semibold mb-2">{t("plan-basic-title")}</h3>
               <p className="text-sm text-muted-foreground">
-                25 links and QR codes monthly with basic click tracking.
+                {t("plan-basic-text")}
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Plus Plan - $15/month</h3>
+              <h3 className="font-semibold mb-2">{t("plan-plus-title")}</h3>
               <p className="text-sm text-muted-foreground">
-                50 links monthly with time-based analytics and location data.
+                {t("plan-plus-text")}
               </p>
             </div>
             <div className="p-4 bg-muted rounded-lg">
-              <h3 className="font-semibold mb-2">Pro Plan - $25/month</h3>
+              <h3 className="font-semibold mb-2">{t("plan-pro-title")}</h3>
               <p className="text-sm text-muted-foreground">
-                Unlimited links, full analytics, custom domains, bio pages,
-                campaigns, and more.
+                {t("plan-pro-text")}
               </p>
             </div>
           </div>
-          {/* [SCREENSHOT: Pricing comparison table] */}
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">Navigating the Dashboard</h2>
-          <p className="text-muted-foreground">
-            Your dashboard is organized into key sections:
-          </p>
+          <h2 className="text-2xl font-semibold">{t("nav-title")}</h2>
+          <p className="text-muted-foreground">{t("nav-intro")}</p>
           <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
             <li>
-              <strong>Home:</strong> Quick link creation and recent activity
-              overview
+              {t.rich("nav-home", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Links:</strong> Manage all your shortened links in one
-              place
+              {t.rich("nav-links", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>QR Codes:</strong> Create and customize QR codes for your
-              links
+              {t.rich("nav-qr", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Campaigns:</strong> Organize links by marketing campaigns
-              (Pro only)
+              {t.rich("nav-campaigns", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Pages:</strong> Build custom link-in-bio pages (Pro only)
+              {t.rich("nav-pages", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
             <li>
-              <strong>Settings:</strong> Manage your account and preferences
+              {t.rich("nav-settings", {
+                strong: (chunks) => <strong>{chunks}</strong>,
+              })}
             </li>
           </ul>
-          {/* [SCREENSHOT: Dashboard sidebar navigation] */}
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-2xl font-semibold">What&apos;s Next?</h2>
-          <p className="text-muted-foreground">
-            Now that you&apos;re familiar with the basics, explore these guides:
-          </p>
+          <h2 className="text-2xl font-semibold">{t("next-title")}</h2>
+          <p className="text-muted-foreground">{t("next-intro")}</p>
           <div className="grid gap-3 mt-4">
             <Button
               asChild
@@ -149,7 +125,7 @@ export default function GettingStarted({
               className="justify-between h-auto p-4"
             >
               <Link href="/help/articles/links/creating-links">
-                <span>Learn about advanced link features</span>
+                <span>{t("link-advanced")}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -159,7 +135,7 @@ export default function GettingStarted({
               className="justify-between h-auto p-4"
             >
               <Link href="/help/articles/qr-codes/creating-qr-codes">
-                <span>Create your first QR code</span>
+                <span>{t("link-qr")}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -169,7 +145,7 @@ export default function GettingStarted({
               className="justify-between h-auto p-4"
             >
               <Link href="/help/articles/analytics/understanding-analytics">
-                <span>Understanding your analytics</span>
+                <span>{t("link-analytics")}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </Button>
@@ -183,12 +159,12 @@ export default function GettingStarted({
         <Button asChild variant="ghost">
           <Link href="/help">
             <ArrowLeft className="w-4 h-4" />
-            Back to Help
+            {tCommon("back-to-help")}
           </Link>
         </Button>
         <Button asChild variant="outline">
           <Link href="/help/articles/links/creating-links">
-            Next: Creating Links
+            {tCommon("next", { title: t("next-creating-links") })}
             <ArrowRight className="w-4 h-4" />
           </Link>
         </Button>

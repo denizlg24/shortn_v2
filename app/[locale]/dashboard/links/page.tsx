@@ -267,24 +267,27 @@ export default async function Home({
     bioPageSlug: linkToBioPageMap.get(String(link._id)),
   }));
 
+  const t = await getTranslations("dashboard.links");
+
   return (
     <main className="flex flex-col items-center w-full mx-auto md:gap-0 gap-2 bg-accent px-4 sm:pt-14! pt-6! pb-16">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-6 gap-6">
         <div className="col-span-full flex flex-col gap-1">
           <h1 className="lg:text-3xl md:text-2xl sm:text-xl text-lg font-bold">
-            Your Shortn Links
+            {t("title")}
           </h1>
           <p className="text-xs text-muted-foreground">
             {total > 0
-              ? `Displaying ${(filters.page - 1) * filters.limit + 1}-${Math.min(filters.page * filters.limit, total)} of ${total} link${total !== 1 ? "s" : ""}`
-              : "No links found"}
+              ? t("displaying", {
+                  start: (filters.page - 1) * filters.limit + 1,
+                  end: Math.min(filters.page * filters.limit, total),
+                  total: total,
+                })
+              : t("no-links-found")}
           </p>
         </div>
         <LinkFilterBar />
-        <SortingControls
-          label="Sort links by"
-          className="-mt-3 col-span-full"
-        />
+        <SortingControls label={t("sort-by")} className="-mt-3 col-span-full" />
 
         <LinkContainer
           links={linksWithBioPageSlug}
