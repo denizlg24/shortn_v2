@@ -724,7 +724,6 @@
     "requesting": "Requesting...",
     "requested-title": "Email Change Requested",
     "requested-subtitle": "We've sent verification links to both your current and new email addresses. Please check both inboxes and follow the instructions.",
-
     "please-wait-verifying": "Please wait while we verify your email address.",
     "verifying-email-progress": "Verifying your email…",
     "welcome-aboard": "Welcome Aboard",
@@ -737,11 +736,9 @@
     "check-latest-link": "Check if you're using the latest link",
     "try-new-account": "Try creating a new account if the issue persists",
     "create-account": "Create Account",
-
     "missing-token": "This verification link is missing a token.",
     "invalid-or-expired": "This verification link is invalid or has expired.",
     "verify-error-try-again": "We couldn't verify your email right now. Please try again.",
-
     "sent": {
       "title": "Check your inbox",
       "subtitle": "We've sent a verification link to your email.",
@@ -761,7 +758,6 @@
       "toast-error": "Something went wrong while sending your email.",
       "toast-success": "Verification email sent. Check your inbox (and spam)."
     },
-
     "requested": {
       "title": "Email Change Request Sent",
       "subtitle": "We've sent a confirmation email to your current email address.",
@@ -774,7 +770,6 @@
       "step-3": "Your email address will be updated",
       "security-expire": "For your security, this request will expire in 30 minutes."
     },
-
     "request-change": {
       "verifying-request-title": "Verifying your request",
       "verifying-request-subtitle": "This will only take a moment.",
@@ -3162,5 +3157,33 @@
       "linkedin-url": "Please enter a valid LinkedIn URL (e.g., linkedin.com/in/username)",
       "whatsapp-url": "Please enter a valid WhatsApp URL (e.g., wa.me/1234567890)"
     }
+  },
+  "dashboard-settings-plan": {
+    "plan-and-billing": "Plan & Billing",
+    "manage-your-subscription-plan-us": "Manage your subscription plan, usage, and billing details.",
+    "upgrade": "Upgrade",
+    "change-plan": "Change Plan",
+    "included-in-your-plan": "Included in your plan",
+    "unlimited": "Unlimited",
+    "shortn-at-links-allowed-per-mont": "{count} shortn.at links allowed per month.",
+    "qr-codes-allowed-per-month": "QR Codes allowed per month.",
+    "total-click-and-scan-count": "Total click and scan count",
+    "time-and-date-based-analytics": "Time and Date-Based Analytics",
+    "city-level-location-insights": "City level location Insights",
+    "device-browser-and-os-details": "Device, Browser and OS details",
+    "source-tracking": "Source Tracking",
+    "monthly-usage": "Monthly usage",
+    "short-links": "Short Links",
+    "qr-codes": "QR Codes",
+    "your-short-link-usage-for-the-mo": "Your short link usage for the month of",
+    "total-active-links": "Total active links:",
+    "your-qr-code-usage-for-the-month": "Your QR Code usage for the month of",
+    "total-active-codes": "Total active codes:",
+    "billing-management": "Billing Management",
+    "manage-your-payment-methods-view": "Manage your payment methods, view invoices, update billing information, and access your complete billing history through our secure billing portal.",
+    "open-billing-portal": "Open Billing Portal"
+  },
+  "settings-layout": {
+    "your-settings": "Your Settings"
   }
 }
