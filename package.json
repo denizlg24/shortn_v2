@@ -66,7 +66,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/whatwg-url": "^13.0.0",
     "@upstash/qstash": "^2.8.4",
-    "@vercel/functions": "^3.3.3",
+    "@vercel/functions": "^3.4.1",
     "@vercel/otel": "^2.1.0",
     "babel-plugin-react-compiler": "^1.0.0",
     "bcryptjs": "^3.0.3",
