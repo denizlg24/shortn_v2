@@ -1,0 +1,11 @@
+
+version = 1
+project_id = "6de40e71-f4b7-41f0-ba95-f511c8a6fbfa"
+name = "ShortnV2"
+
+default_remote = "origin"
+
+[remotes]
+origin = "https://envoy-cli.vercel.app/api"
+
+
