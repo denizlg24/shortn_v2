@@ -103,35 +103,25 @@ export async function POST(req: NextRequest) {
         }
 
         const executeAt = new Date(subscription.currentPeriodEnd);
-        const delayInSeconds = Math.floor(
-          (executeAt.getTime() - Date.now()) / 1000,
-        );
 
-        const QSTASH_MAX_DELAY = 604800;
-        let qstashMessageId: string | undefined;
+        const { createSchedule } = await import("@/lib/scheduler");
 
-        if (delayInSeconds <= QSTASH_MAX_DELAY && delayInSeconds > 0) {
-          const { qstashClient } = await import("@/lib/qstash");
+        const scheduleResult = await createSchedule({
+          url: `${getBaseUrl()}/api/polar/execute-downgrade`,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${env.INTERNAL_API_SECRET}`,
+          },
+          body: {
+            subscriptionId: id,
+            newProductId,
+            customerId: subscription.customerId,
+            targetPlan: parsed.data.slug,
+          },
+          run_at: executeAt.toISOString(),
+        });
 
-          const result = await qstashClient.publishJSON({
-            retries: 1,
-            body: {
-              subscriptionId: id,
-              newProductId,
-              customerId: subscription.customerId,
-              targetPlan: parsed.data.slug,
-            },
-            url: `${getBaseUrl()}/api/polar/execute-downgrade`,
-            delay: delayInSeconds,
-          });
-
-          qstashMessageId = result.messageId;
-          console.log(`Scheduled downgrade with QStash: ${result.messageId}`);
-        } else {
-          console.log(
-            `Delay exceeds QStash limit (${delayInSeconds}s > ${QSTASH_MAX_DELAY}s). Will rely on period end webhook.`,
-          );
-        }
+        console.log(`Scheduled downgrade with scheduler: ${scheduleResult.id}`);
 
         const scheduledChange = await ScheduledChange.create({
           userId: authResult.user!.id,
@@ -140,7 +130,7 @@ export async function POST(req: NextRequest) {
           currentPlan,
           targetPlan: parsed.data.slug as SubscriptionsType,
           scheduledFor: executeAt,
-          qstashMessageId,
+          qstashMessageId: scheduleResult.id,
           status: "pending",
         });
 
@@ -157,7 +147,7 @@ export async function POST(req: NextRequest) {
           signature: signSubscriptionId(subscription.id),
           isDowngrade: true,
           scheduledFor: executeAt.toISOString(),
-          qstashMessageId,
+          schedulerJobId: scheduleResult.id,
           changeId: scheduledChange._id,
         });
       }

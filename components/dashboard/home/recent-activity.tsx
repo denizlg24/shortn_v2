@@ -87,7 +87,7 @@ const QRCodeItem = ({
 }) => {
   return (
     <Link
-      href={`/dashboard/qr-codes/${qrCode.qrCodeId}`}
+      href={`/dashboard/qr-codes/${qrCode.qrCodeId}/details`}
       className="flex items-center justify-between p-3 rounded-lg hover:bg-accent/50 transition-colors group"
     >
       <div className="flex items-start gap-3 flex-1 min-w-0">

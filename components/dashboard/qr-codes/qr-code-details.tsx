@@ -20,7 +20,7 @@ export const QRCodeDetails = async ({
 }) => {
   const session = await getServerSession();
   const { plan } = await getUserPlan();
-  const t = await getTranslations("dashboard");
+  const t = await getTranslations("loading");
   if (!session?.user) {
     redirect({ href: "/dashboard/logout", locale: locale });
     return;
