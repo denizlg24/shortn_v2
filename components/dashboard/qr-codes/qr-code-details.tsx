@@ -1,4 +1,4 @@
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { Button } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { ChevronLeft } from "lucide-react";
@@ -15,12 +15,12 @@ export const QRCodeDetails = async ({
   qr,
   locale,
 }: {
-  qr: IQRCode;
+  qr: TQRCode;
   locale: string;
 }) => {
   const session = await getServerSession();
   const { plan } = await getUserPlan();
-  const t = await getTranslations("dashboard");
+  const t = await getTranslations("loading");
   if (!session?.user) {
     redirect({ href: "/dashboard/logout", locale: locale });
     return;
@@ -38,9 +38,7 @@ export const QRCodeDetails = async ({
               {t("qr-code-details-back")}
             </Link>
           </Button>
-          <QRCodeDetailsCard
-            qrCode={{ ...qr, _id: (qr._id as string).toString() }}
-          />
+          <QRCodeDetailsCard qrCode={qr} />
           <QRCodeTimeAnalytics
             createdAt={qr.date}
             unlocked={plan == "plus" || plan == "pro"}

@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useRouter } from "@/i18n/navigation";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -32,7 +32,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";
 import { Check, ChevronsUpDown, LockIcon, X } from "lucide-react";
 import { createTag } from "@/app/actions/tagActions";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -53,7 +53,7 @@ import {
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
 
-export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
+export const QRCodeEditContent = ({ qrCode }: { qrCode: TQRCode }) => {
   const t = useTranslations("qr-code-edit");
 
   const qrCodeFormSchema = z.object({
@@ -96,9 +96,9 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagT[]>([]);
 
-  const [tags, setTags] = useState<ITag[]>((qrCode.tags as ITag[]) || []);
+  const [tags, setTags] = useState<TagT[]>((qrCode.tags as TagT[]) || []);
 
   const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
@@ -113,7 +113,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
     }
 
     if (input.trim() === "") {
-      fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+      fetchApi<{ tags: TagT[] }>("tags").then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -131,7 +131,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        fetchApi<{ tags: TagT[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
           } else {
@@ -140,7 +140,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
         });
         return;
       }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+      fetchApi<{ tags: TagT[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -321,7 +321,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
-                                    const n = [...prev, response.tag as ITag];
+                                    const n = [...prev, response.tag as TagT];
                                     return n;
                                   });
                                   setInput("");
@@ -346,7 +346,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                         <Button
                           variant={"secondary"}
                           onClick={() => {
-                            setTags(qrCode.tags as ITag[]);
+                            setTags(qrCode.tags as TagT[]);
                             setOpen(false);
                           }}
                         >
@@ -459,7 +459,7 @@ export const QRCodeEditContent = ({ qrCode }: { qrCode: IQRCode }) => {
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
-                                    const n = [...prev, response.tag as ITag];
+                                    const n = [...prev, response.tag as TagT];
                                     return n;
                                   });
                                   setInput("");

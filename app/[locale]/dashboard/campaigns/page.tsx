@@ -153,7 +153,7 @@ export default async function Home({
                   <div className="w-full flex xs:flex-row flex-col items-center justify-between gap-2">
                     <div className="w-full xs:max-w-[70%] truncate flex xs:flex-col flex-row max-w-full xs:justify-start justify-between gap-1">
                       <Link
-                        href={`/dashboard/campaigns/${(campaign._id as string).toString()}`}
+                        href={`/dashboard/campaigns/${campaign._id.toString()}`}
                         className="font-bold lg:text-xl md:text-lg text-base hover:underline underline-offset-4 truncate"
                       >
                         {campaign.title}
@@ -169,7 +169,7 @@ export default async function Home({
                       className="xs:max-w-fit! max-w-full! w-full"
                     >
                       <Link
-                        href={`/dashboard/campaigns/${(campaign._id as string).toString()}`}
+                        href={`/dashboard/campaigns/${campaign._id.toString()}`}
                       >
                         {t("view-links")} <LinkIcon />
                       </Link>

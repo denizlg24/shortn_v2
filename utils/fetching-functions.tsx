@@ -1,7 +1,7 @@
 import { getUserPlan } from "@/app/actions/polarActions";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
-import Clicks, { ClickEntry } from "@/models/url/Click";
+import Clicks, { TClickEntry } from "@/models/url/Click";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 
@@ -72,7 +72,7 @@ export const getClicks = async (
       query.timestamp = dateFilter;
     }
     const clicks = await Clicks.find(query).lean();
-    let filtered: ClickEntry[] = [];
+    let filtered: TClickEntry[] = [];
     switch (plan) {
       case "free":
       case "basic":
@@ -138,7 +138,7 @@ export const getScans = async (
       query.timestamp = dateFilter;
     }
     const clicks = await Clicks.find(query).lean();
-    let filtered: ClickEntry[] = [];
+    let filtered: TClickEntry[] = [];
     switch (plan) {
       case "free":
       case "basic":

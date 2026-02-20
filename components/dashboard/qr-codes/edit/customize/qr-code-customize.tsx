@@ -6,7 +6,7 @@ import InputColor from "@/components/ui/color-input";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { Loader2, LockIcon, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useRef, useState } from "react";
@@ -43,7 +43,7 @@ import {
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
 
-export const QRCodeCustomize = ({ qrCode }: { qrCode: IQRCode }) => {
+export const QRCodeCustomize = ({ qrCode }: { qrCode: TQRCode }) => {
   const t = useTranslations("qr-code-customize");
   const [options, setOptions] = useState<Partial<Options>>(qrCode.options);
 

@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { QRCodeCreate } from "./qr-code-create";
 
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { QRCodeAttach } from "./qr-code-attatch";
 
-export const QRCodeCreateRouter = ({ link }: { link: IUrl | undefined }) => {
+export const QRCodeCreateRouter = ({ link }: { link: TUrl | undefined }) => {
   const [state, setState] = useState<
     "configure" | "customize" | "attachToLink" | undefined
   >(link ? "attachToLink" : "configure");

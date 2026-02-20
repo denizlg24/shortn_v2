@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "@/i18n/navigation";
 import { BASEURL } from "@/lib/utils";
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, LockIcon } from "lucide-react";
 import { useState } from "react";
@@ -22,7 +22,7 @@ import { z } from "zod";
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
 
-export const CreatePage = ({ url }: { url?: IUrl }) => {
+export const CreatePage = ({ url }: { url?: TUrl }) => {
   const t = useTranslations("create-page");
   const { plan } = usePlan();
   const [creating, setCreating] = useState(false);

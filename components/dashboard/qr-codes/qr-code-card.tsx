@@ -22,7 +22,7 @@ import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { TQRCode } from "@/models/url/QRCodeV2";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { format } from "date-fns";
 import {
   Calendar,
@@ -74,7 +74,7 @@ export const QRCodeCard = ({
   addTag: (tagId: string) => void;
   removeTag: (tagId: string) => void;
   tags: string[];
-  tagOptions?: ITag[];
+  tagOptions?: TagT[];
   onTagSearchChange?: (search: string) => void;
   linksLeft?: number;
 }) => {

@@ -6,8 +6,8 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link } from "@/i18n/navigation";
 import { fetchApi } from "@/lib/utils";
-import { IQRCode } from "@/models/url/QRCodeV2";
-import { IUrl } from "@/models/url/UrlV3";
+import { TQRCode } from "@/models/url/QRCodeV2";
+import { TUrl } from "@/models/url/UrlV3";
 import {
   ChartNoAxesColumn,
   Download,
@@ -28,8 +28,8 @@ export const LinkAdditionsCard = ({
   url,
   subscription,
 }: {
-  qrCode: IQRCode | undefined;
-  url: IUrl;
+  qrCode: TQRCode | undefined;
+  url: TUrl;
   subscription: string;
 }) => {
   const t = useTranslations("link-additions");
