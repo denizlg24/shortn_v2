@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { DownloadButtonCSV } from "./download-csv-button";
 import { useTranslations } from "next-intl";
 
@@ -43,7 +43,7 @@ export const LinkStackedSourceData = ({
 }: {
   unlocked: boolean;
   createdAt: Date;
-  initialClicks: ClickEntry[];
+  initialClicks: TClickEntry[];
 }) => {
   const t = useTranslations("link-stacked-source-data");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -51,7 +51,7 @@ export const LinkStackedSourceData = ({
   const [mobileStartOpened, mobileStartOpen] = useState(false);
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks, urlCode } = useClicks();
-  const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
+  const [clicks, setClicks] = useState<TClickEntry[]>(initialClicks);
   const [loading, setLoading] = useState(false);
 
   const dateRangeOptions = [

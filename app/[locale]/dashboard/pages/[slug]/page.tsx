@@ -50,7 +50,7 @@ export default async function Page({
       addedAt?: Date;
     }[]
   ).map((link) => ({
-    _id: (link.link._id as string).toString(),
+    _id: link.link._id.toString(),
     shortUrl: `${BASEURL}/${link.link.urlCode}`,
     title: link.link.title || "",
     createdAt: link.link.date || new Date(),

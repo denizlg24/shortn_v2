@@ -30,9 +30,9 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { cn, fetchApi } from "@/lib/utils";
 import { Check, ChevronsUpDown, LockIcon, X } from "lucide-react";
 import { createTag } from "@/app/actions/tagActions";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { Switch } from "@/components/ui/switch";
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { updateShortnData } from "@/app/actions/linkActions";
 import {
   HoverCard,
@@ -53,7 +53,7 @@ import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
 
-export const LinksEditContent = ({ url }: { url: IUrl }) => {
+export const LinksEditContent = ({ url }: { url: TUrl }) => {
   const t = useTranslations("link-edit");
 
   const urlFormSchema = z.object({
@@ -106,9 +106,9 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
 
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagT[]>([]);
 
-  const [tags, setTags] = useState<ITag[]>((url.tags as ITag[]) || []);
+  const [tags, setTags] = useState<TagT[]>((url.tags as TagT[]) || []);
 
   const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
@@ -122,7 +122,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
     }
 
     if (input.trim() === "") {
-      fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+      fetchApi<{ tags: TagT[] }>("tags").then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -140,7 +140,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
 
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        fetchApi<{ tags: TagT[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
           } else {
@@ -149,7 +149,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
         });
         return;
       }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+      fetchApi<{ tags: TagT[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -390,7 +390,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
-                                    const n = [...prev, response.tag as ITag];
+                                    const n = [...prev, response.tag as TagT];
                                     return n;
                                   });
                                   setInput("");
@@ -415,7 +415,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                         <Button
                           variant={"secondary"}
                           onClick={() => {
-                            setTags(url.tags as ITag[]);
+                            setTags(url.tags as TagT[]);
                             setOpen(false);
                           }}
                         >
@@ -528,7 +528,7 @@ export const LinksEditContent = ({ url }: { url: IUrl }) => {
                                 const response = await createTag(input);
                                 if (response.success && response.tag) {
                                   setTags((prev) => {
-                                    const n = [...prev, response.tag as ITag];
+                                    const n = [...prev, response.tag as TagT];
                                     return n;
                                   });
                                   setInput("");

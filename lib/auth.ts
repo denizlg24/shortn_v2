@@ -404,9 +404,8 @@ const options = {
           onSubscriptionCreated: async (payload) => {
             console.log("Subscription created:", payload.data.id);
             try {
-              const { sendSubscriptionCreatedEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendSubscriptionCreatedEmail } =
+                await import("@/lib/subscription-email-helpers");
               const user = payload.data.customer;
               if (!user) return;
 
@@ -500,9 +499,8 @@ const options = {
             }
 
             try {
-              const { sendSubscriptionActiveEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendSubscriptionActiveEmail } =
+                await import("@/lib/subscription-email-helpers");
               const user = payload.data.customer;
               if (!user) return;
 
@@ -522,9 +520,8 @@ const options = {
           onSubscriptionCanceled: async (payload) => {
             console.log("Subscription canceled:", payload.data.id);
             try {
-              const { sendSubscriptionCanceledEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendSubscriptionCanceledEmail } =
+                await import("@/lib/subscription-email-helpers");
 
               const user = payload.data.customer;
               if (!user) return;
@@ -546,12 +543,10 @@ const options = {
                 existingScheduledChange &&
                 existingScheduledChange.qstashMessageId
               ) {
-                const { qstashClient } = await import("@/lib/qstash");
-                await qstashClient.messages.delete(
-                  existingScheduledChange.qstashMessageId,
-                );
+                const { deleteSchedule } = await import("@/lib/scheduler");
+                await deleteSchedule(existingScheduledChange.qstashMessageId);
                 console.log(
-                  `Deleted QStash message: ${existingScheduledChange.qstashMessageId}`,
+                  `Deleted scheduler job: ${existingScheduledChange.qstashMessageId}`,
                 );
               }
               const endDate =
@@ -604,8 +599,6 @@ const options = {
               const ScheduledChange = (
                 await import("@/models/subscription/ScheduledChange")
               ).default;
-              const { qstashClient } = await import("@/lib/qstash");
-
               await connectDB();
 
               const pendingChange = await ScheduledChange.findOne({
@@ -620,14 +613,13 @@ const options = {
 
                 if (pendingChange.qstashMessageId) {
                   try {
-                    await qstashClient.messages.delete(
-                      pendingChange.qstashMessageId,
-                    );
+                    const { deleteSchedule } = await import("@/lib/scheduler");
+                    await deleteSchedule(pendingChange.qstashMessageId);
                     console.log(
-                      `Deleted QStash message: ${pendingChange.qstashMessageId}`,
+                      `Deleted scheduler job: ${pendingChange.qstashMessageId}`,
                     );
                   } catch (error) {
-                    console.error("Failed to delete QStash message:", error);
+                    console.error("Failed to delete scheduler job:", error);
                   }
                 }
 
@@ -643,9 +635,8 @@ const options = {
             }
 
             try {
-              const { sendSubscriptionUncanceledEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendSubscriptionUncanceledEmail } =
+                await import("@/lib/subscription-email-helpers");
               const user = payload.data.customer;
               if (!user) return;
 
@@ -668,9 +659,8 @@ const options = {
           onSubscriptionRevoked: async (payload) => {
             console.log("Subscription revoked:", payload.data.id);
             try {
-              const { sendSubscriptionRevokedEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendSubscriptionRevokedEmail } =
+                await import("@/lib/subscription-email-helpers");
               const user = payload.data.customer;
               if (!user) return;
 
@@ -687,9 +677,8 @@ const options = {
           onOrderRefunded: async (payload) => {
             console.log("Order refunded:", payload.data.id);
             try {
-              const { sendOrderRefundedEmail } = await import(
-                "@/lib/subscription-email-helpers"
-              );
+              const { sendOrderRefundedEmail } =
+                await import("@/lib/subscription-email-helpers");
               const user = payload.data.customer;
               if (!user) return;
 

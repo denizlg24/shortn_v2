@@ -43,7 +43,7 @@ import { Popover, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
 import {
@@ -88,7 +88,7 @@ export const LinkCard = ({
   addTag: (_tagId: string) => void;
   removeTag: (_tagId: string) => void;
   tags: string[];
-  tagOptions?: ITag[];
+  tagOptions?: TagT[];
   onTagSearchChange?: (search: string) => void;
 }) => {
   const { plan } = usePlan();
@@ -156,7 +156,7 @@ export const LinkCard = ({
       const response = await updateShortnData({
         urlCode: currentLink.urlCode,
         title: currentLink.title || "",
-        tags: (currentLink.tags || []) as ITag[],
+        tags: (currentLink.tags || []) as TagT[],
         applyToQRCode: false,
         longUrl: currentLink.longUrl,
         password: password,
@@ -191,7 +191,7 @@ export const LinkCard = ({
       const response = await updateShortnData({
         urlCode: currentLink.urlCode,
         title: currentLink.title || "",
-        tags: (currentLink.tags || []) as ITag[],
+        tags: (currentLink.tags || []) as TagT[],
         applyToQRCode: false,
         longUrl: currentLink.longUrl,
         removePassword: true,
@@ -543,7 +543,7 @@ export const LinkCard = ({
                 </Button>
               ) : isPro ? (
                 <AddToBioPageDialog
-                  linkId={currentLink._id as string}
+                  linkId={currentLink._id}
                   linkTitle={currentLink.title || "Link"}
                   onSuccess={(slug) => setBioPageSlug(slug)}
                   trigger={
@@ -707,9 +707,7 @@ export const LinkCard = ({
                                   setCurrentLink((prev) => ({
                                     ...prev,
                                     tags: prev.tags?.filter(
-                                      (_t) =>
-                                        (_t._id as string).toString() !=
-                                        (tag._id as string).toString(),
+                                      (_t) => String(_t._id) != String(tag._id),
                                     ),
                                   }));
                                   tagOpenChange(false);
@@ -736,7 +734,7 @@ export const LinkCard = ({
                                 currentLink.tags?.some(
                                   (_tag) =>
                                     (_tag._id as string).toString() ==
-                                    (tag._id as string).toString(),
+                                    String(tag._id),
                                 )
                                   ? "opacity-100"
                                   : "opacity-0",
@@ -830,7 +828,7 @@ export const LinkCard = ({
                 </Button>
               ) : isPro ? (
                 <AddToBioPageDialog
-                  linkId={currentLink._id as string}
+                  linkId={currentLink._id}
                   linkTitle={currentLink.title || "Link"}
                   onSuccess={(slug) => setBioPageSlug(slug)}
                   trigger={
@@ -1054,7 +1052,7 @@ export const LinkCard = ({
               </Button>
             ) : isPro ? (
               <AddToBioPageDialog
-                linkId={currentLink._id as string}
+                linkId={currentLink._id}
                 linkTitle={currentLink.title || "Link"}
                 onSuccess={(slug) => setBioPageSlug(slug)}
                 trigger={

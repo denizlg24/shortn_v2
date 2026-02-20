@@ -44,7 +44,7 @@ export async function createAndAddTagToUrl(tagName: string, urlCode: string) {
       tagName: tag.tagName,
       id: tag.id,
       sub: tag.sub,
-      _id: (tag._id as string).toString(),
+      _id: tag._id.toString(),
     };
     return { success: true, tag: tagDocument };
   }
@@ -96,7 +96,7 @@ export async function createAndAddTagToQRCode(
       tagName: tag.tagName,
       id: tag.id,
       sub: tag.sub,
-      _id: (tag._id as string).toString(),
+      _id: tag._id.toString(),
     };
     return { success: true, tag: tagDocument };
   }
@@ -231,7 +231,7 @@ export async function createTag(tagName: string) {
           sub,
           tagName,
           id: newId,
-          _id: (newTag._id as string).toString(),
+          _id: newTag._id.toString(),
         },
       };
     }

@@ -23,10 +23,9 @@ const envSchema = z.object({
   POLAR_ACCESS_TOKEN: z.string().nonempty().optional(),
   POLAR_ENVIRONMENT: z.enum(["sandbox", "production"]).default("sandbox"),
   POLAR_WEBHOOK_SECRET: z.string().nonempty().optional(),
-  QSTASH_URL: z.string().url().optional(),
-  QSTASH_TOKEN: z.string().nonempty().optional(),
-  QSTASH_CURRENT_SIGNING_KEY: z.string().nonempty().optional(),
-  QSTASH_NEXT_SIGNING_KEY: z.string().nonempty().optional(),
+  SCHEDULER_URL: z.string().url(),
+  SCHEDULER_USERNAME: z.string().nonempty(),
+  SCHEDULER_PASSWORD: z.string().nonempty(),
   ATLAS_SEARCH_INDEX_LINKS: z.string().nonempty().optional(),
   ATLAS_SEARCH_INDEX_QR_CODES: z.string().nonempty().optional(),
   INTERNAL_API_SECRET: z

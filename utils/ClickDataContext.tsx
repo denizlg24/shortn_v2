@@ -1,6 +1,6 @@
 "use client";
 import { fetchApi } from "@/lib/utils";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import {
   Dispatch,
   ReactNode,
@@ -13,7 +13,7 @@ type ClickDataContextType = {
   getClicks: (
     startDate: string | undefined,
     endDate: string | undefined,
-    setClicks: Dispatch<SetStateAction<ClickEntry[]>>,
+    setClicks: Dispatch<SetStateAction<TClickEntry[]>>,
     setLoading: Dispatch<SetStateAction<boolean>>,
   ) => Promise<void>;
   urlCode: string;
@@ -33,12 +33,12 @@ export const ClickDataProvider = ({
   const getClicks = async (
     startDate: string | undefined,
     endDate: string | undefined,
-    setClicks: Dispatch<SetStateAction<ClickEntry[]>>,
+    setClicks: Dispatch<SetStateAction<TClickEntry[]>>,
     setLoading: Dispatch<SetStateAction<boolean>>,
   ) => {
     try {
       setLoading(true);
-      const response = await fetchApi<{ clicks: ClickEntry[] }>(
+      const response = await fetchApi<{ clicks: TClickEntry[] }>(
         `/clicks/${urlCode}?start=${startDate}&end=${endDate}`,
       );
       if (response.success) {

@@ -8,7 +8,7 @@ import { nanoid } from "nanoid";
 import QRCodeStyling, { Options } from "qr-code-styling";
 import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
-import { ITag } from "@/models/url/Tag";
+import { ITag, TagT } from "@/models/url/Tag";
 import { fetchApi, BASEURL } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { deletePicture } from "./deletePicture";
@@ -231,7 +231,7 @@ export const updateQRCodeData = async ({
 }: {
   qrCodeId: string;
   title: string;
-  tags: ITag[];
+  tags: TagT[];
   applyToLink: boolean;
   longUrl: string;
 }) => {

@@ -9,7 +9,7 @@ import { isbot } from "isbot";
 import { Geo } from "@vercel/functions";
 import { BASEURL, escapeRegex } from "@/lib/utils";
 import QRCodeV2 from "@/models/url/QRCodeV2";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
 import { parse } from "json2csv";
@@ -134,11 +134,11 @@ export async function createShortn({
       }
     }
 
-    const finalTags: ITag[] = [];
+    const finalTags: TagT[] = [];
 
     if (tags && tags.length > 0) {
       const tagResults = await Promise.all(
-        tags.map((t) => fetchApi<{ tag: ITag }>(`tags/${t}`)),
+        tags.map((t) => fetchApi<{ tag: TagT }>(`tags/${t}`)),
       );
       tagResults.forEach((tag) => {
         if (tag.success) {
@@ -334,7 +334,7 @@ export const updateShortnData = async ({
 }: {
   urlCode: string;
   title: string;
-  tags: ITag[];
+  tags: TagT[];
   custom_code?: string;
   applyToQRCode: boolean;
   longUrl: string;
@@ -771,7 +771,7 @@ export async function updateUTM({
             source: utmSection.source,
             medium: utmSection.medium,
             campaign: {
-              _id: (campaign._id as string).toString(),
+              _id: campaign._id.toString(),
               title: utmSection.campaign.title.trim(),
             },
             term: utmSection.term,
@@ -897,7 +897,7 @@ export async function createCampaign({ title }: { title: string }) {
     return {
       success: true,
       campaign: {
-        _id: (newCampaign._id as string).toString(),
+        _id: newCampaign._id.toString(),
         title: newCampaign.title,
         links: [],
       },

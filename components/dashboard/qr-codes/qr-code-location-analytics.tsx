@@ -27,7 +27,7 @@ import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import en from "i18n-iso-countries/langs/en.json";
 import { getDataTitle } from "../links/link-location-analytics";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { useScans } from "@/utils/ScanDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadButtonCSV } from "../links/download-csv-button";
@@ -46,7 +46,7 @@ export const QRCodeLocationAnalytics = ({
   countries.registerLocale(en);
   const { getScans, urlCode } = useScans();
   const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  const [clicks, setClicks] = useState<TClickEntry[]>([]);
 
   useEffect(() => {
     if (unlocked != "none")
@@ -111,7 +111,7 @@ export const QRCodeLocationAnalytics = ({
   const transformed = clicks.map((click) => ({
     ...click,
     country: click.country ? countries.getName(click.country, "en") : undefined,
-  })) as ClickEntry[];
+  }));
 
   const data = aggregateClicksByLocation(transformed, selected, t("unknown"));
 

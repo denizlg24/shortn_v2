@@ -29,8 +29,9 @@ jobs:
       LEVEL_TWO_UPGRADE_ID: ${{secrets.LEVEL_TWO_UPGRADE_ID || 'dependabot'}},
       EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}},
       RESEND_API_KEY: ${{secrets.RESEND_API_KEY || 'dependabot'}},
-      QSTASH_CURRENT_SIGNING_KEY: ${{secrets.QSTASH_CURRENT_SIGNING_KEY||'dependabot'}},
-      QSTASH_NEXT_SIGNING_KEY: ${{secrets.QSTASH_NEXT_SIGNING_KEY||'dependabot'}},
+      SCHEDULER_URL: ${{secrets.SCHEDULER_URL||'http://dependabot'}},
+      SCHEDULER_USERNAME: ${{secrets.SCHEDULER_USERNAME||'dependabot'}},
+      SCHEDULER_PASSWORD: ${{secrets.SCHEDULER_PASSWORD||'dependabot'}},
       INTERNAL_API_SECRET: ${{secrets.INTERNAL_API_SECRET || 'dependabot'}}
 
     steps:

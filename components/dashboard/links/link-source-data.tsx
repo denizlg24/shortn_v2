@@ -16,7 +16,7 @@ import {
 import { useClicks } from "@/utils/ClickDataContext";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { format } from "date-fns";
 import { DownloadButtonCSV } from "./download-csv-button";
 import { useTranslations } from "next-intl";
@@ -26,11 +26,11 @@ export const LinkSourceData = ({
   initialClicks,
 }: {
   unlocked: boolean;
-  initialClicks: ClickEntry[];
+  initialClicks: TClickEntry[];
 }) => {
   const { urlCode } = useClicks();
   const [loading] = useState(false);
-  const [clicks] = useState<ClickEntry[]>(initialClicks);
+  const [clicks] = useState<TClickEntry[]>(initialClicks);
   const dateToday = format(new Date(), "yyyy-MM-dd");
   const t = useTranslations("link-source-data");
   if (!unlocked) {

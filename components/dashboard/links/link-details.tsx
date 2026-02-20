@@ -1,7 +1,7 @@
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { LinkDetailsCard } from "./link-details-card";
 import { LinkAdditionsCard } from "./link-additions-card";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { LinkTimeAnalytics } from "./link-time-analytics";
 import { LinkLocationAnalytics } from "./link-location-analytics";
 import { Button } from "@/components/ui/button";
@@ -23,8 +23,8 @@ export const LinkDetails = async ({
   qr,
   locale,
 }: {
-  url: IUrl;
-  qr: IQRCode | undefined;
+  url: TUrl;
+  qr: TQRCode | undefined;
   locale: string;
 }) => {
   const session = await getServerSession();

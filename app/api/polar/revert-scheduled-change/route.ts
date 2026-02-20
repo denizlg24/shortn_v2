@@ -51,19 +51,16 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      if (
-        scheduledChange.changeType === "downgrade" &&
-        scheduledChange.qstashMessageId
-      ) {
+      if (scheduledChange.qstashMessageId) {
         try {
-          const { qstashClient } = await import("@/lib/qstash");
+          const { deleteSchedule } = await import("@/lib/scheduler");
 
-          await qstashClient.messages.delete(scheduledChange.qstashMessageId);
+          await deleteSchedule(scheduledChange.qstashMessageId);
           console.log(
-            `Deleted QStash message: ${scheduledChange.qstashMessageId}`,
+            `Deleted scheduler job: ${scheduledChange.qstashMessageId}`,
           );
-        } catch (qstashError) {
-          console.error("Failed to delete QStash message:", qstashError);
+        } catch (schedulerError) {
+          console.error("Failed to delete scheduler job:", schedulerError);
         }
       }
 

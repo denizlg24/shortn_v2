@@ -34,14 +34,14 @@ import {
 } from "@/components/ui/dialog";
 
 import { QRCodeTimeBarChart } from "../qr-codes/charts/qr-code-time-bar-chart";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadButtonCSV } from "./download-csv-button";
 import { useTranslations } from "next-intl";
 
 export const getEngagementOverTimeData = (
-  entries: ClickEntry[],
+  entries: TClickEntry[],
   startDate?: Date,
   endDate?: Date,
 ) => {
@@ -88,7 +88,7 @@ export const LinkTimeAnalytics = ({
 }: {
   unlocked: boolean;
   createdAt: Date;
-  initialClicks: ClickEntry[];
+  initialClicks: TClickEntry[];
 }) => {
   const t = useTranslations("link-time-analytics");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -97,7 +97,7 @@ export const LinkTimeAnalytics = ({
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(false);
-  const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
+  const [clicks, setClicks] = useState<TClickEntry[]>(initialClicks);
 
   const dateRangeOptions = [
     { key: "this-month", label: t("this-month") },

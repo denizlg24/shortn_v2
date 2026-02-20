@@ -1,10 +1,15 @@
 import { polarClient } from "@/lib/polar";
 import { connectDB } from "@/lib/mongodb";
 import ScheduledChange from "@/models/subscription/ScheduledChange";
+import env from "@/utils/env";
 import { NextRequest, NextResponse } from "next/server";
-import { verifySignatureAppRouter } from "@upstash/qstash/nextjs";
 
-async function handler(req: NextRequest) {
+export async function POST(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${env.INTERNAL_API_SECRET}`) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { subscriptionId, newProductId, targetPlan } = await req.json();
 
@@ -87,5 +92,3 @@ async function handler(req: NextRequest) {
     );
   }
 }
-
-export const POST = verifySignatureAppRouter(handler);

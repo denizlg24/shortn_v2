@@ -6,7 +6,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Link } from "@/i18n/navigation";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import {
   ChevronDownIcon,
@@ -65,7 +65,7 @@ interface GroupedData {
   contents: { name: string; count: number }[];
 }
 
-function groupUtmData(clicks: ClickEntry[]): GroupedData {
+function groupUtmData(clicks: TClickEntry[]): GroupedData {
   const utmClicks = clicks.filter(
     (c) => !!c.queryParams && Object.keys(c.queryParams).length > 0,
   );
@@ -99,7 +99,7 @@ export const LinkUtmStats = ({
   campaign,
 }: {
   unlocked: boolean;
-  initialClicks: ClickEntry[];
+  initialClicks: TClickEntry[];
   createdAt: Date;
   campaign?: { _id: string; title: string };
 }) => {
@@ -175,7 +175,7 @@ export const LinkUtmStats = ({
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getClicks, urlCode } = useClicks();
   const [loading, setLoading] = useState(false);
-  const [clicks, setClicks] = useState<ClickEntry[]>(initialClicks);
+  const [clicks, setClicks] = useState<TClickEntry[]>(initialClicks);
 
   const groupedData = useMemo(() => groupUtmData(clicks), [clicks]);
   const totalUtmClicks = useMemo(

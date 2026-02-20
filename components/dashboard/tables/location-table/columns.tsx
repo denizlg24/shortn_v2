@@ -1,12 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
 export function aggregateClicksByLocation(
-  entries: ClickEntry[],
+  entries: TClickEntry[],
   level: "country" | "city" | "device" | "browser" | "os" = "country",
   unknownLabel: string = "Unknown",
 ) {
