@@ -28,7 +28,7 @@ import { CardDescription, CardTitle } from "@/components/ui/card";
 import countries from "i18n-iso-countries";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import en from "i18n-iso-countries/langs/en.json";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { useClicks } from "@/utils/ClickDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
@@ -57,7 +57,7 @@ export const LinkLocationAnalytics = ({
   initialClicks,
 }: {
   unlocked: "none" | "location" | "all";
-  initialClicks: ClickEntry[];
+  initialClicks: TClickEntry[];
 }) => {
   const t = useTranslations("link-location-analytics");
   const [selected, setSelected] = useState<
@@ -66,7 +66,7 @@ export const LinkLocationAnalytics = ({
   countries.registerLocale(en);
   const { urlCode } = useClicks();
   const [loading] = useState(false);
-  const [clicks] = useState<ClickEntry[]>(initialClicks);
+  const [clicks] = useState<TClickEntry[]>(initialClicks);
   const dateToday = format(new Date(), "yyyy-MM-dd");
   if (unlocked == "none") {
     return (
@@ -217,7 +217,7 @@ export const LinkLocationAnalytics = ({
   const transformed = clicks.map((click) => ({
     ...click,
     country: click.country ? countries.getName(click.country, "en") : undefined,
-  })) as ClickEntry[];
+  })) as TClickEntry[];
 
   const data = aggregateClicksByLocation(transformed, selected, t("unknown"));
 

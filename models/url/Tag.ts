@@ -7,6 +7,7 @@ export interface ITag extends Document {
 }
 
 export interface TagT {
+  _id: unknown;
   sub: string;
   id: string;
   tagName: string;

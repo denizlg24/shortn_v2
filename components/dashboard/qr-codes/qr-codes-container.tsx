@@ -2,11 +2,11 @@
 
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { useRouter } from "@/i18n/navigation";
-import { IQRCode } from "@/models/url/QRCodeV2";
+import { TQRCode } from "@/models/url/QRCodeV2";
 import { QRCodeCard } from "./qr-code-card";
 import { fetchApi } from "@/lib/utils";
 import { useEffect, useState, useCallback } from "react";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { getCurrentUsage, UsageData } from "@/app/actions/usageActions";
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
@@ -18,7 +18,7 @@ export const QRCodesContainer = ({
   page,
   limit,
 }: {
-  qrCodes: IQRCode[];
+  qrCodes: TQRCode[];
   total: number;
   tags: string[];
   page: number;
@@ -28,7 +28,7 @@ export const QRCodesContainer = ({
   const router = useRouter();
   const { plan } = usePlan();
 
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagT[]>([]);
   const [tagSearchInput, setTagSearchInput] = useState("");
 
   const [usage, setUsage] = useState<UsageData | null>(null);
@@ -51,7 +51,7 @@ export const QRCodesContainer = ({
     const delayDebounce = setTimeout(() => {
       const endpoint =
         tagSearchInput.trim() === "" ? "tags" : `tags?q=${tagSearchInput}`;
-      fetchApi<{ tags: ITag[] }>(endpoint).then((res) => {
+      fetchApi<{ tags: TagT[] }>(endpoint).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         }
@@ -110,7 +110,7 @@ export const QRCodesContainer = ({
           {qrCodes.map((code) => (
             <QRCodeCard
               key={code.qrCodeId}
-              qrCode={{ ...code, _id: (code._id as string).toString() }}
+              qrCode={code}
               addTag={addTag}
               removeTag={removeTag}
               tags={tags}

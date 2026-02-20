@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { getEngagementOverTimeData } from "../links/link-time-analytics";
 import { QRCodeTimeBarChart } from "./charts/qr-code-time-bar-chart";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import { useScans } from "@/utils/ScanDataContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DownloadButtonCSV } from "../links/download-csv-button";
@@ -47,7 +47,7 @@ export const QRCodeTimeAnalytics = ({
   const [mobileEndOpened, mobileEndOpen] = useState(false);
   const { getScans, urlCode } = useScans();
   const [loading, setLoading] = useState(true);
-  const [clicks, setClicks] = useState<ClickEntry[]>([]);
+  const [clicks, setClicks] = useState<TClickEntry[]>([]);
 
   const dateRangeOptions = [
     { key: "this-month", label: t("this-month") },

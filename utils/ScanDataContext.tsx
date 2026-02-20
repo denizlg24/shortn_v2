@@ -1,6 +1,6 @@
 "use client";
 import { fetchApi } from "@/lib/utils";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import {
   Dispatch,
   ReactNode,
@@ -13,7 +13,7 @@ type ScanDataContextType = {
   getScans: (
     startDate: string | undefined,
     endDate: string | undefined,
-    setScans: Dispatch<SetStateAction<ClickEntry[]>>,
+    setScans: Dispatch<SetStateAction<TClickEntry[]>>,
     setLoading: Dispatch<SetStateAction<boolean>>,
   ) => Promise<void>;
   urlCode: string;
@@ -33,12 +33,12 @@ export const ScanDataProvider = ({
   const getScans = async (
     startDate: string | undefined,
     endDate: string | undefined,
-    setScans: Dispatch<SetStateAction<ClickEntry[]>>,
+    setScans: Dispatch<SetStateAction<TClickEntry[]>>,
     setLoading: Dispatch<SetStateAction<boolean>>,
   ) => {
     try {
       setLoading(true);
-      const response = await fetchApi<{ scans: ClickEntry[] }>(
+      const response = await fetchApi<{ scans: TClickEntry[] }>(
         `/scans/${urlCode}?start=${startDate}&end=${endDate}`,
       );
       if (response.success) {

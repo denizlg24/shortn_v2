@@ -3,8 +3,8 @@ import { QRCodesContainer } from "@/components/dashboard/qr-codes/qr-codes-conta
 import { QRCodesFilterBar } from "@/components/dashboard/qr-codes/qr-codes-filter-bar";
 import { connectDB } from "@/lib/mongodb";
 import { getServerSession } from "@/lib/session";
-import QRCodeV2, { IQRCode } from "@/models/url/QRCodeV2";
-import { ITag } from "@/models/url/Tag";
+import QRCodeV2, { TQRCode } from "@/models/url/QRCodeV2";
+import { TagT } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import env from "@/utils/env";
@@ -49,7 +49,7 @@ interface IFilters {
 
 const getFilteredQRCodes = async (
   filters: IFilters,
-): Promise<{ qrcodes: IQRCode[]; total: number }> => {
+): Promise<{ qrcodes: TQRCode[]; total: number }> => {
   const session = await getServerSession();
   const user = session?.user;
 
@@ -164,7 +164,7 @@ const getFilteredQRCodes = async (
   const qrcodesSanitized = qrcodes.map((qrcode) => ({
     ...qrcode,
     _id: qrcode._id.toString(),
-    tags: qrcode.tags?.map((tag: ITag) => ({
+    tags: qrcode.tags?.map((tag: TagT) => ({
       ...tag,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       _id: (tag._id as any).toString(),

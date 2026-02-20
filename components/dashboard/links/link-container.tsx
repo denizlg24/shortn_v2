@@ -6,7 +6,7 @@ import { TUrl } from "@/models/url/UrlV3";
 import { LinkCard } from "./link-card";
 import { cn, fetchApi } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { useTranslations } from "next-intl";
 
 export const LinkContainer = ({
@@ -26,13 +26,13 @@ export const LinkContainer = ({
 }) => {
   const t = useTranslations("link-container");
   const router = useRouter();
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagT[]>([]);
   const [tagSearchInput, setTagSearchInput] = useState("");
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (tagSearchInput.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        fetchApi<{ tags: TagT[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
           } else {
@@ -41,7 +41,7 @@ export const LinkContainer = ({
         });
         return;
       }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${tagSearchInput}`).then((res) => {
+      fetchApi<{ tags: TagT[] }>(`tags?q=${tagSearchInput}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -109,7 +109,7 @@ export const LinkContainer = ({
               tags={tags}
               addTag={addTag}
               removeTag={removeTag}
-              key={link._id as string}
+              key={link._id}
               link={link}
               initialBioPageSlug={link.bioPageSlug}
               tagOptions={tagOptions}

@@ -17,11 +17,11 @@ import {
   startOfDay,
   subDays,
 } from "date-fns";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 export const description = "A stacked bar chart with a legend";
 
 export function groupClicksByDateAndReferrer(
-  clicks: ClickEntry[],
+  clicks: TClickEntry[],
   startDate?: Date,
   endDate?: Date,
 ): StackedBarData[] {

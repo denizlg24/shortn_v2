@@ -37,7 +37,7 @@ import { ScrollPopoverContent } from "@/components/ui/scroll-popover-content";
 import { Separator } from "@/components/ui/separator";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, fetchApi, getShortUrl } from "@/lib/utils";
-import { ITag } from "@/models/url/Tag";
+import { TagT } from "@/models/url/Tag";
 import { TUrl } from "@/models/url/UrlV3";
 import { format } from "date-fns";
 
@@ -91,7 +91,7 @@ export const LinkDetailsCard = ({
   const shortUrl = getShortUrl(currentLink.urlCode);
   const { plan } = usePlan();
   const [input, setInput] = useState("");
-  const [tagOptions, setTagOptions] = useState<ITag[]>([]);
+  const [tagOptions, setTagOptions] = useState<TagT[]>([]);
   const [tagOpen, tagOpenChange] = useState(false);
   const hasExactMatch = tagOptions.some((tag) => tag.tagName === input);
 
@@ -124,7 +124,7 @@ export const LinkDetailsCard = ({
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (input.trim() === "") {
-        fetchApi<{ tags: ITag[] }>("tags").then((res) => {
+        fetchApi<{ tags: TagT[] }>("tags").then((res) => {
           if (res.success) {
             setTagOptions(res.tags);
           } else {
@@ -133,7 +133,7 @@ export const LinkDetailsCard = ({
         });
         return;
       }
-      fetchApi<{ tags: ITag[] }>(`tags?q=${input}`).then((res) => {
+      fetchApi<{ tags: TagT[] }>(`tags?q=${input}`).then((res) => {
         if (res.success) {
           setTagOptions(res.tags);
         } else {
@@ -158,7 +158,7 @@ export const LinkDetailsCard = ({
       const response = await updateShortnData({
         urlCode: currentLink.urlCode,
         title: currentLink.title || "",
-        tags: (currentLink.tags || []) as ITag[],
+        tags: (currentLink.tags || []) as TagT[],
         applyToQRCode: false,
         longUrl: currentLink.longUrl,
         password: password,
@@ -193,7 +193,7 @@ export const LinkDetailsCard = ({
       const response = await updateShortnData({
         urlCode: currentLink.urlCode,
         title: currentLink.title || "",
-        tags: (currentLink.tags || []) as ITag[],
+        tags: (currentLink.tags || []) as TagT[],
         applyToQRCode: false,
         longUrl: currentLink.longUrl,
         removePassword: true,
@@ -683,9 +683,7 @@ export const LinkDetailsCard = ({
                                   setCurrentLink((prev) => ({
                                     ...prev,
                                     tags: prev.tags?.filter(
-                                      (_t) =>
-                                        (_t._id as string).toString() !=
-                                        (tag._id as string).toString(),
+                                      (_t) => String(_t._id) != String(tag._id),
                                     ),
                                   }));
                                   tagOpenChange(false);

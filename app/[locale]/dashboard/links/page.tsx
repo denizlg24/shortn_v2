@@ -171,7 +171,7 @@ const getFilteredLinks = async (
 
   const linksSanitized = links.map((link: IUrl) => ({
     ...link,
-    _id: (link._id as string).toString(),
+    _id: link._id.toString(),
     utmLinks: link.utmLinks?.map((utm) => ({
       ...utm,
       _id: (utm._id as string).toString(),
@@ -184,7 +184,7 @@ const getFilteredLinks = async (
           }
         : {}),
     })),
-    tags: link.tags?.map((tag: TagT & { _id: unknown }) => ({
+    tags: link.tags?.map((tag: TagT) => ({
       ...tag,
       _id: (tag._id as string).toString(),
     })),

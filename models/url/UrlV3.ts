@@ -33,7 +33,7 @@ export interface IUrl extends Document {
 }
 
 export interface TUrl {
-  _id?: unknown;
+  _id: string;
   sub?: string;
   urlCode: string;
   customCode: boolean;

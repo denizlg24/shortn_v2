@@ -9,7 +9,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { ClickEntry } from "@/models/url/Click";
+import { TClickEntry } from "@/models/url/Click";
 import {
   startOfDay,
   endOfDay,
@@ -26,7 +26,7 @@ export type TimeOfDayStackBarData = {
 };
 
 export function groupClicksByDateAndTimeBuckets(
-  clicks: ClickEntry[],
+  clicks: TClickEntry[],
   bucketSizeHours = 6,
   startDate?: Date,
   endDate?: Date,

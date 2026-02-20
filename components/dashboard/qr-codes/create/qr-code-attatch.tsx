@@ -8,7 +8,7 @@ import InputColor from "@/components/ui/color-input";
 import { StyledQRCode } from "@/components/ui/styled-qr-code";
 import { Link, useRouter } from "@/i18n/navigation";
 import { cn, getShortUrl } from "@/lib/utils";
-import { IUrl } from "@/models/url/UrlV3";
+import { TUrl } from "@/models/url/UrlV3";
 import { Loader2, LockIcon, LucideLink, Trash2Icon } from "lucide-react";
 import { Options } from "qr-code-styling";
 import { useRef, useState, useEffect, useCallback } from "react";
@@ -47,7 +47,7 @@ import { uploadImage } from "@/app/actions/uploadImage";
 import { authClient } from "@/lib/authClient";
 import { usePlan } from "@/hooks/use-plan";
 import { useTranslations } from "next-intl";
-export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: IUrl }) => {
+export const QRCodeAttach = ({ linkToAttach }: { linkToAttach: TUrl }) => {
   const t = useTranslations("qr-code-attach");
   const shortUrl = getShortUrl(linkToAttach.urlCode);
   const { data } = authClient.useSession();
