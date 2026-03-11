@@ -352,7 +352,7 @@ export const BioPageDisplay = ({
         style={{
           background: bio.theme?.background || "#ffffff",
         }}
-        className="w-full flex flex-col gap-2 sticky top-0"
+        className="w-full flex flex-col gap-2 sticky top-0 z-99"
       >
         <BioHeader
           header={bio.theme?.header}
