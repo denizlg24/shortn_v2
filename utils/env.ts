@@ -26,8 +26,10 @@ const envSchema = z.object({
   SCHEDULER_URL: z.string().url(),
   SCHEDULER_USERNAME: z.string().nonempty(),
   SCHEDULER_PASSWORD: z.string().nonempty(),
-  ATLAS_SEARCH_INDEX_LINKS: z.string().nonempty().optional(),
-  ATLAS_SEARCH_INDEX_QR_CODES: z.string().nonempty().optional(),
+  MEILI_URL: z.string().url().optional(),
+  MEILI_MASTER_KEY: z.string().nonempty().optional(),
+  MEILI_INDEX_LINKS: z.string().nonempty().optional(),
+  MEILI_INDEX_QR_CODES: z.string().nonempty().optional(),
   INTERNAL_API_SECRET: z
     .string()
     .min(32, "INTERNAL_API_SECRET must be at least 32 characters"),

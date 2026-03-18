@@ -7,7 +7,8 @@ import QRCodeV2, { TQRCode } from "@/models/url/QRCodeV2";
 import { TagT } from "@/models/url/Tag";
 import { addDays, parse } from "date-fns";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import env from "@/utils/env";
+import { searchMeili, MEILI_INDEX_QR_CODES } from "@/lib/meilisearch";
+import mongoose from "mongoose";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -99,35 +100,25 @@ const getFilteredQRCodes = async (
   }
 
   if (filters.query.trim()) {
+    const meiliResult = await searchMeili(
+      MEILI_INDEX_QR_CODES,
+      filters.query.trim(),
+      sub,
+    );
+    if (meiliResult.ids.length === 0) {
+      return { qrcodes: [], total: 0 };
+    }
+    const objectIds = meiliResult.ids.map(
+      (id) => new mongoose.Types.ObjectId(id),
+    );
     pipeline.push({
-      $search: {
-        index: env.ATLAS_SEARCH_INDEX_QR_CODES || "dev-qrcodev2",
-        text: {
-          query: filters.query.trim(),
-          path: ["title", "longUrl", "tags.tagName"],
-        },
-      },
-    });
-    pipeline.push({
-      $addFields: {
-        searchScore: { $meta: "searchScore" },
-      },
-    });
-
-    pipeline.push({
-      $match: {
-        searchScore: { $gte: 0.5 },
-      },
+      $match: { _id: { $in: objectIds } },
     });
   }
 
   pipeline.push({ $match: matchStage });
 
   let sortStage: Record<string, 1 | -1> = {};
-
-  if (filters.query.trim()) {
-    sortStage = { searchScore: -1 };
-  }
 
   switch (filters.sortBy) {
     case "date_asc":

@@ -95,6 +95,7 @@
     "libaddress-validator": "^0.1.5",
     "lint-staged": "^16.2.7",
     "lucide-react": "^0.562.0",
+    "meilisearch": "^0.56.0",
     "mongodb": "^7.1.0",
     "mongoose": "^8.23.0",
     "motion": "^12.34.3",
