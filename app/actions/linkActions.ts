@@ -419,7 +419,7 @@ export const updateShortnData = async ({
     let updateCode: false | string = false;
     if (custom_code) {
       updateQuery.urlCode = custom_code;
-      updateQuery.custom_code = true;
+      updateQuery.customCode = true;
       updateCode = custom_code;
     }
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {
@@ -602,12 +602,18 @@ export async function generateCSV({
     }
 
     await connectDB();
-    const clicks = await Clicks.find({ type, urlCode: code })
-      .select("-_id -__v -sub -urlCode -type -ip")
-      .lean();
-    if (!clicks) {
+    const ownedResource =
+      type === "click"
+        ? await UrlV3.exists({ sub: user.sub, urlCode: code })
+        : await QRCodeV2.exists({ sub: user.sub, qrCodeId: code });
+
+    if (!ownedResource) {
       return { success: false, url: "" };
     }
+
+    const clicks = await Clicks.find({ type, urlCode: code, sub: user.sub })
+      .select("-_id -__v -sub -urlCode -type -ip")
+      .lean();
     const mappedClicks: Record<string, string>[] = clicks.map((click) => {
       return {
         Country: click.country || "",
@@ -619,7 +625,7 @@ export async function generateCSV({
         OS: click.os || "",
         "Device Type": click.deviceType || "",
         Referrer: click.referrer || "",
-        Pathname: click.pathname?.split("?")[1] || "",
+        Pathname: click.pathname || "",
         Date: format(click.timestamp, "yyyy-MM-dd HH:mm:ss"),
       };
     });
