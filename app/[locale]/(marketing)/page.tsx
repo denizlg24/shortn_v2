@@ -116,9 +116,9 @@ export default async function Home({
               ))}
             </div>
 
-            <div className="mt-8 grid gap-6 border-t border-black/5 pt-6 sm:grid-cols-3">
+            <div className="mt-8 grid gap-6 border-t border-black/5 pt-6 sm:grid-cols-3 justify-center">
               {heroStats.map((stat) => (
-                <div key={stat.label} className="text-left sm:text-center">
+                <div key={stat.label} className="text-center">
                   <p className="font-[family-name:var(--font-editorial)] text-4xl font-semibold leading-none tracking-[-0.05em]">
                     {stat.value}
                   </p>
@@ -160,7 +160,7 @@ export default async function Home({
         title={t("why-choose.title")}
         description={t("why-choose.subtitle")}
       >
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2 text-center">
           {[
             {
               icon: <Shield className="h-5 w-5" />,
@@ -185,7 +185,7 @@ export default async function Home({
           ].map((item) => (
             <div
               key={item.title}
-              className="grid gap-4 border-t border-primary/10 pt-5 sm:grid-cols-[auto_minmax(0,1fr)]"
+              className="lg:grid gap-4 border-t border-primary/10 pt-5 lg:grid-cols-[auto_minmax(0,1fr)] flex flex-col items-center text-center"
             >
               <div className="text-primary/75">{item.icon}</div>
               <div>

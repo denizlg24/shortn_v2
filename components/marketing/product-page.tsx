@@ -44,29 +44,6 @@ export function ProductPage({
         actions={
           <PrimaryActionLink href="/register">{ctaLabel}</PrimaryActionLink>
         }
-        aside={
-          <div className="space-y-6">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-              {featuresTitle}
-            </p>
-            <div className="space-y-5">
-              {features.map((feature) => (
-                <div
-                  key={feature.title}
-                  className="border-t border-primary/10 pt-4 first:border-t-0 first:pt-0"
-                >
-                  <div className="mb-2 flex items-center gap-3 text-primary/75">
-                    {feature.icon}
-                  </div>
-                  <p className="font-medium">{feature.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {feature.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        }
       />
 
       <MarketingSection title={featuresTitle}>
