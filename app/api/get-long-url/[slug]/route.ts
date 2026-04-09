@@ -29,10 +29,24 @@ export async function GET(
       }
 
       try {
-        await jwtVerify(accessCookie.value, SECRET_KEY);
+        const { payload } = await jwtVerify(accessCookie.value, SECRET_KEY);
+
+        if (payload.urlCode !== slug) {
+          const response = NextResponse.redirect(
+            `${url.origin}/authenticate/${slug}`,
+            302,
+          );
+          response.cookies.delete(`link_access_${slug}`);
+          return response;
+        }
       } catch (error) {
         console.error("Invalid or expired access token:", error);
-        return NextResponse.redirect(`${url.origin}/authenticate/${slug}`, 302);
+        const response = NextResponse.redirect(
+          `${url.origin}/authenticate/${slug}`,
+          302,
+        );
+        response.cookies.delete(`link_access_${slug}`);
+        return response;
       }
     }
 
