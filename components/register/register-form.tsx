@@ -263,7 +263,11 @@ export const RegisterForm = () => {
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="" {...field} />
+                  <Input
+                    className="border-foreground/20"
+                    placeholder=""
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -279,7 +283,12 @@ export const RegisterForm = () => {
                   <span className="text-destructive text-xs">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input autoComplete="username" placeholder="" {...field} />
+                  <Input
+                    className="border-foreground/20"
+                    autoComplete="username"
+                    placeholder=""
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -302,7 +311,7 @@ export const RegisterForm = () => {
                     <Input
                       autoComplete="nickname"
                       placeholder={t("username-placeholder")}
-                      className="pl-7"
+                      className="pl-7 border-foreground/20"
                       {...field}
                       onChange={(e) => {
                         const value = e.target.value
@@ -334,6 +343,7 @@ export const RegisterForm = () => {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder=""
+                    className="border-foreground/20"
                     {...field}
                     onFocus={() => setPasswordFocused(true)}
                     onBlur={() => setPasswordFocused(false)}
@@ -387,6 +397,7 @@ export const RegisterForm = () => {
                 </FormLabel>
                 <FormControl>
                   <Input
+                    className="border-foreground/20"
                     type={confirmShowPassword ? "text" : "password"}
                     placeholder=""
                     {...field}

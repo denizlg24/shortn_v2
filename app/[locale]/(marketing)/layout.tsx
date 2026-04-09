@@ -7,6 +7,18 @@ import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Toaster } from "@/components/ui/sonner";
 import ScrollToTop from "@/utils/ScrollToTop";
+import { Manrope, Sora } from "next/font/google";
+
+const marketingSans = Manrope({
+  subsets: ["latin"],
+  variable: "--font-marketing-sans",
+});
+
+const marketingEditorial = Sora({
+  subsets: ["latin"],
+  variable: "--font-editorial",
+  weight: ["400", "500", "600", "700"],
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -77,14 +89,22 @@ export default async function RootLayout({
   return (
     <html lang={locale}>
       <body
-        className={`antialiased w-full min-h-screen flex flex-col items-center justify-start sm:pt-16! pt-12!`}
+        className={`${marketingSans.variable} ${marketingEditorial.variable} min-h-screen w-full overflow-x-hidden bg-background font-[family-name:var(--font-marketing-sans)] text-foreground antialiased`}
       >
         <NextIntlClientProvider>
-          <ScrollToTop />
-          <Header />
-          {children}
-          <Toaster position="top-center" />
-          <Footer />
+          <div className="relative flex min-h-screen w-full flex-col">
+            <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,#f4efe8_0%,#fbf8f3_24%,#ffffff_62%,#ffffff_100%)]" />
+              <div className="absolute left-1/2 top-0 h-[30rem] w-[56rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(22,44,94,0.13),transparent_66%)] blur-3xl" />
+              <div className="absolute -left-24 top-40 h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(195,127,67,0.11),transparent_70%)] blur-3xl" />
+              <div className="absolute -right-16 top-64 h-[20rem] w-[20rem] rounded-full bg-[radial-gradient(circle,rgba(76,112,172,0.1),transparent_72%)] blur-3xl" />
+            </div>
+            <ScrollToTop />
+            <Header />
+            <div className="flex-1 pt-20 sm:pt-24">{children}</div>
+            <Toaster position="top-center" />
+            <Footer />
+          </div>
         </NextIntlClientProvider>
       </body>
     </html>

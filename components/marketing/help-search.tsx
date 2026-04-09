@@ -116,11 +116,11 @@ export function HelpSearch() {
   }, [query, allArticles]);
 
   return (
-    <div className="w-full relative text-left!">
+    <div className="relative w-full text-left!">
       <div className="relative flex items-center">
         <Input
           placeholder={t("search-placeholder")}
-          className="w-full pl-12 xs:h-12 h-10 rounded-sm bg-muted"
+          className="h-12 w-full rounded-full border-primary/10 bg-background pl-12 shadow-none"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -130,23 +130,23 @@ export function HelpSearch() {
       </div>
 
       {query.trim() && (
-        <div className="absolute top-full mt-2 w-full bg-background border rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className="absolute top-full z-50 mt-3 max-h-96 w-full overflow-y-auto rounded-[1.75rem] border border-primary/10 bg-background shadow-2xl">
           {filteredArticles.length > 0 ? (
-            <div className="p-2">
+            <div className="p-3">
               {filteredArticles.map((article) => (
                 <Link
                   key={article.href}
                   href={article.href}
-                  className="block p-3 hover:bg-muted rounded-lg transition-colors"
+                  className="block border-t border-primary/10 p-4 transition-colors hover:bg-primary/[0.04] first:border-t-0"
                   onClick={() => setQuery("")}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <h3 className="font-medium text-sm">{article.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         {article.description}
                       </p>
-                      <p className="text-xs text-muted-foreground/70 mt-1">
+                      <p className="mt-2 text-[0.68rem] uppercase tracking-[0.2em] text-muted-foreground/70">
                         {article.category}
                       </p>
                     </div>

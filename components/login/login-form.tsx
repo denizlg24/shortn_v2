@@ -296,7 +296,7 @@ export const LoginForm = () => {
                           ? t("email-placeholder")
                           : t("username-placeholder")
                       }
-                      className="pl-9"
+                      className="pl-9 border-foreground/20"
                       {...field}
                     />
                   </div>
@@ -322,6 +322,7 @@ export const LoginForm = () => {
                   <Input
                     type={showPassword ? "text" : "password"}
                     placeholder="•••••••"
+                    className="border-foreground/20"
                     {...field}
                   />
                 </FormControl>
