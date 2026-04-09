@@ -28,7 +28,6 @@ export default async function Home({
 
   const t = await getTranslations("homepage");
   const tRotating = await getTranslations("rotating-subtitle");
-  const tHeader = await getTranslations("header");
   const heroFeatures = [
     {
       icon: <Link2 className="h-4 w-4" />,
@@ -130,10 +129,7 @@ export default async function Home({
               ))}
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-black/5 pt-6 text-sm text-muted-foreground">
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                {tHeader("pricing")}
-              </p>
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-black/5 pt-6 text-sm text-muted-foreground justify-center">
               {heroChecks.map((item) => (
                 <div key={item} className="flex items-center gap-3">
                   <Check className="h-4 w-4 text-primary/75" />
