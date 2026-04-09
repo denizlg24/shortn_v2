@@ -1,6 +1,5 @@
 import {
   MarketingCtaBand,
-  MarketingFeatureGrid,
   MarketingHero,
   MarketingPage,
   MarketingSection,
@@ -160,46 +159,6 @@ export default async function Home({
           },
         ]}
       /> */}
-
-      <MarketingSection
-        className="-mt-8"
-        title={
-          <>
-            {t("level-up")} {t("marketing-strategy")} Shortn.at
-          </>
-        }
-        // description={
-        //   <RotatingSubtitle
-        //     texts={[
-        //       tRotating("link-shortener"),
-        //       tRotating("qr-code-generator"),
-        //       tRotating("marketing-platform"),
-        //       tRotating("analytics-dashboard"),
-        //       tRotating("personal-page"),
-        //     ]}
-        //   />
-        // }
-      >
-        <MarketingFeatureGrid
-          items={[
-            {
-              title: t("features.shorten-links.title"),
-              description: t("features.shorten-links.description"),
-              icon: <Link2 className="h-5 w-5" />,
-            },
-            {
-              title: t("features.qr-codes.title"),
-              description: t("features.qr-codes.description"),
-              icon: <QrCode className="h-5 w-5" />,
-            },
-            {
-              title: t("features.analytics.title"),
-              description: t("features.analytics.description"),
-              icon: <BarChart3 className="h-5 w-5" />,
-            },
-          ]}
-        />
-      </MarketingSection>
 
       <MarketingSection
         title={t("why-choose.title")}
