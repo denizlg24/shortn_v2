@@ -192,6 +192,7 @@ export function ContactForm({ className }: { className?: string }) {
               </FieldLabel>
               <Input
                 {...field}
+                className="border-foreground/20"
                 id="shortn-contact-form-first_name"
                 aria-invalid={fieldState.invalid}
                 placeholder={t("first-name-placeholder")}
@@ -213,7 +214,7 @@ export function ContactForm({ className }: { className?: string }) {
                 {...field}
                 id="shortn-contact-form-last_name"
                 placeholder={t("last-name-placeholder")}
-                className=""
+                className="border-foreground/20"
                 aria-invalid={fieldState.invalid}
               />
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -232,7 +233,7 @@ export function ContactForm({ className }: { className?: string }) {
                 {...field}
                 id="shortn-contact-form-email"
                 placeholder={t("email-placeholder")}
-                className=""
+                className="border-foreground/20"
                 type="email"
                 aria-invalid={fieldState.invalid}
               />
@@ -252,7 +253,7 @@ export function ContactForm({ className }: { className?: string }) {
                 {...field}
                 id="shortn-contact-form-company"
                 placeholder={t("company-placeholder")}
-                className=""
+                className="border-foreground/20"
                 type="text"
                 aria-invalid={fieldState.invalid}
               />
@@ -272,7 +273,7 @@ export function ContactForm({ className }: { className?: string }) {
                 {...field}
                 id="shortn-contact-form-subject"
                 placeholder={t("subject-placeholder")}
-                className=""
+                className="border-foreground/20"
                 type="text"
                 aria-invalid={fieldState.invalid}
               />
@@ -288,13 +289,13 @@ export function ContactForm({ className }: { className?: string }) {
               <FieldLabel htmlFor="shortn-contact-form-message">
                 {t("message")}
               </FieldLabel>
-              <InputGroup>
+              <InputGroup className="border-foreground/20">
                 <InputGroupTextarea
                   {...field}
                   id="shortn-contact-form-message"
                   placeholder={t("message-placeholder")}
                   rows={6}
-                  className="min-h-24 resize-none"
+                  className="min-h-24 resize-none "
                   aria-invalid={fieldState.invalid}
                 />
                 <InputGroupAddon align="block-end">

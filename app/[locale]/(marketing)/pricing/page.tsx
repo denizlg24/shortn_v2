@@ -1,23 +1,21 @@
-import { Check, MoveRight, X } from "lucide-react";
-import { getTranslations, setRequestLocale } from "next-intl/server";
+import {
+  MarketingHero,
+  MarketingPage,
+  MarketingSection,
+  PrimaryActionLink,
+  SecondaryActionLink,
+} from "@/components/marketing/marketing-primitives";
 import {
   features,
   plans,
   SectionKey,
   TitleKey,
 } from "../../dashboard/subscription/page";
-import SpotlightCard from "@/components/SpotlightCard";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import DotGrid from "@/components/DotGrid";
+import { Check, X } from "lucide-react";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import React from "react";
-
-import {
-  Accordion,
-  AccordionItem,
-  AccordionTrigger,
-  AccordionContent,
-} from "@/components/ui/accordion";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -45,277 +43,233 @@ export async function generateMetadata() {
 export default async function Home({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("pricing");
+
   return (
-    <main className="flex flex-col items-center w-full mx-auto relative">
-      <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
-        <div className="relative w-full h-full">
-          <DotGrid
-            dotSize={4}
-            gap={25}
-            baseColor="#f1f5f9"
-            activeColor="#0f172b"
-            proximity={120}
-            shockRadius={250}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
-          />
-        </div>
-      </div>
-      <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
-        <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          {t("title")}
-        </h1>
-        <h2 className="text-lg text-muted-foreground max-w-xl">
-          {t("subtitle")}
-        </h2>
-      </div>
-      <div className="w-full px-2 mx-auto max-w-7xl grid lg:grid-cols-4 sm:grid-cols-2 grid-cols-1 gap-4 gap-y-6 my-12">
-        {plans.map((plan) => {
-          return (
-            <SpotlightCard
-              className={`col-span-1 w-full shadow-xl ${
+    <MarketingPage>
+      <MarketingHero
+        title={t("title")}
+        subtitle={t("subtitle")}
+        actions={
+          <>
+            <PrimaryActionLink href="/register">
+              {t("get-started")}
+            </PrimaryActionLink>
+            <SecondaryActionLink href="#compare">
+              {t("monthly-billing")}
+            </SecondaryActionLink>
+          </>
+        }
+      />
+
+      <MarketingSection>
+        <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-4">
+          {plans.map((plan) => (
+            <article
+              key={plan.id}
+              className={`relative flex h-full flex-col gap-6 border-t pt-5 ${
                 plan.featured
-                  ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30 overflow-visible"
-                  : "bg-white"
-              } border-border! rounded-lg p-0!`}
-              key={plan.id}
-              spotlightColor="rgba(171, 255, 252, 0.15)"
+                  ? "border-primary bg-primary/[0.04] px-5 pb-5"
+                  : "border-primary/15 pb-5"
+              }`}
             >
-              <article key={plan.id} className={`relative h-full p-4`}>
-                {plan.featured && (
-                  <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                    {t("recommended")}
-                  </div>
-                )}
-
-                <div className="flex items-baseline justify-between">
-                  <div>
-                    <h4 className="text-2xl font-bold text-primary">
-                      {plan.name}
-                    </h4>
-                    <div className="mt-2 flex items-center gap-2">
-                      <span className="text-3xl font-extrabold text-primary">
-                        {plan.price}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {plan.cadence}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-right text-muted-foreground text-sm">
-                    <div>{t("monthly-billing")}</div>
-                    <div className="mt-2">{t("cancel-anytime")}</div>
-                  </div>
+              {plan.featured ? (
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-primary">
+                  {t("recommended")}
+                </p>
+              ) : null}
+              <div>
+                <h2 className="font-[family-name:var(--font-editorial)] text-4xl leading-none tracking-[-0.05em]">
+                  {plan.name}
+                </h2>
+                <div className="mt-4 flex items-end gap-2">
+                  <span className="font-[family-name:var(--font-editorial)] text-5xl leading-none tracking-[-0.05em]">
+                    {plan.price}
+                  </span>
+                  <span className="pb-1 text-sm text-muted-foreground">
+                    {plan.cadence}
+                  </span>
                 </div>
-                <div className="mt-6 flex flex-col items-start gap-1">
-                  <Button
-                    className="w-full"
-                    asChild
-                    variant={plan.featured ? "default" : "outline"}
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  {t("monthly-billing")} · {t("cancel-anytime")}
+                </p>
+              </div>
+              <ul className="space-y-3">
+                {plan.highlights.map((highlight) => (
+                  <li
+                    key={highlight}
+                    className="flex items-start gap-3 text-sm"
                   >
-                    <Link href={"/register"}>
-                      {t("get-started")} <MoveRight />
-                    </Link>
-                  </Button>
-                  <div className="text-xs text-[#3b4d6b]">
-                    {t("billed-monthly")}
-                  </div>
-                </div>
-
-                <ul className="mt-6 space-y-3">
-                  {plan.highlights.map((h) => (
-                    <li
-                      key={h}
-                      className="flex items-start gap-3 sm:text-sm text-xs"
-                    >
-                      <Check className="w-4 h-4 shrink-0 text-primary sm:mt-1.25" />
-                      <span className="text-primary">{h}</span>
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            </SpotlightCard>
-          );
-        })}
-      </div>
-      <div className="w-full max-w-7xl px-2 mx-auto mt-16 mb-12">
-        <div className="hidden sm:grid grid-cols-5 gap-0">
-          <div className="col-span-1 top-0 h-full"></div>
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className="col-span-1 border shadow p-2 flex flex-col items-center sm:gap-2 gap-0.5 sm:top-14 top-12 bg-background/80 backdrop-blur-sm"
-            >
-              <h1 className="font-semibold text-base text-primary">
-                {plan.name}
-              </h1>
-              <h2 className="text-sm text-muted-foreground text-center min-[375px]:block flex flex-col">
-                <span className="text-lg font-bold text-primary">
-                  {plan.price}
-                </span>
-                {plan.cadence}
-              </h2>
+                    <Check className="mt-0.5 h-4 w-4 text-primary/75" />
+                    <span className="text-muted-foreground">{highlight}</span>
+                  </li>
+                ))}
+              </ul>
               <Button
-                className="w-full lg:flex hidden"
                 asChild
-                variant={"outline"}
+                variant={plan.featured ? "default" : "outline"}
+                className="mt-auto rounded-full"
               >
-                <Link href={"/register"}>
-                  {t("get-started")} <MoveRight />
-                </Link>
+                <Link href="/register">{t("get-started")}</Link>
               </Button>
-            </div>
+            </article>
           ))}
-          {Object.keys(features).map((sectionKey, i) => {
-            const section = sectionKey as SectionKey;
-            const sectionData = features[section];
-            return (
-              <React.Fragment key={section}>
-                <div
-                  id={i == 0 ? "compare" : ""}
-                  className="col-span-full bg-muted p-3 border"
-                >
-                  <h3 className="text-base font-bold text-primary text-left">
-                    {section}
-                  </h3>
-                </div>
-                {Object.keys(sectionData).map((titleKey) => {
-                  const title = titleKey as TitleKey<typeof section>;
-                  const values = sectionData[title] as string[] | number[];
-                  return (
-                    <React.Fragment key={title}>
-                      <h2 className="bg-background p-3 text-left text-sm font-semibold col-span-1 border">
-                        {title}
-                      </h2>
-                      {values.map((value, i) => {
-                        if (typeof value === "number") {
-                          return (
-                            <div
-                              key={i}
-                              className="col-span-1 bg-background w-full p-3 text-center flex items-center justify-center border"
-                            >
-                              {value === 1 ? (
-                                <Check className="w-3.5 h-3.5 shrink-0 text-primary" />
+        </div>
+      </MarketingSection>
+
+      <MarketingSection>
+        <div
+          id="compare"
+          className="hidden overflow-hidden border-t border-primary/15 lg:block"
+        >
+          <div className="grid grid-cols-[minmax(14rem,1.2fr)_repeat(4,minmax(8rem,1fr))]">
+            <div />
+            {plans.map((plan) => (
+              <div
+                key={plan.id}
+                className={`border-l border-primary/10 px-4 py-5 text-center ${
+                  plan.featured ? "bg-primary/[0.04]" : ""
+                }`}
+              >
+                <p className="font-[family-name:var(--font-editorial)] text-3xl leading-none tracking-[-0.04em]">
+                  {plan.name}
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {plan.price}
+                  {plan.cadence}
+                </p>
+              </div>
+            ))}
+
+            {Object.keys(features).map((sectionKey) => {
+              const section = sectionKey as SectionKey;
+              const sectionData = features[section];
+
+              return (
+                <React.Fragment key={section}>
+                  <div className="col-span-full border-t border-primary/15 py-5">
+                    <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                      {section}
+                    </p>
+                  </div>
+                  {Object.keys(sectionData).map((titleKey) => {
+                    const title = titleKey as TitleKey<typeof section>;
+                    const values = sectionData[title] as Array<string | number>;
+
+                    return (
+                      <React.Fragment key={title}>
+                        <div className="border-t border-primary/10 py-4 pr-4 text-sm text-muted-foreground">
+                          {title}
+                        </div>
+                        {values.map((value, index) => (
+                          <div
+                            key={`${title}-${index}`}
+                            className={`flex items-center justify-center border-l border-t border-primary/10 px-4 py-4 text-sm ${
+                              plans[index]?.featured ? "bg-primary/[0.04]" : ""
+                            }`}
+                          >
+                            {typeof value === "number" ? (
+                              value === 1 ? (
+                                <Check className="h-4 w-4 text-primary/75" />
                               ) : (
-                                <X className="w-3.5 h-3.5 shrink-0 text-primary" />
-                              )}
-                            </div>
-                          );
-                        }
-                        if (typeof value === "string") {
-                          return (
-                            <div
-                              key={i}
-                              className="col-span-1 w-full bg-background p-3 text-center flex items-center justify-center text-sm border"
-                            >
-                              {value}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </React.Fragment>
-                  );
-                })}
-              </React.Fragment>
-            );
-          })}
+                                <X className="h-4 w-4 text-muted-foreground/60" />
+                              )
+                            ) : (
+                              <span className="text-muted-foreground">
+                                {value}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
 
-        <div className="sm:hidden flex flex-col gap-4">
-          {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className="border rounded-lg shadow bg-background"
-            >
-              <div className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <h2 className="font-semibold text-lg text-primary">
-                    {plan.name}
-                  </h2>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-primary">
-                      {plan.price}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {plan.cadence}
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  asChild
-                  variant={plan.featured ? "default" : "outline"}
-                  size="sm"
-                >
-                  <Link href="#">
-                    {t("get-started")} <MoveRight />
-                  </Link>
-                </Button>
-              </div>
+        <div className="space-y-10 lg:hidden">
+          {plans.map((plan) => {
+            const planIndex = plans.findIndex(({ id }) => id === plan.id);
 
-              <div className="border-t">
-                <Accordion type="single" collapsible>
+            return (
+              <article
+                key={plan.id}
+                className="border-t border-primary/15 pt-5"
+              >
+                <div className="mb-6 flex items-end justify-between gap-4">
+                  <div>
+                    <h3 className="font-[family-name:var(--font-editorial)] text-4xl leading-none tracking-[-0.05em]">
+                      {plan.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {plan.price}
+                      {plan.cadence}
+                    </p>
+                  </div>
+                  {plan.featured ? (
+                    <span className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-primary">
+                      {t("recommended")}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="space-y-5">
                   {Object.keys(features).map((sectionKey) => {
                     const section = sectionKey as SectionKey;
                     const sectionData = features[section];
+
                     return (
-                      <AccordionItem
-                        className="px-4"
-                        key={section}
-                        value={section}
-                      >
-                        <AccordionTrigger>{section}</AccordionTrigger>
-                        <AccordionContent>
-                          <ul className="flex flex-col gap-2">
-                            {Object.keys(sectionData).map((titleKey) => {
-                              const title = titleKey as TitleKey<
-                                typeof section
-                              >;
-                              const values = sectionData[title] as
-                                | string[]
-                                | number[];
-                              const planIdx = plans.findIndex(
-                                (p) => p.id === plan.id,
-                              );
-                              const value = values[planIdx];
-                              return (
-                                <li
-                                  key={title}
-                                  className="flex items-center justify-between text-sm py-1 border-b last:border-b-0"
-                                >
-                                  <span>{title}</span>
-                                  <span>
-                                    {typeof value === "number" ? (
-                                      value === 1 ? (
-                                        <Check className="w-4 h-4 text-primary inline" />
-                                      ) : (
-                                        <X className="w-4 h-4 text-primary inline" />
-                                      )
+                      <div key={section} className="space-y-3">
+                        <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                          {section}
+                        </p>
+                        <div className="space-y-2">
+                          {Object.keys(sectionData).map((titleKey) => {
+                            const title = titleKey as TitleKey<typeof section>;
+                            const values = sectionData[title] as Array<
+                              string | number
+                            >;
+                            const value = values[planIndex];
+
+                            return (
+                              <div
+                                key={`${plan.id}-${title}`}
+                                className="flex items-center justify-between gap-4 border-t border-primary/10 py-3 text-sm"
+                              >
+                                <span className="text-muted-foreground">
+                                  {title}
+                                </span>
+                                <span className="font-medium text-foreground">
+                                  {typeof value === "number" ? (
+                                    value === 1 ? (
+                                      <Check className="h-4 w-4 text-primary/75" />
                                     ) : (
-                                      value
-                                    )}
-                                  </span>
-                                </li>
-                              );
-                            })}
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
+                                      <X className="h-4 w-4 text-muted-foreground/60" />
+                                    )
+                                  ) : (
+                                    value
+                                  )}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     );
                   })}
-                </Accordion>
-              </div>
-            </div>
-          ))}
+                </div>
+              </article>
+            );
+          })}
         </div>
-      </div>
-    </main>
+      </MarketingSection>
+    </MarketingPage>
   );
 }

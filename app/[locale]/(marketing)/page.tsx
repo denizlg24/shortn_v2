@@ -1,386 +1,220 @@
-import DotGrid from "@/components/DotGrid";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { RotatingSubtitle } from "./_components/rotating-subtitle";
-import { Button } from "@/components/ui/button";
 import {
+  MarketingCtaBand,
+  MarketingHero,
+  MarketingPage,
+  MarketingSection,
+  PrimaryActionLink,
+  SecondaryActionLink,
+} from "@/components/marketing/marketing-primitives";
+import { RotatingSubtitle } from "./_components/rotating-subtitle";
+import {
+  BarChart3,
   Check,
-  MoveRight,
-  Zap,
+  Globe,
   Link2,
   QrCode,
-  BarChart3,
-  Globe,
   Shield,
-  Clock,
-  ArrowRight,
+  Zap,
 } from "lucide-react";
-import { Link } from "@/i18n/navigation";
-import GradientText from "@/components/GradientText";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 
 export default async function Home({
   params,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  params: any;
+  params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const tRotating = await getTranslations("rotating-subtitle");
+
   const t = await getTranslations("homepage");
+  const tRotating = await getTranslations("rotating-subtitle");
+  const heroFeatures = [
+    {
+      icon: <Link2 className="h-4 w-4" />,
+      title: t("features.shorten-links.title"),
+      description: t("features.shorten-links.description"),
+    },
+    {
+      icon: <QrCode className="h-4 w-4" />,
+      title: t("features.qr-codes.title"),
+      description: t("features.qr-codes.description"),
+    },
+    {
+      icon: <BarChart3 className="h-4 w-4" />,
+      title: t("features.analytics.title"),
+      description: t("features.analytics.description"),
+    },
+  ];
+  const heroChecks = [
+    t("no-credit-card"),
+    t("no-onboarding"),
+    t("free-forever"),
+  ];
+  const heroStats = [
+    {
+      value: t("stats.affordable-value"),
+      label: t("stats.affordable-label"),
+    },
+    { value: t("stats.uptime-value"), label: t("stats.uptime-label") },
+    { value: t("stats.links-value"), label: t("stats.links-label") },
+  ];
 
   return (
-    <main className="flex flex-col items-center w-full mx-auto relative">
-      <div className="absolute w-full h-full sm:-mt-16 -mt-12 -mx-4 -z-10">
-        <div className="relative w-full h-full">
-          <DotGrid
-            dotSize={4}
-            gap={25}
-            baseColor="#f1f5f9"
-            activeColor="#0f172b"
-            proximity={120}
-            shockRadius={250}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
-          />
-        </div>
-      </div>
-      <div className="hover:backdrop-blur-3xl transition-all sm:mt-24 mt-16 mx-auto max-w-4xl text-center w-full px-4 flex flex-col items-center gap-6 z-10">
-        <div className="rounded-full py-1.5 px-4 bg-muted border shadow flex items-center justify-center gap-2 text-muted-foreground">
-          <Zap className="w-4 h-4" />
-          <span className="text-sm font-medium">{t("badge")}</span>
-        </div>
-        <h1 className="md:text-7xl sm:text-6xl xs:text-5xl text-4xl font-black">
-          {t("hero-title")}
-        </h1>
-        <h2 className="text-lg text-muted-foreground max-w-xl">
-          {t("hero-subtitle")}
-        </h2>
-        {/* <RotatingSubtitle
-          texts={[
-            "Link shortener",
-            "QR Code creator",
-            "Marketing platform",
-            "Analytics dashboard",
-            "Personal page",
-          ]}
-        /> */}
-        <div className="flex sm:flex-row flex-col gap-2 items-center justify-center w-full">
-          <Button asChild size={"lg"} className="rounded-full w-full sm:flex-1">
-            <Link href={"/register"}>
-              {t("get-started-free")}{" "}
-              <span className="-ml-1 font-bold">{t("free")}</span> <MoveRight />
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant={"outline"}
-            size={"lg"}
-            className="rounded-full w-full sm:flex-1"
-          >
-            <Link href={"/pricing"}>{t("compare-plans")}</Link>
-          </Button>
-        </div>
-        <div className="w-full max-w-xl flex flex-row items-center justify-center flex-wrap gap-y-2 gap-x-0.5">
-          <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
-            <Check className="w-4 h-4" />
-            {t("no-credit-card")}
-          </div>
-          <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
-            <Check className="w-4 h-4" />
-            {t("no-onboarding")}
-          </div>
-          <div className="grow flex flex-row items-center justify-center text-center gap-2 text-muted-foreground text-xs">
-            <Check className="w-4 h-4" />
-            {t("free-forever")}
-          </div>
-        </div>
-      </div>
-      <div className="w-full bg-muted/50 border px-2 py-6 sm:my-20 my-12 ">
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-4 text-center">
-          <div className="flex flex-col gap-2 col-span-1 w-full items-center">
-            <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              {t("stats.affordable-value")}
-            </span>
-            <span className="sm:text-base text-xs text-muted-foreground">
-              {t("stats.affordable-label")}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2 col-span-1 w-full items-center">
-            <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              {t("stats.uptime-value")}
-            </span>
-            <span className="sm:text-base text-xs text-muted-foreground">
-              {t("stats.uptime-label")}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2 col-span-1 w-full items-center">
-            <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              {t("stats.links-value")}
-            </span>
-            <span className="sm:text-base text-xs text-muted-foreground">
-              {t("stats.links-label")}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2 col-span-1 w-full items-center">
-            <span className="md:text-3xl sm:text-2xl xs:text-xl text-lg font-bold">
-              {t("stats.countries-value")}
-            </span>
-            <span className="sm:text-base text-xs text-muted-foreground">
-              {t("stats.countries-label")}
-            </span>
-          </div>
-        </div>
-      </div>
-      <div className="hover:backdrop-blur-3xl mx-auto max-w-5xl flex flex-col gap-4 items-center sm:mb-20 mb-12 px-4">
-        <h1 className="wrap-break-word md:text-3xl xs:text-2xl font-medium text-xl text-center">
-          <GradientText
-            colors={["#131954", " #4079ff", " #131954", " #4079ff", "#131954"]}
-            animationSpeed={8}
-            showBorder={false}
-            className="inline-flex rounded-none! wrap-break-word"
-          >
-            {t("level-up")}
-          </GradientText>{" "}
-          {t("marketing-strategy")}{" "}
-          <GradientText
-            colors={["#131954", " #4079ff", " #131954", " #4079ff", "#131954"]}
-            animationSpeed={8}
-            showBorder={false}
-            className="inline-flex rounded-none! wrap-break-word"
-          >
-            Shortn.at
-          </GradientText>
-        </h1>
-        <RotatingSubtitle
-          texts={[
-            tRotating("link-shortener"),
-            tRotating("qr-code-generator"),
-            tRotating("marketing-platform"),
-            tRotating("analytics-dashboard"),
-            tRotating("personal-page"),
-          ]}
-        />
-      </div>
-
-      <div className="w-full max-w-6xl mx-auto px-4 sm:mb-20 mb-12">
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="group bg-background border rounded-xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <Link2 className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-semibold text-lg mb-2">
-              {t("features.shorten-links.title")}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              {t("features.shorten-links.description")}
-            </p>
-          </div>
-          <div className="group bg-background border rounded-xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <QrCode className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-semibold text-lg mb-2">
-              {t("features.qr-codes.title")}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              {t("features.qr-codes.description")}
-            </p>
-          </div>
-          <div className="group bg-background border rounded-xl p-6 hover:shadow-lg hover:border-primary/50 transition-all duration-300">
-            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-              <BarChart3 className="w-6 h-6 text-primary" />
-            </div>
-            <h3 className="font-semibold text-lg mb-2">
-              {t("features.analytics.title")}
-            </h3>
-            <p className="text-muted-foreground text-sm">
-              {t("features.analytics.description")}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/*Hopefully we will have testimonies soon enough */}
-      {/* <div className="w-full bg-muted/50 border-y py-16 sm:mb-20 mb-12">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-center text-2xl font-bold mb-2">
-            Trusted by marketers worldwide
-          </h2>
-          <p className="text-center text-muted-foreground mb-10">
-            See what our users are saying
-          </p>
-          <div className="grid md:grid-cols-3 gap-6">
-            <div className="bg-background rounded-xl p-6 border shadow-sm">
-              <div className="flex gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-4 h-4 text-yellow-400 fill-current"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
+    <MarketingPage>
+      <MarketingHero
+        title={t("hero-title")}
+        subtitle={t("hero-subtitle")}
+        actions={
+          <>
+            <PrimaryActionLink href="/register">
+              {t("get-started-free")} {t("free")}
+            </PrimaryActionLink>
+            <SecondaryActionLink href="/pricing">
+              {t("compare-plans")}
+            </SecondaryActionLink>
+          </>
+        }
+        aside={
+          <div className="mx-auto max-w-5xl border-y border-black/5 py-8">
+            <div className="grid gap-10 lg:grid-cols-[minmax(0,1.15fr)_repeat(3,minmax(0,0.8fr))]">
+              <div className="space-y-4 text-left">
+                <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Shortn.at
+                </p>
+                <div className="font-[family-name:var(--font-editorial)] text-4xl font-semibold leading-[0.95] tracking-[-0.05em] sm:text-[2.8rem]">
+                  <RotatingSubtitle
+                    className="px-0"
+                    texts={[
+                      tRotating("link-shortener"),
+                      tRotating("qr-code-generator"),
+                      tRotating("marketing-platform"),
+                      tRotating("analytics-dashboard"),
+                      tRotating("personal-page"),
+                    ]}
+                  />
+                </div>
+                <p className="max-w-md text-sm leading-7 text-muted-foreground">
+                  {t("hero-subtitle")}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                &ldquo;Finally, a link shortener that doesn&apos;t cost a fortune. The
-                analytics are just as good as the big players.&rdquo;
-              </p>
-              <div className="flex items-center gap-3 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-purple-500" />
-                <div>
-                  <p className="font-medium text-sm">Sarah M.</p>
-                  <p className="text-xs text-muted-foreground">
-                    Marketing Manager
+
+              {heroFeatures.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="border-t border-black/5 pt-4 text-left lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0"
+                >
+                  <div className="mb-3 flex items-center gap-3 text-primary/75">
+                    {feature.icon}
+                    <span className="text-sm font-semibold text-foreground">
+                      {feature.title}
+                    </span>
+                  </div>
+                  <p className="text-sm leading-7 text-muted-foreground">
+                    {feature.description}
                   </p>
                 </div>
-              </div>
+              ))}
             </div>
-            <div className="bg-background rounded-xl p-6 border shadow-sm flex flex-col">
-              <div className="flex gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-4 h-4 text-yellow-400 fill-current"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                &ldquo;The QR code customization is incredible. Our branded codes look
-                so professional now.&rdquo;
-              </p>
-              <div className="flex items-center gap-3 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-green-400 to-teal-500" />
-                <div>
-                  <p className="font-medium text-sm">James K.</p>
-                  <p className="text-xs text-muted-foreground">Small Business Owner</p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-background rounded-xl p-6 border shadow-sm">
-              <div className="flex gap-1 mb-3">
-                {[...Array(5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-4 h-4 text-yellow-400 fill-current"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                &ldquo;Switched from Bitly and saving over $200/month. Same features,
-                fraction of the price.&rdquo;
-              </p>
-              <div className="flex items-center gap-3 mt-auto">
-                <div className="w-10 h-10 rounded-full bg-linear-to-br from-orange-400 to-red-500" />
-                <div>
-                  <p className="font-medium text-sm">Alex R.</p>
-                  <p className="text-xs text-muted-foreground">Content Creator</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
 
-      <div className="w-full max-w-6xl mx-auto px-4 sm:mb-20 mb-12">
-        <h2 className="text-center text-2xl font-bold mb-2">
-          {t("why-choose.title")}
-        </h2>
-        <p className="text-center text-muted-foreground mb-10 max-w-2xl mx-auto">
-          {t("why-choose.subtitle")}
-        </p>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="flex items-start gap-3 p-4 rounded-lg border bg-background">
-            <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-              <Shield className="w-5 h-5 text-green-600 dark:text-green-400" />
+            <div className="mt-8 grid gap-6 border-t border-black/5 pt-6 sm:grid-cols-3">
+              {heroStats.map((stat) => (
+                <div key={stat.label} className="text-left sm:text-center">
+                  <p className="font-[family-name:var(--font-editorial)] text-4xl font-semibold leading-none tracking-[-0.05em]">
+                    {stat.value}
+                  </p>
+                  <p className="mt-2 text-[0.72rem] uppercase tracking-[0.2em] text-muted-foreground">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
-            <div>
-              <h4 className="font-medium mb-1">
-                {t("why-choose.secure.title")}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {t("why-choose.secure.description")}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg border bg-background">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-              <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">{t("why-choose.fast.title")}</h4>
-              <p className="text-xs text-muted-foreground">
-                {t("why-choose.fast.description")}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg border bg-background">
-            <div className="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
-              <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">
-                {t("why-choose.global.title")}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {t("why-choose.global.description")}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 p-4 rounded-lg border bg-background">
-            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-              <Zap className="w-5 h-5 text-orange-600 dark:text-orange-400" />
-            </div>
-            <div>
-              <h4 className="font-medium mb-1">
-                {t("why-choose.no-setup.title")}
-              </h4>
-              <p className="text-xs text-muted-foreground">
-                {t("why-choose.no-setup.description")}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="w-full max-w-4xl mx-auto px-4 sm:mb-20 mb-12">
-        <div className="relative overflow-hidden rounded-2xl bg-linear-to-br from-primary to-primary/80 p-8 sm:p-12 text-center text-primary-foreground">
-          <div className="absolute inset-0 bg-grid-white/10 mask-[linear-gradient(0deg,transparent,white)]" />
-          <h2 className="relative text-2xl sm:text-3xl font-bold mb-3">
-            {t("cta.title")}
-          </h2>
-          <p className="relative text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-            {t("cta.subtitle")}
-          </p>
-          <div className="relative flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              asChild
-              size="lg"
-              variant="secondary"
-              className="rounded-full"
-            >
-              <Link href="/register">
-                {t("cta.start-free")} <ArrowRight className="ml-2 w-4 h-4" />
-              </Link>
-            </Button>
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="rounded-full bg-transparent border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
-            >
-              <Link href="/pricing">{t("cta.view-pricing")}</Link>
-            </Button>
+            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-black/5 pt-6 text-sm text-muted-foreground justify-center">
+              {heroChecks.map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <Check className="h-4 w-4 text-primary/75" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
           </div>
+        }
+      />
+
+      {/* <MarketingStatStrip
+        items={[
+          {
+            value: t("stats.affordable-value"),
+            label: t("stats.affordable-label"),
+          },
+          { value: t("stats.uptime-value"), label: t("stats.uptime-label") },
+          { value: t("stats.links-value"), label: t("stats.links-label") },
+          {
+            value: t("stats.countries-value"),
+            label: t("stats.countries-label"),
+          },
+        ]}
+      /> */}
+
+      <MarketingSection
+        title={t("why-choose.title")}
+        description={t("why-choose.subtitle")}
+      >
+        <div className="grid gap-6 lg:grid-cols-2">
+          {[
+            {
+              icon: <Shield className="h-5 w-5" />,
+              title: t("why-choose.secure.title"),
+              description: t("why-choose.secure.description"),
+            },
+            {
+              icon: <Zap className="h-5 w-5" />,
+              title: t("why-choose.fast.title"),
+              description: t("why-choose.fast.description"),
+            },
+            {
+              icon: <Globe className="h-5 w-5" />,
+              title: t("why-choose.global.title"),
+              description: t("why-choose.global.description"),
+            },
+            {
+              icon: <Check className="h-5 w-5" />,
+              title: t("why-choose.no-setup.title"),
+              description: t("why-choose.no-setup.description"),
+            },
+          ].map((item) => (
+            <div
+              key={item.title}
+              className="grid gap-4 border-t border-primary/10 pt-5 sm:grid-cols-[auto_minmax(0,1fr)]"
+            >
+              <div className="text-primary/75">{item.icon}</div>
+              <div>
+                <h3 className="font-[family-name:var(--font-editorial)] text-3xl leading-none tracking-[-0.04em]">
+                  {item.title}
+                </h3>
+                <p className="mt-3 max-w-xl text-sm leading-7 text-muted-foreground sm:text-base">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          ))}
         </div>
-      </div>
-    </main>
+      </MarketingSection>
+
+      <MarketingCtaBand
+        title={t("cta.title")}
+        subtitle={t("cta.subtitle")}
+        actions={
+          <>
+            <PrimaryActionLink href="/register">
+              {t("cta.start-free")}
+            </PrimaryActionLink>
+            <SecondaryActionLink href="/pricing">
+              {t("cta.view-pricing")}
+            </SecondaryActionLink>
+          </>
+        }
+      />
+    </MarketingPage>
   );
 }
