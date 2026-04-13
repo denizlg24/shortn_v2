@@ -6,13 +6,17 @@ import { fetchApi } from "@/lib/utils";
 import { SubscriptionsType } from "@/utils/plan-utils";
 import { authClient } from "@/lib/authClient";
 
+type SubscriptionStatus = "free" | "active" | "trialing" | "past_due";
+
 interface PlanData {
   plan: SubscriptionsType;
+  status?: SubscriptionStatus;
   lastPaid?: Date;
 }
 
 interface PlanContextValue {
   plan: SubscriptionsType;
+  status: SubscriptionStatus;
   lastPaid?: Date;
   isLoading: boolean;
   error: Error | undefined;
@@ -27,9 +31,9 @@ const PLAN_CACHE_KEY = "user-plan";
 const fetcher = async (): Promise<PlanData> => {
   const res = await fetchApi<PlanData>("auth/user/subscription");
   if (res.success) {
-    return { plan: res.plan, lastPaid: res.lastPaid };
+    return { plan: res.plan, status: res.status, lastPaid: res.lastPaid };
   }
-  return { plan: "free" };
+  return { plan: "free", status: "free" };
 };
 
 export function PlanProvider({ children }: { children: ReactNode }) {
@@ -47,7 +51,7 @@ export function PlanProvider({ children }: { children: ReactNode }) {
     focusThrottleInterval: 300000,
     errorRetryCount: 3,
     shouldRetryOnError: true,
-    fallbackData: { plan: "free" },
+    fallbackData: { plan: "free", status: "free" as SubscriptionStatus },
   });
 
   useEffect(() => {
@@ -59,11 +63,12 @@ export function PlanProvider({ children }: { children: ReactNode }) {
   }, [sessionData?.user?.sub]);
 
   const clearPlanCache = () => {
-    mutate(PLAN_CACHE_KEY, { plan: "free" }, false);
+    mutate(PLAN_CACHE_KEY, { plan: "free", status: "free" }, false);
   };
 
   const value: PlanContextValue = {
     plan: data?.plan ?? "free",
+    status: data?.status ?? "free",
     lastPaid: data?.lastPaid,
     isLoading,
     error,

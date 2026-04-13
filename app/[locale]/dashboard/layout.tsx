@@ -12,6 +12,7 @@ import { AbortControllerProvider } from "@/utils/AbortContext";
 import ScrollToTop from "@/utils/ScrollToTop";
 import { getServerSession } from "@/lib/session";
 import { PlanProvider } from "@/hooks/use-plan";
+import { SubscriptionStatusBanner } from "@/components/subscription-status-banner";
 import { redirect } from "@/i18n/navigation";
 
 export function generateStaticParams() {
@@ -81,6 +82,7 @@ export default async function RootLayout({
           <ScrollToTop />
           <NextIntlClientProvider>
             <PlanProvider>
+              <SubscriptionStatusBanner />
               <SidebarProvider defaultOpen={defaultOpen}>
                 <AppSidebar />
                 <DashboardHeaderClient />

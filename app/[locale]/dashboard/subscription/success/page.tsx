@@ -62,97 +62,81 @@ export default async function SubscriptionSuccessPage({
 
     return (
       <div className="flex w-full pt-12 justify-center px-4 pb-12">
-        <div className="w-full max-w-2xl space-y-8">
-          <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center">
-              <CheckCircle2 className="h-16 w-16 text-green-600" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                {t("confirmed-title")}
-              </h1>
-              <p className="text-lg text-muted-foreground">
-                {t("confirmed-subtitle", { plan: planName })}
-              </p>
-            </div>
+        <div className="w-full max-w-lg space-y-8">
+          <div className="space-y-3">
+            <CheckCircle2 className="h-8 w-8 text-green-600" />
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("confirmed-title")}
+            </h1>
+            <p className="text-muted-foreground">
+              {t("confirmed-subtitle", { plan: planName })}
+            </p>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {t("details-heading")}
+          <div className="space-y-4">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {t("details-heading")}
+            </h2>
+            <dl className="space-y-0 divide-y divide-border/50">
+              <div className="flex justify-between py-3">
+                <dt className="text-sm text-muted-foreground">{t("plan")}</dt>
+                <dd className="text-sm font-medium">{planName}</dd>
+              </div>
+              <div className="flex justify-between py-3">
+                <dt className="text-sm text-muted-foreground">{t("status")}</dt>
+                <dd className="text-sm font-medium text-green-600">
+                  {t("active")}
+                </dd>
+              </div>
+              <div className="flex justify-between py-3">
+                <dt className="text-sm text-muted-foreground">
+                  {t("billing-amount")}
+                </dt>
+                <dd className="text-sm font-medium">
+                  {t("per-month", { price: formattedPrice })}
+                </dd>
+              </div>
+              {checkout.createdAt && (
+                <div className="flex justify-between py-3">
+                  <dt className="text-sm text-muted-foreground">
+                    {t("activated-on")}
+                  </dt>
+                  <dd className="text-sm font-medium">
+                    {formatDateTime(checkout.createdAt)}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </div>
+
+          {product?.description && (
+            <div className="space-y-3">
+              <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {t("what-you-get")}
               </h2>
-              <div className="rounded-lg border bg-card">
-                <div className="divide-y">
-                  <div className="flex justify-between p-4">
-                    <span className="text-sm text-muted-foreground">
-                      {t("plan")}
-                    </span>
-                    <span className="text-sm font-semibold">{planName}</span>
-                  </div>
-                  <div className="flex justify-between p-4">
-                    <span className="text-sm text-muted-foreground">
-                      {t("status")}
-                    </span>
-                    <span className="text-sm font-semibold capitalize text-green-600">
-                      {t("active")}
-                    </span>
-                  </div>
-                  <div className="flex justify-between p-4">
-                    <span className="text-sm text-muted-foreground">
-                      {t("billing-amount")}
-                    </span>
-                    <span className="text-sm font-semibold">
-                      {t("per-month", { price: formattedPrice })}
-                    </span>
-                  </div>
-                  {checkout.createdAt && (
-                    <div className="flex justify-between p-4">
-                      <span className="text-sm text-muted-foreground">
-                        {t("activated-on")}
-                      </span>
-                      <span className="text-sm font-medium">
-                        {formatDateTime(checkout.createdAt)}
-                      </span>
-                    </div>
-                  )}
-                </div>
+              <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {product.description}
+                </ReactMarkdown>
               </div>
             </div>
+          )}
 
-            {product?.description && (
-              <div className="space-y-2">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("what-you-get")}
-                </h2>
-                <div className="rounded-lg border bg-card p-4">
-                  <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {product.description}
-                    </ReactMarkdown>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-            <h3 className="text-sm font-semibold text-green-900 mb-2">
+          <div className="border-l-2 border-green-500 bg-green-50 pl-4 py-3">
+            <p className="text-sm font-medium text-green-900">
               {t("next-title")}
-            </h3>
-            <p className="text-sm text-green-900">
+            </p>
+            <p className="text-sm text-green-800 mt-1">
               {t("next-description", { price: formattedPrice })}
             </p>
           </div>
 
-          <div className="flex justify-center pt-4">
-            <Button asChild size="lg">
-              <Link href="/dashboard">
-                {t("go-to-dashboard")}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link href="/dashboard">
+              {t("go-to-dashboard")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -160,33 +144,29 @@ export default async function SubscriptionSuccessPage({
 
   if (status === "payment_failed") {
     return (
-      <div className="flex w-full pt-12 justify-center px-4">
+      <div className="flex w-full pt-12 justify-center px-4 pb-12">
         <div className="w-full max-w-lg space-y-8">
-          <div className="space-y-4 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center">
-              <XCircle className="h-16 w-16 text-red-600" />
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-3xl font-semibold tracking-tight">
-                {t("payment-failed-title")}
-              </h1>
-              <p className="text-muted-foreground">
-                {t("payment-failed-subtitle")}
-              </p>
-            </div>
+          <div className="space-y-3">
+            <XCircle className="h-8 w-8 text-destructive" />
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("payment-failed-title")}
+            </h1>
+            <p className="text-muted-foreground">
+              {t("payment-failed-subtitle")}
+            </p>
           </div>
 
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-            <p className="text-sm text-red-900">
+          <div className="border-l-2 border-destructive bg-destructive/5 pl-4 py-3">
+            <p className="text-sm text-foreground">
               {t("payment-failed-description")}
             </p>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button asChild size="lg">
+          <div className="flex gap-3">
+            <Button asChild>
               <Link href="/dashboard/subscription">{t("update-payment")}</Link>
             </Button>
-            <Button variant="outline" asChild size="lg">
+            <Button variant="outline" asChild>
               <Link href="/dashboard">{t("return-to-dashboard")}</Link>
             </Button>
           </div>
@@ -272,108 +252,92 @@ export default async function SubscriptionSuccessPage({
 
   return (
     <div className="flex w-full pt-12 justify-center px-4 pb-12">
-      <div className="w-full max-w-2xl space-y-8">
-        <div className="space-y-4 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center">
-            <CheckCircle2 className="h-16 w-16 text-green-600" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight">
-              {isUpgrade ? t("updated-title") : t("downgrade-scheduled-title")}
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              {isUpgrade
-                ? t("updated-subtitle")
-                : t("downgrade-scheduled-subtitle")}
-            </p>
-          </div>
+      <div className="w-full max-w-lg space-y-8">
+        <div className="space-y-3">
+          <CheckCircle2 className="h-8 w-8 text-green-600" />
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {isUpgrade ? t("updated-title") : t("downgrade-scheduled-title")}
+          </h1>
+          <p className="text-muted-foreground">
+            {isUpgrade
+              ? t("updated-subtitle")
+              : t("downgrade-scheduled-subtitle")}
+          </p>
         </div>
 
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("details-heading")}
+        <div className="space-y-4">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            {t("details-heading")}
+          </h2>
+          <dl className="space-y-0 divide-y divide-border/50">
+            <div className="flex justify-between py-3">
+              <dt className="text-sm text-muted-foreground">
+                {isUpgrade ? t("plan") : t("new-plan")}
+              </dt>
+              <dd className="text-sm font-medium">{displayPlanName}</dd>
+            </div>
+            <div className="flex justify-between py-3">
+              <dt className="text-sm text-muted-foreground">{t("status")}</dt>
+              <dd className="text-sm font-medium capitalize">
+                {isUpgrade
+                  ? subscription.status || t("active")
+                  : t("scheduled")}
+              </dd>
+            </div>
+            <div className="flex justify-between py-3">
+              <dt className="text-sm text-muted-foreground">
+                {isUpgrade ? t("billing-amount") : t("new-billing-amount")}
+              </dt>
+              <dd className="text-sm font-medium">
+                {t("per-interval", {
+                  price: formattedPrice,
+                  interval: displayInterval,
+                })}
+              </dd>
+            </div>
+            {currentPeriodEnd && (
+              <div className="flex justify-between py-3">
+                <dt className="text-sm text-muted-foreground">
+                  {isUpgrade ? t("next-billing-date") : t("changes-effective")}
+                </dt>
+                <dd className="text-sm font-medium">
+                  {formatDate(currentPeriodEnd)}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </div>
+
+        {displayDescription && (
+          <div className="space-y-3">
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              {isUpgrade ? t("what-you-get") : t("whats-included")}
             </h2>
-            <div className="rounded-lg border bg-card">
-              <div className="divide-y">
-                <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">
-                    {isUpgrade ? t("plan") : t("new-plan")}
-                  </span>
-                  <span className="text-sm font-semibold">
-                    {displayPlanName}
-                  </span>
-                </div>
-                <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">
-                    {t("status")}
-                  </span>
-                  <span className="text-sm font-semibold capitalize">
-                    {isUpgrade
-                      ? subscription.status || t("active")
-                      : t("scheduled")}
-                  </span>
-                </div>
-                <div className="flex justify-between p-4">
-                  <span className="text-sm text-muted-foreground">
-                    {isUpgrade ? t("billing-amount") : t("new-billing-amount")}
-                  </span>
-                  <span className="text-sm font-semibold">
-                    {t("per-interval", {
-                      price: formattedPrice,
-                      interval: displayInterval,
-                    })}
-                  </span>
-                </div>
-                {currentPeriodEnd && (
-                  <div className="flex justify-between p-4">
-                    <span className="text-sm text-muted-foreground">
-                      {isUpgrade
-                        ? t("next-billing-date")
-                        : t("changes-effective")}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {formatDate(currentPeriodEnd)}
-                    </span>
-                  </div>
-                )}
-              </div>
+            <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {displayDescription}
+              </ReactMarkdown>
             </div>
           </div>
-
-          {displayDescription && (
-            <div className="space-y-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                {isUpgrade ? t("what-you-get") : t("whats-included")}
-              </h2>
-              <div className="rounded-lg border bg-card p-4">
-                <div className="prose prose-sm text-muted-foreground max-w-none dark:prose-invert">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {displayDescription}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
+        )}
 
         {isUpgrade && (
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2">
+          <div className="border-l-2 border-blue-500 bg-blue-50 pl-4 py-3">
+            <p className="text-sm font-medium text-blue-900">
               {t("upgrade-next-title")}
-            </h3>
-            <p className="text-sm text-blue-900">
+            </p>
+            <p className="text-sm text-blue-800 mt-1">
               {t("upgrade-next-description")}
             </p>
           </div>
         )}
 
         {!isUpgrade && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <h3 className="text-sm font-semibold text-amber-900 mb-2">
+          <div className="border-l-2 border-amber-500 bg-amber-50 pl-4 py-3">
+            <p className="text-sm font-medium text-amber-900">
               {t("downgrade-next-title")}
-            </h3>
-            <p className="text-sm text-amber-900">
+            </p>
+            <p className="text-sm text-amber-800 mt-1">
               {t("downgrade-next-description", {
                 date: currentPeriodEnd
                   ? formatDate(currentPeriodEnd)
@@ -383,14 +347,12 @@ export default async function SubscriptionSuccessPage({
           </div>
         )}
 
-        <div className="flex justify-center pt-4">
-          <Button asChild size="lg">
-            <Link href="/dashboard">
-              {t("go-to-dashboard")}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link href="/dashboard">
+            {t("go-to-dashboard")}
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
     </div>
   );
