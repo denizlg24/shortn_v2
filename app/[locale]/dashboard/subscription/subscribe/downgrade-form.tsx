@@ -13,8 +13,6 @@ import { SubscriptionsType } from "@/utils/plan-utils";
 import {
   ArrowDown,
   Check,
-  CornerLeftDown,
-  CornerRightDown,
   Loader2,
   AlertCircle,
   TrendingDown,
@@ -33,7 +31,6 @@ const plans = [
       "25 QR Codes / month",
       "Click and scan count",
     ],
-    keep: "Manage plan",
     featured: false,
   },
   {
@@ -48,7 +45,6 @@ const plans = [
       "Time and date based analytics",
       "City level location data",
     ],
-    keep: "Manage plan",
     featured: false,
   },
   {
@@ -64,7 +60,6 @@ const plans = [
       "Browser, Device and OS insights",
       "Referer information",
     ],
-    keep: "Manage plan",
     featured: true,
   },
 ];
@@ -114,167 +109,107 @@ export const DowngradeForm = ({
     setLoading(false);
   };
 
+  const currentPlanData = plans.find((p) => p.id === currentPlan);
   const targetPlan = plans.find((p) => p.id === tier);
 
   return (
-    <div className="max-w-7xl mx-auto w-full sm:mt-8 mt-4 px-4">
-      <header className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-4xl lg:text-5xl font-extrabold leading-tight">
-            {t("title")}
-          </h1>
-          <p className="mt-3 max-w-2xl">{t("subtitle")}</p>
-        </div>
+    <div className="max-w-2xl mx-auto w-full sm:mt-8 mt-4 px-4">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+        <p className="mt-2 text-muted-foreground max-w-lg">{t("subtitle")}</p>
       </header>
 
-      <section className="lg:mt-12 sm:mt-6 mt-4 grid sm:grid-cols-2 gap-x-12 gap-y-6 w-full items-stretch">
-        <h2 className="col-span-full text-xl font-bold leading-tight">
+      <section className="mt-8 space-y-6">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {t("losing-title")}
         </h2>
-        <div className="flex flex-col gap-4 items-start w-full ">
-          <p className="md:text-lg text-base font-semibold flex flex-row items-end gap-2 justify-start">
-            {t("current-plan")}
-            <CornerRightDown className="w-4 h-4 shrink-0" />
-          </p>
-          {plans
-            .filter((p) => p.id == currentPlan)
-            .map((plan) => {
-              return (
-                <article
-                  key={plan.id}
-                  className={`relative w-full h-full flex flex-col rounded-2xl p-4 border border-primary/10 shadow-xl ${
-                    plan.featured
-                      ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
-                      : "bg-white"
-                  }`}
-                >
-                  {plan.featured && (
-                    <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                      {t("recommended")}
-                    </div>
-                  )}
 
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <h4 className="text-2xl font-bold text-primary">
-                        {plan.name}
-                      </h4>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-3xl font-extrabold text-primary">
-                          {plan.price}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {plan.cadence}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right text-muted-foreground text-sm">
-                      <div>{t("monthly-billing")}</div>
-                      <div className="mt-2">{t("cancel-anytime")}</div>
-                    </div>
-                  </div>
-                  <ul className="mt-6 space-y-3 mb-4">
-                    {plan.highlights.map((h) => (
+        {/* Side-by-side plan comparison */}
+        <div className="grid sm:grid-cols-2 gap-6">
+          {/* Current plan */}
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+              {t("current-plan")}
+            </p>
+            {currentPlanData && (
+              <div className="space-y-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-semibold">
+                    {currentPlanData.name}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {currentPlanData.price}
+                    {currentPlanData.cadence}
+                  </span>
+                </div>
+                <ul className="space-y-1.5">
+                  {currentPlanData.highlights.map((h) => (
+                    <li
+                      key={h}
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
+                      <Check className="w-3.5 h-3.5 shrink-0 text-primary/60" />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+                <Button asChild size="sm">
+                  <Link href="/dashboard/settings/plan">
+                    {t("keep-plan", { plan: currentPlanData.name })}
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Target plan */}
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">
+              {t("downgrading-to")}
+            </p>
+            {targetPlan && (
+              <div className="space-y-3">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-lg font-semibold">
+                    {targetPlan.name}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {targetPlan.price}
+                    {targetPlan.cadence}
+                  </span>
+                </div>
+                <ul className="space-y-1.5">
+                  {targetPlan.highlights.map((h) => {
+                    const included = currentPlanData?.highlights.includes(h);
+                    return (
                       <li
                         key={h}
-                        className="flex items-start gap-3 sm:text-sm text-xs"
+                        className={`flex items-center gap-2 text-sm ${
+                          included
+                            ? "text-muted-foreground"
+                            : "text-destructive"
+                        }`}
                       >
-                        <Check className="w-4 h-4 shrink-0 text-primary sm:mt-1.25" />
-                        <span className="text-primary">{h}</span>
+                        {included ? (
+                          <Check className="w-3.5 h-3.5 shrink-0 text-primary/60" />
+                        ) : (
+                          <ArrowDown className="w-3.5 h-3.5 shrink-0" />
+                        )}
+                        {h}
                       </li>
-                    ))}
-                  </ul>
-                  <Button
-                    asChild
-                    className="self-end place-self-end w-full mt-auto"
-                  >
-                    <Link href={"/dashboard/settings/plan"}>
-                      {t("keep-plan", { plan: plan.name })}
-                    </Link>
-                  </Button>
-                </article>
-              );
-            })}
-        </div>
-
-        <div className="flex flex-col gap-4 items-start w-full">
-          <p className="md:text-lg text-base font-semibold sm:text-right text-left w-full flex flex-row items-end justify-end gap-2">
-            <CornerLeftDown className="w-4 h-4 shrink-0" />{" "}
-            {t("downgrading-to")}
-          </p>
-          {plans
-            .filter((p) => p.id == tier)
-            .map((plan) => {
-              return (
-                <article
-                  key={plan.id}
-                  className={`relative rounded-2xl w-full h-full flex flex-col p-4 border border-primary/10 shadow-xl ${
-                    plan.featured
-                      ? "bg-linear-to-br from-[#e6f0ff] to-[#dfeaff] border-primary/30"
-                      : "bg-white"
-                  }`}
+                    );
+                  })}
+                </ul>
+                <Button
+                  onClick={() => setOpen(true)}
+                  variant="outline"
+                  size="sm"
                 >
-                  {plan.featured && (
-                    <div className="absolute -top-4 right-4 bg-primary text-white rounded-full px-3 py-1 text-sm font-semibold shadow-sm">
-                      {t("recommended")}
-                    </div>
-                  )}
-
-                  <div className="flex items-baseline justify-between">
-                    <div>
-                      <h4 className="text-2xl font-bold text-primary">
-                        {plan.name}
-                      </h4>
-                      <div className="mt-2 flex items-center gap-2">
-                        <span className="text-3xl font-extrabold text-primary">
-                          {plan.price}
-                        </span>
-                        <span className="text-muted-foreground">
-                          {plan.cadence}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right text-muted-foreground text-sm">
-                      <div>{t("monthly-billing")}</div>
-                      <div className="mt-2">{t("cancel-anytime")}</div>
-                    </div>
-                  </div>
-                  <ul className="mt-6 space-y-3 mb-4">
-                    {plan.highlights.map((h) => {
-                      const curr = plans.find((p) => p.id == currentPlan);
-                      const included = curr?.highlights.includes(h);
-                      if (included) {
-                        return (
-                          <li
-                            key={h}
-                            className="flex items-start gap-3 sm:text-sm text-xs"
-                          >
-                            <Check className="w-4 h-4 shrink-0 text-primary sm:mt-1.25" />
-                            <span className="text-primary">{h}</span>
-                          </li>
-                        );
-                      }
-                      return (
-                        <li
-                          key={h}
-                          className="flex items-start gap-3 sm:text-sm text-xs"
-                        >
-                          <ArrowDown className="w-4 h-4 shrink-0 text-red-700 sm:mt-1.25" />
-                          <span className="text-red-700">{h}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <Button
-                    onClick={() => setOpen(true)}
-                    className="self-end place-self-end w-full mt-auto"
-                    variant={"secondary"}
-                  >
-                    {t("change-to", { plan: plan.name })}
-                  </Button>
-                </article>
-              );
-            })}
+                  {t("change-to", { plan: targetPlan.name })}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

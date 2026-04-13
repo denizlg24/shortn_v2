@@ -27,8 +27,8 @@ export async function GET(request: NextRequest) {
 
     if (rateLimitError) return rateLimitError;
 
-    const plan = await getPlan(request.headers);
-    return NextResponse.json({ success: true, plan });
+    const { plan, status } = await getPlan(request.headers);
+    return NextResponse.json({ success: true, plan, status });
   } catch (err) {
     console.log(err);
     return NextResponse.json(
@@ -45,17 +45,28 @@ async function getPlan(headers: Headers) {
     headers: headers,
   });
   if ((subscriptions?.length ?? 0) === 0) {
-    return "free";
+    return { plan: "free" as const, status: "free" as const };
   }
-  const subscription = subscriptions?.filter(
+
+  const activeSubscription = subscriptions?.filter(
     (sub) => sub.status === "active" || sub.status === "trialing",
   )[0];
+
+  const pastDueSubscription = subscriptions?.filter(
+    (sub) => sub.status === "past_due",
+  )[0];
+
+  const subscription = activeSubscription ?? pastDueSubscription;
+
   if (!subscription) {
-    return "free";
+    return { plan: "free" as const, status: "free" as const };
   }
+
+  const status = subscription.status as "active" | "trialing" | "past_due";
   const names = subscription.product.name.toLowerCase().split(" ");
-  if (names.includes("basic")) return "basic";
-  if (names.includes("plus")) return "plus";
-  if (names.includes("pro")) return "pro";
-  return "free";
+
+  if (names.includes("basic")) return { plan: "basic" as const, status };
+  if (names.includes("plus")) return { plan: "plus" as const, status };
+  if (names.includes("pro")) return { plan: "pro" as const, status };
+  return { plan: "free" as const, status: "free" as const };
 }

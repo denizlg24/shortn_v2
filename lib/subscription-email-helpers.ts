@@ -7,6 +7,7 @@ import {
   subscriptionUncanceledEmailTemplate,
   subscriptionRevokedEmailTemplate,
   orderRefundedEmailTemplate,
+  paymentFailedTemplate,
 } from "@/lib/email-templates";
 import { BASEURL } from "@/lib/utils";
 import { format } from "date-fns";
@@ -262,6 +263,42 @@ export async function sendOrderRefundedEmail(params: {
     from: "no-reply@shortn.at",
     to: params.userEmail,
     subject: "Refund Processed - Shortn",
+    html,
+  });
+}
+
+/**
+ * Send payment failed email when subscription goes past_due
+ */
+export async function sendPaymentFailedEmail(params: {
+  userEmail: string;
+  userName: string;
+  planName: string;
+  amount?: number;
+  currency?: string;
+  failureReason?: string;
+}) {
+  const retryDate = format(
+    new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    "MMMM d, yyyy",
+  );
+
+  const html = paymentFailedTemplate({
+    userName: params.userName,
+    planName: params.planName,
+    retryDate,
+    updatePaymentLink: `${BASEURL}/dashboard/subscription`,
+    amount:
+      params.amount && params.currency
+        ? `$${formatCurrency(params.amount, params.currency)} ${params.currency.toUpperCase()}`
+        : undefined,
+    failureReason: params.failureReason,
+  });
+
+  await sendEmail({
+    from: "no-reply@shortn.at",
+    to: params.userEmail,
+    subject: `Action Required: Payment failed for your Shortn ${params.planName} plan`,
     html,
   });
 }

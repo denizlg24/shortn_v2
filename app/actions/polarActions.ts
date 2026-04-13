@@ -14,19 +14,33 @@ export async function getUserPlan() {
     headers: await headers(),
   });
   if ((subscriptions?.length ?? 0) === 0) {
-    return { plan: "free", id: null };
+    return { plan: "free" as const, id: null, status: "free" as const };
   }
-  const subscription = subscriptions?.filter(
+
+  const activeSubscription = subscriptions?.filter(
     (sub) => sub.status === "active" || sub.status === "trialing",
   )[0];
+
+  const pastDueSubscription = subscriptions?.filter(
+    (sub) => sub.status === "past_due",
+  )[0];
+
+  const subscription = activeSubscription ?? pastDueSubscription;
+
   if (!subscription) {
-    return { plan: "free", id: null };
+    return { plan: "free" as const, id: null, status: "free" as const };
   }
+
   const names = subscription.product.name.toLowerCase().split(" ");
-  if (names.includes("basic")) return { plan: "basic", id: subscription.id };
-  if (names.includes("plus")) return { plan: "plus", id: subscription.id };
-  if (names.includes("pro")) return { plan: "pro", id: subscription.id };
-  return { plan: "free", id: null };
+  const status = subscription.status as "active" | "trialing" | "past_due";
+
+  if (names.includes("basic"))
+    return { plan: "basic" as const, id: subscription.id, status };
+  if (names.includes("plus"))
+    return { plan: "plus" as const, id: subscription.id, status };
+  if (names.includes("pro"))
+    return { plan: "pro" as const, id: subscription.id, status };
+  return { plan: "free" as const, id: null, status: "free" as const };
 }
 
 /**

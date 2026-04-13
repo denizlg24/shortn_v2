@@ -922,6 +922,11 @@
     "pending-change": "Pending Change",
     "compare-plans": "Compare plans →",
     "billed-monthly": "Billed monthly. Taxes may apply.",
+    "payment-past-due-title": "Payment failed",
+    "payment-past-due-description": "We couldn't process your last payment. Update your payment method to keep your {plan} features.",
+    "payment-past-due-cta": "Update payment method",
+    "your-plan": "Your plan",
+    "per-month": "/mo",
     "plans": {
       "free": {
         "name": "Free",

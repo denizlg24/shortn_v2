@@ -401,6 +401,34 @@ const options = {
         webhooks({
           secret: env.POLAR_WEBHOOK_SECRET!,
 
+          onSubscriptionUpdated: async (payload) => {
+            console.log(
+              "Subscription updated:",
+              payload.data.id,
+              "status:",
+              payload.data.status,
+            );
+
+            if (payload.data.status === "past_due") {
+              try {
+                const { sendPaymentFailedEmail } =
+                  await import("@/lib/subscription-email-helpers");
+                const user = payload.data.customer;
+                if (!user) return;
+
+                await sendPaymentFailedEmail({
+                  userEmail: user.email,
+                  userName: user.name || "User",
+                  planName: payload.data.product?.name || "Premium",
+                  amount: payload.data.amount ?? undefined,
+                  currency: payload.data.currency ?? undefined,
+                });
+              } catch (error) {
+                console.error("Error sending payment failed email:", error);
+              }
+            }
+          },
+
           onSubscriptionCreated: async (payload) => {
             console.log("Subscription created:", payload.data.id);
             try {
