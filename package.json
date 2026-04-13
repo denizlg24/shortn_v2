@@ -70,7 +70,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "bcryptjs": "^3.0.3",
     "better-auth": "^1.4.18",
-    "canvas": "^3.2.1",
+    "canvas": "^3.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
