@@ -4,8 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
@@ -142,11 +140,6 @@ export function ReferrerStackedBarChart({
               }}
             />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <ChartLegend
-              content={
-                <ChartLegendContent className="flex-wrap items-start gap-x-3 gap-y-2" />
-              }
-            />
             {referrerKeys.map((key, i) => (
               <Bar
                 key={key}

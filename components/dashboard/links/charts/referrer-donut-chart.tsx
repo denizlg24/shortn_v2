@@ -5,8 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
   ChartTooltip,
 } from "@/components/ui/chart";
 
@@ -122,15 +120,6 @@ export function ReferrerDonutChart({
                 position={"center"}
               />
             </Pie>
-            <ChartLegend
-              content={
-                <ChartLegendContent
-                  nameKey="referrer"
-                  className="flex-wrap items-start gap-x-3 gap-y-2"
-                />
-              }
-              className="w-full"
-            />
           </PieChart>
         </ChartContainer>
       </CardContent>
