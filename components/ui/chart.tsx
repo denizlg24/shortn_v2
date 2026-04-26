@@ -292,7 +292,7 @@ function ChartLegendContent({
           <div
             key={item.value}
             className={cn(
-              "flex min-w-0 max-w-full items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
+              "flex items-center gap-1.5 [&>svg]:h-3 [&>svg]:w-3 [&>svg]:text-muted-foreground",
             )}
           >
             {itemConfig?.icon && !hideIcon ? (
@@ -305,9 +305,7 @@ function ChartLegendContent({
                 }}
               />
             )}
-            <span className="min-w-0 whitespace-normal break-words [overflow-wrap:anywhere]">
-              {itemConfig?.label ?? item.value}
-            </span>
+            {itemConfig?.label ?? item.value}
           </div>
         );
       })}
