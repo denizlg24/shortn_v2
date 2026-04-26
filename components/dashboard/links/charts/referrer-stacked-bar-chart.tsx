@@ -142,7 +142,11 @@ export function ReferrerStackedBarChart({
               }}
             />
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-            <ChartLegend content={<ChartLegendContent />} />
+            <ChartLegend
+              content={
+                <ChartLegendContent className="flex-wrap items-start gap-x-3 gap-y-2" />
+              }
+            />
             {referrerKeys.map((key, i) => (
               <Bar
                 key={key}
