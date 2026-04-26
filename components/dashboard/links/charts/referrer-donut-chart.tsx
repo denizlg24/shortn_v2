@@ -123,8 +123,13 @@ export function ReferrerDonutChart({
               />
             </Pie>
             <ChartLegend
-              content={<ChartLegendContent nameKey="referrer" />}
-              className="flex flex-row justify-center gap-2 flex-wrap w-full"
+              content={
+                <ChartLegendContent
+                  nameKey="referrer"
+                  className="flex-wrap items-start gap-x-3 gap-y-2"
+                />
+              }
+              className="w-full"
             />
           </PieChart>
         </ChartContainer>
