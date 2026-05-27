@@ -162,7 +162,7 @@ export function SafetyInterstitial({
 
         <CardFooter className="flex flex-col gap-3 sm:flex-row">
           <Button
-            asChild={canContinue && token}
+            asChild={canContinue && !!token}
             disabled={!canContinue || !token}
             className="w-full sm:flex-1"
           >
