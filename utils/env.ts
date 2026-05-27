@@ -33,6 +33,11 @@ const envSchema = z.object({
   INTERNAL_API_SECRET: z
     .string()
     .min(32, "INTERNAL_API_SECRET must be at least 32 characters"),
+  WEB_RISK_API_KEY: z.string().nonempty().optional(),
+  CRON_SECRET: z
+    .string()
+    .min(16, "CRON_SECRET must be at least 16 characters")
+    .optional(),
 });
 
 export default envSchema.parse(process.env);

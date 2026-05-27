@@ -1,5 +1,5 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -285,6 +285,34 @@ export default async function TermsPage({
               resource-intensive activities
             </li>
           </ul>
+          <div className="space-y-3 pl-4 pt-2">
+            <h3 className="text-xl font-medium">
+              6.1 Abuse Detection and Enforcement
+            </h3>
+            <p className="text-muted-foreground">
+              Every destination URL is validated and scanned for malware,
+              phishing, and other abuse signals before and after a short link
+              becomes active. We assign each link a risk score and may show an
+              interstitial safety page, or automatically disable a link, when
+              that score exceeds our threshold or when we receive multiple abuse
+              reports.
+            </p>
+            <p className="text-muted-foreground">
+              Disabled links stop redirecting and display a blocked notice. To
+              report abuse or appeal an enforcement decision, email{" "}
+              <a
+                href="mailto:abuse@shortn.at"
+                className="text-primary underline"
+              >
+                abuse@shortn.at
+              </a>{" "}
+              or see our{" "}
+              <Link href="/abuse" className="text-primary underline">
+                Abuse Policy
+              </Link>
+              .
+            </p>
+          </div>
         </section>
 
         <section className="space-y-4">
