@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
       { lastScannedAt: { $lt: staleBefore } },
     ],
   })
+    .sort({ lastScannedAt: 1, _id: 1 })
     .select("urlCode")
     .limit(RESCAN_BATCH_SIZE)
     .lean();

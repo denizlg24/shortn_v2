@@ -405,18 +405,29 @@ export const updateShortnData = async ({
       return { success: false, message: "url-not-found" };
     }
 
-    if (longUrl !== foundUrl.longUrl && plan !== "pro") {
-      if (plan === "plus") {
-        const { allowed } = await canPerformAction(
-          user.id,
-          METER_EVENTS.LINK_REDIRECT,
-          plan,
-        );
-        if (!allowed) {
+    if (longUrl !== foundUrl.longUrl) {
+      const structural = validateDestination(longUrl);
+      if (!structural.ok) {
+        return {
+          success: false,
+          message: "unsafe-destination",
+          reason: structural.reason,
+        };
+      }
+
+      if (plan !== "pro") {
+        if (plan === "plus") {
+          const { allowed } = await canPerformAction(
+            user.id,
+            METER_EVENTS.LINK_REDIRECT,
+            plan,
+          );
+          if (!allowed) {
+            return { success: false, message: "redirect-plan-limit" };
+          }
+        } else {
           return { success: false, message: "redirect-plan-limit" };
         }
-      } else {
-        return { success: false, message: "redirect-plan-limit" };
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -457,6 +468,14 @@ export const updateShortnData = async ({
           urlCode,
           plan,
         },
+      });
+
+      after(async () => {
+        try {
+          await scanAndPersist(url.urlCode);
+        } catch (error) {
+          console.error("[updateShortnData] background scan failed:", error);
+        }
       });
     }
 

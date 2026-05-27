@@ -4,6 +4,7 @@ import { geolocation, ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import env from "@/utils/env";
+import { verifyConfirmationToken } from "@/lib/confirmation-token";
 
 const INTERNAL_SECRET = env.INTERNAL_API_SECRET;
 
@@ -15,7 +16,7 @@ export async function GET(
 ) {
   const url = new URL(request.url);
   const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
-  const confirmed = url.searchParams.get("c") === "1";
+  const tokenParam = url.searchParams.get("token");
   try {
     await connectDB();
     const { slug } = await params;
@@ -32,6 +33,11 @@ export async function GET(
         `${url.origin}/${locale}/safety/${slug}`,
         302,
       );
+    }
+
+    let confirmed = false;
+    if (tokenParam) {
+      confirmed = await verifyConfirmationToken(tokenParam, slug);
     }
 
     if (

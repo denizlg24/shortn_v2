@@ -55,7 +55,7 @@ export function BlockedView({
           </Button>
           <Button asChild className="w-full sm:w-auto">
             <a
-              href={`mailto:abuse@shortn.at?subject=Appeal%20for%20blocked%20link%20${slug}`}
+              href={`mailto:abuse@shortn.at?subject=Appeal%20for%20blocked%20link%20${encodeURIComponent(slug)}`}
             >
               Contact abuse team
             </a>

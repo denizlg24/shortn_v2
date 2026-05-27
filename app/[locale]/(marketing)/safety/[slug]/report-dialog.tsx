@@ -53,17 +53,22 @@ export function ReportDialog({
       return;
     }
     startTransition(async () => {
-      const res = await reportLink({ urlCode: slug, reason, details });
-      if (res.success) {
-        toast.success(
-          "Report submitted. Thank you for helping keep Shortn safe.",
-        );
-        setOpen(false);
-        setReason("");
-        setDetails("");
-      } else if (res.message === "rate-limited") {
-        toast.error("You've submitted too many reports. Try again later.");
-      } else {
+      try {
+        const res = await reportLink({ urlCode: slug, reason, details });
+        if (res.success) {
+          toast.success(
+            "Report submitted. Thank you for helping keep Shortn safe.",
+          );
+          setOpen(false);
+          setReason("");
+          setDetails("");
+        } else if (res.message === "rate-limited") {
+          toast.error("You've submitted too many reports. Try again later.");
+        } else {
+          toast.error("Could not submit report. Please try again.");
+        }
+      } catch (error) {
+        console.error("[ReportDialog] submit error:", error);
         toast.error("Could not submit report. Please try again.");
       }
     });

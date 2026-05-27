@@ -14,10 +14,16 @@ const NEW_DOMAIN_THRESHOLD_DAYS = 30;
 export async function getDomainAge(hostname: string): Promise<DomainAgeResult> {
   const domain = hostname.replace(/^www\./, "");
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
   try {
     const res = await fetch(`https://rdap.org/domain/${domain}`, {
       headers: { Accept: "application/rdap+json" },
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       return { available: false, registeredAt: null, ageDays: null };
@@ -41,7 +47,11 @@ export async function getDomainAge(hostname: string): Promise<DomainAgeResult> {
     );
 
     return { available: true, registeredAt, ageDays };
-  } catch {
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[rdap] request timed out for domain:", domain);
+    }
     return { available: false, registeredAt: null, ageDays: null };
   }
 }

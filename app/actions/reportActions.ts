@@ -46,7 +46,8 @@ export async function reportLink({ urlCode, reason, details }: ReportInput) {
     const ip = await getClientIp();
     const ipHash = hashIp(ip);
 
-    const identifier = `report:${ipHash}`;
+    const today = new Date().toISOString().split("T")[0].replace(/-/g, "");
+    const identifier = `report:${ipHash}:${today}`;
     const rl = await RateLimit.findOne({ identifier });
     if (rl && rl.attempts >= MAX_REPORTS_PER_IP_PER_DAY) {
       return { success: false, message: "rate-limited" };
@@ -55,6 +56,15 @@ export async function reportLink({ urlCode, reason, details }: ReportInput) {
     const urlDoc = await UrlV3.findOne({ urlCode });
     if (!urlDoc) {
       return { success: false, message: "not-found" };
+    }
+
+    const existingReport = await LinkReport.findOne({
+      urlCode,
+      reporterIpHash: ipHash,
+    });
+
+    if (existingReport) {
+      return { success: true };
     }
 
     await LinkReport.create({
@@ -70,17 +80,23 @@ export async function reportLink({ urlCode, reason, details }: ReportInput) {
       { upsert: true },
     );
 
-    urlDoc.reportCount += 1;
+    const updated = await UrlV3.findOneAndUpdate(
+      { urlCode },
+      { $inc: { reportCount: 1 } },
+      { new: true },
+    );
+
     if (
-      urlDoc.reportCount >= AUTO_DISABLE_REPORT_THRESHOLD &&
-      !urlDoc.disabled
+      updated &&
+      updated.reportCount >= AUTO_DISABLE_REPORT_THRESHOLD &&
+      !updated.disabled
     ) {
-      urlDoc.disabled = true;
-      urlDoc.flagged = true;
-      urlDoc.safetyStatus = "blocked";
-      urlDoc.disabledReason = "auto:report-threshold";
+      updated.disabled = true;
+      updated.flagged = true;
+      updated.safetyStatus = "blocked";
+      updated.disabledReason = "auto:report-threshold";
+      await updated.save();
     }
-    await urlDoc.save();
 
     return { success: true };
   } catch (error) {

@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import { ReportDialog } from "./report-dialog";
+import { getConfirmationToken } from "@/app/actions/confirmationActions";
 
 const COUNTDOWN_SECONDS = 3;
 
@@ -70,12 +71,21 @@ export function SafetyInterstitial({
   riskScore: number;
 }) {
   const [remaining, setRemaining] = useState(COUNTDOWN_SECONDS);
+  const [token, setToken] = useState<string>("");
 
   useEffect(() => {
     if (remaining <= 0) return;
     const t = setTimeout(() => setRemaining((r) => r - 1), 1000);
     return () => clearTimeout(t);
   }, [remaining]);
+
+  useEffect(() => {
+    getConfirmationToken(slug).then((res) => {
+      if (res.success) {
+        setToken(res.token);
+      }
+    });
+  }, [slug]);
 
   const canContinue = remaining <= 0;
   const suspicious = safetyStatus === "suspicious";
@@ -152,12 +162,15 @@ export function SafetyInterstitial({
 
         <CardFooter className="flex flex-col gap-3 sm:flex-row">
           <Button
-            asChild={canContinue}
-            disabled={!canContinue}
+            asChild={canContinue && token}
+            disabled={!canContinue || !token}
             className="w-full sm:flex-1"
           >
-            {canContinue ? (
-              <a href={`/api/get-long-url/${slug}?c=1`} rel="nofollow noopener">
+            {canContinue && token ? (
+              <a
+                href={`/api/get-long-url/${slug}?token=${encodeURIComponent(token)}`}
+                rel="nofollow noopener"
+              >
                 Continue to Website
               </a>
             ) : (

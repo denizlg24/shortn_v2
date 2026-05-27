@@ -35,14 +35,22 @@ export async function lookupWebRisk(rawUrl: string): Promise<WebRiskResult> {
     params.append("threatTypes", t);
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
   try {
     const res = await fetch(
       `https://webrisk.googleapis.com/v1/uris:search?${params.toString()}`,
-      { method: "GET" },
+      {
+        method: "GET",
+        signal: controller.signal,
+      },
     );
 
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
-      console.error("[webRisk] lookup failed:", res.status, res.statusText);
+      console.error("[webRisk] lookup failed with status:", res.status);
       return { available: false, threatTypes: [] };
     }
 
@@ -55,7 +63,12 @@ export async function lookupWebRisk(rawUrl: string): Promise<WebRiskResult> {
       threatTypes: data.threat?.threatTypes ?? [],
     };
   } catch (error) {
-    console.error("[webRisk] lookup error:", error);
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === "AbortError") {
+      console.error("[webRisk] request timed out");
+    } else {
+      console.error("[webRisk] request failed or timed out");
+    }
     return { available: false, threatTypes: [] };
   }
 }

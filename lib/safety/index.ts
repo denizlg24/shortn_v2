@@ -1,5 +1,5 @@
 import { connectDB } from "@/lib/mongodb";
-import UrlV3 from "@/models/url/UrlV3";
+import UrlV3, { type SafetyStatus } from "@/models/url/UrlV3";
 import { validateDestination } from "./structural";
 import { lookupWebRisk } from "./webRisk";
 import { getDomainAge, isNewlyRegistered } from "./rdap";
@@ -14,7 +14,7 @@ export {
 
 export interface ScanOutcome {
   riskScore: number;
-  safetyStatus: string;
+  safetyStatus: SafetyStatus;
   disabled: boolean;
   disabledReason?: string;
   scanProvider: string;
@@ -86,7 +86,7 @@ export async function scanAndPersist(urlCode: string): Promise<void> {
   doc.riskScore = outcome.riskScore;
   // Do not downgrade a link already blocked by reports/manual moderation.
   if (doc.safetyStatus !== "blocked") {
-    doc.safetyStatus = outcome.safetyStatus as typeof doc.safetyStatus;
+    doc.safetyStatus = outcome.safetyStatus;
   }
   if (outcome.disabled && !doc.disabled) {
     doc.disabled = true;
