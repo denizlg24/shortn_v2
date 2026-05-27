@@ -29,6 +29,8 @@ const PUBLIC_PATHS = [
   "dashboard",
   "url-not-found",
   "authenticate",
+  "safety",
+  "abuse",
 ];
 const STATIC_FILES = ["/robots.txt", "/sitemap.xml", "/favicon.ico"];
 
@@ -52,6 +54,7 @@ export async function proxy(request: NextRequest) {
   if (
     pathname.includes("://") ||
     pathname.startsWith("/http") ||
+    pathname.startsWith("/.well-known/") ||
     STATIC_FILES.includes(pathname)
   ) {
     return NextResponse.next();
@@ -122,6 +125,7 @@ export async function proxy(request: NextRequest) {
   const isAuthenticate = request.nextUrl.pathname.startsWith(
     `/${locale}/authenticate`,
   );
+  const isSafety = request.nextUrl.pathname.startsWith(`/${locale}/safety`);
 
   if (isDashboard && !isLoggedIn) {
     const response = NextResponse.redirect(
@@ -137,7 +141,13 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  if (!isDashboard && !isUrlNotFound && !isAuthenticate && isLoggedIn) {
+  if (
+    !isDashboard &&
+    !isUrlNotFound &&
+    !isAuthenticate &&
+    !isSafety &&
+    isLoggedIn
+  ) {
     const response = NextResponse.redirect(
       new URL(`/${locale}/dashboard`, request.nextUrl),
     );

@@ -29,8 +29,24 @@ export interface IUrl extends Document {
   passwordProtected: boolean;
   passwordHash?: string;
   passwordHint?: string;
+  riskScore: number;
+  safetyStatus: SafetyStatus;
+  flagged: boolean;
+  disabled: boolean;
+  disabledReason?: string;
+  reportCount: number;
+  lastScannedAt: Date | null;
+  scanProvider?: string;
+  requiresInterstitial: boolean;
   recordClick: () => Promise<IUrl>;
 }
+
+export type SafetyStatus =
+  | "pending"
+  | "safe"
+  | "suspicious"
+  | "malicious"
+  | "blocked";
 
 export interface TUrl {
   _id: string;
@@ -61,6 +77,15 @@ export interface TUrl {
   passwordProtected: boolean;
   passwordHash?: string;
   passwordHint?: string;
+  riskScore: number;
+  safetyStatus: SafetyStatus;
+  flagged: boolean;
+  disabled: boolean;
+  disabledReason?: string;
+  reportCount: number;
+  lastScannedAt: Date | null;
+  scanProvider?: string;
+  requiresInterstitial: boolean;
 }
 
 const UrlSchema = new Schema<IUrl>({
@@ -95,6 +120,20 @@ const UrlSchema = new Schema<IUrl>({
   passwordProtected: { type: Boolean, default: false, index: true },
   passwordHash: { type: String },
   passwordHint: { type: String, maxlength: 100 },
+  riskScore: { type: Number, default: 0, index: true },
+  safetyStatus: {
+    type: String,
+    enum: ["pending", "safe", "suspicious", "malicious", "blocked"],
+    default: "pending",
+    index: true,
+  },
+  flagged: { type: Boolean, default: false, index: true },
+  disabled: { type: Boolean, default: false, index: true },
+  disabledReason: { type: String },
+  reportCount: { type: Number, default: 0, index: true },
+  lastScannedAt: { type: Date, default: null },
+  scanProvider: { type: String },
+  requiresInterstitial: { type: Boolean, default: false },
 });
 
 UrlSchema.methods.recordClick = async function () {

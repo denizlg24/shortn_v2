@@ -4,6 +4,7 @@ import { geolocation, ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import env from "@/utils/env";
+import { verifyConfirmationToken } from "@/lib/confirmation-token";
 
 const INTERNAL_SECRET = env.INTERNAL_API_SECRET;
 
@@ -14,12 +15,40 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const url = new URL(request.url);
+  const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
+  const tokenParam = url.searchParams.get("token");
   try {
     await connectDB();
     const { slug } = await params;
     const urlDoc = await UrlV3.findOne({ urlCode: slug });
     if (!urlDoc)
       return NextResponse.redirect(`${url.origin}/en/url-not-found`, 302);
+
+    if (
+      urlDoc.disabled ||
+      urlDoc.safetyStatus === "blocked" ||
+      urlDoc.safetyStatus === "malicious"
+    ) {
+      return NextResponse.redirect(
+        `${url.origin}/${locale}/safety/${slug}`,
+        302,
+      );
+    }
+
+    let confirmed = false;
+    if (tokenParam) {
+      confirmed = await verifyConfirmationToken(tokenParam, slug);
+    }
+
+    if (
+      !confirmed &&
+      (urlDoc.requiresInterstitial || urlDoc.safetyStatus === "suspicious")
+    ) {
+      return NextResponse.redirect(
+        `${url.origin}/${locale}/safety/${slug}`,
+        302,
+      );
+    }
 
     if (urlDoc.passwordProtected) {
       const accessCookie = request.cookies.get(`link_access_${slug}`);
