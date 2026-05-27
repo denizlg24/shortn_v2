@@ -14,12 +14,35 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> },
 ) {
   const url = new URL(request.url);
+  const locale = request.cookies.get("NEXT_LOCALE")?.value || "en";
+  const confirmed = url.searchParams.get("c") === "1";
   try {
     await connectDB();
     const { slug } = await params;
     const urlDoc = await UrlV3.findOne({ urlCode: slug });
     if (!urlDoc)
       return NextResponse.redirect(`${url.origin}/en/url-not-found`, 302);
+
+    if (
+      urlDoc.disabled ||
+      urlDoc.safetyStatus === "blocked" ||
+      urlDoc.safetyStatus === "malicious"
+    ) {
+      return NextResponse.redirect(
+        `${url.origin}/${locale}/safety/${slug}`,
+        302,
+      );
+    }
+
+    if (
+      !confirmed &&
+      (urlDoc.requiresInterstitial || urlDoc.safetyStatus === "suspicious")
+    ) {
+      return NextResponse.redirect(
+        `${url.origin}/${locale}/safety/${slug}`,
+        302,
+      );
+    }
 
     if (urlDoc.passwordProtected) {
       const accessCookie = request.cookies.get(`link_access_${slug}`);

@@ -24,6 +24,10 @@ import {
 } from "@/lib/polar-usage";
 import { FlattenMaps } from "mongoose";
 import { BioPage } from "@/models/link-in-bio/BioPage";
+import { after } from "next/server";
+import { validateDestination, scanAndPersist } from "@/lib/safety";
+
+const INTERSTITIAL_PLANS = ["free", "basic"];
 
 interface CreateUrlInput {
   longUrl: string;
@@ -80,6 +84,15 @@ export async function createShortn({
       return {
         success: false,
         message: "password-pro-only",
+      };
+    }
+
+    const structural = validateDestination(longUrl);
+    if (!structural.ok) {
+      return {
+        success: false,
+        message: "unsafe-destination",
+        reason: structural.reason,
       };
     }
 
@@ -163,6 +176,16 @@ export async function createShortn({
       passwordProtected: !!password,
       passwordHash,
       passwordHint: passwordHint || undefined,
+      safetyStatus: "pending",
+      requiresInterstitial: INTERSTITIAL_PLANS.includes(plan),
+    });
+
+    after(async () => {
+      try {
+        await scanAndPersist(urlCode);
+      } catch (error) {
+        console.error("[createShortn] background scan failed:", error);
+      }
     });
 
     await ingestUsageEvent({
