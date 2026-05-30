@@ -13,6 +13,7 @@ import ScrollToTop from "@/utils/ScrollToTop";
 import { getServerSession } from "@/lib/session";
 import { PlanProvider } from "@/hooks/use-plan";
 import { SubscriptionStatusBanner } from "@/components/subscription-status-banner";
+import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { redirect } from "@/i18n/navigation";
 
 export function generateStaticParams() {
@@ -73,6 +74,8 @@ export default async function RootLayout({
     return;
   }
 
+  const isImpersonating = Boolean(session.session.impersonatedBy);
+
   return (
     <html lang={locale}>
       <body
@@ -82,6 +85,7 @@ export default async function RootLayout({
           <ScrollToTop />
           <NextIntlClientProvider>
             <PlanProvider>
+              <ImpersonationBanner active={isImpersonating} />
               <SubscriptionStatusBanner />
               <SidebarProvider defaultOpen={defaultOpen}>
                 <AppSidebar />
