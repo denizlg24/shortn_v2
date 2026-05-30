@@ -25,6 +25,7 @@ import {
   webhooks,
 } from "@polar-sh/better-auth";
 import { polarClient } from "./polar";
+import { impersonationHandoff } from "./impersonation-handoff";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -238,6 +239,11 @@ const options = {
   },
   session: {
     additionalFields: {
+      impersonatedBy: {
+        type: "string",
+        defaultValue: null,
+        input: false,
+      },
       geo_city: {
         type: "string",
         defaultValue: null,
@@ -730,6 +736,7 @@ const options = {
         }),
       ],
     }),
+    impersonationHandoff(),
     nextCookies(),
   ],
 } satisfies BetterAuthOptions;
