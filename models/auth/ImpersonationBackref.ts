@@ -4,9 +4,9 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 
 export interface IDBImpersonationBackref extends Document {
   adminId: string;
-  adminSessionId: string;
+  adminSessionToken: string;
   impersonatedUserId: string;
-  impersonatedSessionId: string;
+  impersonatedSessionToken: string;
   expiresAt: Date;
   createdAt: Date;
   updatedAt: Date;
@@ -15,9 +15,9 @@ export interface IDBImpersonationBackref extends Document {
 const impersonationBackrefSchema = new Schema<IDBImpersonationBackref>(
   {
     adminId: { type: String, required: true },
-    adminSessionId: { type: String, required: true },
+    adminSessionToken: { type: String, required: true },
     impersonatedUserId: { type: String, required: true },
-    impersonatedSessionId: { type: String, required: true, unique: true },
+    impersonatedSessionToken: { type: String, required: true, unique: true },
     expiresAt: { type: Date, required: true },
   },
   {

@@ -42,7 +42,12 @@ async function verifyToken(token: string): Promise<ImpersonationClaims | null> {
     ) as ImpersonationClaims;
 
     // Validate all required claims
-    if (!claims.userId || !claims.adminId || !claims.jti || claims.exp < Date.now()) {
+    if (
+      !claims.userId ||
+      !claims.adminId ||
+      !claims.jti ||
+      claims.exp < Date.now()
+    ) {
       return null;
     }
 
@@ -57,7 +62,9 @@ async function verifyToken(token: string): Promise<ImpersonationClaims | null> {
     }
 
     if (nonce.consumedAt) {
-      console.warn(`Replay attack detected: jti=${claims.jti} already consumed at ${nonce.consumedAt}`);
+      console.warn(
+        `Replay attack detected: jti=${claims.jti} already consumed at ${nonce.consumedAt}`,
+      );
       return null;
     }
 
@@ -74,11 +81,13 @@ async function verifyToken(token: string): Promise<ImpersonationClaims | null> {
     const updated = await ImpersonationNonce.findOneAndUpdate(
       { jti: claims.jti, consumedAt: { $exists: false } },
       { $set: { consumedAt: new Date() } },
-      { new: true }
+      { new: true },
     );
 
     if (!updated) {
-      console.warn(`Race condition: jti=${claims.jti} was consumed by another request`);
+      console.warn(
+        `Race condition: jti=${claims.jti} was consumed by another request`,
+      );
       return null;
     }
 
@@ -123,16 +132,20 @@ export const impersonationHandoff = () =>
           }
 
           // Persist admin's original session before overwriting
-          let adminSessionId: string | null = null;
+          let adminSessionToken: string | null = null;
           try {
-            const currentSession = await ctx.context.internalAdapter.findSession(
-              ctx.headers.get("cookie") || "",
-            );
+            const currentSession =
+              await ctx.context.internalAdapter.findSession(
+                ctx.headers?.get("cookie") ?? "",
+              );
             if (currentSession?.session?.userId === claims.adminId) {
-              adminSessionId = currentSession.session.id;
+              adminSessionToken = currentSession.session.token;
             }
           } catch (error) {
-            console.warn("Could not retrieve admin session for preservation:", error);
+            console.warn(
+              "Could not retrieve admin session for preservation:",
+              error,
+            );
           }
 
           const session = await ctx.context.internalAdapter.createSession(
@@ -149,13 +162,13 @@ export const impersonationHandoff = () =>
           }
 
           // Store backref to allow session restoration
-          if (adminSessionId) {
+          if (adminSessionToken) {
             await connectDB();
             await ImpersonationBackref.create({
               adminId: claims.adminId,
-              adminSessionId: adminSessionId,
+              adminSessionToken: adminSessionToken,
               impersonatedUserId: claims.userId,
-              impersonatedSessionId: session.id,
+              impersonatedSessionToken: session.token,
               expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
             });
           }
@@ -172,56 +185,58 @@ export const impersonationHandoff = () =>
         async (ctx) => {
           // Get current session
           const currentSession = await ctx.context.internalAdapter.findSession(
-            ctx.headers.get("cookie") || "",
+            ctx.headers?.get("cookie") ?? "",
           );
 
           if (!currentSession?.session) {
-            return ctx.json({ success: false, error: "No active session" }, { status: 401 });
+            return ctx.json(
+              { success: false, error: "No active session" },
+              { status: 401 },
+            );
           }
 
-          const impersonatedSessionId = currentSession.session.id;
+          const impersonatedSessionToken = currentSession.session.token;
 
           // Find the backref to restore admin session
           await connectDB();
           const backref = await ImpersonationBackref.findOne({
-            impersonatedSessionId,
+            impersonatedSessionToken,
           });
 
           if (!backref) {
             // No backref found - just sign out
-            await ctx.context.internalAdapter.deleteSession(impersonatedSessionId);
+            await ctx.context.internalAdapter.deleteSession(
+              impersonatedSessionToken,
+            );
             return ctx.json({ success: true, restored: false });
           }
 
-          // Verify the admin session still exists
-          const adminSession = await ctx.context.internalAdapter.findSessionById(
-            backref.adminSessionId,
+          // Verify the admin session still exists (findSession returns both
+          // the session and its user, keyed by the stored session token)
+          const adminSession = await ctx.context.internalAdapter.findSession(
+            backref.adminSessionToken,
           );
 
-          if (!adminSession) {
+          if (!adminSession?.session || !adminSession.user) {
             // Admin session expired - clean up and sign out
-            await ctx.context.internalAdapter.deleteSession(impersonatedSessionId);
-            await ImpersonationBackref.deleteOne({ _id: backref._id });
-            return ctx.json({ success: true, restored: false });
-          }
-
-          // Fetch admin user
-          const adminUser = await ctx.context.internalAdapter.findUserById(
-            backref.adminId,
-          );
-
-          if (!adminUser) {
-            // Admin user not found - clean up and sign out
-            await ctx.context.internalAdapter.deleteSession(impersonatedSessionId);
+            await ctx.context.internalAdapter.deleteSession(
+              impersonatedSessionToken,
+            );
             await ImpersonationBackref.deleteOne({ _id: backref._id });
             return ctx.json({ success: true, restored: false });
           }
 
           // Delete impersonated session
-          await ctx.context.internalAdapter.deleteSession(impersonatedSessionId);
+          await ctx.context.internalAdapter.deleteSession(
+            impersonatedSessionToken,
+          );
 
           // Restore admin session
-          await setSessionCookie(ctx, { session: adminSession, user: adminUser }, true);
+          await setSessionCookie(
+            ctx,
+            { session: adminSession.session, user: adminSession.user },
+            true,
+          );
 
           // Clean up backref
           await ImpersonationBackref.deleteOne({ _id: backref._id });
