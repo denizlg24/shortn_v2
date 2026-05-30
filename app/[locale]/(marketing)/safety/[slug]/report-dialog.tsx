@@ -100,7 +100,7 @@ export function ReportDialog({
               <SelectTrigger id="report-reason" className="w-full">
                 <SelectValue placeholder="Select a reason" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="z-99!">
                 {REASONS.map((r) => (
                   <SelectItem key={r.value} value={r.value}>
                     {r.label}
