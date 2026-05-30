@@ -11,8 +11,26 @@ export function ImpersonationBanner({ active }: { active: boolean }) {
   async function stop() {
     setLoading(true);
     try {
+      // Call the stop-impersonation endpoint to restore admin session
+      const response = await fetch("/api/auth/stop-impersonation", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      const result = await response.json();
+
+      if (result.success && result.restored) {
+        // Admin session restored - redirect to dashboard
+        window.location.href = "/en/dashboard";
+      } else {
+        // No admin session to restore - sign out normally
+        await authClient.signOut();
+        window.location.href = "/en/dashboard/logout";
+      }
+    } catch (error) {
+      console.error("Failed to stop impersonation:", error);
+      // Fallback to normal sign out
       await authClient.signOut();
-    } finally {
       window.location.href = "/en/dashboard/logout";
     }
   }
