@@ -35,8 +35,46 @@ const generateRandomString = () => {
     .join("");
 };
 
-const client = new MongoClient(env.MONGODB_KEY);
-const db = client.db();
+function openMongo() {
+  const client = new MongoClient(env.MONGODB_KEY, {
+    serverSelectionTimeoutMS: 8000,
+    connectTimeoutMS: 8000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    maxIdleTimeMS: 60000,
+  });
+
+  // A closed topology is terminal: every later operation on this client throws
+  // MongoTopologyClosedError, so a warm lambda that lost the database once
+  // would never serve auth again. Drop the handle and reopen on next use.
+  client.on("topologyClosed", () => {
+    if (globalThis.authMongoCache?.client === client) {
+      globalThis.authMongoCache = undefined;
+    }
+  });
+
+  return { client, db: client.db() };
+}
+
+function liveMongo() {
+  globalThis.authMongoCache ??= openMongo();
+  return globalThis.authMongoCache;
+}
+
+// better-auth resolves the adapter's handles once at construction, so they have
+// to be indirections that follow the reconnect rather than fixed references.
+function forwardTo<T extends object>(resolve: () => T): T {
+  return new Proxy({} as T, {
+    get(_target, property) {
+      const current = resolve();
+      const value = Reflect.get(current, property, current);
+      return typeof value === "function" ? value.bind(current) : value;
+    },
+  });
+}
+
+const client = forwardTo(() => liveMongo().client);
+const db = forwardTo(() => liveMongo().db);
 
 const options = {
   onAPIError: {

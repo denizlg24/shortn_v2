@@ -61,7 +61,11 @@ const ClickEntrySchema = new Schema<ClickEntry>({
   queryParams: { type: Schema.Types.Mixed },
 });
 
-ClickEntrySchema.index({ urlCode: "hashed", sub: "hashed" });
+// Mongo allows at most one hashed field per key, so the old
+// { urlCode: "hashed", sub: "hashed" } was rejected on every autoIndex pass.
+// Analytics filters on urlCode (+ sub) and ranges/sorts on timestamp, none of
+// which a hashed index can serve anyway.
+ClickEntrySchema.index({ urlCode: 1, sub: 1, timestamp: -1 });
 
 const Clicks: Model<ClickEntry> =
   mongoose.models.Clicks ||
