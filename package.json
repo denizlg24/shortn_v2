@@ -98,7 +98,7 @@
     "mongodb": "^7.1.0",
     "mongoose": "^8.23.0",
     "motion": "^12.34.3",
-    "nanoid": "^5.1.6",
+    "nanoid": "^5.1.11",
     "next": "16.2.6",
     "next-intl": "^4.8.3",
     "next-share": "^0.27.0",
