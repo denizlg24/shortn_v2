@@ -70,23 +70,15 @@ function countryFlag(country: string | undefined): string | undefined {
 
 /**
  * Resolve the original visitor IP from the trusted reverse-proxy headers.
- * Cloudflare is the public boundary in production, so its single-value header
- * takes precedence over the proxy chain supplied by X-Forwarded-For.
+ * Cloudflare Tunnel is the only public ingress and reaches Caddy over loopback;
+ * Cloudflare replaces this single-value header before the request reaches the
+ * origin. Do not fall back to caller-controlled generic proxy headers.
  */
 export function getRequestIp(source: HeaderSource): string | undefined {
   const headers = sourceHeaders(source);
-  const cloudflareIp = normalizeIp(
+  return normalizeIp(
     firstHeader(headers, "cf-connecting-ipv6", "cf-connecting-ip"),
   );
-  if (cloudflareIp) return cloudflareIp;
-
-  const realIp = normalizeIp(firstHeader(headers, "x-real-ip"));
-  if (realIp) return realIp;
-
-  const forwardedIp = firstHeader(headers, "x-forwarded-for")
-    ?.split(",")[0]
-    ?.trim();
-  return normalizeIp(forwardedIp);
 }
 
 /**
