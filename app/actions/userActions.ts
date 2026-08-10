@@ -2,7 +2,7 @@
 
 import { connectDB } from "@/lib/mongodb";
 import { LoginRecord } from "@/models/auth/LoginActivity";
-import { Geo } from "@vercel/functions";
+import type { RequestGeo } from "@/lib/request-metadata";
 import { sendEmail, sendReactEmail } from "./sendEmail";
 import { resetPasswordEmailTemplate } from "@/lib/email-templates";
 import { ReactNode } from "react";
@@ -54,7 +54,7 @@ export async function loginAttempt({
 }: {
   sub: string;
   success: boolean;
-  location: Geo | undefined;
+  location: RequestGeo | undefined;
   ip: string | undefined;
   type: string;
 }) {

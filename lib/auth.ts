@@ -16,7 +16,7 @@ import {
 import { BASEURL } from "./utils";
 import { connectDB } from "./mongodb";
 import { Session } from "@/models/auth/Session";
-import { geolocation } from "@vercel/functions";
+import { getRequestGeo } from "./request-metadata";
 import {
   checkout,
   polar,
@@ -124,7 +124,7 @@ const options = {
   },
   advanced: {
     cookiePrefix: "shortn_auth_",
-    useSecureCookies: !!process.env.VERCEL_URL,
+    useSecureCookies: process.env.NODE_ENV === "production",
   },
   user: {
     changeEmail: {
@@ -254,7 +254,7 @@ const options = {
 
           if (request) {
             try {
-              geo = geolocation(request);
+              geo = getRequestGeo(request);
             } catch (error) {
               console.error("Failed to get geolocation:", error);
             }
