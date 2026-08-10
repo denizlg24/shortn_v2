@@ -1,12 +1,11 @@
+import { recordClickFromMiddleware } from "@/app/actions/linkActions";
 import { connectDB } from "@/lib/mongodb";
+import { getRequestMetadata } from "@/lib/request-metadata";
 import UrlV3 from "@/models/url/UrlV3";
-import { geolocation, ipAddress } from "@vercel/functions";
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import env from "@/utils/env";
 import { verifyConfirmationToken } from "@/lib/confirmation-token";
-
-const INTERNAL_SECRET = env.INTERNAL_API_SECRET;
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 
@@ -79,25 +78,27 @@ export async function GET(
       }
     }
 
+    const metadata = getRequestMetadata(request);
     const clickData = {
       slug,
-      ip: ipAddress(request) || "",
+      ip: metadata.ip,
       userAgent: request.headers.get("user-agent") || "",
       referrer: request.headers.get("referer") || "",
       language: request.headers.get("accept-language")?.split(",")[0] || "",
-      geo: geolocation(request),
-      timezone: request.headers.get("x-vercel-ip-timezone"),
+      geo: metadata.geo,
+      timezone: metadata.timezone,
       query: Object.fromEntries(url.searchParams),
     };
 
-    fetch(`${url.origin}/api/track-click`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-internal-secret": INTERNAL_SECRET,
-      },
-      body: JSON.stringify(clickData),
-    }).catch(() => null);
+    after(async () => {
+      const result = await recordClickFromMiddleware(clickData);
+
+      if ("success" in result && !result.success) {
+        console.error("Failed to record click", { slug });
+      } else if ("notFound" in result) {
+        console.error("Click target disappeared before tracking", { slug });
+      }
+    });
 
     return NextResponse.redirect(urlDoc.longUrl, 302);
   } catch (error) {

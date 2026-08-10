@@ -65,7 +65,6 @@
     "@types/json2csv": "^5.0.7",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/whatwg-url": "^13.0.0",
-    "@vercel/functions": "^3.4.2",
     "@vercel/otel": "^2.1.1",
     "babel-plugin-react-compiler": "^1.0.0",
     "bcryptjs": "^3.0.3",

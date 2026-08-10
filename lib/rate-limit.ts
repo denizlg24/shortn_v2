@@ -3,6 +3,7 @@ import { connectDB } from "./mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./auth";
 import { headers } from "next/headers";
+import { getRequestIp } from "./request-metadata";
 
 interface RateLimitResult {
   allowed: boolean;
@@ -326,24 +327,7 @@ export async function resetRateLimit(identifier: string): Promise<void> {
  * @returns IP address string
  */
 export function getClientIp(request: Request): string {
-  const headers = request.headers;
-
-  const forwardedFor = headers.get("x-forwarded-for");
-  if (forwardedFor) {
-    return forwardedFor.split(",")[0].trim();
-  }
-
-  const realIp = headers.get("x-real-ip");
-  if (realIp) {
-    return realIp;
-  }
-
-  const cfConnectingIp = headers.get("cf-connecting-ip");
-  if (cfConnectingIp) {
-    return cfConnectingIp;
-  }
-
-  return "unknown";
+  return getRequestIp(request) ?? "unknown";
 }
 
 /**

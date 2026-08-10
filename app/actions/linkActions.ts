@@ -6,7 +6,7 @@ import UrlV3, { TUrl } from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
 import { isbot } from "isbot";
-import { Geo } from "@vercel/functions";
+import type { RequestGeo } from "@/lib/request-metadata";
 import { BASEURL, escapeRegex } from "@/lib/utils";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import { TagT } from "@/models/url/Tag";
@@ -548,7 +548,7 @@ export async function recordClickFromMiddleware(clickData: {
   referrer?: string;
   language?: string;
   timezone?: string;
-  geo?: Geo;
+  geo?: RequestGeo;
   query?: Record<string, string>;
 }) {
   try {

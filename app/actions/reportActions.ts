@@ -10,6 +10,7 @@ import LinkReport, {
 } from "@/models/url/LinkReport";
 import RateLimit from "@/models/RateLimit";
 import env from "@/utils/env";
+import { getRequestIp } from "@/lib/request-metadata";
 
 const AUTO_DISABLE_REPORT_THRESHOLD = 3;
 const MAX_REPORTS_PER_IP_PER_DAY = 5;
@@ -27,12 +28,7 @@ function hashIp(ip: string): string {
 }
 
 async function getClientIp(): Promise<string> {
-  const h = await headers();
-  return (
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    h.get("x-real-ip") ||
-    "unknown"
-  );
+  return getRequestIp(await headers()) ?? "unknown";
 }
 
 export async function reportLink({ urlCode, reason, details }: ReportInput) {

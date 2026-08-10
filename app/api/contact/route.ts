@@ -1,4 +1,3 @@
-import { ipAddress } from "@vercel/functions";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createContact } from "@/lib/contact";
@@ -45,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     const { name, email, message, company, subject } = validationResult.data;
 
-    const _ipAddress = ipAddress(request) || getClientIp(request);
+    const _ipAddress = getClientIp(request);
 
     const userAgent = request.headers.get("user-agent") || "unknown";
 

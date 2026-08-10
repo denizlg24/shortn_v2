@@ -1,11 +1,7 @@
 import { loginAttempt } from "@/app/actions/userActions";
-import { geolocation, ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
-import {
-  protectRoute,
-  createRateLimitIdentifier,
-  getClientIp,
-} from "@/lib/rate-limit";
+import { getRequestGeo, getRequestIp } from "@/lib/request-metadata";
+import { protectRoute, createRateLimitIdentifier } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,8 +27,8 @@ export async function POST(req: NextRequest) {
 
     const loginRecord = {
       sub: auth.user!.sub,
-      ip: ipAddress(req) || getClientIp(req),
-      location: geolocation(req),
+      ip: getRequestIp(req),
+      location: getRequestGeo(req),
       success: body.success as boolean,
       type: body.type as string,
     };
