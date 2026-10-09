@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
       if (scheduledChange.qstashMessageId) {
         try {
-          const { deleteSchedule } = await import("@/lib/scheduler");
+          const { deleteSchedule } = await import("@/lib/picron");
 
           await deleteSchedule(scheduledChange.qstashMessageId);
           console.log(

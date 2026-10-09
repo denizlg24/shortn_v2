@@ -94,15 +94,19 @@ jobs:
       PRO_PLAN_ID: dependabot
       WEBMAIL_USER: dependabot
       WEBMAIL_PASS: dependabot
-      PINATA_JWT: dependabot
-      PINATA_GATEWAY: dependabot
+      S3_ENDPOINT: http://dependabot/v2
+      S3_REGION: eu-west-1
+      S3_BUCKET: shortn-v2-staging
+      S3_ACCESS_KEY_ID: dependabot
+      S3_SECRET_ACCESS_KEY: dependabot
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
       LEVEL_ONE_UPGRADE_ID: dependabot,
       LEVEL_TWO_UPGRADE_ID: dependabot,
       EMAIL_TOKEN_SUFFIX: dependabot,
       RESEND_API_KEY: dependabot,
-      SCHEDULER_URL: http://dependabot,
-      SCHEDULER_USERNAME: dependabot,
-      SCHEDULER_PASSWORD: dependabot,
+      PICRON_URL: http://dependabot
+      PICRON_USERNAME: dependabot
+      PICRON_PASSWORD: dependabot
       INTERNAL_API_SECRET: dependabot-ci-only-secret-at-least-32-characters
     steps:
       - uses: actions/checkout@v4

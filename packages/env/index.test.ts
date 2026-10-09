@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   apiEnv,
   envExample,
+  legacyInfraEnv,
   parseEnv,
   redirectEnv,
   webEnv,
@@ -20,7 +21,7 @@ test("coercion and defaults", () => {
   ).toEqual({ PORT: 3000 });
 });
 test("every schema field is represented in the generated example", () => {
-  for (const schema of [webEnv, redirectEnv, apiEnv, workerEnv])
+  for (const schema of [webEnv, redirectEnv, apiEnv, workerEnv, legacyInfraEnv])
     for (const key of Object.keys(schema.shape))
       expect(envExample()).toContain(`${key}=`);
   expect(envExample()).not.toContain("STRIPE_");
