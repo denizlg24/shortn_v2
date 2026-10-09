@@ -2,21 +2,45 @@
 
 ## Forge layout (production)
 
-One VPS to start (≥ 4 vCPU / 8 GB, EU region, chosen for the lowest RTT to the pi-cloud MongoDB host; measure it in P0), sized so redirects and Redis can move to a second box without code changes.
+"Forge" is the self-hosted container platform at `forge.denizlg24.com` (not Laravel Forge; verified 2026-10-09 against `denizlg24.com/apps/deploy-agent`). It runs on its own box (12 cores, 32 GB), separate from pi-cloud, which keeps MongoDB, Meilisearch and S3.
 
-| Process                    | Supervisor   | Instances             | Notes                                                                                                                                                                                          |
-| -------------------------- | ------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| nginx                      | system       | 1                     | host routing (07), Cloudflare-only real IP, gzip/brotli, `limit_req` as last-resort rate limit                                                                                                 |
-| apps/redirect              | Forge daemon | cores − 1 (reusePort) | stateless                                                                                                                                                                                      |
-| apps/web (Next standalone) | Forge daemon | 2 (ports 3000/3001)   | zero-downtime deploy by rolling restart                                                                                                                                                        |
-| apps/api                   | Forge daemon | 2                     |                                                                                                                                                                                                |
-| apps/worker                | Forge daemon | 1–2                   | BullMQ + stream consumers; graceful shutdown on SIGTERM (finish batch, ack)                                                                                                                    |
-| Redis 7                    | system       | 1                     | bound to localhost/private net, `requirepass`, AOF everysec + RDB, `maxmemory-policy noeviction` for the streams/queues DB; a **separate logical DB or instance** with `allkeys-lru` for cache |
-| legacy app                 | Forge daemon | until P7              |                                                                                                                                                                                                |
+- **Ingress:** Cloudflare → `cloudflared` tunnel → Caddy on the Forge box → the target's container. Caddy matches on **hostname only**: no path routing, no mirroring, no weighted split, and there is no nginx to configure. Path-level routing on `shortn.at` lives in a Cloudflare Worker (below). The box has no public ports, so every request arrives through Cloudflare.
+- **Targets:** one Forge target per app (15 §Containers), each with its own origin hostname. A target is one container (`cpuLimit`, memory reservation/ceiling), built from its Dockerfile with the repo root as context. No volumes, an HTTP health check on `healthPath`, a new port and container name per deploy. **Never put state in a target.**
+- **Deploys:** push to the target's branch → build → start the new container → health check → Caddy switches → the old container is reaped. 503s were observed for a few seconds during a swap on 2026-10-09. **P2 entry criterion:** measure the swap under load on staging; if it isn't gapless, fix it in the deploy agent before redirects move. The Worker's legacy fallback (below) covers a failed or slow origin in the meantime.
 
-- **Redis split (important):** cache keys can be evicted, but queues and streams must not be. Either two Redis instances (`redis-cache` LRU on port 6380, `redis-durable` noeviction on 6379) or one instance with `noeviction` and explicit TTLs on all cache keys. Recommendation: **two instances**. It's simple and prevents a cache surge from failing click ingestion.
-- **Deploys:** GitHub Actions builds per-app artifacts, then the Forge deploy hook pulls the commit and runs `bun install --frozen-lockfile && turbo build --filter=<changed>`. `db:indexes` runs (create-only), then pending **expand** migrations run (never contract), then a rolling restart and a health check gate. The legacy deploy script stays separate.
-- **Staging:** a second smaller Forge server on `*.staging.shortn.at`, using a restored anonymized prod snapshot that's refreshed weekly.
+| App                        | Forge target           | Notes                                                                        |
+| -------------------------- | ---------------------- | ---------------------------------------------------------------------------- |
+| legacy app                 | `shortn` / `staging`   | `legacy/Dockerfile`, until P7                                                 |
+| apps/redirect              | `shortn-redirect`      | Bun, stateless; scale with `cpuLimit` and `reusePort` workers in one container |
+| apps/web (Next standalone) | `shortn-web`           |                                                                              |
+| apps/api                   | `shortn-api`           |                                                                              |
+| apps/worker                | `shortn-worker`        | no domain; `healthPath` served on an internal port; graceful SIGTERM (finish batch, ack) |
+
+- **Redis (built 2026-10-09):** host units on the Forge box, not targets and not the Pi's shared Redis. That one is `allkeys-lru` with 128 MB shared across projects, and LRU would silently evict stream entries and jobs. `forge-redis@<instance>` (`denizlg24.com/infra/systemd/forge-redis-install`) runs on the `forge-apps` Docker network, reachable by name, not published:
+
+  | Instance                 | Role                                         | maxmemory | Env                 |
+  | ------------------------ | -------------------------------------------- | --------- | ------------------- |
+  | `shortn-cache`           | `allkeys-lru`, no persistence                | 256 MB    | `REDIS_CACHE_URL`   |
+  | `shortn-durable`         | `noeviction`, AOF everysec + RDB             | 512 MB    | `REDIS_DURABLE_URL` |
+  | `shortn-staging-cache`   | as above                                     | 64 MB     | staging target      |
+  | `shortn-staging-durable` | as above                                     | 128 MB    | staging target      |
+
+  Same box as redirect and worker, so the hot path (`GET link:*`, `XADD`) never crosses to the Pi, and a pi-cloud outage leaves redirects serving from cache while clicks buffer in the stream (03 degraded mode). Resize by re-running the installer; it keeps the password.
+- **Migrations:** `db:indexes` (create-only), then pending **expand** migrations, run as a one-off step before the new container takes traffic. Never contract.
+- **Staging:** separate Forge targets on the same box, dashed hosts (15).
+- **Open:** Forge targets have no volumes, so the redirect spool (03 degraded mode) is lost if a container is replaced while Redis is down. Either accept it or add a host-volume option to the deploy agent for `shortn-redirect`. Decide before P2.
+
+## Edge routing (Cloudflare Worker)
+
+A Worker on `shortn.at/*` (and later the custom-hostname zone) does what the old plan gave nginx:
+
+- **Routing:** a single-segment path that is not reserved (`packages/core/reserved.ts`, bundled into the Worker at build) or `/qr/{key}` goes to the redirect origin. Everything else goes to the legacy origin, and to the web origin from P4. The table in 14 is the Worker's config, one entry per phase.
+- **Shadow (P2):** `ctx.waitUntil(fetch(redirectOrigin, { headers: { "X-Shadow": "1" } }))` alongside the real request, response discarded. The redirect service compares and logs.
+- **Canary (P2):** `hash(cf-ray) % 100 < CANARY_PERCENT`. `CANARY_PERCENT` and the per-path owner live in Worker vars; a change is one `wrangler deploy` of config (seconds). Rollback is setting it back to 0.
+- **Fallback:** a 5xx or timeout from the redirect origin is retried once against legacy, so a bad deploy or a Forge swap degrades to legacy rather than to an error.
+- **Headers:** the Worker forwards `CF-Connecting-IP`, the geo headers and `X-Request-Id` (from `cf-ray`). Origins trust them because the box is reachable only through the tunnel.
+- Worker subrequests to the zone's own origin hostnames skip Worker routes, so there are no loops. Origin hostnames (e.g. `redirect-origin.shortn.at`) are proxied tunnel records with no Worker route.
+- **Cost:** the free plan's 100k requests/day is below peak redirect volume. Budget Workers Paid ($5/month, 10M requests) from P2.
 
 ## Cloudflare
 
@@ -35,10 +59,10 @@ One VPS to start (≥ 4 vCPU / 8 GB, EU region, chosen for the lowest RTT to the
   - A second copy: a weekly `mongodump --gzip --oplog` to a different provider/location (e.g. the Forge box disk → offsite), so one compromised credential can't destroy both.
   - The oplog is sized for ≥ 72 h at peak write rate (change-stream resume + PITR continuity).
   - **Single point of failure:** one node means no failover and every maintenance window is downtime for dashboard writes. Redirects survive on Redis (03 degraded mode), but clicks queue in the stream. **Recommendation:** add a second data-bearing member plus an arbiter (or 3 data members) to `rs0`, ideally one off pi-cloud. This isn't blocking, but it's strongly advised before P4.
-  - Connection: TLS required (`tls=true`), SCRAM credentials per app with least-privilege roles (redirect: read on links/QR; worker: readWrite on analytics + sync; web/api: readWrite), and port 27018 open **only** to the Forge and staging IPs. Drop `directConnection` and use `replicaSet=rs0`, so drivers handle topology properly.
-- Redis: AOF `everysec` on the durable instance; RDB copied to R2 every 6 h. **Unprocessed click events exist only in the stream** (or the redirect spool file) until written to Mongo, so durable-instance health is monitored like a database. Cache and counters are rebuildable from Mongo.
+  - Connection: TLS required (`tls=true`), SCRAM credentials per app with least-privilege roles (redirect: read on links/QR; worker: readWrite on analytics + sync; web/api: readWrite), and port 27018 open **only** to the Forge box. Keep `directConnection=true`: `rs0` advertises its member as the Docker-internal `mongodb:27017`, so `replicaSet=rs0` cannot connect from Forge.
+- Redis: AOF `everysec` on `shortn-durable`; its data dir is in the Forge DR allowlist (`denizlg24.com/infra/dr`). **Unprocessed click events exist only in the stream** (or the redirect spool file) until written to Mongo, so durable-instance health is monitored like a database. Cache and counters are rebuildable from Mongo.
 - **Restore drill** every quarter and before P7: restore to staging, run all migration `verify`s and the redirect golden suite.
-- RPO: ≤ 1 min (PBM PITR); clicks ≤ ~1 s (Redis AOF). RTO: < 1 h for a full box loss (re-provision via Forge recipe + restore).
+- RPO: ≤ 1 min (PBM PITR); clicks ≤ ~1 s (Redis AOF). RTO: < 1 h for a full box loss (Forge DR restore, then redeploy targets from their recovery images).
 
 ## Observability
 

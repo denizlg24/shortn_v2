@@ -8,7 +8,7 @@ This folder is the master plan for rebuilding Shortn. Each numbered file is a se
 
 1. **No data loss.** Every schema change ships as an _expand → migrate → verify → contract_ sequence. The contract (destructive) step only happens after the old app is retired **and** a verified backup exists. See [02](02-data-model-and-migrations.md).
 2. **No broken short links.** Every `shortn.at/{code}`, `shortn.at/qr/{code}` and `shortn.at/b/{slug}` that resolves today must resolve after cutover, with the same destination and the same safety/password behavior. Printed QR codes are forever.
-3. **Old app stays live until each surface is replaced.** We cut over surface by surface behind Cloudflare and nginx routing. There is no big-bang switch.
+3. **Old app stays live until each surface is replaced.** We cut over surface by surface behind Cloudflare, with a Worker deciding which origin serves each path. There is no big-bang switch.
 4. Hard project rules: bun only, strict typing (no `any`/`unknown` casts), self-documenting code.
 
 ## Decisions made (alignment round, 2026-10-09)
@@ -17,8 +17,8 @@ This folder is the master plan for rebuilding Shortn. Each numbered file is a se
 | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Strategy       | Greenfield **bun + Turborepo monorepo** in this repo (new `apps/*`, `packages/*`). The legacy app moves to `legacy/` and keeps running until it's decommissioned.                                                                                    |
 | Database       | **Stay on MongoDB**: self-hosted on pi-cloud, 8.2.11, single-node replica set `rs0`. Native driver. Normalize the model, fix indexes, move clicks to a time-series collection with rollups.                                                          |
-| Redirects      | **Dedicated Bun + Hono redirect service on Forge** with local **Redis** (cache-aside for link resolution, Streams for click ingestion).                                                                                                              |
-| Hosting        | Laravel Forge VPS behind **Cloudflare** (proxy, WAF, wildcard DNS, Cloudflare for SaaS for custom domains). The Vercel project is kept only as a path-preserving redirect, because some printed QR codes may encode `*.vercel.app` URLs (02 M0 #12). |
+| Redirects      | **Dedicated Bun + Hono redirect service on Forge** with **Redis on the same box** (cache-aside for link resolution, Streams for click ingestion; 13).                                                                                                 |
+| Hosting        | Self-hosted **Forge** (`forge.denizlg24.com`, not Laravel Forge: one container per app, Caddy routing by hostname, reached through a Cloudflare tunnel) behind **Cloudflare** (proxy, WAF, wildcard DNS, an edge Worker for path routing, Cloudflare for SaaS for custom domains). The Vercel project is kept only as a path-preserving redirect, because some printed QR codes may encode `*.vercel.app` URLs (02 M0 #12). |
 | Subdomains     | `app.shortn.at` (dashboard), `api.shortn.at` (REST + MCP), `{handle}.shortn.at` (bio pages), `shortn.at` (redirects + marketing).                                                                                                                    |
 | Custom domains | User-owned domains for links and bio pages, sold as a **paid add-on**.                                                                                                                                                                               |
 | Billing        | **Keep Polar**, rebuild the model: webhooks become the single source of truth, entitlements live locally, metering runs on Redis, and the external scheduler and Stripe leftovers are removed.                                                       |
@@ -44,9 +44,9 @@ The issues below were found in the current code and drive the plans:
 ## Target architecture
 
 ```
-                      Cloudflare (DNS, proxy, WAF, SaaS custom hostnames)
-                                         │
-                                  Forge VPS · nginx
+      Cloudflare (DNS, proxy, WAF, SaaS custom hostnames) · edge Worker (path → origin)
+                                         │  tunnel
+                         Forge box · Caddy (by hostname) · Redis ×2
    ┌──────────────┬──────────────┬───────┴───────┬──────────────────┬─────────────────┐
 shortn.at/{key}  app.shortn.at   *.shortn.at      api.shortn.at      shortn.at/(marketing)
 custom domains   (dashboard)     (bio pages)      (REST v1 + MCP)
@@ -120,4 +120,5 @@ All write logic lives in `packages/core` (domain services). `apps/web` server ac
 
 ## Review log
 
+- 2026-10-09: infra correction. "Forge" is the self-hosted container platform, not Laravel Forge + nginx. Path routing, shadow and canary moved to a Cloudflare edge Worker (13, 14, 07); Redis moved to Forge-host units next to the apps (13); `directConnection=true` kept for Mongo; redirect spool durability is an open item for P2.
 - 2026-10-09: adversarial review of 00/02/03/04/06/07/14 against the legacy code. 15 findings, all folded in. Main results: coexistence rules (02 §3a), per-phase routing table (14), a stream trimming fix (04), the password migration order (02 M9), Polar migration sequencing (06), and the P0 hotfix.

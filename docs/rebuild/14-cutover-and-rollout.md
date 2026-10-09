@@ -8,24 +8,26 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
   - **Ship the legacy click-deletion hotfix first** (02 §4: unscoped `Clicks.deleteMany` before the ownership check). It's a live data-loss and IDOR bug.
   - Set up PBM full + PITR backups to R2 and the offsite weekly dump; do a point-in-time restore to staging; size the oplog; lock port 27018 to Forge IPs with TLS; run the `db:audit` (02 §4), and resolve blocking audit items.
   - Enable `changeStreamPreAndPostImages` on link and QR collections.
-  - Mine 30 days of nginx and Cloudflare logs for every `/api/*` caller and every Host header seen. External callers (`/api/track-click`, the scheduler's `/api/polar/execute-downgrade`, `/api/cron/moderate`) need an owner in the routing table below.
+  - Mine 30 days of Cloudflare logs (and Forge's per-deployment request logs) for every `/api/*` caller and every Host header seen. External callers (`/api/track-click`, the scheduler's `/api/polar/execute-downgrade`, `/api/cron/moderate`) need an owner in the routing table below.
   - Merge security Dependabot PRs into legacy and freeze legacy for features.
 - Exit gate: hotfix deployed, a restore drill documented, the audit report reviewed, and every blocking item with a recorded resolution.
 - Rollback: n/a (read-only).
 
 ## P1 · Foundation (≈ 1–2 weeks)
 
-- Work: plan 01 (monorepo, `legacy/` move, packages, CI, staging server, Redis instances, nginx with the routing map in **pass-through mode**, meaning everything still goes to legacy).
+- Work: plan 01 (monorepo, `legacy/` move, packages, CI, staging target, Forge-host Redis instances (13)). There is no routing layer to set up: with Caddy matching on hostname, everything on `shortn.at` already goes to legacy.
 - Exit gate: legacy deploys from `legacy/` unchanged, staging is up, and the migration runner is tested on the fixture.
+- **Done 2026-10-09:** promoted in #421 (prod target now `legacy/` + Dockerfile, previews off), Redis instances running and wired into both targets.
 - Rollback: revert the `git mv` PR.
 
 ## P2 · Redirects + click pipeline (≈ 2–3 weeks)
 
 - Work: apps/redirect, apps/worker (ingest + dual-write legacy `clicks`), M1 (dedupe) + M3/M4 (key/domain, QR ref) expand migrations, the legacy cache-invalidation patch + change stream, M7 backfill.
-- **Shadow mode (1 week):** nginx mirrors (`mirror` directive) a copy of every redirect request to apps/redirect with `X-Shadow: 1`. The service resolves and **compares** with what legacy would do (status + Location) but doesn't enqueue. Mismatches are logged.
-- **Canary:** route 5% → 25% → 100% of single-segment paths to apps/redirect via nginx `split_clients` on a request ID, over 3 days, watching error rates, latency and event counts. The counts must match: events/hour from the new pipeline vs the legacy `clicks` insert rate at the same share.
+- **Entry:** the edge Worker (13 §Edge routing) deployed in pass-through mode (every path → legacy origin) for ≥ 3 days with no change in error rate, and Forge deploy swaps verified gapless on staging (13).
+- **Shadow mode (1 week):** the Worker sends a copy of every redirect request to apps/redirect with `X-Shadow: 1` via `waitUntil`, response discarded. The service resolves and **compares** with what legacy would do (status + Location) but doesn't enqueue. Mismatches are logged.
+- **Canary:** route 5% → 25% → 100% of single-segment paths to apps/redirect via the Worker's `CANARY_PERCENT` (hash of `cf-ray`), over 3 days, watching error rates, latency and event counts. The counts must match: events/hour from the new pipeline vs the legacy `clicks` insert rate at the same share.
 - Exit gate: shadow mismatch rate = 0 over 7 days (excluding documented intentional differences); canary at 100% for 72 h with no alert; per-link click counts for the top 500 links match between legacy `clicks` and `click_events` for the period.
-- Rollback: flip the nginx upstream back to legacy (one config reload, < 1 min). The worker's dual-write means legacy analytics never had a gap.
+- Rollback: set `CANARY_PERCENT=0` (one Worker config deploy, seconds). The Worker's retry-to-legacy on 5xx is the automatic version of the same thing. The worker's dual-write means legacy analytics never had a gap.
 
 ## P3 · Data expansion (≈ 2 weeks, overlaps P2)
 
@@ -59,7 +61,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - Work: contract steps C1–C6 (02 §6), delete `legacy/`, remove legacy env vars, unpin Pinata assets (+30 days), close out the scheduler service.
 - Rollback: restore archived fields from `archive_*` collections or the dump (scripted and rehearsed in staging before running on prod).
 
-## Routing table per phase (nginx upstream that owns each path on `shortn.at`)
+## Routing table per phase (Worker origin that owns each path on `shortn.at`)
 
 | Path                                                            | P1                  | P2–P3                        | P4                                                                  | P5+                       | P7             |
 | --------------------------------------------------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------------- | ------------------------- | -------------- |
@@ -74,7 +76,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 | `/api/track-click` and other external `/api/*` found in P0 logs | legacy              | legacy                       | owner decided in P0                                                 | —                         | removed or 410 |
 | Hosts `www.`, legacy `*.vercel.app`, other origins in QR data   | 301 path-preserving | same                         | same                                                                | same                      | same, forever  |
 
-Each column change is one nginx include swap, reverted in < 1 min.
+Each column change is one Worker config deploy, reverted in seconds. Host-level rows (`app.`, `api.`, bio handles) are Forge target domains; the Worker only decides paths on `shortn.at` and custom hostnames.
 
 ## Parity checklist (seed, to be completed in P4)
 

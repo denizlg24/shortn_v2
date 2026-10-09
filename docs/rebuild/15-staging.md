@@ -6,7 +6,7 @@ Decided 2026-10-09. "Forge" here is the self-hosted container platform at `forge
 
 - `master` = production. Hotfixes land here and are merged into `staging` immediately.
 - `staging` = integration branch, auto-deployed to the staging Forge site. All rebuild PRs target `staging`.
-- Promotion `staging → master` happens **per phase**, when that phase's gate in [14](14-cutover-and-rollout.md) has passed on staging, never as one final merge. New services land on `master` dark (nginx route switch / feature flag), so a promotion never changes user-facing behavior by itself.
+- Promotion `staging → master` happens **per phase**, when that phase's gate in [14](14-cutover-and-rollout.md) has passed on staging, never as one final merge. New services land on `master` dark (edge Worker route / feature flag), so a promotion never changes user-facing behavior by itself.
 - First promotion: P1 foundation (#416) together with the production Forge change to build/run from `legacy/`.
 
 ## Staging site
@@ -16,7 +16,7 @@ Decided 2026-10-09. "Forge" here is the self-hosted container platform at `forge
 | Hosts    | `staging.shortn.at` (root/redirects/marketing), `app.staging.shortn.at`, `api.staging.shortn.at`, `*.staging.shortn.at` bio handles (needs Advanced Certificate or a second-level wildcard cert at Cloudflare)                                                                                  |
 | Branch   | `staging` (auto-deploy)                                                                                                                                                                                                                                                                         |
 | Database | separate database **and** user, never the production database. Option A: database `shortn_staging` on the existing `rs0` with a user scoped to it (cheap; data is tiny). Option B: its own container. Restored from a production dump, refreshed weekly; PII (emails, IPs) scrubbed on restore. |
-| Redis    | its own cache + durable instances                                                                                                                                                                                                                                                               |
+| Redis    | `shortn-staging-cache` + `shortn-staging-durable` on the Forge host (13), wired as `REDIS_CACHE_URL`/`REDIS_DURABLE_URL`                                                                                                                                                                                                                                                               |
 | Search   | Meilisearch with `staging_` index prefixes or its own instance                                                                                                                                                                                                                                  |
 | Billing  | Polar **sandbox** org and products                                                                                                                                                                                                                                                              |
 | OAuth    | separate GitHub OAuth app (single callback URL); Google: add staging redirect URIs to a separate client                                                                                                                                                                                         |
@@ -57,7 +57,7 @@ Every deployable app is its own Docker image and Forge `dockerfile` target, to k
 | api | `apps/api` | `apps/api/Dockerfile` | `api.shortn.at` / `api-staging.shortn.at` |
 | worker | `apps/worker` | `apps/worker/Dockerfile` | none (no ingress) |
 
-Build context is always the repository root; build-time env arrives through Forge's `forge-env` build secret; runtime images are slim (`node:24-trixie-slim` for Next, `oven/bun` slim for Bun services). Redis (×2) and Meilisearch run as Forge resources, not app images.
+Build context is always the repository root; build-time env arrives through Forge's `forge-env` build secret; runtime images are slim (`node:24-trixie-slim` for Next, `oven/bun` slim for Bun services). Redis (×2 per environment) runs as Forge-host units (`forge-redis@`, 13) and Meilisearch as a pi-cloud resource, not app images.
 
 ## Env file
 

@@ -18,24 +18,19 @@
 
 ## Routing implementation
 
-1. **Cloudflare DNS:** `shortn.at` A/AAAA → Forge (proxied). `*.shortn.at` → Forge (proxied, wildcard). Explicit records for `app`, `api`, `assets` (R2 custom domain), `status`.
-2. **TLS:** Universal SSL covers `shortn.at` and `*.shortn.at` (one level), which is enough for handles. Origin uses a Cloudflare Origin CA wildcard cert with **Full (strict)** mode.
-3. **nginx on Forge** (one server block per role):
-   - `server_name app.shortn.at` → `web` upstream.
-   - `server_name api.shortn.at` → `api` upstream.
-   - `server_name shortn.at`:
-     - `location = /` and `location ~ ^/(en|pt|es)(/|$)` and prefix list of marketing + `/_next/` → `web`
-     - `location ~ ^/[^/]+/?$` (single segment, not matched above) and `^/(qr|b)/[^/]+$` → `redirect`
-     - everything else → `web` (404 page)
-   - `server_name ~^(?<handle>[a-z0-9-]+)\.shortn\.at$` → `web` with header `X-Shortn-Bio-Handle: $handle`. Next rewrites to `/_bio/[handle]` in `proxy.ts`.
-   - `default_server` (any other Host, i.e. custom domains) → `redirect`. The redirect service looks up `domains` by Host: `kind:"links"` resolves keys; `kind:"bio"` or `"both"` on `/` proxies to web as `/_bio/by-domain/{hostname}`.
-   - The real-IP config only trusts Cloudflare ranges (03).
-4. The list of marketing prefixes lives in **one** generated file (`packages/core/reserved.ts` → `bun run gen:nginx` emits an nginx include), so key validation and routing can't drift apart. Rules for the generator:
-   - It only emits exact (`location = /pricing`) or segment-anchored, **case-sensitive** regexes (`~ ^/pricing(/|$)`), never `~*` and never bare prefix `location /pricing`, which would also capture `/pricing2024`.
-   - **An existing key always wins.** Legacy reserved only `PUBLIC_PATHS`, case-sensitively, so live keys like `blog`, `docs`, `legal`, `app`, `mcp` or `Pricing` may exist today. Before emitting, the generator queries the DB. A reserved word that collides with a live key is either emitted as an exception routed to `redirect`, or the marketing page moves (e.g. `/docs` → `docs.shortn.at`). M0 #3 lists the collisions and is blocking.
-   - QR and bio rules accept a trailing slash (`^/(qr|b)/[^/]+/?$`). Legacy Next 308s `/qr/x/` → `/qr/x`, so that form exists in the wild.
-5. **Legacy origins stay alive.** Every origin found in printed QR data (02 M0 #12), such as `www.shortn.at`, `*.vercel.app` or old preview hosts, keeps resolving with the **path preserved** (`return 301 https://shortn.at$request_uri`). For `*.vercel.app`, the Vercel project is kept as a minimal redirect-only deployment and is never deleted.
-6. **Per-phase routing table** in 14 decides which upstream owns each path in each phase. In particular, `/b/*`, `/api/*`, `/authenticate/*` and `/{locale}/safety/*` stay on legacy until their replacement ships.
+1. **Cloudflare DNS:** `shortn.at`, `*.shortn.at`, `app`, `api` are proxied records pointing at the Forge tunnel. Each Forge target also has an **origin hostname** with no Worker route (`legacy-origin`, `web-origin`, `redirect-origin`, `api-origin` `.shortn.at`); those are what Caddy matches on. `assets` is the R2 custom domain; `status` is separate.
+2. **TLS:** Universal SSL covers `shortn.at` and `*.shortn.at` (one level), enough for handles. Origin TLS terminates at the tunnel, so there is no origin certificate to manage.
+3. **Host routing:** `app.shortn.at` and `api.shortn.at` are plain Forge target domains (Caddy, by Host). Everything that needs a decision by path or by Host *pattern* goes through the **edge Worker** (13 §Edge routing), which fetches the right origin hostname and forwards `X-Forwarded-Host`, `CF-Connecting-IP` and the geo headers:
+   - `shortn.at`: `/`, `/(en|pt|es)(/|$)`, the marketing prefixes and `/_next/` → web origin (legacy until P4). A single segment not matched above, `/qr/{key}` and `/b/{slug}` → redirect origin (per the phase table in 14). Everything else → web (404 page).
+   - `{handle}.shortn.at` (route `*.shortn.at/*`, minus the reserved labels) → web origin with `X-Shortn-Bio-Handle: {handle}`. Next rewrites to `/_bio/[handle]` in `proxy.ts`. This avoids wildcard domains on a Forge target.
+   - Custom hostnames (Cloudflare for SaaS, route on the SaaS zone) → redirect origin with `X-Forwarded-Host`. The redirect service looks up `domains` by that host: `kind:"links"` resolves keys; `kind:"bio"` or `"both"` on `/` proxies to web as `/_bio/by-domain/{hostname}`.
+   - Origins trust these headers because the Forge box is reachable only through the tunnel (03).
+4. The marketing prefix list lives in **one** file, `packages/core/reserved.ts`. The Worker imports it at build time (it's a workspace package), so key validation and routing can't drift apart. Rules:
+   - Matches are exact or segment-anchored and **case-sensitive** (`/pricing` and `/pricing/...`, never `/pricing2024`).
+   - **An existing key always wins.** Legacy reserved only `PUBLIC_PATHS`, case-sensitively, so live keys like `blog`, `docs`, `legal`, `app`, `mcp` or `Pricing` may exist today. The Worker build reads a generated exceptions list (live keys that collide with reserved words, queried from the DB) and routes those to `redirect`, or the marketing page moves (e.g. `/docs` → `docs.shortn.at`). M0 #3 lists the collisions and is blocking.
+   - QR and bio patterns accept a trailing slash (`/(qr|b)/{x}/?`). Legacy Next 308s `/qr/x/` → `/qr/x`, so that form exists in the wild.
+5. **Legacy origins stay alive.** Every origin found in printed QR data (02 M0 #12), such as `www.shortn.at`, `*.vercel.app` or old preview hosts, keeps resolving with the **path preserved** (a Cloudflare redirect rule, 301 to `https://shortn.at` + path + query). For `*.vercel.app`, the Vercel project is kept as a minimal redirect-only deployment and is never deleted.
+6. **Per-phase routing table** in 14 decides which origin owns each path in each phase. In particular, `/b/*`, `/api/*`, `/authenticate/*` and `/{locale}/safety/*` stay on legacy until their replacement ships.
 
 ## Bio handles (`{handle}.shortn.at`)
 

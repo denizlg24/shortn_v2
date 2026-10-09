@@ -12,7 +12,7 @@ Today each redirect goes through Next's proxy (next-intl, better-auth cookie par
 GET https://{host}/{key}[?query]
   │
   ├─ host routing (07): shortn.at | custom domain | {handle}.shortn.at (→ web) | app./api. (→ never reaches here)
-  ├─ reserved path? (/, /pricing, /login, /_next, /llms.txt, …) → proxy to apps/web (nginx does this first, see 07)
+  ├─ reserved path? (/, /pricing, /login, /_next, /llms.txt, …) → never reaches here: the edge Worker sends these to web (07)
   ├─ /qr/{key}  (legacy QR path)   → same resolution as /{key}; scan vs click decided by link flags (isQrCode && qrCodeId && QR doc), as legacy does. The /qr/ prefix is NOT a scan marker
   ├─ /b/{slug}  (legacy bio)       → stays on legacy until P5; then 301 to the page's current handle (bio_aliases → bioPageId)
   │
@@ -72,20 +72,20 @@ type CachedLink = {
 
 ## Client identity & geo
 
-- Forge sits behind Cloudflare. **Only trust Cloudflare headers when the socket peer is a Cloudflare IP.** nginx's `set_real_ip_from` uses Cloudflare's published ranges (refreshed by cron) with `real_ip_header CF-Connecting-IP`. The service reads `X-Real-IP` set by nginx. This is the same principle as the fix in #413, enforced at the edge.
+- The Forge box has no public ingress: every request arrives Cloudflare → edge Worker → tunnel → Caddy. So `CF-Connecting-IP` (forwarded by the Worker) is trustworthy and the service reads it directly. Same principle as the fix in #413. **If the box ever gets a public port, this assumption breaks**; gate on a shared secret header set by the Worker (`X-Edge-Auth`) from P2 so it fails closed.
 - Geo comes from Cloudflare headers: `CF-IPCountry` always; city, region, continent, lat/long and timezone via the **"Add visitor location headers"** managed transform (`cf-ipcity`, `cf-region`, `cf-timezone`, …). This removes ip2location.
 - The IP is hashed in the worker, never in the stream payload stored long-term (the stream is trimmed).
 
 ## Implementation notes
 
-- Hono on `Bun.serve` with `reusePort: true`. Run **N processes = cores − 1** under Forge's daemon supervisor (or systemd). Stateless.
+- Hono on `Bun.serve` with `reusePort: true`, N worker processes inside the one Forge container (N = the target's `cpuLimit`). Stateless.
 - Mongo pool 20 per process, read preference `primary` for misses (correctness over latency, since misses are rare). New links are also **written to Redis on create** (write-through), so the first click on a fresh link never hits Mongo.
 - Redis via `ioredis` with `enableAutoPipelining`.
-- Health: `/__health` checks Redis ping + Mongo ping (cached 5 s). nginx `max_fails` handles failover between processes.
+- Health: `/__health` checks Redis ping + Mongo ping (cached 5 s); it is the target's `healthPath`, so Forge won't switch to a container that can't reach Redis. Failover beyond the container is the Worker's retry-to-legacy (13).
 - **Degraded modes:**
-  - Redis down → resolve from Mongo directly (L1 still helps). Click events are appended to a **local append-only spool file** (fsync batched every 100 ms). It survives restarts and deploys and is replayed into the stream when Redis returns. The spool is capped by disk-space alerting, not by count, so dropping events requires a full disk, which is itself alerted.
+  - Redis down → resolve from Mongo directly (L1 still helps). Click events are appended to a **local append-only spool file** (fsync batched every 100 ms) and replayed into the stream when Redis returns. Forge containers have no volumes, so the spool does **not** survive a redeploy or container replacement: on SIGTERM the service tries to drain the spool into Redis before exiting. Events still spooled when the container goes are lost, so the loss window is Redis down *and* a redeploy at the same moment. Accept that, or give Forge a host-mounted volume option for this target (13, open item). The spool is capped by disk-space alerting, not by count, so dropping events requires a full disk, which is itself alerted.
   - Mongo down → serve from L1/L2 only. Misses → 503 page with `Retry-After`.
-- Observability: Sentry (errors only, sampled), and a Prometheus `/metrics` endpoint scraped by the Forge monitoring stack or Grafana Cloud (13). Metrics are hit ratio L1/L2, resolve latency histogram, stream lag, dropped events.
+- Observability: Sentry (errors only, sampled), and a Prometheus `/metrics` endpoint scraped by Grafana Cloud or a self-hosted collector (13). Metrics are hit ratio L1/L2, resolve latency histogram, stream lag, dropped events.
 
 ## Key generation & reserved words (shared, `packages/core/links/keys.ts`)
 
@@ -97,4 +97,4 @@ type CachedLink = {
 ## Tests
 
 - Golden behavior suite: for a fixture set covering normal, QR-backed, legacy `/qr/`, password, interstitial, suspicious, blocked, disabled, renamed alias, bot and missing links, assert the status, `Location` and enqueued event _for both legacy and the new service_. The cutover gate is identical outputs (14).
-- Load test (k6) on staging: 2k rps sustained at a 99% hit ratio, p95 < 10 ms at nginx.
+- Load test (k6) on staging: 2k rps sustained at a 99% hit ratio, p95 < 10 ms at the origin (Caddy access log).
