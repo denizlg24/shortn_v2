@@ -43,7 +43,7 @@ test("expand schemas accept unmigrated legacy documents and preserve extra legac
       theme: { font: "Inter" },
     }).success,
   ).toBe(true);
-  expect(physicalNames.links).toBe("urlv3s");
+  expect(physicalNames.links).toBe("urlv3");
 });
 test("supplied new fields still validate; click orphan metadata remains attachable", () => {
   expect(
@@ -119,4 +119,115 @@ test("read pipelines reject writes including nested stages", () => {
   expect(() =>
     assertReadPipeline([{ $match: { expanded: true } }]),
   ).not.toThrow();
+});
+
+test("physical names include all audited legacy names and accept validated JSON overrides", async () => {
+  const { resolvePhysicalNames } = await import("./collections");
+  expect(resolvePhysicalNames().links).toBe("urlv3");
+  expect(resolvePhysicalNames().link_reports).toBe("linkreports");
+  expect(resolvePhysicalNames().scheduled_changes).toBe("scheduledchanges");
+  expect(resolvePhysicalNames().login_records).toBe("loginrecords");
+  expect(resolvePhysicalNames('{"links":"audited_links"}').links).toBe(
+    "audited_links",
+  );
+  expect(() => resolvePhysicalNames('{"typo":"x"}')).toThrow("Unknown");
+  expect(() => resolvePhysicalNames('{"links":"tags"}')).toThrow("distinct");
+  expect(() => resolvePhysicalNames('{"links":"a.b"}')).toThrow();
+});
+
+test("rollback requires a confirmed explicit target and selects only newer ids in reverse order", () => {
+  const migrations = [
+    exampleMigration,
+    { ...exampleMigration, id: "0002-next" },
+    { ...exampleMigration, id: "0003-last" },
+  ];
+  expect(() => validateOptions(migrations, { direction: "down" })).toThrow(
+    "--confirm-down",
+  );
+  expect(() =>
+    validateOptions(migrations, {
+      direction: "down",
+      until: exampleMigration.id,
+    }),
+  ).toThrow("--confirm-down");
+  expect(
+    validateOptions(migrations, {
+      direction: "down",
+      until: exampleMigration.id,
+      confirmDown: true,
+    }).map((m) => m.id),
+  ).toEqual(["0003-last", "0002-next"]);
+});
+
+test("URL fields reject executable schemes and allow http(s)", () => {
+  for (const url of [
+    "javascript:alert(1)",
+    "data:text/html,<script>alert(1)</script>",
+    "ftp://example.com/file",
+  ]) {
+    for (const fields of [
+      { destination: url },
+      { longUrl: url },
+      { og: { image: url } },
+      { rules: { geo: [{ countries: ["DK"], destination: url }] } },
+      { rules: { devices: [{ device: "mobile", destination: url }] } },
+      { rules: { rotation: [{ destination: url, weight: 1 }] } },
+      { rules: { deepLinks: { ios: url } } },
+      { utmLinks: [{ url }] },
+    ])
+      expect(
+        linkSchema.safeParse({ _id: new ObjectId(), ...fields }).success,
+      ).toBe(false);
+    for (const fields of [
+      { avatar: url },
+      { seo: { image: url } },
+      { socials: [{ url }] },
+      { blocks: [{ type: "image", url, alt: "a" }] },
+      { blocks: [{ type: "socials", items: [{ platform: "web", url }] }] },
+      { blocks: [{ type: "profile", avatar: url }] },
+      { blocks: [{ type: "link", linkId: new ObjectId(), image: url }] },
+    ])
+      expect(
+        bioPageSchema.safeParse({ _id: new ObjectId(), ...fields }).success,
+      ).toBe(false);
+    expect(
+      qrCodeSchema.safeParse({ _id: new ObjectId(), design: { data: url } })
+        .success,
+    ).toBe(false);
+  }
+  for (const destination of ["http://example.com", "https://example.com"])
+    expect(
+      linkSchema.safeParse({ _id: new ObjectId(), destination }).success,
+    ).toBe(true);
+});
+
+test("both CLI target guards show hosts/db without credentials and require --yes remotely", async () => {
+  const { confirmMongoTarget } = await import("./cli-target");
+  const logs: string[] = [];
+  expect(() =>
+    confirmMongoTarget(
+      "mongodb://u:password@remote.example/db",
+      "explicit",
+      [],
+      (message) => logs.push(message),
+    ),
+  ).toThrow("--yes");
+  expect(logs.join()).toContain("remote.example");
+  expect(logs.join()).toContain("explicit");
+  expect(logs.join()).not.toContain("password");
+  expect(() =>
+    confirmMongoTarget("mongodb://remote.example/", "db", ["--yes"], () => {}),
+  ).not.toThrow();
+  for (const host of ["localhost", "127.0.0.1", "[::1]"])
+    expect(() =>
+      confirmMongoTarget(`mongodb://${host}:27017/`, "db", [], () => {}),
+    ).not.toThrow();
+  expect(() =>
+    confirmMongoTarget(
+      "mongodb://127.0.0.1:27017,remote.example:27017/",
+      "db",
+      [],
+      () => {},
+    ),
+  ).toThrow("--yes");
 });

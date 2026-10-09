@@ -34,6 +34,7 @@ jobs:
           --health-cmd "redis-cli ping"
           --health-interval 2s --health-timeout 5s --health-retries 30
     env:
+      REQUIRE_INTEGRATION: "1"
       MONGO_TEST_URL: mongodb://127.0.0.1:27017/?replicaSet=rs0
       REDIS_TEST_URL: redis://127.0.0.1:6380
       REDIS_DURABLE_TEST_URL: redis://127.0.0.1:6379
@@ -58,6 +59,9 @@ jobs:
             sleep 1
           done
           exit 1
+      - name: Configure Redis test persistence and eviction policies
+        run: |
+          bun -e 'import {Redis} from "ioredis"; for (const [port, policy] of [[6380,"allkeys-lru"],[6379,"noeviction"]]) { const client = new Redis({host:"127.0.0.1",port}); await client.config("SET","maxmemory-policy",policy); if (port === 6379) await client.config("SET","appendonly","yes"); client.disconnect(); }'
       - name: Test migrations and create-only indexes on replica set; test Redis isolation
         run: bunx turbo run test --filter=@shortn/db --filter=@shortn/redis --force
       - name: Mongo service logs

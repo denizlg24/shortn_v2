@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { MongoClient, ObjectId } from "mongodb";
 import type { Db } from "mongodb";
-import { desiredIndexes, syncIndexes } from "./indexes";
+import { legacyCollections, desiredIndexes, syncIndexes } from "./indexes";
 import { exampleMigration } from "./migrations/example.fixture";
 import { runMigrations } from "./migrations/runner";
 import type { Migration, MigrationState } from "./migrations/runner";
@@ -10,6 +10,8 @@ if (!url)
   console.log(
     "SKIP Mongo integration: set MONGO_TEST_URL to a local MongoDB replica set (docker-compose.test.yml)",
   );
+if (!url && process.env.REQUIRE_INTEGRATION === "1")
+  throw new Error("MONGO_TEST_URL required when REQUIRE_INTEGRATION=1");
 const quiet = () => {};
 (url ? describe : describe.skip)("MongoDB replica-set integration", () => {
   let client: MongoClient;
@@ -67,6 +69,8 @@ const quiet = () => {};
       ).toEqual(applied);
       await runMigrations(client, db, [exampleMigration], {
         direction: "down",
+        until: "0000",
+        confirmDown: true,
         batchSize: 2,
         log: quiet,
       });
@@ -196,9 +200,9 @@ const quiet = () => {};
       const state = await db
         .collection<MigrationState>("_migrations")
         .findOne({ id: exampleMigration.id });
-      expect(state?.checkpoint?.data_migration_examples).toBeInstanceOf(
-        ObjectId,
-      );
+      expect(
+        state?.checkpoint?.data_migration_examples__migration_examples,
+      ).toBeInstanceOf(ObjectId);
       await runMigrations(client, db, [exampleMigration], {
         batchSize: 2,
         log: quiet,
@@ -411,8 +415,9 @@ const quiet = () => {};
   test("index sync is create-only, idempotent and compatible with multiple legacy inserts", async () => {
     await fixture();
     try {
+      for (const name of legacyCollections) await db.createCollection(name);
       await db
-        .collection("urlv3s")
+        .collection("urlv3")
         .createIndex({ legacyOnly: 1 }, { name: "keep_me" });
       const before = await db.listCollections().toArray();
       const messages: string[] = [];
@@ -421,9 +426,9 @@ const quiet = () => {};
         log: (message) => messages.push(message),
       });
       expect(await db.listCollections().toArray()).toEqual(before);
-      expect(
-        await db.collection("urlv3s").listIndexes().toArray(),
-      ).toHaveLength(2);
+      expect(await db.collection("urlv3").listIndexes().toArray()).toHaveLength(
+        2,
+      );
       await syncIndexes(db, { log: (message) => messages.push(message) });
       await syncIndexes(db, { log: quiet });
       expect(
@@ -432,21 +437,21 @@ const quiet = () => {};
             message.includes("drop suggestion") && message.includes("keep_me"),
         ),
       ).toBe(true);
-      for (const name of ["urlv3s", "biopages", "tags", "qrcodesv2"])
+      for (const name of ["urlv3", "biopages", "tags", "qrcodesv2"])
         await db
           .collection(name)
           .insertMany([{ _id: new ObjectId() }, { _id: new ObjectId() }]);
       await db
-        .collection("urlv3s")
+        .collection("urlv3")
         .insertOne({ domain: "shortn.at", key: "AbC" });
       await db
-        .collection("urlv3s")
+        .collection("urlv3")
         .insertOne({ domain: "shortn.at", key: "abc" });
       await expect(
-        db.collection("urlv3s").insertOne({ domain: "shortn.at", key: "abc" }),
+        db.collection("urlv3").insertOne({ domain: "shortn.at", key: "abc" }),
       ).rejects.toThrow("E11000");
       expect(
-        (await db.collection("urlv3s").listIndexes().toArray()).some(
+        (await db.collection("urlv3").listIndexes().toArray()).some(
           (index) => index.name === "keep_me",
         ),
       ).toBe(true);
@@ -456,7 +461,7 @@ const quiet = () => {};
         )?.partialFilterExpression,
       ).toEqual(desiredIndexes.biopages?.[0]?.partialFilterExpression);
       const images = await db
-        .listCollections({ name: "urlv3s" }, { nameOnly: false })
+        .listCollections({ name: "urlv3" }, { nameOnly: false })
         .next();
       expect(images?.options?.changeStreamPreAndPostImages?.enabled).toBe(true);
       const timeseries = await db

@@ -21,6 +21,7 @@
       "dependsOn": ["typecheck"],
       "cache": false,
       "passThroughEnv": [
+        "REQUIRE_INTEGRATION",
         "MONGO_TEST_URL",
         "REDIS_TEST_URL",
         "REDIS_DURABLE_TEST_URL"

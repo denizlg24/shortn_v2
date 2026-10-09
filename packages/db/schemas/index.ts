@@ -25,7 +25,7 @@ const legacy = {
   sub: text.optional(),
   date: z.date().optional(),
   urlCode: text.optional(),
-  longUrl: text.optional(),
+  longUrl: z.httpUrl().optional(),
   title: text.optional(),
   tags: z
     .array(
@@ -51,13 +51,17 @@ const rules = z.object({
   startsAt: z.date().optional(),
   maxClicks: count.optional(),
   geo: z
-    .array(z.object({ countries: z.array(text), destination: z.url() }))
+    .array(z.object({ countries: z.array(text), destination: z.httpUrl() }))
     .optional(),
-  devices: z.array(z.object({ device: text, destination: z.url() })).optional(),
+  devices: z
+    .array(z.object({ device: text, destination: z.httpUrl() }))
+    .optional(),
   rotation: z
-    .array(z.object({ destination: z.url(), weight: z.number().positive() }))
+    .array(
+      z.object({ destination: z.httpUrl(), weight: z.number().positive() }),
+    )
     .optional(),
-  deepLinks: z.record(text, z.url()).optional(),
+  deepLinks: z.record(text, z.httpUrl()).optional(),
 });
 export const linkSchema = z.looseObject({
   ...base,
@@ -65,7 +69,7 @@ export const linkSchema = z.looseObject({
   workspaceId: objectId.optional(),
   domain: text.optional(),
   key: text.optional(),
-  destination: z.url().optional(),
+  destination: z.httpUrl().optional(),
   description: text.optional(),
   tagIds: z.array(objectId).optional(),
   campaignId: objectId.optional(),
@@ -89,7 +93,7 @@ export const linkSchema = z.looseObject({
     .object({
       title: text.optional(),
       description: text.optional(),
-      image: z.url().optional(),
+      image: z.httpUrl().optional(),
     })
     .optional(),
   qr: z.object({ legacyBacking: z.boolean() }).optional(),
@@ -119,7 +123,7 @@ export const linkSchema = z.looseObject({
   utmLinks: z
     .array(
       z.looseObject({
-        url: text.optional(),
+        url: z.httpUrl().optional(),
         campaign: z
           .looseObject({ _id: objectId.optional(), title: text.optional() })
           .optional(),
@@ -134,7 +138,7 @@ export const qrCodeSchema = z.looseObject({
   linkId: objectId.optional(),
   publicId: text.optional(),
   tagIds: z.array(objectId).optional(),
-  design: z.looseObject({ data: text.optional() }).optional(),
+  design: z.looseObject({ data: z.httpUrl().optional() }).optional(),
   stats: z.object({ scans: count, lastScanAt: z.date().optional() }).optional(),
   qrCodeId: text.optional(),
   urlId: text.optional(),
@@ -144,7 +148,7 @@ export const workspaceSchema = z.object({
   ...base,
   slug: text.min(1),
   name: text.min(1),
-  logo: text.optional(),
+  logo: z.httpUrl().optional(),
   ownerUserId: text,
   personal: z.boolean(),
   plan: z.enum(["free", "basic", "plus", "pro", "enterprise"]),
@@ -229,20 +233,20 @@ const block = z.discriminatedUnion("type", [
     type: z.literal("link"),
     linkId: objectId,
     title: text.optional(),
-    image: text.optional(),
+    image: z.httpUrl().optional(),
   }),
   z.object({
     type: z.literal("profile"),
     title: text.optional(),
-    avatar: text.optional(),
+    avatar: z.httpUrl().optional(),
     description: text.optional(),
   }),
   z.object({
     type: z.literal("socials"),
-    items: z.array(z.object({ platform: text, url: z.url() })),
+    items: z.array(z.object({ platform: text, url: z.httpUrl() })),
   }),
   z.object({ type: z.literal("text"), text }),
-  z.object({ type: z.literal("image"), url: z.url(), alt: text }),
+  z.object({ type: z.literal("image"), url: z.httpUrl(), alt: text }),
 ]);
 export const bioPageSchema = z.looseObject({
   ...base,
@@ -251,14 +255,14 @@ export const bioPageSchema = z.looseObject({
   customDomain: text.optional(),
   title: text.optional(),
   description: text.optional(),
-  avatar: text.optional(),
+  avatar: z.httpUrl().optional(),
   theme: z.looseObject({ customFontFamily: text.optional() }).optional(),
   blocks: z.array(block).optional(),
   seo: z
     .object({
       title: text.optional(),
       description: text.optional(),
-      image: text.optional(),
+      image: z.httpUrl().optional(),
     })
     .optional(),
   published: z.boolean().optional(),
@@ -267,7 +271,9 @@ export const bioPageSchema = z.looseObject({
   userId: text.optional(),
   links: z.array(z.looseObject({ link: objectId })).optional(),
   socials: z
-    .array(z.looseObject({ platform: text.optional(), url: text.optional() }))
+    .array(
+      z.looseObject({ platform: text.optional(), url: z.httpUrl().optional() }),
+    )
     .optional(),
 });
 export const bioAliasSchema = z.object({
