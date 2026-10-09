@@ -6,6 +6,7 @@ import QRCodeV2 from "@/models/url/QRCodeV2";
 import Tag from "@/models/url/Tag";
 import UrlV3 from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
+import { invalidateLinkCache } from "@/lib/link-cache";
 
 export async function createAndAddTagToUrl(tagName: string, urlCode: string) {
   const session = await getServerSession();
@@ -39,6 +40,7 @@ export async function createAndAddTagToUrl(tagName: string, urlCode: string) {
   const exists = url.tags?.some((t) => t.tagName === tag?.tagName);
   if (!exists) {
     await UrlV3.findOneAndUpdate({ urlCode, sub }, { $push: { tags: tag } });
+    await invalidateLinkCache([urlCode]);
 
     const tagDocument = {
       tagName: tag.tagName,
@@ -91,6 +93,7 @@ export async function createAndAddTagToQRCode(
       { qrCodeId, sub },
       { $push: { tags: tag } },
     );
+    await invalidateLinkCache([qrCode.urlId]);
 
     const tagDocument = {
       tagName: tag.tagName,
@@ -116,6 +119,7 @@ export async function addTagToLink(urlCode: string, tagId: string) {
   const sub = user?.sub;
   const tag = await Tag.findOne({ sub, id: tagId });
   await UrlV3.findOneAndUpdate({ urlCode, sub }, { $push: { tags: tag } });
+  await invalidateLinkCache([urlCode]);
   return { success: true };
 }
 
@@ -131,7 +135,11 @@ export async function addTagToQRCode(qrCodeId: string, tagId: string) {
   }
   const sub = user?.sub;
   const tag = await Tag.findOne({ sub, id: tagId });
-  await QRCodeV2.findOneAndUpdate({ qrCodeId, sub }, { $push: { tags: tag } });
+  const qrCode = await QRCodeV2.findOneAndUpdate(
+    { qrCodeId, sub },
+    { $push: { tags: tag } },
+  );
+  await invalidateLinkCache([qrCode?.urlId]);
   return { success: true };
 }
 
@@ -160,6 +168,7 @@ export async function removeTagFromLink(
     if (!updated) {
       return { success: false, message: "link-not-found" };
     }
+    await invalidateLinkCache([updated.urlCode]);
 
     return { success: true };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -193,6 +202,7 @@ export async function removeTagFromQRCode(
     if (!updated) {
       return { success: false, message: "link-not-found" };
     }
+    await invalidateLinkCache([updated.urlId]);
 
     return { success: true };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

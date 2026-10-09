@@ -1,0 +1,25 @@
+{
+  "name": "@shortn/worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "rollups:rebuild": "bun scripts/rebuild-rollups.ts"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "@shortn/core": "workspace:*",
+    "@shortn/db": "workspace:*",
+    "@shortn/env": "workspace:*",
+    "@shortn/redis": "workspace:*",
+    "ioredis": "6.0.0",
+    "mongodb": "7.1.0"
+  }
+}

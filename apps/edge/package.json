@@ -1,0 +1,20 @@
+{
+  "name": "@shortn/edge",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*",
+    "wrangler": "4.149.0"
+  },
+  "dependencies": {
+    "@shortn/core": "workspace:*"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "name": "@shortn/core",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./routing": "./routing.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "@shortn/db": "workspace:*",
+    "isbot": "5.2.1",
+    "jose": "6.1.2",
+    "mongodb": "7.1.0",
+    "ua-parser-js": "2.0.9",
+    "zod": "4.6.5"
+  }
+}

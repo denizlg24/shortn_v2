@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // Workspace root, so standalone tracing includes hoisted node_modules.
   outputFileTracingRoot: path.join(__dirname, ".."),
   reactCompiler: true,
+  transpilePackages: ["@shortn/redis"],
   experimental: {
     serverActions: {
       bodySizeLimit: "10mb",

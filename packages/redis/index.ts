@@ -58,6 +58,34 @@ export const keys = {
   entitlements: (workspace: string) => `ent:${part(workspace)}`,
   clicksStream: "clicks:stream",
 };
+export const linkInvalidateChannel = "link-invalidate";
+export interface LinkInvalidation {
+  domain: string;
+  keys: string[];
+}
+export interface InvalidationStore extends CacheStore {
+  publish(channel: string, message: string): Promise<number>;
+}
+// Every writer of link data calls this after a successful write, so cached
+// positive and negative entries disappear from Redis and from each redirect
+// process's in-memory layer.
+export async function invalidateLinks(
+  store: InvalidationStore,
+  domain: string,
+  linkKeys: Iterable<string>,
+) {
+  const unique = [...new Set(linkKeys)].filter(Boolean);
+  if (!unique.length) return;
+  const cache = createCache(store, String);
+  await Promise.all(
+    unique.map((key) => cache.invalidate(keys.link(domain, key))),
+  );
+  const message: LinkInvalidation = {
+    domain: normalizeDomain(domain),
+    keys: unique,
+  };
+  await store.publish(linkInvalidateChannel, JSON.stringify(message));
+}
 export interface CacheStore {
   eval(
     script: string,
@@ -77,6 +105,10 @@ return false`,
   invalidate: `redis.call('SET', KEYS[2], ARGV[1]); return redis.call('DEL', KEYS[1])`,
 };
 export const generationKey = (key: string) => `cache-generation:${key}`;
+function assertTtl(ttlSeconds: number) {
+  if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0)
+    throw new Error("Cache TTL must be a positive integer");
+}
 export function createCache<T>(
   store: CacheStore,
   decode: (encoded: string) => T,
@@ -86,11 +118,11 @@ export function createCache<T>(
   return {
     async get(
       key: string,
-      ttlSeconds: number,
+      ttl: number | ((value: T) => number),
       load: () => Promise<T>,
     ): Promise<T> {
-      if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0)
-        throw new Error("Cache TTL must be a positive integer");
+      const ttlFor = typeof ttl === "number" ? () => ttl : ttl;
+      if (typeof ttl === "number") assertTtl(ttl);
       const existing = pending.get(key);
       if (existing) return existing;
       const request = (async () => {
@@ -117,6 +149,8 @@ export function createCache<T>(
           return load();
         }
         const loaded = await load();
+        const ttlSeconds = ttlFor(loaded);
+        assertTtl(ttlSeconds);
         try {
           await store.eval(
             cacheScripts.write,

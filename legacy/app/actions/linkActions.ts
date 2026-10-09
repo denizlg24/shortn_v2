@@ -27,6 +27,7 @@ import { FlattenMaps } from "mongoose";
 import { BioPage } from "@/models/link-in-bio/BioPage";
 import { after } from "next/server";
 import { validateDestination, scanAndPersist } from "@/lib/safety";
+import { invalidateLinkCache } from "@/lib/link-cache";
 
 const INTERSTITIAL_PLANS = ["free", "basic"];
 
@@ -180,6 +181,7 @@ export async function createShortn({
       safetyStatus: "pending",
       requiresInterstitial: INTERSTITIAL_PLANS.includes(plan),
     });
+    await invalidateLinkCache([newUrl.urlCode]);
 
     after(async () => {
       try {
@@ -277,6 +279,7 @@ export const attachQRToShortn = async (urlCode: string, qrCodeId: string) => {
     if (!updated) {
       return { success: false, message: "error-updating" };
     }
+    await invalidateLinkCache([urlCode]);
     return { success: true };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
@@ -305,12 +308,13 @@ export const deleteShortn = async (urlCode: string) => {
     if (!foundURL) {
       return { success: true, deleted: urlCode };
     }
-    if (foundURL.qrCodeId) {
-      await QRCodeV2.findOneAndUpdate(
-        { sub, qrCodeId: foundURL.qrCodeId },
-        { attachedUrl: "" },
-      );
-    }
+    const detachedQR = foundURL.qrCodeId
+      ? await QRCodeV2.findOneAndUpdate(
+          { sub, qrCodeId: foundURL.qrCodeId },
+          { attachedUrl: "" },
+        )
+      : null;
+    await invalidateLinkCache([urlCode, detachedQR?.urlId]);
     if (foundURL.utmLinks) {
       const campaigns = foundURL.utmLinks
         .filter((section) => section.campaign != undefined)
@@ -464,6 +468,7 @@ export const updateShortnData = async ({
     const url = await UrlV3.findOneAndUpdate({ sub, urlCode }, updateQuery, {
       new: true,
     });
+    if (url) await invalidateLinkCache([urlCode, url.urlCode]);
 
     if (url && longUrl !== foundUrl.longUrl) {
       await ingestUsageEvent({
@@ -507,6 +512,7 @@ export const updateShortnData = async ({
           { longUrl },
         );
       }
+      await invalidateLinkCache([qrUrl]);
       if (updatedQR) {
         return { success: true, urlCode: url.urlCode };
       }
@@ -850,6 +856,7 @@ export async function updateUTM({
     if (!newUrl) {
       return { success: false, message: "url-not-found" };
     }
+    await invalidateLinkCache([urlCode]);
 
     return {
       success: true,
@@ -905,16 +912,16 @@ export async function deleteCampaign({
     }
 
     if (deletedCampaign.links.length > 0) {
-      await UrlV3.updateMany(
-        { sub, _id: { $in: deletedCampaign.links } },
-        {
-          $pull: {
-            utmLinks: {
-              "campaign.title": campaignTitle,
-            },
+      const filter = { sub, _id: { $in: deletedCampaign.links } };
+      const affected = await UrlV3.find(filter).select("urlCode").lean();
+      await UrlV3.updateMany(filter, {
+        $pull: {
+          utmLinks: {
+            "campaign.title": campaignTitle,
           },
         },
-      );
+      });
+      await invalidateLinkCache(affected.map((link) => link.urlCode));
     }
     return { success: true };
   } catch (error) {
@@ -1104,6 +1111,7 @@ export async function addLinkToCampaign({
       { sub, urlCode },
       { $push: { utmLinks: newUtmEntry } },
     );
+    await invalidateLinkCache([urlCode]);
 
     await Campaigns.findOneAndUpdate(
       { _id: campaign._id },

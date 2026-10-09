@@ -36,6 +36,7 @@ function redirectFixture() {
     LINK_ACCESS_SECRET: "link-access-7c8dd46cd294442db3163258",
     AUTH_SECRET: "legacy-auth-94f9c23ee8624b2cb0b7237e",
     IP_HASH_SECRET: "ip-hash-61bde786a1924b208820e7367821",
+    PUBLIC_ORIGIN: "https://shortn.at",
   };
 }
 test("placeholder secrets are rejected in every app schema", () => {
@@ -85,7 +86,7 @@ test("href environment URLs require http(s)", () => {
     webEnv.shape.BETTER_AUTH_URL.safeParse("javascript:alert(1)").success,
   ).toBe(false);
   expect(
-    workerEnv.shape.MEILISEARCH_URL.safeParse("data:text/plain,foo").success,
+    redirectEnv.shape.PUBLIC_ORIGIN.safeParse("data:text/plain,foo").success,
   ).toBe(false);
   expect(
     apiEnv.shape.R2_ENDPOINT.safeParse("https://example.com").success,

@@ -1,0 +1,28 @@
+{
+  "name": "@shortn/redirect",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "parity": "bun scripts/parity.ts"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "@shortn/core": "workspace:*",
+    "@shortn/db": "workspace:*",
+    "@shortn/env": "workspace:*",
+    "@shortn/redis": "workspace:*",
+    "hono": "4.13.13",
+    "ioredis": "6.0.0",
+    "isbot": "5.2.1",
+    "mongodb": "7.1.0",
+    "zod": "4.6.5"
+  }
+}
