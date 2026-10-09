@@ -1,0 +1,21 @@
+{
+  "name": "@shortn/config",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./eslint.base.mjs",
+    "./tsconfig.base.json": "./tsconfig.base.json",
+    "./eslint": "./eslint.base.mjs",
+    "./prettier": "./prettier.config.mjs"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.71.1"
+  }
+}

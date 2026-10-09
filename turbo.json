@@ -1,0 +1,31 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "cacheDir": ".turbo/cache",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": ["*"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["typecheck"],
+      "cache": false,
+      "passThroughEnv": [
+        "MONGO_TEST_URL",
+        "REDIS_TEST_URL",
+        "REDIS_DURABLE_TEST_URL"
+      ]
+    }
+  },
+  "agentGuidance": false
+}

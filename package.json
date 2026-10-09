@@ -1,0 +1,38 @@
+{
+  "name": "shortn",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "legacy",
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "prepare": "husky",
+    "env:example": "bun run --cwd packages/env env:example",
+    "db:indexes": "bun run --cwd packages/db db:indexes",
+    "db:migrate": "bun run --cwd packages/db db:migrate"
+  },
+  "devDependencies": {
+    "turbo": "2.11.7",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "prettier": "3.9.6",
+    "eslint": "10.8.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "@eslint/js": "10.0.1",
+    "@types/bun": "1.4.2",
+    "jose": "6.1.2"
+  },
+  "overrides": {
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3"
+  }
+}

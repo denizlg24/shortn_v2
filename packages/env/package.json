@@ -1,0 +1,21 @@
+{
+  "name": "@shortn/env",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "env:example": "bun generate.ts"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "zod": "4.6.5"
+  }
+}
