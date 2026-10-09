@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:8
+    image: mongo:8.2
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports: ["127.0.0.1:27017:27017"]
     healthcheck:
@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 30
   mongo-init:
-    image: mongo:8
+    image: mongo:8.2
     depends_on:
       mongo:
         condition: service_healthy
