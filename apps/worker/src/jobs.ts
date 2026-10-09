@@ -87,7 +87,7 @@ export async function fillEventWorkspaces(db: Db) {
 }
 
 // Continuous migrations keep derived fields in step with legacy writes. Only
-// migrations an operator already applied once are repeated here (13).
+// migrations an operator completed once are repeated here (13).
 export async function runContinuousMigrations(
   client: MongoClient,
   db: Db,
@@ -96,11 +96,14 @@ export async function runContinuousMigrations(
 ) {
   const continuous = migrations.filter((migration) => migration.continuous);
   if (!continuous.length) return [];
+  // Completed once (it has a verify report) and not switched off. A run that
+  // died with its container stays "running" or "failed" and is retried here.
   const applied = await db
     .collection<MigrationState>("_migrations")
     .find({
       _id: { $in: continuous.map((migration) => migration.id) },
-      status: "applied",
+      verifyReport: { $exists: true },
+      status: { $nin: ["reverted", "paused"] },
     })
     .toArray();
   const ids = new Set(applied.map((state) => state._id));
