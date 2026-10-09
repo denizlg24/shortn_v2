@@ -115,7 +115,7 @@
     "react-phone-number-input": "^3.4.14",
     "react-resizable-panels": "^3.0.6",
     "react-window": "^2.2.7",
-    "recharts": "^3.7.0",
+    "recharts": "3.7.0",
     "remark-gfm": "^4.0.1",
     "require-in-the-middle": "^8.0.1",
     "resend": "^6.9.2",

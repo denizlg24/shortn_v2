@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@shortn/ui/theme.css";
+
+@source "./";
+
+html,
+body,
+#root {
+  height: 100%;
+}
