@@ -1,8 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
 import { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import path from "node:path";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
+  // Workspace root, so standalone tracing includes hoisted node_modules.
+  outputFileTracingRoot: path.join(__dirname, ".."),
   reactCompiler: true,
   experimental: {
     serverActions: {
