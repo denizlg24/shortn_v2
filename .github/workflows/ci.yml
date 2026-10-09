@@ -1,61 +1,124 @@
 name: CI
-
 on:
   push:
-    branches:
-      - main
-      - dev
+    branches: [main, dev, master]
   pull_request:
 
 jobs:
-  build:
+  checks:
     runs-on: ubuntu-latest
-    env:
-      MONGODB_KEY: ${{secrets.MONGODB_KEY  || 'mongodb://dependabot'}}
-      AUTH_SECRET: ${{secrets.AUTH_SECRET  || 'dependabot'}}
-      AUTH_GITHUB_ID: ${{secrets.AUTH_GITHUB_ID  || 'dependabot'}}
-      AUTH_GITHUB_SECRET: ${{secrets.AUTH_GITHUB_SECRET  || 'dependabot'}}
-      AUTH_GOOGLE_ID: ${{secrets.AUTH_GOOGLE_ID  || 'dependabot'}}
-      AUTH_GOOGLE_SECRET: ${{secrets.AUTH_GOOGLE_SECRET  || 'dependabot'}}
-      FREE_PLAN_ID: ${{secrets.FREE_PLAN_ID  || 'dependabot'}}
-      BASIC_PLAN_ID: ${{secrets.BASIC_PLAN_ID  || 'dependabot'}}
-      PLUS_PLAN_ID: ${{secrets.PLUS_PLAN_ID  || 'dependabot'}}
-      PRO_PLAN_ID: ${{secrets.PRO_PLAN_ID  || 'dependabot'}}
-      WEBMAIL_USER: ${{secrets. WEBMAIL_USER  || 'dependabot'}}
-      WEBMAIL_PASS: ${{secrets.WEBMAIL_PASS  || 'dependabot'}}
-      PINATA_JWT: ${{secrets.PINATA_JWT  || 'dependabot'}}
-      PINATA_GATEWAY: ${{secrets.PINATA_GATEWAY  || 'dependabot'}}
-      LEVEL_ONE_UPGRADE_ID: ${{secrets.LEVEL_ONE_UPGRADE_ID || 'dependabot'}},
-      LEVEL_TWO_UPGRADE_ID: ${{secrets.LEVEL_TWO_UPGRADE_ID || 'dependabot'}},
-      EMAIL_TOKEN_SUFFIX: ${{secrets.EMAIL_TOKEN_SUFFIX || 'dependabot'}},
-      RESEND_API_KEY: ${{secrets.RESEND_API_KEY || 'dependabot'}},
-      SCHEDULER_URL: ${{secrets.SCHEDULER_URL||'http://dependabot'}},
-      SCHEDULER_USERNAME: ${{secrets.SCHEDULER_USERNAME||'dependabot'}},
-      SCHEDULER_PASSWORD: ${{secrets.SCHEDULER_PASSWORD||'dependabot'}},
-      INTERNAL_API_SECRET: ${{secrets.INTERNAL_API_SECRET || 'dependabot'}}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v1
-        
-      - uses: actions/cache@v4
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
         with:
-          path: |
-            ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - run: bunx turbo run lint typecheck test
 
-      - name: Install dependencies
-        run: bun install
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      redis-cache:
+        image: redis:7
+        ports: [6380:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+      redis-durable:
+        image: redis:7
+        ports: [6379:6379]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      REQUIRE_INTEGRATION: "1"
+      MONGO_TEST_URL: mongodb://127.0.0.1:27017/?replicaSet=rs0
+      REDIS_TEST_URL: redis://127.0.0.1:6380
+      REDIS_DURABLE_TEST_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      # Actions services do not support image command arguments. Start the Mongo
+      # service explicitly so it runs mongod with --replSet, rather than standalone.
+      - name: Start MongoDB replica-set service
+        run: |
+          docker run -d --name shortn-test-mongo -p 127.0.0.1:27017:27017 mongo:8.2 --replSet rs0 --bind_ip_all
+          for attempt in {1..60}; do
+            if docker exec shortn-test-mongo mongosh --quiet --eval 'quit(db.adminCommand("ping").ok ? 0 : 1)'; then break; fi
+            sleep 1
+          done
+          docker exec shortn-test-mongo mongosh --quiet --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
+          for attempt in {1..60}; do
+            if docker exec shortn-test-mongo mongosh --quiet --eval 'quit(db.hello().isWritablePrimary ? 0 : 1)'; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Configure Redis test persistence and eviction policies
+        working-directory: packages/redis
+        run: |
+          bun -e 'import {Redis} from "ioredis"; for (const [port, policy] of [[6380,"allkeys-lru"],[6379,"noeviction"]]) { const client = new Redis({host:"127.0.0.1",port}); await client.config("SET","maxmemory-policy",policy); if (port === 6379) await client.config("SET","appendonly","yes"); client.disconnect(); }'
+      - name: Test migrations and create-only indexes on replica set; test Redis isolation
+        run: bunx turbo run test --filter=@shortn/db --filter=@shortn/redis --force
+      - name: Mongo service logs
+        if: failure()
+        run: docker logs shortn-test-mongo
+      - name: Remove Mongo service
+        if: always()
+        run: docker rm -f shortn-test-mongo
 
-      - name: Run lint
-        run: bun lint
-
-      - name: Run build
+  legacy:
+    runs-on: ubuntu-latest
+    services:
+      dependabot:
+        image: mongo:8.2
+        ports: [27017:27017]
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'quit(db.adminCommand(\"ping\").ok ? 0 : 1)'"
+          --health-interval 2s --health-timeout 5s --health-retries 30
+    env:
+      MONGODB_KEY: mongodb://dependabot
+      AUTH_SECRET: dependabot
+      AUTH_GITHUB_ID: dependabot
+      AUTH_GITHUB_SECRET: dependabot
+      AUTH_GOOGLE_ID: dependabot
+      AUTH_GOOGLE_SECRET: dependabot
+      FREE_PLAN_ID: dependabot
+      BASIC_PLAN_ID: dependabot
+      PLUS_PLAN_ID: dependabot
+      PRO_PLAN_ID: dependabot
+      WEBMAIL_USER: dependabot
+      WEBMAIL_PASS: dependabot
+      S3_ENDPOINT: http://dependabot/v2
+      S3_REGION: eu-west-1
+      S3_BUCKET: shortn-v2-staging
+      S3_ACCESS_KEY_ID: dependabot
+      S3_SECRET_ACCESS_KEY: dependabot
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      LEVEL_ONE_UPGRADE_ID: dependabot,
+      LEVEL_TWO_UPGRADE_ID: dependabot,
+      EMAIL_TOKEN_SUFFIX: dependabot,
+      RESEND_API_KEY: dependabot,
+      PICRON_URL: http://dependabot
+      PICRON_USERNAME: dependabot
+      PICRON_PASSWORD: dependabot
+      INTERNAL_API_SECRET: dependabot-ci-only-secret-at-least-32-characters
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      - name: Resolve dummy Mongo hostname to the empty build fixture
+        run: echo '127.0.0.1 dependabot' | sudo tee -a /etc/hosts
+      - name: Build legacy
+        working-directory: legacy
         run: bun run build

@@ -1,0 +1,23 @@
+{
+  "name": "@shortn/db",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test",
+    "db:indexes": "bun cli-indexes.ts",
+    "db:migrate": "bun migrations/cli.ts"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "zod": "4.6.5",
+    "mongodb": "7.1.0"
+  }
+}
