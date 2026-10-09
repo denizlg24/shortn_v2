@@ -270,17 +270,15 @@ const quiet = () => {};
         await ctx.batch({
           name: "migration_examples",
           operations: async (docs) => {
-            await db
-              .collection<MigrationState>("_migrations")
-              .updateOne(
-                { _id: "lock" },
-                {
-                  $set: {
-                    holder: "new-owner",
-                    expiresAt: new Date(Date.now() + 60_000),
-                  },
+            await db.collection<MigrationState>("_migrations").updateOne(
+              { _id: "lock" },
+              {
+                $set: {
+                  holder: "new-owner",
+                  expiresAt: new Date(Date.now() + 60_000),
                 },
-              );
+              },
+            );
             return docs.map((doc) => ({
               updateOne: {
                 filter: { _id: doc._id },
