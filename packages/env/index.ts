@@ -1,7 +1,10 @@
 import { z } from "zod";
 
-const value = (schema: z.ZodType, example: string, description: string) =>
-  schema.meta({ example, description });
+const value = <S extends z.ZodType>(
+  schema: S,
+  example: string,
+  description: string,
+) => schema.meta({ example, description });
 const url = (example: string, description: string) =>
   value(z.url(), example, description);
 const httpUrl = (example: string, description: string) =>
@@ -147,9 +150,32 @@ export const webEnv = z
 export const redirectEnv = z
   .object({
     ...common,
-    LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET,
-    AUTH_SECRET: secret("Legacy JWT verification secret during M9 coexistence"),
-    IP_HASH_SECRET: secret("Click IP HMAC secret"),
+    // Optional until the new web app mints link-access cookies (02 M9).
+    LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET.optional(),
+    CONFIRMATION_TOKEN_SECRET: mail.CONFIRMATION_TOKEN_SECRET.optional(),
+    // Legacy's value, verified as-is; its length isn't ours to choose.
+    AUTH_SECRET: value(
+      z.string().min(1),
+      "legacy-auth-secret",
+      "Legacy JWT verification secret during M9 coexistence",
+    ),
+    PUBLIC_ORIGIN: httpUrl(
+      "http://localhost:3000",
+      "Public origin for safety, authenticate and not-found redirects",
+    ),
+    LINK_DOMAIN: value(
+      z.string().min(1).default("shortn.at"),
+      "shortn.at",
+      "Domain that stored link keys belong to",
+    ),
+    EDGE_AUTH_SECRET: secret(
+      "Shared secret the edge Worker sends as X-Edge-Auth; required when set",
+    ).optional(),
+    CLICK_SPOOL_PATH: value(
+      z.string().min(1).default("/tmp/shortn-click-spool.ndjson"),
+      "/tmp/shortn-click-spool.ndjson",
+      "Local spool for click events while Redis is unreachable",
+    ),
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3002),
       "3002",
@@ -175,12 +201,23 @@ export const apiEnv = z
 export const workerEnv = z
   .object({
     ...common,
-    ...r2,
-    ...billing,
-    ...mail,
     IP_HASH_SECRET: secret("Click IP HMAC secret"),
-    MEILISEARCH_URL: httpUrl("http://localhost:7700", "Meilisearch origin"),
-    MEILISEARCH_API_KEY: secret("Meilisearch key"),
+    LINK_DOMAIN: redirectEnv.shape.LINK_DOMAIN,
+    PORT: value(
+      z.coerce.number().int().min(1).max(65535).default(3004),
+      "3004",
+      "Worker health endpoint port",
+    ),
+    WORKER_CONSUMER: value(
+      z.string().min(1).optional(),
+      "worker-1",
+      "Stream consumer name; defaults to the hostname",
+    ),
+    RUN_CONTINUOUS_MIGRATIONS: value(
+      z.enum(["0", "1"]).default("1"),
+      "1",
+      "Run continuous expand migrations every minute",
+    ),
   })
   .superRefine(productionRules);
 

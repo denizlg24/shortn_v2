@@ -37,8 +37,9 @@ export interface MigrationContext {
     name: string,
   ): Pick<
     Collection<Document>,
-    "find" | "findOne" | "countDocuments" | "aggregate"
+    "find" | "findOne" | "countDocuments" | "distinct" | "aggregate"
   >;
+  exists(name: string): Promise<boolean>;
   batch(options: BatchOptions): Promise<number>;
   archive(name: string): Promise<void>;
   log(message: string): void;
@@ -512,6 +513,7 @@ export async function runMigrations(
             find: collection.find.bind(collection),
             findOne: collection.findOne.bind(collection),
             countDocuments: collection.countDocuments.bind(collection),
+            distinct: collection.distinct.bind(collection),
             aggregate: <T extends Document = Document>(
               pipeline: Document[] = [],
               options?: AggregateOptions,
@@ -522,6 +524,8 @@ export async function runMigrations(
           };
         },
         log,
+        exists: async (name) =>
+          db.listCollections({ name }, { nameOnly: true }).hasNext(),
         batch: (batch) => processBatch(batch),
         archive: async (name) => {
           const filter: Filter<Document> = {};

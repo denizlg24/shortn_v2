@@ -95,11 +95,45 @@ requirements. The runner does not invent approval or backup evidence.
 
 Every deployable app ships its own `Dockerfile`; the build context is always the repository root and the Forge target points at the app directory.
 
-| Target | rootDirectory | framework | Dockerfile | health |
-|---|---|---|---|---|
-| legacy app (`shortn`, `shortn-staging`) | `legacy` | `dockerfile` | `legacy/Dockerfile` | `/api` |
-| future: web / redirect / api / worker | `apps/<name>` | `dockerfile` | `apps/<name>/Dockerfile` | per app |
+| Target                                                  | rootDirectory   | framework    | Dockerfile                 | health      |
+| ------------------------------------------------------- | --------------- | ------------ | -------------------------- | ----------- |
+| legacy app (`shortn`, `shortn-staging`)                 | `legacy`        | `dockerfile` | `legacy/Dockerfile`        | `/api`      |
+| redirect (`shortn-redirect`, `shortn-redirect-staging`) | `apps/redirect` | `dockerfile` | `apps/redirect/Dockerfile` | `/__health` |
+| worker (`shortn-worker`, `shortn-worker-staging`)       | `apps/worker`   | `dockerfile` | `apps/worker/Dockerfile`   | `/__health` |
+| future: web / api                                       | `apps/<name>`   | `dockerfile` | `apps/<name>/Dockerfile`   | per app     |
 
 - Build-time env reaches the build through Forge's `forge-env` build secret (the legacy build validates env and reads bio pages from Mongo for `generateStaticParams`).
 - The image runs Next's standalone server (`node legacy/server.js`, port 3000) on `node:24-trixie-slim`; `canvas` needs glibc.
 - Switching the production target from `nextjs` to `dockerfile` + `rootDirectory: legacy` happens when this structure is promoted to `master`.
+
+## Redirects, clicks and data expansion (P2/P3)
+
+Migrations `0001`–`0012` live in `packages/db/migrations/registry.ts`. Order of
+operations for an environment: `bun run db:indexes`, then
+`bun run db:migrate --dry-run`, then `bun run db:migrate`, then
+`bun run --cwd apps/worker rollups:rebuild` once. The worker repeats every
+continuous migration whose state is `applied`, every minute; a reverted or
+failed one stays off until an operator runs it again (delete its
+`_migrations` document to re-enable a reverted continuous migration).
+
+Migration-time env: `IP_HASH_SECRET` (0007; must equal the worker's),
+`POLAR_ACCESS_TOKEN` + `POLAR_ENVIRONMENT` (0011, read-only),
+`S3_*` + `NEXT_PUBLIC_APP_URL` (0012). `0007` has no automatic rollback:
+delete `click_events` with `legacyId` manually if it ever has to be undone.
+
+`apps/redirect` needs `MONGODB_URL`, `MONGODB_DB`, both Redis URLs,
+`AUTH_SECRET` (legacy's, for confirmation tokens and password cookies) and
+`PUBLIC_ORIGIN`. `EDGE_AUTH_SECRET`, when set, must match the edge Worker's
+secret and makes the service reject requests without it. `apps/worker` needs
+the Mongo and Redis variables plus `IP_HASH_SECRET`.
+
+Parity gate (14 P2), against a database both apps read:
+
+```sh
+MONGODB_URL=… MONGODB_DB=… bun run --cwd apps/redirect parity <legacy-origin> <redirect-origin>
+```
+
+The edge Worker (`apps/edge`) deploys with `bunx wrangler deploy [--env staging]`
+and `wrangler secret put EDGE_AUTH_SECRET`. Set the route's request-limit
+failure mode to fail open in the Cloudflare dashboard. `CANARY_PERCENT=0` is the
+rollback.

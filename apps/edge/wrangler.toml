@@ -1,0 +1,22 @@
+name = "shortn-edge"
+main = "src/index.ts"
+compatibility_date = "2026-09-01"
+# Everything that isn't a redirect path, and every failed redirect, goes to
+# the zone's own origin (legacy): subrequests to the routed host skip the Worker.
+# Hitting the free plan's daily limit falls through to the zone's origin
+# (legacy, which resolves every key) instead of erroring (13 §Edge routing).
+routes = [{ pattern = "shortn.at/*", zone_name = "shortn.at" }]
+
+[vars]
+REDIRECT_ORIGIN = "https://redirect-origin.shortn.at"
+# Kill switch, not a ramp: 100 in normal operation, 0 to roll back (14 P2).
+CANARY_PERCENT = "100"
+# EDGE_AUTH_SECRET is a secret: `wrangler secret put EDGE_AUTH_SECRET`.
+
+[env.staging]
+name = "shortn-edge-staging"
+routes = [{ pattern = "staging.shortn.at/*", zone_name = "shortn.at" }]
+
+[env.staging.vars]
+REDIRECT_ORIGIN = "https://redirect-staging.shortn.at"
+CANARY_PERCENT = "100"

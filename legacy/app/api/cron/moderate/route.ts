@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import UrlV3 from "@/models/url/UrlV3";
 import { scanAndPersist } from "@/lib/safety";
+import { invalidateLinkCache } from "@/lib/link-cache";
 import env from "@/utils/env";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -56,11 +57,13 @@ export async function GET(request: NextRequest) {
 
   // 2. Safety-net sweep: disable links over the report threshold that slipped
   //    through (e.g. concurrent reports).
+  const sweepFilter = {
+    reportCount: { $gte: REPORT_DISABLE_THRESHOLD },
+    disabled: { $ne: true },
+  };
+  const swept = await UrlV3.find(sweepFilter).select("urlCode").lean();
   const sweep = await UrlV3.updateMany(
-    {
-      reportCount: { $gte: REPORT_DISABLE_THRESHOLD },
-      disabled: { $ne: true },
-    },
+    { ...sweepFilter, _id: { $in: swept.map((link) => link._id) } },
     {
       $set: {
         disabled: true,
@@ -70,6 +73,7 @@ export async function GET(request: NextRequest) {
       },
     },
   );
+  await invalidateLinkCache(swept.map((link) => link.urlCode));
 
   return NextResponse.json({
     success: true,

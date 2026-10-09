@@ -1,5 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import UrlV3, { type SafetyStatus } from "@/models/url/UrlV3";
+import { invalidateLinkCache } from "@/lib/link-cache";
 import { validateDestination } from "./structural";
 import { lookupWebRisk } from "./webRisk";
 import { getDomainAge, isNewlyRegistered } from "./rdap";
@@ -97,4 +98,5 @@ export async function scanAndPersist(urlCode: string): Promise<void> {
   doc.lastScannedAt = new Date();
 
   await doc.save();
+  await invalidateLinkCache([doc.urlCode]);
 }

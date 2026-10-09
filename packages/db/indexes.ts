@@ -39,9 +39,31 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       unique: true,
       ...partial("publicId"),
     },
+    { name: "v2_qr_link", key: { linkId: 1 } },
   ],
   [physicalNames.click_events]: [
     { name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } },
+    { name: "v2_event_sid", key: { sid: 1 } },
+    { name: "v2_event_legacy_id", key: { legacyId: 1 } },
+  ],
+  [physicalNames.clicks]: [
+    { name: "v2_click_sid", key: { sid: 1 }, ...partial("sid") },
+  ],
+  [physicalNames.click_ips]: [
+    { name: "v2_ip_ttl", key: { ts: 1 }, expireAfterSeconds: 90 * 86_400 },
+    { name: "v2_ip_sid", key: { sid: 1 }, unique: true, ...partial("sid") },
+    {
+      name: "v2_ip_legacy_id",
+      key: { legacyId: 1 },
+      unique: true,
+      partialFilterExpression: { legacyId: { $type: "objectId" } },
+    },
+  ],
+  [physicalNames.code_conflicts]: [
+    { name: "v2_conflict_link", key: { linkId: 1 }, unique: true },
+  ],
+  [physicalNames.asset_migrations]: [
+    { name: "v2_asset_source", key: { sourceUrl: 1 }, unique: true },
   ],
   [physicalNames.click_rollups]: [
     { name: "v2_link_day", key: { linkId: 1, day: 1 }, unique: true },
@@ -49,6 +71,13 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.workspaces]: [
     { name: "v2_workspace_slug", key: { slug: 1 }, unique: true },
+    {
+      name: "v2_personal_owner",
+      key: { ownerUserId: 1 },
+      unique: true,
+      partialFilterExpression: { personal: true },
+    },
+    { name: "v2_legacy_sub", key: { legacySub: 1 } },
   ],
   [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },

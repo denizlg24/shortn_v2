@@ -167,7 +167,8 @@ export const clickEventSchema = z.object({
   _id: objectId.optional(),
   ts: z.date(),
   m: z.object({
-    workspaceId: objectId,
+    // Null until the link's workspace exists (M2); the worker fills it in.
+    workspaceId: objectId.nullable(),
     linkId: objectId.nullable(),
     qrId: objectId.optional(),
     kind: z.enum(["click", "scan"]),
@@ -192,12 +193,14 @@ export const clickEventSchema = z.object({
   ipPrefix: text,
   uaHash: text,
   legacyId: objectId.optional(),
+  // Redis stream entry id; dedupes redelivered stream messages.
+  sid: text.optional(),
 });
 const breakdown = z.record(text, count);
 export const clickRollupSchema = z.object({
   _id: objectId.optional(),
   linkId: objectId,
-  workspaceId: objectId,
+  workspaceId: objectId.nullable(),
   day: z.date(),
   clicks: count,
   scans: count,

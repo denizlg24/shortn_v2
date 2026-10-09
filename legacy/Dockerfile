@@ -3,7 +3,7 @@ FROM oven/bun:1.3.14-slim AS dependencies
 WORKDIR /workspace
 ENV HUSKY=0
 
-COPY --parents package.json bun.lock legacy/package.json packages/*/package.json ./
+COPY --parents package.json bun.lock legacy/package.json apps/*/package.json packages/*/package.json ./
 # No --ignore-scripts: canvas fetches its prebuilt native binary in an install script.
 RUN bun install --frozen-lockfile
 
