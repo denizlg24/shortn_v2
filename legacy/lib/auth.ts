@@ -615,7 +615,7 @@ const options = {
                 existingScheduledChange &&
                 existingScheduledChange.qstashMessageId
               ) {
-                const { deleteSchedule } = await import("@/lib/scheduler");
+                const { deleteSchedule } = await import("@/lib/picron");
                 await deleteSchedule(existingScheduledChange.qstashMessageId);
                 console.log(
                   `Deleted scheduler job: ${existingScheduledChange.qstashMessageId}`,
@@ -685,7 +685,7 @@ const options = {
 
                 if (pendingChange.qstashMessageId) {
                   try {
-                    const { deleteSchedule } = await import("@/lib/scheduler");
+                    const { deleteSchedule } = await import("@/lib/picron");
                     await deleteSchedule(pendingChange.qstashMessageId);
                     console.log(
                       `Deleted scheduler job: ${pendingChange.qstashMessageId}`,

@@ -184,6 +184,42 @@ export const workerEnv = z
   })
   .superRefine(productionRules);
 
+// Legacy infrastructure variables also belong in the generated root example.
+// The legacy app validates its complete runtime environment in utils/env.ts.
+export const legacyInfraEnv = z.object({
+  PICRON_URL: value(
+    z.url().default("https://picron.denizlg24.com"),
+    "https://picron.denizlg24.com",
+    "Self-hosted PiCron origin",
+  ),
+  PICRON_USERNAME: value(z.string().min(1), "replace-me", "PiCron username"),
+  PICRON_PASSWORD: value(z.string().min(1), "replace-me", "PiCron password"),
+  S3_ENDPOINT: url(
+    "https://api.denizlg24.com/v2",
+    "Self-hosted path-style S3 gateway",
+  ),
+  S3_REGION: value(z.string().min(1), "eu-west-1", "S3 signing region"),
+  S3_BUCKET: value(
+    z.string().min(1),
+    "shortn-v2-staging",
+    "S3 bucket; use shortn-v2 in production",
+  ),
+  S3_ACCESS_KEY_ID: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project access key",
+  ),
+  S3_SECRET_ACCESS_KEY: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project secret key",
+  ),
+  NEXT_PUBLIC_APP_URL: url(
+    "http://localhost:3000",
+    "Legacy app origin for public asset URLs",
+  ),
+});
+
 export function parseEnv<S extends z.ZodType>(
   schema: S,
   source: Record<string, string | undefined>,
@@ -201,6 +237,7 @@ export function envExample(): string {
     redirect: redirectEnv,
     api: apiEnv,
     worker: workerEnv,
+    "legacy infrastructure": legacyInfraEnv,
   };
   const seen = new Set<string>();
   return Object.entries(sections)

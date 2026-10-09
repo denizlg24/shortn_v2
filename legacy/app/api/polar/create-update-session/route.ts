@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
         const executeAt = new Date(subscription.currentPeriodEnd);
 
-        const { createSchedule } = await import("@/lib/scheduler");
+        const { createSchedule } = await import("@/lib/picron");
 
         const scheduleResult = await createSchedule({
           url: `${getBaseUrl()}/api/polar/execute-downgrade`,
@@ -112,16 +112,16 @@ export async function POST(req: NextRequest) {
           headers: {
             Authorization: `Bearer ${env.INTERNAL_API_SECRET}`,
           },
-          body: {
+          body: JSON.stringify({
             subscriptionId: id,
             newProductId,
             customerId: subscription.customerId,
             targetPlan: parsed.data.slug,
-          },
+          }),
           run_at: executeAt.toISOString(),
         });
 
-        console.log(`Scheduled downgrade with scheduler: ${scheduleResult.id}`);
+        console.log(`Scheduled downgrade with PiCron: ${scheduleResult.id}`);
 
         const scheduledChange = await ScheduledChange.create({
           userId: authResult.user!.id,

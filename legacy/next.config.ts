@@ -18,6 +18,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       new URL("https://sapphire-high-sailfish-380.mypinata.cloud/ipfs/**"),
+      ...(process.env.NEXT_PUBLIC_APP_URL
+        ? [
+            new URL(
+              `${process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, "")}/api/assets/**`,
+            ),
+          ]
+        : []),
     ],
   },
   async redirects() {
