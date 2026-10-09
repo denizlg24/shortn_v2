@@ -350,11 +350,15 @@ export const deleteQRCode = async (qrCodeId: string) => {
     }
 
     const sub = user.sub;
+    const ownedQR = await QRCodeV2.exists({ qrCodeId, sub });
+    if (!ownedQR) {
+      return { success: true, deleted: qrCodeId };
+    }
+    await archiveAndDeleteClicks({ sub, urlCode: qrCodeId, type: "scan" });
     const foundQR = await QRCodeV2.findOneAndDelete({ qrCodeId, sub });
     if (!foundQR) {
       return { success: true, deleted: qrCodeId };
     }
-    await archiveAndDeleteClicks({ sub, urlCode: qrCodeId, type: "scan" });
     if (foundQR.options.image) {
       await deletePicture(foundQR.options.image);
     }

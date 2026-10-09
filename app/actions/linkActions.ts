@@ -296,11 +296,15 @@ export const deleteShortn = async (urlCode: string) => {
       };
     }
     const sub = user?.sub;
+    const ownedURL = await UrlV3.exists({ urlCode, sub });
+    if (!ownedURL) {
+      return { success: true, deleted: urlCode };
+    }
+    await archiveAndDeleteClicks({ sub, urlCode, type: "click" });
     const foundURL = await UrlV3.findOneAndDelete({ urlCode, sub });
     if (!foundURL) {
       return { success: true, deleted: urlCode };
     }
-    await archiveAndDeleteClicks({ sub, urlCode, type: "click" });
     if (foundURL.qrCodeId) {
       await QRCodeV2.findOneAndUpdate(
         { sub, qrCodeId: foundURL.qrCodeId },
