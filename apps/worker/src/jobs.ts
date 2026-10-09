@@ -106,7 +106,15 @@ export async function runContinuousMigrations(
   const ids = new Set(applied.map((state) => state._id));
   const selected = continuous.filter((migration) => ids.has(migration.id));
   if (!selected.length) return [];
-  await runMigrations(client, db, selected, { log });
+  try {
+    await runMigrations(client, db, selected, { log });
+  } catch (error) {
+    // Another worker (e.g. the outgoing container during a deploy swap) holds
+    // the lease; the next tick runs again.
+    if (error instanceof Error && error.message.includes("lock held"))
+      return [];
+    throw error;
+  }
   return selected.map((migration) => migration.id);
 }
 

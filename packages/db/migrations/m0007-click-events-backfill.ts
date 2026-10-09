@@ -223,29 +223,49 @@ export const clickEventsBackfill: Migration = {
     const settled = ObjectId.createFromTime(
       Math.floor(Date.now() / 1000) - 120,
     );
-    const [missing] = await ctx
+    // Set-based, not count-based (02 M7): walk both id-ordered index scans
+    // together. A $lookup into the time-series collection can't use its
+    // legacyId index and costs minutes on every continuous run.
+    const sourceIds = ctx
       .read(names.clicks)
-      .aggregate<{ n: number }>([
-        { $match: { ...sourceFilter, _id: { $lt: settled } } },
-        {
-          $lookup: {
-            from: names.click_events,
-            localField: "_id",
-            foreignField: "legacyId",
-            pipeline: [{ $project: { _id: 1 } }, { $limit: 1 }],
-            as: "event",
-          },
-        },
-        { $match: { event: { $size: 0 } } },
-        { $count: "n" },
-      ])
-      .toArray();
-    const sources = await ctx
-      .read(names.clicks)
-      .countDocuments({ ...sourceFilter, _id: { $lt: settled } });
-    const events = await ctx
-      .read(names.click_events)
-      .countDocuments({ legacyId: { $exists: true } });
+      .find(
+        { ...sourceFilter, _id: { $lt: settled } },
+        { projection: { _id: 1 }, sort: { _id: 1 }, allowDiskUse: true },
+      );
+    const copiedIds = ctx.read(names.click_events).find(
+      { legacyId: { $exists: true } },
+      {
+        projection: { _id: 0, legacyId: 1 },
+        sort: { legacyId: 1 },
+        allowDiskUse: true,
+      },
+    );
+    let sources = 0;
+    let events = 0;
+    let missing = 0;
+    const missingSamples: string[] = [];
+    let copied = await copiedIds.next();
+    for await (const click of sourceIds) {
+      sources++;
+      const id = String(click._id);
+      while (copied && String(copied.legacyId) < id) {
+        events++;
+        copied = await copiedIds.next();
+      }
+      if (copied && String(copied.legacyId) === id) {
+        while (copied && String(copied.legacyId) === id) {
+          events++;
+          copied = await copiedIds.next();
+        }
+      } else {
+        missing++;
+        if (missingSamples.length < 20) missingSamples.push(id);
+      }
+    }
+    while (copied) {
+      events++;
+      copied = await copiedIds.next();
+    }
     const withoutTotal = await ctx
       .read(names.links)
       .countDocuments({ "stats.legacyTotal": { $exists: false } });
@@ -253,8 +273,10 @@ export const clickEventsBackfill: Migration = {
       .read(names.click_events)
       .countDocuments({ legacyId: { $exists: true }, "m.linkId": null });
     const discrepancies = [
-      ...(missing?.n
-        ? [`${missing.n} legacy clicks have no click_events copy`]
+      ...(missing
+        ? [
+            `${missing} legacy clicks have no click_events copy (e.g. ${missingSamples.join(", ")})`,
+          ]
         : []),
       ...(withoutTotal
         ? [`${withoutTotal} links without stats.legacyTotal`]
@@ -264,7 +286,7 @@ export const clickEventsBackfill: Migration = {
       {
         sources,
         events,
-        missing: missing?.n ?? 0,
+        missing,
         orphans,
         linksWithoutLegacyTotal: withoutTotal,
       },
