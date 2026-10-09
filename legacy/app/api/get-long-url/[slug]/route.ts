@@ -8,6 +8,9 @@ import env from "@/utils/env";
 import { verifyConfirmationToken } from "@/lib/confirmation-token";
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
+// Reached through a proxy rewrite, so request.url carries the server's own
+// host (0.0.0.0 / localhost) rather than the public one.
+const ORIGIN = new URL(env.NEXT_PUBLIC_APP_URL).origin;
 
 export async function GET(
   request: NextRequest,
@@ -21,17 +24,14 @@ export async function GET(
     const { slug } = await params;
     const urlDoc = await UrlV3.findOne({ urlCode: slug });
     if (!urlDoc)
-      return NextResponse.redirect(`${url.origin}/en/url-not-found`, 302);
+      return NextResponse.redirect(`${ORIGIN}/en/url-not-found`, 302);
 
     if (
       urlDoc.disabled ||
       urlDoc.safetyStatus === "blocked" ||
       urlDoc.safetyStatus === "malicious"
     ) {
-      return NextResponse.redirect(
-        `${url.origin}/${locale}/safety/${slug}`,
-        302,
-      );
+      return NextResponse.redirect(`${ORIGIN}/${locale}/safety/${slug}`, 302);
     }
 
     let confirmed = false;
@@ -43,17 +43,14 @@ export async function GET(
       !confirmed &&
       (urlDoc.requiresInterstitial || urlDoc.safetyStatus === "suspicious")
     ) {
-      return NextResponse.redirect(
-        `${url.origin}/${locale}/safety/${slug}`,
-        302,
-      );
+      return NextResponse.redirect(`${ORIGIN}/${locale}/safety/${slug}`, 302);
     }
 
     if (urlDoc.passwordProtected) {
       const accessCookie = request.cookies.get(`link_access_${slug}`);
 
       if (!accessCookie) {
-        return NextResponse.redirect(`${url.origin}/authenticate/${slug}`, 302);
+        return NextResponse.redirect(`${ORIGIN}/authenticate/${slug}`, 302);
       }
 
       try {
@@ -61,7 +58,7 @@ export async function GET(
 
         if (payload.urlCode !== slug) {
           const response = NextResponse.redirect(
-            `${url.origin}/authenticate/${slug}`,
+            `${ORIGIN}/authenticate/${slug}`,
             302,
           );
           response.cookies.delete(`link_access_${slug}`);
@@ -70,7 +67,7 @@ export async function GET(
       } catch (error) {
         console.error("Invalid or expired access token:", error);
         const response = NextResponse.redirect(
-          `${url.origin}/authenticate/${slug}`,
+          `${ORIGIN}/authenticate/${slug}`,
           302,
         );
         response.cookies.delete(`link_access_${slug}`);
@@ -103,6 +100,6 @@ export async function GET(
     return NextResponse.redirect(urlDoc.longUrl, 302);
   } catch (error) {
     console.log("Error in get-long-url route:", error);
-    return NextResponse.redirect(`${url.origin}/en/url-not-found`, 302);
+    return NextResponse.redirect(`${ORIGIN}/en/url-not-found`, 302);
   }
 }
