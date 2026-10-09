@@ -1,0 +1,90 @@
+# 14 — Cutover & Rollout
+
+Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback**. Nothing moves to the next phase on "seems fine".
+
+## P0 · Safety net (≈ 1 week)
+
+- Work:
+  - **Ship the legacy click-deletion hotfix first** (02 §4: unscoped `Clicks.deleteMany` before the ownership check). It's a live data-loss and IDOR bug.
+  - Verify Atlas PITR (or set up nightly dumps to R2), restore a snapshot to staging, run the `db:audit` (02 §4), and resolve blocking audit items.
+  - Enable `changeStreamPreAndPostImages` on link and QR collections.
+  - Mine 30 days of nginx and Cloudflare logs for every `/api/*` caller and every Host header seen. External callers (`/api/track-click`, the scheduler's `/api/polar/execute-downgrade`, `/api/cron/moderate`) need an owner in the routing table below.
+  - Merge security Dependabot PRs into legacy and freeze legacy for features.
+- Exit gate: hotfix deployed, a restore drill documented, the audit report reviewed, and every blocking item with a recorded resolution.
+- Rollback: n/a (read-only).
+
+## P1 · Foundation (≈ 1–2 weeks)
+
+- Work: plan 01 (monorepo, `legacy/` move, packages, CI, staging server, Redis instances, nginx with the routing map in **pass-through mode**, meaning everything still goes to legacy).
+- Exit gate: legacy deploys from `legacy/` unchanged, staging is up, and the migration runner is tested on the fixture.
+- Rollback: revert the `git mv` PR.
+
+## P2 · Redirects + click pipeline (≈ 2–3 weeks)
+
+- Work: apps/redirect, apps/worker (ingest + dual-write legacy `clicks`), M1 (dedupe) + M3/M4 (key/domain, QR ref) expand migrations, the legacy cache-invalidation patch + change stream, M7 backfill.
+- **Shadow mode (1 week):** nginx mirrors (`mirror` directive) a copy of every redirect request to apps/redirect with `X-Shadow: 1`. The service resolves and **compares** with what legacy would do (status + Location) but doesn't enqueue. Mismatches are logged.
+- **Canary:** route 5% → 25% → 100% of single-segment paths to apps/redirect via nginx `split_clients` on a request ID, over 3 days, watching error rates, latency and event counts. The counts must match: events/hour from the new pipeline vs the legacy `clicks` insert rate at the same share.
+- Exit gate: shadow mismatch rate = 0 over 7 days (excluding documented intentional differences); canary at 100% for 72 h with no alert; per-link click counts for the top 500 links match between legacy `clicks` and `click_events` for the period.
+- Rollback: flip the nginx upstream back to legacy (one config reload, < 1 min). The worker's dual-write means legacy analytics never had a gap.
+
+## P3 · Data expansion (≈ 2 weeks, overlaps P2)
+
+- Work: M2 (workspaces), M5 (tags), M6 (campaigns/UTM), M8 (bio v2), M9, M10, M11 (shadow only), M12 (assets). All of these are additive and continuous while legacy runs.
+- Exit gate: every migration's `verify` is green on prod for 7 consecutive days of continuous runs.
+- Rollback: each migration's `down` (additive fields only, so legacy is unaffected either way).
+
+## P4 · New dashboard + billing (≈ 5–7 weeks)
+
+- Work: apps/web dashboard at parity (links, analytics, QR, bio editor, campaigns, settings, members, billing), apps/api webhooks for Polar in shadow, session handoff (05), and email templates.
+- **Beta:** an opt-in "Try the new Shortn" banner in legacy, with feedback collected in-app. Internal + Vida Económica first (with their consent), then all users opt-in. Both UIs operate on the **same data**. That's safe because new code writes legacy-compatible fields until contract (the new services also set `sub`, `urlCode`, `longUrl`, … on create/update during coexistence).
+- **Billing switch:** move the Polar webhook URL to the new handler after 7 days of zero-diff shadow processing (06), then retire the scheduler.
+- **Default switch:** `shortn.at/{locale}/dashboard*` → 302 to `app.shortn.at` with handoff. Legacy marketing is replaced by the new marketing on root at the same time or shortly after.
+- Exit gate: parity checklist (every legacy feature mapped and checked), e2e suite green, no P1 bugs open for 7 days, billing reconciler at zero drift.
+- Rollback: remove the 302 (legacy dashboard is still deployed and still reads the same data). For billing, point the webhook back at legacy, since the mirror rebuilds from Polar.
+
+## P5 · Bio subdomains + custom domains (≈ 2–3 weeks)
+
+- Work: `{handle}.shortn.at` routing, `/b/` 301s, owner notification emails, the custom domain add-on in Polar, Cloudflare for SaaS, and the domain UI.
+- Exit gate: 100% of bio slugs resolve via the 301 in the URL sample; one real custom domain in production for ≥ 7 days.
+- Rollback: `/b/{slug}` served by the new web app directly (no 301) while the subdomain issue is fixed.
+
+## P6 · Platform (≈ 3–4 weeks, parallelizable)
+
+- REST v1, API keys, outgoing webhooks, MCP, llms.txt, bulk import/export, and link rules (09) behind feature flags per workspace.
+- Exit gate per feature: contract tests + docs + a staged rollout to 10% → 100% of workspaces.
+
+## P7 · Contract (≈ 1 week, after ≥ 14 days with legacy off)
+
+- Preconditions: legacy processes stopped (not deleted) for 14 days, a restore drill passed this month, a full dump of the affected collections in R2 with checksums, and the raw-IP retention decision signed off.
+- Work: contract steps C1–C6 (02 §6), delete `legacy/`, remove legacy env vars, unpin Pinata assets (+30 days), close out the scheduler service.
+- Rollback: restore archived fields from `archive_*` collections or the dump (scripted and rehearsed in staging before running on prod).
+
+## Routing table per phase (nginx upstream that owns each path on `shortn.at`)
+
+| Path                                                            | P1                  | P2–P3                        | P4                                                                  | P5+                       | P7             |
+| --------------------------------------------------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------------- | ------------------------- | -------------- |
+| `/{key}`, `/qr/{key}` (+ trailing `/`)                          | legacy              | **redirect** (canary → 100%) | redirect                                                            | redirect                  | redirect       |
+| `/b/{slug}`                                                     | legacy              | legacy                       | legacy                                                              | **redirect → 301 handle** | redirect       |
+| `/`, marketing pages, `/{locale}/*` marketing                   | legacy              | legacy                       | **web**                                                             | web                       | web            |
+| `/{locale}/dashboard*`                                          | legacy              | legacy                       | 302 → `app.` handoff                                                | same                      | same           |
+| `/authenticate/*`, `/api/verify-link-password`                  | legacy              | legacy                       | **web** (bcrypt + new secret, 02 M9)                                | web                       | web            |
+| `/{locale}/safety/*`, `/abuse`, report endpoints                | legacy              | legacy                       | web                                                                 | web                       | web            |
+| `/api/auth/*` (better-auth, legacy Polar webhook)               | legacy              | legacy                       | legacy until billing switch + session handoff complete, then `app.` | —                         | removed        |
+| `/api/polar/*`, `/api/cron/*` (scheduler callbacks)             | legacy              | legacy                       | legacy until scheduler frozen (06)                                  | —                         | removed        |
+| `/api/track-click` and other external `/api/*` found in P0 logs | legacy              | legacy                       | owner decided in P0                                                 | —                         | removed or 410 |
+| Hosts `www.`, legacy `*.vercel.app`, other origins in QR data   | 301 path-preserving | same                         | same                                                                | same                      | same, forever  |
+
+Each column change is one nginx include swap, reverted in < 1 min.
+
+## Parity checklist (seed, to be completed in P4)
+
+Links CRUD · custom codes · tags · UTM variants · campaigns + UTM defaults · password links + hint · safety interstitial + report · QR create/edit/customize/download · QR analytics · link analytics (time series, geo, devices, browsers, OS, referrers, UTM tables, CSV export) · bio pages (create/customize/links/socials/header/fonts) · subscription (checkout, portal, upgrade, downgrade, cancel, success page, emails) · account (profile, email change, password, OAuth linking, sessions/login activity, delete) · admin impersonation · contact form · i18n en/pt/es · legal pages · `/qr/{code}` legacy URLs · `/b/{slug}` legacy URLs.
+
+## Communication
+
+- In-app changelog + email before P4 default switch ("new dashboard, same links") and before P5 ("your bio page now lives at handle.shortn.at; old links keep working").
+- No user action is required for any migration step except optional bio handle changes.
+
+## Rough total
+
+≈ 4–5 months for one developer working with agents, with P6 items parallelizable. The estimate is deliberately coarse; each plan gets a task breakdown when it's picked up.
