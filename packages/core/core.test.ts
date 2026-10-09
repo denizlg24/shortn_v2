@@ -118,6 +118,18 @@ test("gates follow legacy order: missing, blocked, interstitial, password, desti
   );
 });
 
+test("destinations are serialized the way legacy's NextResponse.redirect does", async () => {
+  const location = async (longUrl: string) =>
+    (await decide(input(link({ longUrl })))).location;
+  expect(await location("https://denizlg24.com")).toBe(
+    "https://denizlg24.com/",
+  );
+  expect(await location("https://e.com/Fiscalidade_automóvel.pdf")).toBe(
+    "https://e.com/Fiscalidade_autom%C3%B3vel.pdf",
+  );
+  expect(await location("not a url")).toBe(`${origin}/en/url-not-found`);
+});
+
 test("interstitial accepts only a valid confirmation token for the same key", async () => {
   const token = (slug: string, purpose = "link-confirmation") =>
     new SignJWT({ slug, purpose })

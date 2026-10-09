@@ -22,6 +22,17 @@ export interface Decision {
   track?: { linkId: string; qr?: { id: string; publicId: string } };
 }
 
+// Legacy's NextResponse.redirect serializes through URL: a bare origin gains a
+// trailing slash and non-ASCII is percent-encoded. An unparseable destination
+// throws there and ends on the not-found page.
+export function serializeDestination(destination: string): string | undefined {
+  try {
+    return new URL(destination).toString();
+  } catch {
+    return undefined;
+  }
+}
+
 export const accessCookieName = (key: string) => `link_access_${key}`;
 
 // Mirrors legacy app/api/get-long-url/[slug]/route.ts gate by gate.
@@ -67,11 +78,12 @@ export async function decide(input: DecisionInput): Promise<Decision> {
         clearAccessCookie: true,
       };
   }
-  if (!link.dest) return notFound;
+  const location = serializeDestination(link.dest);
+  if (!location) return notFound;
   return {
     type: "redirect",
     status: 302,
-    location: link.dest,
+    location,
     ...(link.untracked
       ? {}
       : { track: { linkId: link.id, ...(link.qr ? { qr: link.qr } : {}) } }),
