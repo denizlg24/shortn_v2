@@ -7,6 +7,7 @@ import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { Toaster } from "@/components/ui/sonner";
 import ScrollToTop from "@/utils/ScrollToTop";
+import { RedesignNotice } from "@/components/redesign-notice";
 import { Manrope, Sora } from "next/font/google";
 
 const marketingSans = Manrope({
@@ -104,6 +105,7 @@ export default async function RootLayout({
             <div className="flex-1 pt-20 sm:pt-24">{children}</div>
             <Toaster position="top-center" />
             <Footer />
+            <RedesignNotice />
           </div>
         </NextIntlClientProvider>
       </body>

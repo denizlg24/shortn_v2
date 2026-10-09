@@ -1,4 +1,8 @@
 {
+  "redesign-notice": {
+    "message": "Estamos rediseñando Shortn. Es posible que haya breves interrupciones programadas más adelante en este trimestre (T4 de 2026). Tus enlaces y datos no se perderán.",
+    "dismiss": "Cerrar aviso"
+  },
   "metadata": {
     "home": {
       "title": "Shortn - Acortador de URL, Códigos QR y Gestión de Enlaces | Herramienta Gratuita",

@@ -14,6 +14,7 @@ import { getServerSession } from "@/lib/session";
 import { PlanProvider } from "@/hooks/use-plan";
 import { SubscriptionStatusBanner } from "@/components/subscription-status-banner";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
+import { RedesignNotice } from "@/components/redesign-notice";
 import { redirect } from "@/i18n/navigation";
 
 export function generateStaticParams() {
@@ -93,6 +94,7 @@ export default async function RootLayout({
                 {children}
                 <Toaster position="top-center" />
               </SidebarProvider>
+              <RedesignNotice />
             </PlanProvider>
           </NextIntlClientProvider>
         </AbortControllerProvider>
