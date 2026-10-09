@@ -40,7 +40,7 @@ A Worker on `shortn.at/*` (and later the custom-hostname zone) does what the old
 - **Fallback:** a 5xx or timeout from the redirect origin is retried once against legacy, so a bad deploy or a Forge swap degrades to legacy rather than to an error.
 - **Headers:** the Worker forwards `CF-Connecting-IP`, the geo headers and `X-Request-Id` (from `cf-ray`). Origins trust them because the box is reachable only through the tunnel.
 - Worker subrequests to the zone's own origin hostnames skip Worker routes, so there are no loops. Origin hostnames (e.g. `redirect-origin.shortn.at`) are proxied tunnel records with no Worker route.
-- **Cost:** the free plan's 100k requests/day is below peak redirect volume. Budget Workers Paid ($5/month, 10M requests) from P2.
+- **Cost:** free plan. Measured 2026-10-09: ~60 redirects/day (1,000 clicks over 16 days, steady since July), against 100k Worker requests/day. Keep `/_next/*` and other static paths off the Worker route, and set the route to **fail open**, so hitting the limit sends traffic to the default origin (legacy until P7, which resolves every key) instead of erroring. Revisit only if daily requests approach the limit.
 
 ## Cloudflare
 
