@@ -18,5 +18,5 @@ name = "shortn-edge-staging"
 routes = [{ pattern = "staging.shortn.at/*", zone_name = "shortn.at" }]
 
 [env.staging.vars]
-REDIRECT_ORIGIN = "https://redirect-staging.shortn.at"
+REDIRECT_ORIGIN = "https://shortn-redirect-staging.denizlg24.com"
 CANARY_PERCENT = "100"
