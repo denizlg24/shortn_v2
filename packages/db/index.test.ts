@@ -7,6 +7,7 @@ import {
   clickEventSchema,
   linkSchema,
   qrCodeSchema,
+  workspaceSchema,
   tagSchema,
 } from "./schemas";
 import { exampleMigration } from "./migrations/example.fixture";
@@ -131,6 +132,7 @@ test("physical names include all audited legacy names and accept validated JSON 
     "audited_links",
   );
   expect(() => resolvePhysicalNames('{"typo":"x"}')).toThrow("Unknown");
+  expect(() => resolvePhysicalNames('{"constructor":"x"}')).toThrow("Unknown");
   expect(() => resolvePhysicalNames('{"links":"tags"}')).toThrow("distinct");
   expect(() => resolvePhysicalNames('{"links":"a.b"}')).toThrow();
 });
@@ -194,6 +196,11 @@ test("URL fields reject executable schemes and allow http(s)", () => {
       qrCodeSchema.safeParse({ _id: new ObjectId(), design: { data: url } })
         .success,
     ).toBe(false);
+    expect(
+      qrCodeSchema.safeParse({ _id: new ObjectId(), options: { data: url } })
+        .success,
+    ).toBe(false);
+    expect(workspaceSchema.shape.logo.safeParse(url).success).toBe(false);
   }
   for (const destination of ["http://example.com", "https://example.com"])
     expect(
@@ -230,4 +237,55 @@ test("both CLI target guards show hosts/db without credentials and require --yes
       () => {},
     ),
   ).toThrow("--yes");
+});
+
+test("environment collection overrides reach every index definition", async () => {
+  const { defaultPhysicalNames } = await import("./collections");
+  const overrides = Object.fromEntries(
+    Object.keys(defaultPhysicalNames).map((key) => [key, `audited_${key}`]),
+  );
+  const child = Bun.spawn(
+    [
+      "bun",
+      "-e",
+      'import {desiredIndexes} from "./indexes"; console.log(JSON.stringify(Object.keys(desiredIndexes)))',
+    ],
+    {
+      cwd: import.meta.dir,
+      env: {
+        ...process.env,
+        MONGODB_PHYSICAL_NAMES: JSON.stringify(overrides),
+      },
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+  );
+  const [exit, stdout, stderr] = await Promise.all([
+    child.exited,
+    new Response(child.stdout).text(),
+    new Response(child.stderr).text(),
+  ]);
+  expect(stderr).toBe("");
+  expect(exit).toBe(0);
+  const names: string[] = JSON.parse(stdout);
+  expect(names).toHaveLength(Object.keys(desiredIndexes).length);
+  for (const name of names) expect(name.startsWith("audited_")).toBe(true);
+});
+
+test("required Mongo integration fails instead of silently skipping fixtures", async () => {
+  for (const file of ["integration.test.ts", "safety.integration.test.ts"]) {
+    const child = Bun.spawn(["bun", "test", file], {
+      cwd: import.meta.dir,
+      env: { ...process.env, REQUIRE_INTEGRATION: "1", MONGO_TEST_URL: "" },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [exit, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stderr).text(),
+      new Response(child.stdout).text(),
+    ]);
+    expect(exit).not.toBe(0);
+    expect(stderr).toContain("MONGO_TEST_URL required");
+  }
 });

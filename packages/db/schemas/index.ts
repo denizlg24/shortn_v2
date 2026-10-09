@@ -142,7 +142,7 @@ export const qrCodeSchema = z.looseObject({
   stats: z.object({ scans: count, lastScanAt: z.date().optional() }).optional(),
   qrCodeId: text.optional(),
   urlId: text.optional(),
-  options: z.looseObject({ data: text.optional() }).optional(),
+  options: z.looseObject({ data: z.httpUrl().optional() }).optional(),
 });
 export const workspaceSchema = z.object({
   ...base,

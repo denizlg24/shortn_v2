@@ -143,3 +143,27 @@ test("generation eviction does not allow an older load to repopulate", async () 
   );
   expect(data.has("k")).toBe(false);
 });
+
+test("required Redis integration fails if either local fixture URL is missing", async () => {
+  for (const missing of ["REDIS_TEST_URL", "REDIS_DURABLE_TEST_URL"]) {
+    const child = Bun.spawn(["bun", "test", "integration.test.ts"], {
+      cwd: import.meta.dir,
+      env: {
+        ...process.env,
+        REQUIRE_INTEGRATION: "1",
+        REDIS_TEST_URL: "redis://127.0.0.1:1",
+        REDIS_DURABLE_TEST_URL: "redis://127.0.0.1:2",
+        [missing]: "",
+      },
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+    const [exit, stderr] = await Promise.all([
+      child.exited,
+      new Response(child.stderr).text(),
+      new Response(child.stdout).text(),
+    ]);
+    expect(exit).not.toBe(0);
+    expect(stderr).toContain("Both Redis test URLs required");
+  }
+});

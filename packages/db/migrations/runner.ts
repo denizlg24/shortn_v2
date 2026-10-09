@@ -160,7 +160,7 @@ export function compareAndSet(
     conditions.push(
       value === undefined
         ? { [field]: { $exists: false } }
-        : { [field]: { $eq: value } },
+        : { [field]: { $eq: value, $exists: true } },
     );
   }
   return { updateOne: { filter: { $and: conditions }, update } };

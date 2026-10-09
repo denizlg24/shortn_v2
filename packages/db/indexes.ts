@@ -40,16 +40,20 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("publicId"),
     },
   ],
-  click_events: [{ name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } }],
-  click_rollups: [
+  [physicalNames.click_events]: [
+    { name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } },
+  ],
+  [physicalNames.click_rollups]: [
     { name: "v2_link_day", key: { linkId: 1, day: 1 }, unique: true },
     { name: "v2_workspace_day", key: { workspaceId: 1, day: 1 } },
   ],
-  workspaces: [{ name: "v2_workspace_slug", key: { slug: 1 }, unique: true }],
-  workspace_members: [
+  [physicalNames.workspaces]: [
+    { name: "v2_workspace_slug", key: { slug: 1 }, unique: true },
+  ],
+  [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
   ],
-  tags: [
+  [physicalNames.tags]: [
     {
       name: "v2_tag_name",
       key: { workspaceId: 1, nameLower: 1 },
@@ -57,7 +61,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("nameLower"),
     },
   ],
-  campaigns: [
+  [physicalNames.campaigns]: [
     { name: "v2_workspace_campaigns", key: { workspaceId: 1, createdAt: -1 } },
   ],
   [physicalNames.bio_pages]: [
@@ -74,23 +78,29 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("customDomain"),
     },
   ],
-  bio_aliases: [{ name: "v2_bio_alias", key: { slug: 1 }, unique: true }],
-  domains: [{ name: "v2_hostname", key: { hostname: 1 }, unique: true }],
-  subscriptions: [
+  [physicalNames.bio_aliases]: [
+    { name: "v2_bio_alias", key: { slug: 1 }, unique: true },
+  ],
+  [physicalNames.domains]: [
+    { name: "v2_hostname", key: { hostname: 1 }, unique: true },
+  ],
+  [physicalNames.subscriptions]: [
     {
       name: "v2_polar_subscription",
       key: { polarSubscriptionId: 1 },
       unique: true,
     },
   ],
-  usage_periods: [
+  [physicalNames.usage_periods]: [
     {
       name: "v2_workspace_period",
       key: { workspaceId: 1, period: 1 },
       unique: true,
     },
   ],
-  api_keys: [{ name: "v2_hashed_key", key: { hashedKey: 1 }, unique: true }],
+  [physicalNames.api_keys]: [
+    { name: "v2_hashed_key", key: { hashedKey: 1 }, unique: true },
+  ],
 };
 export function equivalentIndex(
   desired: IndexDescription,

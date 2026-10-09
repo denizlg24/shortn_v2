@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { afterAll, beforeAll, describe, expect, spyOn, test } from "bun:test";
 import { MongoClient, ObjectId } from "mongodb";
 import type { Db } from "mongodb";
 import { legacyCollections, syncIndexes } from "./indexes";
@@ -70,9 +70,17 @@ const base: Migration = {
     "index sync honors audited name overrides",
     async () =>
       fixture(async (db) => {
-        const names = resolvePhysicalNames('{"links":"audited_links"}');
+        const names = resolvePhysicalNames(
+          '{"links":"audited_links","tags":"audited_tags","click_events":"audited_events","workspaces":"audited_workspaces"}',
+        );
         for (const name of legacyCollections)
-          await db.createCollection(name === "urlv3" ? names.links : name);
+          await db.createCollection(
+            name === "urlv3"
+              ? names.links
+              : name === "tags"
+                ? names.tags
+                : name,
+          );
         await syncIndexes(db, { physicalNames: names, log: quiet });
         expect(
           (await db.collection(names.links).listIndexes().toArray()).some(
@@ -82,6 +90,35 @@ const base: Migration = {
         expect(await db.listCollections({ name: "urlv3" }).hasNext()).toBe(
           false,
         );
+        expect(await db.listCollections({ name: "tags" }).hasNext()).toBe(
+          false,
+        );
+        expect(
+          await db.listCollections({ name: "click_events" }).hasNext(),
+        ).toBe(false);
+        expect(await db.listCollections({ name: "workspaces" }).hasNext()).toBe(
+          false,
+        );
+        expect(
+          (
+            await db
+              .listCollections(
+                { name: names.click_events },
+                { nameOnly: false },
+              )
+              .next()
+          )?.options?.timeseries?.bucketRoundingSeconds,
+        ).toBe(86400);
+        expect(
+          (await db.collection(names.tags).listIndexes().toArray()).some(
+            (i) => i.name === "v2_tag_name",
+          ),
+        ).toBe(true);
+        expect(
+          (await db.collection(names.workspaces).listIndexes().toArray()).some(
+            (i) => i.name === "v2_workspace_slug",
+          ),
+        ).toBe(true);
       }),
     30000,
   );
@@ -164,26 +201,49 @@ const base: Migration = {
         longUrl: "https://old.example",
         _sync: { legacyHash: "old" },
       };
-      await db
-        .collection("cas")
-        .insertOne({
-          ...source,
-          longUrl: "https://new.example",
-          _sync: { legacyHash: "new" },
-        });
-      await db
-        .collection("cas")
-        .bulkWrite([
-          compareAndSet(source, ["longUrl", "_sync.legacyHash", "missing"], {
-            $set: { destination: "stale" },
-          }),
-        ]);
+      await db.collection("cas").insertOne({
+        ...source,
+        longUrl: "https://new.example",
+        _sync: { legacyHash: "new" },
+      });
+      await db.collection("cas").bulkWrite([
+        compareAndSet(source, ["longUrl", "_sync.legacyHash", "missing"], {
+          $set: { destination: "stale" },
+        }),
+      ]);
       expect(
         (await db.collection("cas").findOne({ _id: source._id }))?.destination,
       ).toBeUndefined();
       expect(() => compareAndSet(source, [], { $set: { x: 1 } })).toThrow(
         "source fields",
       );
+      const nullable = { _id: new ObjectId(), value: null };
+      await db.collection("cas").insertOne({ _id: nullable._id });
+      await db
+        .collection("cas")
+        .bulkWrite([
+          compareAndSet(nullable, ["value"], {
+            $set: { destination: "stale" },
+          }),
+        ]);
+      expect(
+        (await db.collection("cas").findOne({ _id: nullable._id }))
+          ?.destination,
+      ).toBeUndefined();
+      await db
+        .collection("cas")
+        .updateOne({ _id: nullable._id }, { $set: { value: null } });
+      await db
+        .collection("cas")
+        .bulkWrite([
+          compareAndSet(nullable, ["value"], {
+            $set: { destination: "fresh" },
+          }),
+        ]);
+      expect(
+        (await db.collection("cas").findOne({ _id: nullable._id }))
+          ?.destination,
+      ).toBe("fresh");
     }));
   test("rollback retains target, reverses multiple applied migrations newest first, and continuous skips reverted/paused", async () =>
     fixture(async (db) => {
@@ -360,18 +420,16 @@ const base: Migration = {
           (doc) => doc.visits,
         ),
       ).toEqual([1, 1, 1]);
-      await db
-        .collection<MigrationState>("_migrations")
-        .updateOne(
-          { _id: base.id },
-          {
-            $set: {
-              status: "failed",
-              stage: "batching",
-              checkpoint: { data_source__source: ids.at(-1) ?? new ObjectId() },
-            },
+      await db.collection<MigrationState>("_migrations").updateOne(
+        { _id: base.id },
+        {
+          $set: {
+            status: "failed",
+            stage: "batching",
+            checkpoint: { data_source__source: ids.at(-1) ?? new ObjectId() },
           },
-        );
+        },
+      );
       await runMigrations(client, db, [{ ...migration, source: "version2" }], {
         log: quiet,
       });
@@ -384,17 +442,15 @@ const base: Migration = {
   test("status writes are fenced after takeover and never hide the original error", async () =>
     fixture(async (db) => {
       const steal = async () => {
-        await db
-          .collection<MigrationState>("_migrations")
-          .updateOne(
-            { _id: "lock" },
-            {
-              $set: {
-                holder: "replacement",
-                expiresAt: new Date(Date.now() + 60000),
-              },
+        await db.collection<MigrationState>("_migrations").updateOne(
+          { _id: "lock" },
+          {
+            $set: {
+              holder: "replacement",
+              expiresAt: new Date(Date.now() + 60000),
             },
-          );
+          },
+        );
         await db
           .collection<MigrationState>("_migrations")
           .updateOne({ _id: base.id }, { $set: { status: "paused" } });
@@ -467,6 +523,49 @@ const base: Migration = {
         )?.holder,
       ).toBe("replacement");
     }));
+  test("lease acquisition, heartbeat and fencing use server time despite client clock skew", async () =>
+    fixture(async (db) => {
+      const now = spyOn(Date, "now").mockReturnValue(0);
+      try {
+        await runMigrations(
+          client,
+          db,
+          [
+            {
+              ...base,
+              async up() {
+                const states = db.collection<MigrationState>("_migrations");
+                const first = await states.findOne({ _id: "lock" });
+                const server = await db.admin().command({ hello: 1 });
+                expect(first?.expiresAt).toBeInstanceOf(Date);
+                expect(first?.expiresAt?.getTime()).toBeGreaterThan(
+                  server.localTime.getTime(),
+                );
+                await Bun.sleep(150);
+                const renewed = await states.findOne({ _id: "lock" });
+                expect(renewed?.expiresAt?.getTime()).toBeGreaterThan(
+                  first?.expiresAt?.getTime() ?? 0,
+                );
+                now.mockReturnValue(8640000000000000);
+                await expect(
+                  runMigrations(client, db, [base], { log: quiet }),
+                ).rejects.toThrow("lock held");
+              },
+            },
+          ],
+          { leaseMs: 300, log: quiet },
+        );
+        expect(
+          (
+            await db
+              .collection<MigrationState>("_migrations")
+              .findOne({ _id: base.id })
+          )?.status,
+        ).toBe("applied");
+      } finally {
+        now.mockRestore();
+      }
+    }));
   test("time-series batch retries after insert-before-checkpoint crash without duplicate legacyIds", async () =>
     fixture(async (db) => {
       const ids = [new ObjectId(), new ObjectId(), new ObjectId()];
@@ -480,17 +579,13 @@ const base: Migration = {
         },
       });
       // Simulate a crashed insert window: events committed, checkpoint not written.
-      await db
-        .collection("click_events")
-        .insertMany(
-          ids
-            .slice(0, 2)
-            .map((legacyId) => ({
-              legacyId,
-              ts: new Date(),
-              m: { kind: "click" },
-            })),
-        );
+      await db.collection("click_events").insertMany(
+        ids.slice(0, 2).map((legacyId) => ({
+          legacyId,
+          ts: new Date(),
+          m: { kind: "click" },
+        })),
+      );
       const migration: Migration = {
         ...base,
         continuous: true,
@@ -551,13 +646,11 @@ const base: Migration = {
   test("archive retries preserve original copies; contract dry-run writes nothing and redacts document values", async () =>
     fixture(async (db) => {
       const _id = new ObjectId();
-      await db
-        .collection("source")
-        .insertOne({
-          _id,
-          passwordHash: "sensitive-password",
-          ip: "sensitive-ip",
-        });
+      await db.collection("source").insertOne({
+        _id,
+        passwordHash: "sensitive-password",
+        ip: "sensitive-ip",
+      });
       let fail = true;
       const migration: Migration = {
         ...base,

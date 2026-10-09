@@ -126,6 +126,7 @@ if ((!cacheUrl || !durableUrl) && process.env.REQUIRE_INTEGRATION === "1")
       const ready = new Promise<void>((resolve) => {
         start = resolve;
       });
+      let disconnected = false;
       try {
         const first = cache.get(key, 30, async () => {
           start?.();
@@ -163,11 +164,12 @@ if ((!cacheUrl || !durableUrl) && process.env.REQUIRE_INTEGRATION === "1")
         expect(await cache.get(key, 30, async () => 100)).toBe(100);
         expect(await clients.cache.get(key)).toBe("100");
         await clients.cache.del(key, generationKey(key));
+        disconnected = true;
         clients.cache.disconnect();
         expect(await cache.get(key, 30, async () => 101)).toBe(101);
       } finally {
         finish?.(1);
-        if (clients.cache.status === "ready")
+        if (!disconnected && clients.cache.status === "ready")
           await clients.cache.del(key, generationKey(key));
         clients.cache.disconnect();
         clients.durable.disconnect();

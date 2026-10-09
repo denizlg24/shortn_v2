@@ -37,7 +37,7 @@ export function resolvePhysicalNames(json?: string): PhysicalNames {
         .parse(JSON.parse(json))
     : {};
   for (const key of Object.keys(overrides))
-    if (!(key in defaultPhysicalNames))
+    if (!Object.hasOwn(defaultPhysicalNames, key))
       throw new Error(`Unknown physical collection key: ${key}`);
   const names = { ...defaultPhysicalNames, ...overrides };
   if (new Set(Object.values(names)).size !== Object.keys(names).length)
