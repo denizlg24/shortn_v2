@@ -1,4 +1,5 @@
-import type { AnyBulkWriteOperation, Document, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
+import type { AnyBulkWriteOperation, Document } from "mongodb";
 import {
   existing,
   linkDomain,
@@ -118,7 +119,8 @@ export const workspaces: Migration = {
       ],
     });
     const maps = await workspaceMaps(ctx);
-    const orphan = maps.orphan;
+    // A dry run wrote nothing, so the upserted workspaces don't exist yet.
+    const orphan = maps.orphan ?? (ctx.dryRun ? new ObjectId() : undefined);
     if (!orphan) throw new Error("Orphan workspace missing after upsert");
     await ctx.batch({
       name: names.user,
