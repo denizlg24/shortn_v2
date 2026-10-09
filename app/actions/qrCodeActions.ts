@@ -10,7 +10,7 @@ import { JSDOM } from "jsdom";
 import nodeCanvas from "canvas";
 import { ITag, TagT } from "@/models/url/Tag";
 import { fetchApi, BASEURL } from "@/lib/utils";
-import Clicks from "@/models/url/Click";
+import { archiveAndDeleteClicks } from "@/lib/click-archive";
 import { deletePicture } from "./deletePicture";
 import { getUserPlan } from "@/app/actions/polarActions";
 import {
@@ -351,10 +351,10 @@ export const deleteQRCode = async (qrCodeId: string) => {
 
     const sub = user.sub;
     const foundQR = await QRCodeV2.findOneAndDelete({ qrCodeId, sub });
-    await Clicks.deleteMany({ urlCode: qrCodeId, type: "scan" });
     if (!foundQR) {
       return { success: true, deleted: qrCodeId };
     }
+    await archiveAndDeleteClicks({ sub, urlCode: qrCodeId, type: "scan" });
     if (foundQR.options.image) {
       await deletePicture(foundQR.options.image);
     }
