@@ -83,6 +83,7 @@ All write logic lives in `packages/core` (domain services). `apps/web` server ac
 | 12  | [Design system & UI](12-design-system-and-ui.md)           | Visual world, tokens, app shell, surface-by-surface IA                           |
 | 13  | [Infra, ops & security](13-infra-ops-security.md)          | Forge layout, Redis, backups, observability, security fixes                      |
 | 14  | [Cutover & rollout](14-cutover-and-rollout.md)             | Phase order, traffic switching, verification gates, rollback                     |
+| 15  | [Staging & branch flow](15-staging.md)                     | Staging Forge site, `staging` branch, per-phase promotion, env rules             |
 
 ## Phase order (detail in 14)
 
