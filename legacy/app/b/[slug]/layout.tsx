@@ -5,15 +5,10 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
-export async function generateStaticParams() {
-  await connectDB();
-  const bios = await BioPage.find({}, { slug: 1 })
-    .sort({ createdAt: -1 })
-    .limit(50)
-    .lean();
-  return bios.map((bio) => ({
-    slug: bio.slug,
-  }));
+// Bio pages render on first request and are then cached by `revalidate`, so the
+// image build never needs a database connection.
+export function generateStaticParams(): { slug: string }[] {
+  return [];
 }
 
 export async function generateMetadata({
