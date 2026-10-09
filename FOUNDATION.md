@@ -91,33 +91,15 @@ into `archive_<collection>_<migrationId>` and verifies source coverage before
 allowing destructive batches. P7 backup/retirement gates remain operator
 requirements. The runner does not invent approval or backup evidence.
 
-## Forge legacy deploy changes
+## Forge deploy (Docker per app)
 
-Keep Git operations and dependency installation at the repository root.
-Build and start the app from `legacy/`:
+Every deployable app ships its own `Dockerfile`; the build context is always the repository root and the Forge target points at the app directory.
 
-```sh
-cd "$FORGE_SITE_PATH"
-git pull origin "$FORGE_SITE_BRANCH"
-bun install --frozen-lockfile
-cd "$FORGE_SITE_PATH/legacy"
-bun run build
-# Keep the existing daemon restart and health-check commands here.
-```
+| Target | rootDirectory | framework | Dockerfile | health |
+|---|---|---|---|---|
+| legacy app (`shortn`, `shortn-staging`) | `legacy` | `dockerfile` | `legacy/Dockerfile` | `/api` |
+| future: web / redirect / api / worker | `apps/<name>` | `dockerfile` | `apps/<name>/Dockerfile` | per app |
 
-Update the legacy daemon's working directory to `$FORGE_SITE_PATH/legacy`;
-keep its `bun run start` command and current port. If the daemon uses an
-absolute Next CLI path, use `$FORGE_SITE_PATH/legacy/node_modules/next/dist/bin/next`
-and set its working directory to `legacy/`. Next itself should run on Node 24.
-
-Provision dotenv files in `legacy/` (Next now reads them there). If Envoy
-continues restoring the app env file to the repository root, create a
-`legacy/.env` symlink to `../.env`, or configure Envoy's tracked file path to
-`legacy/.env`; use the corresponding filename for `.env.local` or
-`.env.production`. Keep `.envoy/` management and Husky at the repository root.
-Any nginx aliases or artifact paths targeting `public/` or `.next/` must add
-`legacy/`. Proxy host, port and public URLs stay as configured. The legacy
-script must build legacy only; do not add database operator commands to it.
-
-The staging deploy and route/login/dashboard smoke checks require Forge
-access and are outside this local foundation change.
+- Build-time env reaches the build through Forge's `forge-env` build secret (the legacy build validates env and reads bio pages from Mongo for `generateStaticParams`).
+- The image runs Next's standalone server (`node legacy/server.js`, port 3000) on `node:24-trixie-slim`; `canvas` needs glibc.
+- Switching the production target from `nextjs` to `dockerfile` + `rootDirectory: legacy` happens when this structure is promoted to `master`.
