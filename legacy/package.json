@@ -1,5 +1,5 @@
 {
-  "name": "shortn_v2",
+  "name": "@shortn/legacy",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,16 +11,8 @@
     "type-check": "tsc --noEmit",
     "test": "jest --passWithNoTests",
     "ci": "bun lint && bun type-check && bun test && bun build",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
+    "prepare": "husky",
+    "typecheck": "next typegen && bun run type-check"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.11.1",
