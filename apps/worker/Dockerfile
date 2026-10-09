@@ -9,9 +9,9 @@ FROM oven/bun:1.3.14-slim AS runtime
 WORKDIR /workspace
 ENV NODE_ENV=production
 ENV PORT=3004
-COPY --from=dependencies /workspace ./
-COPY packages packages
-COPY apps/worker apps/worker
+COPY --from=dependencies --chown=bun:bun /workspace ./
+COPY --chown=bun:bun packages packages
+COPY --chown=bun:bun apps/worker apps/worker
 USER bun
 EXPOSE 3004
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
