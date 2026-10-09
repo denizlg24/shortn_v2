@@ -1,4 +1,8 @@
 {
+  "redesign-notice": {
+    "message": "We're redesigning Shortn. Expect short, planned downtime later this quarter (Q4 2026). Your links and data won't be lost.",
+    "dismiss": "Dismiss notice"
+  },
   "metadata": {
     "home": {
       "title": "Shortn - URL Shortener, QR Codes & Link Management | Free URL Shortening Tool",
