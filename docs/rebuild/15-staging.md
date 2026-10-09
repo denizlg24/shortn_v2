@@ -44,3 +44,21 @@ Decided 2026-10-09. "Forge" here is the self-hosted container platform at `forge
 **Dead, drop on staging (and later in prod):** `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_STRIPE_PUBLIC_KEY`, `QSTASH_*`, `VERCEL_OIDC_TOKEN`, `ATLAS_SEARCH_INDEX_*`, `LEVEL_ONE_UPGRADE_ID`, `LEVEL_TWO_UPGRADE_ID`, `WEBMAIL_USER/PASS` (once nodemailer is removed).
 
 **New for the rebuild (added as each phase lands):** `REDIS_CACHE_URL`, `REDIS_DURABLE_URL`, `LINK_ACCESS_SECRET`, `CONFIRMATION_TOKEN_SECRET`, `IP_HASH_SECRET`, `API_KEY_PEPPER`, `R2_*`, `CF_API_TOKEN`, `CF_ZONE_ID`.
+
+## Containers (decided 2026-10-09)
+
+Every deployable app is its own Docker image and Forge `dockerfile` target, to keep Forge resource usage predictable:
+
+| Target | rootDirectory | Dockerfile | Hosts (prod / staging) |
+|---|---|---|---|
+| legacy app | `legacy` | `legacy/Dockerfile` | `shortn.at` / `staging.shortn.at` |
+| web (dashboard, marketing, bio) | `apps/web` | `apps/web/Dockerfile` | `app.shortn.at` + `*.shortn.at` / `app-staging.shortn.at` |
+| redirect | `apps/redirect` | `apps/redirect/Dockerfile` | `shortn.at` (single-segment paths) / `staging.shortn.at` |
+| api | `apps/api` | `apps/api/Dockerfile` | `api.shortn.at` / `api-staging.shortn.at` |
+| worker | `apps/worker` | `apps/worker/Dockerfile` | none (no ingress) |
+
+Build context is always the repository root; build-time env arrives through Forge's `forge-env` build secret; runtime images are slim (`node:24-trixie-slim` for Next, `oven/bun` slim for Bun services). Redis (×2) and Meilisearch run as Forge resources, not app images.
+
+## Env file
+
+`.env.staging` at the repo root (gitignored) is the working copy for the staging target: URLs and staging-only secrets pre-generated, blanks for the values that need new accounts (staging DB user, OAuth apps, Polar sandbox, restricted Resend key). Applied to Forge with `forge_env_apply` once filled.

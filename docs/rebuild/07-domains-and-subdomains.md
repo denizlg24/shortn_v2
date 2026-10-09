@@ -39,6 +39,8 @@
 
 ## Bio handles (`{handle}.shortn.at`)
 
+> Production only. Staging uses dashed single-level hosts (`app-staging.shortn.at`, `api-staging.shortn.at`) and has no wildcard; see [15](15-staging.md).
+
 - Created from `bio_pages.handle` (02 §M8). Rules for **new** handles: DNS label, 3–30 chars, `[a-z0-9-]`, no leading or trailing `-`, not reserved, unique. Migrated handles are grandfathered at 1–63 chars.
 - Legacy `shortn.at/b/{slug}` → 301 to the page's current handle (via `bio_aliases`, which reference `bioPageId`). Permanent, never removed. This switch happens in P5; until then `/b/*` stays on legacy.
 - Changing a handle: the old handle 301s to the page for 30 days. After that it's released only if it never received meaningful traffic. Otherwise it stays retired for that workspace forever, so printed or shared handles can't be taken over.
