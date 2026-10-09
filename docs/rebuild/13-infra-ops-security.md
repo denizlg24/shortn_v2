@@ -8,24 +8,25 @@
 - **Targets:** one Forge target per app (15 §Containers), each with its own origin hostname. A target is one container (`cpuLimit`, memory reservation/ceiling), built from its Dockerfile with the repo root as context. No volumes, an HTTP health check on `healthPath`, a new port and container name per deploy. **Never put state in a target.**
 - **Deploys:** push to the target's branch → build → start the new container → health check → Caddy switches → the old container is reaped. 503s were observed for a few seconds during a swap on 2026-10-09. **P2 entry criterion:** measure the swap under load on staging; if it isn't gapless, fix it in the deploy agent before redirects move. The Worker's legacy fallback (below) covers a failed or slow origin in the meantime.
 
-| App                        | Forge target           | Notes                                                                        |
-| -------------------------- | ---------------------- | ---------------------------------------------------------------------------- |
-| legacy app                 | `shortn` / `staging`   | `legacy/Dockerfile`, until P7                                                 |
-| apps/redirect              | `shortn-redirect`      | Bun, stateless; scale with `cpuLimit` and `reusePort` workers in one container |
-| apps/web (Next standalone) | `shortn-web`           |                                                                              |
-| apps/api                   | `shortn-api`           |                                                                              |
-| apps/worker                | `shortn-worker`        | no domain; `healthPath` served on an internal port; graceful SIGTERM (finish batch, ack) |
+| App                        | Forge target         | Notes                                                                                    |
+| -------------------------- | -------------------- | ---------------------------------------------------------------------------------------- |
+| legacy app                 | `shortn` / `staging` | `legacy/Dockerfile`, until P7                                                            |
+| apps/redirect              | `shortn-redirect`    | Bun, stateless; scale with `cpuLimit` and `reusePort` workers in one container           |
+| apps/web (Next standalone) | `shortn-web`         |                                                                                          |
+| apps/api                   | `shortn-api`         |                                                                                          |
+| apps/worker                | `shortn-worker`      | no domain; `healthPath` served on an internal port; graceful SIGTERM (finish batch, ack) |
 
 - **Redis (built 2026-10-09):** host units on the Forge box, not targets and not the Pi's shared Redis. That one is `allkeys-lru` with 128 MB shared across projects, and LRU would silently evict stream entries and jobs. `forge-redis@<instance>` (`denizlg24.com/infra/systemd/forge-redis-install`) runs on the `forge-apps` Docker network, reachable by name, not published:
 
-  | Instance                 | Role                                         | maxmemory | Env                 |
-  | ------------------------ | -------------------------------------------- | --------- | ------------------- |
-  | `shortn-cache`           | `allkeys-lru`, no persistence                | 256 MB    | `REDIS_CACHE_URL`   |
-  | `shortn-durable`         | `noeviction`, AOF everysec + RDB             | 512 MB    | `REDIS_DURABLE_URL` |
-  | `shortn-staging-cache`   | as above                                     | 64 MB     | staging target      |
-  | `shortn-staging-durable` | as above                                     | 128 MB    | staging target      |
+  | Instance                 | Role                             | maxmemory | Env                 |
+  | ------------------------ | -------------------------------- | --------- | ------------------- |
+  | `shortn-cache`           | `allkeys-lru`, no persistence    | 256 MB    | `REDIS_CACHE_URL`   |
+  | `shortn-durable`         | `noeviction`, AOF everysec + RDB | 512 MB    | `REDIS_DURABLE_URL` |
+  | `shortn-staging-cache`   | as above                         | 64 MB     | staging target      |
+  | `shortn-staging-durable` | as above                         | 128 MB    | staging target      |
 
   Same box as redirect and worker, so the hot path (`GET link:*`, `XADD`) never crosses to the Pi, and a pi-cloud outage leaves redirects serving from cache while clicks buffer in the stream (03 degraded mode). Resize by re-running the installer; it keeps the password.
+
 - **Migrations:** `db:indexes` (create-only), then pending **expand** migrations, run as a one-off step before the new container takes traffic. Never contract.
 - **Staging:** separate Forge targets on the same box, dashed hosts (15).
 - **Open:** Forge targets have no volumes, so the redirect spool (03 degraded mode) is lost if a container is replaced while Redis is down. Either accept it or add a host-volume option to the deploy agent for `shortn-redirect`. Decide before P2.
@@ -35,8 +36,7 @@
 A Worker on `shortn.at/*` (and later the custom-hostname zone) does what the old plan gave nginx:
 
 - **Routing:** a single-segment path that is not reserved (`packages/core/reserved.ts`, bundled into the Worker at build) or `/qr/{key}` goes to the redirect origin. Everything else goes to the legacy origin, and to the web origin from P4. The table in 14 is the Worker's config, one entry per phase.
-- **Shadow (P2):** `ctx.waitUntil(fetch(redirectOrigin, { headers: { "X-Shadow": "1" } }))` alongside the real request, response discarded. The redirect service compares and logs.
-- **Canary (P2):** `hash(cf-ray) % 100 < CANARY_PERCENT`. `CANARY_PERCENT` and the per-path owner live in Worker vars; a change is one `wrangler deploy` of config (seconds). Rollback is setting it back to 0.
+- **Kill switch (P2):** `hash(cf-ray) % 100 < CANARY_PERCENT` sends redirect paths to the redirect origin. It ships at 100 and is only lowered to roll back. `CANARY_PERCENT` and the per-path owner live in Worker vars; a change is one `wrangler deploy` of config (seconds). There's no shadow mode: parity is checked offline over every key (14 P2).
 - **Fallback:** a 5xx or timeout from the redirect origin is retried once against legacy, so a bad deploy or a Forge swap degrades to legacy rather than to an error.
 - **Headers:** the Worker forwards `CF-Connecting-IP`, the geo headers and `X-Request-Id` (from `cf-ray`). Origins trust them because the box is reachable only through the tunnel.
 - Worker subrequests to the zone's own origin hostnames skip Worker routes, so there are no loops. Origin hostnames (e.g. `redirect-origin.shortn.at`) are proxied tunnel records with no Worker route.

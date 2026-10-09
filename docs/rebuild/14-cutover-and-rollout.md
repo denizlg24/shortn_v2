@@ -1,6 +1,6 @@
 # 14 — Cutover & Rollout
 
-Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback**. Nothing moves to the next phase on "seems fine".
+Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback**. Gates are sized to the real traffic (~60 redirects/day, measured 2026-10-09): a deterministic check over all the data beats a long soak that sees a few hundred requests.
 
 ## P0 · Safety net (≈ 1 week)
 
@@ -20,19 +20,20 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - **Done 2026-10-09:** promoted in #421 (prod target now `legacy/` + Dockerfile, previews off), Redis instances running and wired into both targets.
 - Rollback: revert the `git mv` PR.
 
-## P2 · Redirects + click pipeline (≈ 2–3 weeks)
+## P2 · Redirects + click pipeline (≈ 1–2 weeks)
 
-- Work: apps/redirect, apps/worker (ingest + dual-write legacy `clicks`), M1 (dedupe) + M3/M4 (key/domain, QR ref) expand migrations, the legacy cache-invalidation patch + change stream, M7 backfill.
-- **Entry:** the edge Worker (13 §Edge routing) deployed in pass-through mode (every path → legacy origin) for ≥ 3 days with no change in error rate, and Forge deploy swaps verified gapless on staging (13).
-- **Shadow mode (1 week):** the Worker sends a copy of every redirect request to apps/redirect with `X-Shadow: 1` via `waitUntil`, response discarded. The service resolves and **compares** with what legacy would do (status + Location) but doesn't enqueue. Mismatches are logged.
-- **Canary:** route 5% → 25% → 100% of single-segment paths to apps/redirect via the Worker's `CANARY_PERCENT` (hash of `cf-ray`), over 3 days, watching error rates, latency and event counts. The counts must match: events/hour from the new pipeline vs the legacy `clicks` insert rate at the same share.
-- Exit gate: shadow mismatch rate = 0 over 7 days (excluding documented intentional differences); canary at 100% for 72 h with no alert; per-link click counts for the top 500 links match between legacy `clicks` and `click_events` for the period.
+- Work: apps/redirect, apps/worker (ingest + dual-write legacy `clicks`), the edge Worker (13 §Edge routing), M1 (dedupe) + M3/M4 (key/domain, QR ref) expand migrations, the legacy cache-invalidation patch + change stream, M7 backfill.
+- **Entry:** P1 done. Building starts immediately; the only hard floor is that PBM backups pass a restore test before M1 or any other migration writes to prod (02 §7).
+- **Parity check (replaces shadow mode):** on staging, against the restored prod snapshot, a script resolves **every** link and QR key through apps/redirect and through the legacy resolution logic, and compares status + `Location`. Mismatches are fixed or documented as intentional. This covers every key in minutes instead of waiting a week for ~400 real requests.
+- **Cutover:** deploy the Worker with single-segment paths and `/qr/{key}` routed to apps/redirect at 100%. `CANARY_PERCENT` stays as the kill switch, not a ramp; at this volume a 5% slice carries no signal.
+- Exit gate: 48 h at 100% with no alert, and the dual-write counts match for that window (`click_events` vs legacy `clicks` with `src:"v2"`, per link).
 - Rollback: set `CANARY_PERCENT=0` (one Worker config deploy, seconds). The Worker's retry-to-legacy on 5xx is the automatic version of the same thing. The worker's dual-write means legacy analytics never had a gap.
 
-## P3 · Data expansion (≈ 2 weeks, overlaps P2)
+## P3 · Data expansion (≈ 2 weeks, runs in parallel with P2)
 
 - Work: M2 (workspaces), M5 (tags), M6 (campaigns/UTM), M8 (bio v2), M9, M10, M11 (shadow only), M12 (assets). All of these are additive and continuous while legacy runs.
-- Exit gate: every migration's `verify` is green on prod for 7 consecutive days of continuous runs.
+- **Entry:** P1 done; starts alongside P2. Same backup floor as P2 before the first prod run.
+- Exit gate: every migration's `verify` is green on staging (prod snapshot) and then on prod after two consecutive continuous runs.
 - Rollback: each migration's `down` (additive fields only, so legacy is unaffected either way).
 
 ## P4 · New dashboard + billing (≈ 5–7 weeks)
@@ -63,18 +64,18 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 
 ## Routing table per phase (Worker origin that owns each path on `shortn.at`)
 
-| Path                                                            | P1                  | P2–P3                        | P4                                                                  | P5+                       | P7             |
-| --------------------------------------------------------------- | ------------------- | ---------------------------- | ------------------------------------------------------------------- | ------------------------- | -------------- |
-| `/{key}`, `/qr/{key}` (+ trailing `/`)                          | legacy              | **redirect** (canary → 100%) | redirect                                                            | redirect                  | redirect       |
-| `/b/{slug}`                                                     | legacy              | legacy                       | legacy                                                              | **redirect → 301 handle** | redirect       |
-| `/`, marketing pages, `/{locale}/*` marketing                   | legacy              | legacy                       | **web**                                                             | web                       | web            |
-| `/{locale}/dashboard*`                                          | legacy              | legacy                       | 302 → `app.` handoff                                                | same                      | same           |
-| `/authenticate/*`, `/api/verify-link-password`                  | legacy              | legacy                       | **web** (bcrypt + new secret, 02 M9)                                | web                       | web            |
-| `/{locale}/safety/*`, `/abuse`, report endpoints                | legacy              | legacy                       | web                                                                 | web                       | web            |
-| `/api/auth/*` (better-auth, legacy Polar webhook)               | legacy              | legacy                       | legacy until billing switch + session handoff complete, then `app.` | —                         | removed        |
-| `/api/polar/*`, `/api/cron/*` (scheduler callbacks)             | legacy              | legacy                       | legacy until scheduler frozen (06)                                  | —                         | removed        |
-| `/api/track-click` and other external `/api/*` found in P0 logs | legacy              | legacy                       | owner decided in P0                                                 | —                         | removed or 410 |
-| Hosts `www.`, legacy `*.vercel.app`, other origins in QR data   | 301 path-preserving | same                         | same                                                                | same                      | same, forever  |
+| Path                                                            | P1                  | P2–P3               | P4                                                                  | P5+                       | P7             |
+| --------------------------------------------------------------- | ------------------- | ------------------- | ------------------------------------------------------------------- | ------------------------- | -------------- |
+| `/{key}`, `/qr/{key}` (+ trailing `/`)                          | legacy              | **redirect** (100%) | redirect                                                            | redirect                  | redirect       |
+| `/b/{slug}`                                                     | legacy              | legacy              | legacy                                                              | **redirect → 301 handle** | redirect       |
+| `/`, marketing pages, `/{locale}/*` marketing                   | legacy              | legacy              | **web**                                                             | web                       | web            |
+| `/{locale}/dashboard*`                                          | legacy              | legacy              | 302 → `app.` handoff                                                | same                      | same           |
+| `/authenticate/*`, `/api/verify-link-password`                  | legacy              | legacy              | **web** (bcrypt + new secret, 02 M9)                                | web                       | web            |
+| `/{locale}/safety/*`, `/abuse`, report endpoints                | legacy              | legacy              | web                                                                 | web                       | web            |
+| `/api/auth/*` (better-auth, legacy Polar webhook)               | legacy              | legacy              | legacy until billing switch + session handoff complete, then `app.` | —                         | removed        |
+| `/api/polar/*`, `/api/cron/*` (scheduler callbacks)             | legacy              | legacy              | legacy until scheduler frozen (06)                                  | —                         | removed        |
+| `/api/track-click` and other external `/api/*` found in P0 logs | legacy              | legacy              | owner decided in P0                                                 | —                         | removed or 410 |
+| Hosts `www.`, legacy `*.vercel.app`, other origins in QR data   | 301 path-preserving | same                | same                                                                | same                      | same, forever  |
 
 Each column change is one Worker config deploy, reverted in seconds. Host-level rows (`app.`, `api.`, bio handles) are Forge target domains; the Worker only decides paths on `shortn.at` and custom hostnames.
 
