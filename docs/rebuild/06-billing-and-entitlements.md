@@ -17,29 +17,47 @@
 1. **Polar is the system of record for money. Shortn is the system of record for entitlements.** We mirror Polar state locally via webhooks and _never_ call Polar on a read path.
 2. **Entitlements derive from product IDs and metadata, never names.** Each Polar product carries `metadata.shortn_plan = "pro"` / `metadata.shortn_addon = "custom_domains"`. The mapping lives in code (`packages/billing/catalog.ts`) and is cross-checked at boot against Polar.
 3. **One limits table**, in code, versioned. Grandfathered workspaces pin a catalog version.
-4. **No external scheduler.** Period-end cancellation uses Polar's native `cancel_at_period_end`. **Period-end downgrades: verify against Polar's current API before implementation.** Its product-change proration modes may only switch immediately, which is likely why the legacy scheduler exists. If Polar can't schedule a product change, the downgrade becomes a durable **BullMQ delayed job** at `currentPeriodEnd` in our own worker. That job is idempotent (it re-checks the subscription state before acting) and reconciled nightly. It replaces the external scheduler service and keeps the same semantics.
+4. **No external scheduler.** Cancellation uses Polar's native `cancel_at_period_end`. **Downgrades use `proration_behavior: "next_period"`** on `PATCH /v1/subscriptions/{id}`. Polar queues it as a `pending_update` (with `applies_at`) and applies it at the start of the next billing period, with no proration ([Polar proration docs](https://polar.sh/docs/features/subscriptions/proration), [manage subscriptions](https://polar.sh/docs/features/subscriptions/manage)). The UI reads `pending_update` from the mirror. Constraints: a subscription scheduled to cancel must be uncanceled before a plan change, and custom-priced products can't be change targets. Both are handled in `billing.changePlan()`. Verified on the Polar sandbox in P4 before the switch.
 5. **Honest UX:** usage is always visible, limits are enforced with a clear message and an upgrade path, nothing is hidden, and cancellation takes 2 clicks.
 
-## Catalog
+## Catalog (decided 2026-10-09)
+
+**Prices stay exactly as they are today.** Limits only go up, never down, so no existing customer loses anything. Enterprise is new. Link and QR limits are **monthly creation** limits (legacy semantics), and **Pro and Enterprise are unlimited**.
 
 ```ts
 // packages/billing/catalog.ts
 export const CATALOG_VERSION = 2;
 export const plans = {
-  free:  { links: 3,  qr: 3,  bioPages: 1, seats: 1, workspaces: 1, domains: 0, analyticsWindowDays: 30,  api: false, mcp: false },
-  basic: { links: 25, qr: 25, bioPages: 1, seats: 1, workspaces: 1, domains: 0, analyticsWindowDays: 365, api: true,  mcp: true },
-  plus:  { links: 50, qr: 50, bioPages: 3, seats: 3, workspaces: 2, domains: 0, analyticsWindowDays: 730, api: true,  mcp: true },
-  pro:   { links: ∞,  qr: ∞,  bioPages: 10,seats: 5, workspaces: 5, domains: 1, analyticsWindowDays: ∞,   api: true,  mcp: true },
-} as const;   // ⚠ numbers other than links/qr are PROPOSALS (open decision #1)
-export const addOns = {
-  custom_domains: { domains: +3 },   // paid add-on (decided)
-  extra_seats:    { seats: +1 },     // per unit
-  extra_domains:  { domains: +1 },   // per unit
+  //            links/mo qr/mo  bio  seats  workspaces  analytics window  api rate/min  mcp
+  free:       { links: 5,   qr: 5,   bioPages: 1,  seats: 1, workspaces: 1,  analyticsDays: 30,   api: false, mcp: false },
+  basic:      { links: 50,  qr: 50,  bioPages: 2,  seats: 1, workspaces: 1,  analyticsDays: 365,  api: 60,    mcp: true },
+  plus:       { links: 150, qr: 150, bioPages: 5,  seats: 3, workspaces: 3,  analyticsDays: 730,  api: 300,   mcp: true },
+  pro:        { links: ∞,   qr: ∞,   bioPages: 20, seats: 5, workspaces: 10, analyticsDays: ∞,    api: 1200,  mcp: true },
+  enterprise: { links: ∞,   qr: ∞,   bioPages: ∞,  seats: contract, workspaces: ∞, analyticsDays: ∞, api: contract, mcp: true },
 } as const;
 ```
 
-- Link and QR limits are **monthly creation** limits, matching legacy semantics (`links_this_month`). Whether to switch to _active links_ limits is a product decision; the catalog supports both kinds.
-- Legacy "redirect" meters (`LINK_REDIRECT`, `QR_CODE_REDIRECT`) were limits on _redirects per month_ for some plans. **Never break redirects for limit reasons.** Over-limit redirects keep working; analytics beyond the limit are recorded but hidden until upgrade, or the meter is dropped. Recommendation: drop it.
+| Plan                 | Price                   | What changed vs. today                                                                                                                                                                                                          |
+| -------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Free                 | €0                      | 3 → **5** links and QR per month; bio page on `{handle}.shortn.at` with "Made with Shortn"                                                                                                                                      |
+| Basic                | unchanged               | 25 → **50**; API + MCP                                                                                                                                                                                                          |
+| Plus                 | unchanged               | 50 → **150**; 3 seats (team workspaces start here)                                                                                                                                                                              |
+| Pro                  | unchanged               | still unlimited links/QR; 5 seats, 10 workspaces                                                                                                                                                                                |
+| **Enterprise** (new) | quote, annual, invoiced | everything unlimited, contractual seats/API limits, **SSO** (better-auth SSO plugin, SAML/OIDC), audit-log export, custom IP-retention terms, 99.9% redirect SLA, priority support, custom domains included (contractual count) |
+
+Enterprise is sold through a per-customer Polar product (`metadata.shortn_plan = "enterprise"`, contract values in metadata), created from an internal admin action. The checkout link goes by email; there's no self-serve checkout.
+
+### Add-ons (decided)
+
+| Add-on                 | Price                 | Available on                              | Effect                                                                       |
+| ---------------------- | --------------------- | ----------------------------------------- | ---------------------------------------------------------------------------- |
+| **Custom domain**      | €5 / month per domain | Basic, Plus, Pro (included on Enterprise) | +1 domain slot for links and/or bio (07). Quantity-based                     |
+| **Extra seat**         | €6 / month per seat   | Plus, Pro                                 | +1 member seat                                                               |
+| **Extended analytics** | €4 / month            | Free, Basic                               | analytics window → 2 years (data is always kept; this only unlocks the view) |
+
+Add-ons are separate Polar subscriptions with `metadata.shortn_addon` and a quantity, tied to the workspace via `metadata.workspaceId`. Cancelling a plan doesn't auto-cancel add-ons: the UI asks, and the default is to cancel them too. Add-on prices are the only new prices. Confirm them before creating the Polar products.
+
+- The legacy **redirect meters** (`LINK_REDIRECT`, `QR_CODE_REDIRECT`) are **dropped**. Redirects are never limited.
 
 ## Data
 

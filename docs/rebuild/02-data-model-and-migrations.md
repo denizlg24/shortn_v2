@@ -87,19 +87,19 @@ Names in **bold** are new collections. Existing collections keep their physical 
 
 ### Key indexes
 
-| Collection    | Index                                                                     | Purpose                                    |
-| ------------- | ------------------------------------------------------------------------- | ------------------------------------------ |
-| links         | `{domain:1,key:1}` unique, **partial** on `key:{$type:"string"}` (§3a)    | redirect resolution                        |
-| links         | `{urlCode:1}` (non-unique, until C3)                                      | legacy-field resolution during coexistence |
-| links         | `{domain:1,previousKeys:1}`                                               | alias resolution (multikey)                |
-| links         | `{workspaceId:1,createdAt:-1,_id:-1}`                                     | dashboard list, keyset pagination          |
-| links         | `{workspaceId:1,tagIds:1}`, `{workspaceId:1,campaignId:1}`                | filters                                    |
-| links         | Atlas Search index on title/key/destination/tags                          | search (replaces text indexes)             |
-| click_events  | time-series auto index on `m` + `ts`; secondary `{ "m.linkId":1, ts:-1 }` | per-link ranges                            |
-| click_rollups | `{linkId:1,day:1}` unique, `{workspaceId:1,day:1}`                        | dashboards                                 |
-| bio_pages     | `{handle:1}` unique, `{customDomain:1}` unique sparse                     | host routing                               |
-| domains       | `{hostname:1}` unique                                                     | host routing                               |
-| api_keys      | `{hashedKey:1}` unique                                                    | API auth                                   |
+| Collection    | Index                                                                                    | Purpose                                    |
+| ------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------ |
+| links         | `{domain:1,key:1}` unique, **partial** on `key:{$type:"string"}` (§3a)                   | redirect resolution                        |
+| links         | `{urlCode:1}` (non-unique, until C3)                                                     | legacy-field resolution during coexistence |
+| links         | `{domain:1,previousKeys:1}`                                                              | alias resolution (multikey)                |
+| links         | `{workspaceId:1,createdAt:-1,_id:-1}`                                                    | dashboard list, keyset pagination          |
+| links         | `{workspaceId:1,tagIds:1}`, `{workspaceId:1,campaignId:1}`                               | filters                                    |
+| links         | Meilisearch index `links` (title, key, destination, tag names; filterable `workspaceId`) | search (replaces text indexes)             |
+| click_events  | time-series auto index on `m` + `ts`; secondary `{ "m.linkId":1, ts:-1 }`                | per-link ranges                            |
+| click_rollups | `{linkId:1,day:1}` unique, `{workspaceId:1,day:1}`                                       | dashboards                                 |
+| bio_pages     | `{handle:1}` unique, `{customDomain:1}` unique sparse                                    | host routing                               |
+| domains       | `{hostname:1}` unique                                                                    | host routing                               |
+| api_keys      | `{hashedKey:1}` unique                                                                   | API auth                                   |
 
 The existing text indexes on `urlv3s`, `qrcodesv2`, `biopages`, `campaigns` and `tags`, and the single-field boolean indexes (`flagged`, `disabled`, `passwordProtected`, …), are dropped in the contract phase. Each one costs write I/O on every redirect `save()` today.
 
@@ -118,7 +118,7 @@ export const migration: Migration = {
 
 - **State:** a `_migrations` collection with `{ id, status, startedAt, finishedAt, checkpoint, verifyReport }`.
 - **Lock:** `findOneAndUpdate({_id:"lock", holder:null})` with a lease; a crashed runner's lease expires.
-- **Batching:** iterate by `_id` ascending in batches of 1–5k with `bulkWrite` (ordered:false), and checkpoint the last `_id` after each batch. Bounded concurrency keeps Atlas IOPS in check, and rate is configurable.
+- **Batching:** iterate by `_id` ascending in batches of 1–5k with `bulkWrite` (ordered:false), and checkpoint the last `_id` after each batch. Bounded concurrency keeps the single node’s disk IOPS in check and oplog growth bounded, and rate is configurable.
 - **Modes:** `--dry-run` (counts and sample diffs, no writes), `--verify-only`, `--until <id>`.
 - **Continuous migrations:** while legacy keeps writing (P2–P4), backfill migrations marked `continuous` run every minute in the worker, processing only `{ newField: { $exists:false } }`. This avoids patching legacy write paths except where unavoidable (cache invalidation, see 03).
 - **Contract migrations:** each first copies affected docs or fields into `archive_<collection>_<migrationId>` (or `mongodump` to R2 for whole collections). Then it verifies the archive count, then unsets or drops. They run only in P7 with an explicit `--confirm-contract` flag.
@@ -151,7 +151,7 @@ Script `bun run db:audit` → markdown report committed to `docs/rebuild/audit/`
 11. Active Polar subscriptions per user vs any local signal, and pending `ScheduledChange`s. List **every distinct `productId`** across all non-terminal subscriptions (archived, yearly and old products included) and map each one using the legacy name rule.
 12. **Origins encoded in printed QR codes:** group `qrcodesv2.options.data` by origin + path shape. Legacy builds it from `BASEURL`, which can fall back to `VERCEL_URL` or `window.location.origin` (`lib/utils.ts:111-127`), and the client can save arbitrary `options`. Every origin found must keep resolving with its path preserved (07). Test 100% of these URLs, not a sample.
 13. QR docs whose `longUrl` differs from their backing link's `longUrl`. The backing link is what scanners actually hit, so it's the truth. Report this, and never reconcile toward the QR doc.
-14. Atlas server version (time-series update/delete capabilities need ≥ 7.0; target 8.x) and whether `changeStreamPreAndPostImages` can be enabled.
+14. ~~Server version~~ **Verified 2026-10-09:** MongoDB 8.2.11, single-node replica set `rs0`. Change streams, pre/post images, transactions and time-series updates on the meta field are all available. Still to check: oplog size (must cover change-stream resume + PBM PITR windows; target ≥ 72 h at peak write rate).
 15. Keys outside `[A-Za-z0-9_-]` and keys that differ only by case from a reserved path.
 
 **Gate:** P1 doesn't start until the audit is reviewed and every blocking item (2, 3, 6, 7, 11, 12, 14) has a resolution recorded.
@@ -205,12 +205,12 @@ Legacy can keep creating duplicates (find-then-create custom codes at `linkActio
 
 ### M7 · `0007-click-events-backfill` (backfill; live dual-write starts in P2)
 
-- Create the time-series collection `click_events` with `expireAfterSeconds` **unset** (no automatic deletion; retention is a product decision, see below). Requires Atlas ≥ 7.0 (target 8.x). Use `bucketMaxSpanSeconds = bucketRoundingSeconds = 86400` rather than minute granularity: long-tail links get very few events per bucket, so per-minute buckets would inflate storage instead of compressing it. Benchmark size on the staging restore before committing. Put `key` and `legacyCode` **in the meta field `m`**, so orphans can be re-attached with meta-only updates.
+- Create the time-series collection `click_events` with `expireAfterSeconds` **unset** (no automatic deletion; retention is a product decision, see below). Requires MongoDB ≥ 7.0 (prod runs 8.2.11). Use `bucketMaxSpanSeconds = bucketRoundingSeconds = 86400` rather than minute granularity: long-tail links get very few events per bucket, so per-minute buckets would inflate storage instead of compressing it. Benchmark size on the staging restore before committing. Put `key` and `legacyCode` **in the meta field `m`**, so orphans can be re-attached with meta-only updates.
 - Copy `clicks` → `click_events` in `_id` order. Store `legacyId: clicks._id` and resolve `linkId`/`qrId`:
   - `type:"click"` → link by `urlCode`; if none, check `previousKeys` (none yet); else **orphan**.
   - `type:"scan"` → QR by `qrCodeId` = `urlCode` → `linkId` via M4.
   - Orphans are still copied, with `m.linkId: null, key` preserved, so they can be re-attached later. They're excluded from dashboards.
-- IP handling: `ipHash = HMAC(ip, IP_HASH_SECRET)` and `ipPrefix` truncated. **The raw IP is not copied** into the new store. The original `clicks` collection is kept untouched as the archive until the retention decision, so no data is lost.
+- IP handling: `ipHash = HMAC(ip, IP_HASH_SECRET)` and `ipPrefix` truncated. Raw IPs younger than 90 days are copied to `click_ips` (TTL 90 d, 04). Older ones aren't copied, and the archive's raw IPs are anonymized after 90 days (C4, decided).
 - Live: starting in P2, the worker writes **both** a legacy `clicks` doc (tagged `src:"v2"`) and a `click_events` doc. It also does `$inc clicks.total` + `$max clicks.lastClick` on the legacy link **or QR doc**, using the same scan-vs-click rule as legacy (`linkActions.ts:577-602`), so the legacy dashboard, which reads and sorts by `clicks.total`, keeps moving. The backfill is bounded to `clicks._id < P2 cutoff ObjectId` and skips `src:"v2"`, so live dual-writes are never copied twice. `legacy_click_map {legacyId → eventStreamId}` is permanent (no TTL), because time-series collections can't hold unique indexes. Known drift: during canary, legacy `doc.save()` still writes absolute `clicks.total` values. This is documented and doesn't matter, because new totals derive from events.
 - Then `click_rollups` is computed from events, and `links.stats` is recomputed from rollups. A nightly job recomputes rollups for closed days from events, to repair any counter drift.
 - **Verify:** **set-based**, not count-based: every `clicks._id` below the cutoff appears in `legacy_click_map`, or is listed as excluded with a reason. Legacy deletes make plain counts diverge forever, and they're archived after the P0 hotfix. Also check per-link set equality for a 1% random sample plus the top 500 links, and daily sums for the last 90 days.
@@ -257,19 +257,19 @@ Legacy can keep creating duplicates (find-then-create custom codes at `linkActio
 
 ## 6. Contract phase (P7 only)
 
-Each step archives first (§3), and each runs only after: the legacy app has been switched off for ≥14 days, a PITR restore drill has passed, and a final full `mongodump` of the affected collections is in R2 with its checksum recorded.
+Each step archives first (§3), and each runs only after: the legacy app has been switched off for ≥14 days, a PBM point-in-time restore drill has passed, and a final full `mongodump` of the affected collections is in R2 with its checksum recorded.
 
-| C#  | Action                                                                                                                                                                                                      |
-| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | Rename `urlv3s`→`links`, `qrcodesv2`→`qr_codes`, `biopages`→`bio_pages` (point apps to the new names in the same deploy; the readers accept both for one release)                                           |
-| C2  | `$unset` legacy fields on links: `sub, urlCode, longUrl, tags, utmLinks, clicks, isQrCode, qrCodeId, passwordProtected, passwordHash, passwordHint, riskScore, safetyStatus, …` (archived copy first)       |
-| C3  | Drop legacy text and boolean indexes                                                                                                                                                                        |
-| C4  | `clicks` → renamed `clicks_archive_legacy`. Raw-IP retention: **decision needed** (GDPR suggests anonymizing after 12–24 months; keep hashed events forever). Nothing is deleted without explicit sign-off. |
-| C5  | Drop `scheduledchanges` (archived), `ratelimits`, the `user.*_this_month` fields, `campaigns.links[]`                                                                                                       |
-| C6  | Remove `sub` from `user` only after all code paths use `workspaceId`. The value is kept in `workspaces.legacySub` forever.                                                                                  |
+| C#  | Action                                                                                                                                                                                                                                          |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | Rename `urlv3s`→`links`, `qrcodesv2`→`qr_codes`, `biopages`→`bio_pages` (point apps to the new names in the same deploy; the readers accept both for one release)                                                                               |
+| C2  | `$unset` legacy fields on links: `sub, urlCode, longUrl, tags, utmLinks, clicks, isQrCode, qrCodeId, passwordProtected, passwordHash, passwordHint, riskScore, safetyStatus, …` (archived copy first)                                           |
+| C3  | Drop legacy text and boolean indexes                                                                                                                                                                                                            |
+| C4  | `clicks` → renamed `clicks_archive_legacy`. **Raw-IP retention = 90 days (decided):** from P0 on, a daily job sets `ipHash` (same HMAC as new events) and unsets `ip` on archived clicks older than 90 days. Every other field is kept forever. |
+| C5  | Drop `scheduledchanges` (archived), `ratelimits`, the `user.*_this_month` fields, `campaigns.links[]`                                                                                                                                           |
+| C6  | Remove `sub` from `user` only after all code paths use `workspaceId`. The value is kept in `workspaces.legacySub` forever.                                                                                                                      |
 
 ## 7. Backups & drills (also in 13)
 
-- Atlas continuous backup with **PITR ≥ 7 days** must be enabled before M1. If the tier doesn't support it, a nightly `mongodump --gzip` to R2 with 30-day retention is the P0 deliverable.
-- Before every backfill on prod: an on-demand snapshot, with its ID recorded in the migration's `_migrations` doc.
+- The database is self-hosted (pi-cloud, single-node RS). **Percona Backup for MongoDB (PBM)** with continuous oplog slicing to R2 (S3-compatible), daily full + PITR ≥ 7 days, must run and pass a restore test before M1 (13).
+- Before every backfill on prod: a PBM on-demand backup, with its name recorded in the migration's `_migrations` doc.
 - A quarterly restore drill to staging, with an attached verify report.

@@ -6,7 +6,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 
 - Work:
   - **Ship the legacy click-deletion hotfix first** (02 §4: unscoped `Clicks.deleteMany` before the ownership check). It's a live data-loss and IDOR bug.
-  - Verify Atlas PITR (or set up nightly dumps to R2), restore a snapshot to staging, run the `db:audit` (02 §4), and resolve blocking audit items.
+  - Set up PBM full + PITR backups to R2 and the offsite weekly dump; do a point-in-time restore to staging; size the oplog; lock port 27018 to Forge IPs with TLS; run the `db:audit` (02 §4), and resolve blocking audit items.
   - Enable `changeStreamPreAndPostImages` on link and QR collections.
   - Mine 30 days of nginx and Cloudflare logs for every `/api/*` caller and every Host header seen. External callers (`/api/track-click`, the scheduler's `/api/polar/execute-downgrade`, `/api/cron/moderate`) need an owner in the routing table below.
   - Merge security Dependabot PRs into legacy and freeze legacy for features.

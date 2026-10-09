@@ -43,8 +43,8 @@ type LinkRules = {
 ### Target
 
 - **QR codes are a view onto a link.** `qr_codes.linkId` references any link. One link can have several QR designs, e.g. a flyer and a poster, each with its own `qrId`.
-- **Scan attribution** for newly created QR codes (open decision #4):
-  - **Option A (recommended):** the encoded URL is `https://shortn.at/{key}?q={qrPublicId}` with a 4–6 char id. The redirect service strips `q`, attributes `kind:"scan", qrId`, and forwards the remaining params. It's still a short, scan-friendly URL, and it gives per-design attribution.
+- **Scan attribution** for newly created QR codes (**decided: option A**):
+  - **Option A (chosen):** the encoded URL is `https://shortn.at/{key}?q={qrPublicId}` with a 4–6 char id. The redirect service strips `q`, attributes `kind:"scan", qrId`, and forwards the remaining params. It's still a short, scan-friendly URL, and it gives per-design attribution.
   - Option B: each QR gets its own dedicated key → bigger link table and more keys.
 - **Legacy QR codes keep working forever:** links with `qr.legacyBacking:true` attribute all hits as scans to their QR doc. `/qr/{key}` URLs resolve as before.
 - **Rendering:** the client-side editor keeps `qr-code-styling` (dots, corners, colors, logo, frame + caption). The design JSON is stored as-is (shape compatible with legacy `options`). Server-side export (PNG/SVG/PDF) renders **SVG** in the worker via `qrcode` (matrix) + our own SVG styling renderer that applies the same design JSON. It's converted to PNG with `resvg-js` (WASM, no native canvas) and to PDF for print. Exports are cached in R2 by design hash.

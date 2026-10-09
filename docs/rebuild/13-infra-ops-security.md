@@ -2,7 +2,7 @@
 
 ## Forge layout (production)
 
-One VPS to start (≥ 4 vCPU / 8 GB, EU region: Frankfurt or Amsterdam, near Atlas `eu-central`/`eu-west`), sized so redirects and Redis can move to a second box without code changes.
+One VPS to start (≥ 4 vCPU / 8 GB, EU region, chosen for the lowest RTT to the pi-cloud MongoDB host; measure it in P0), sized so redirects and Redis can move to a second box without code changes.
 
 | Process                    | Supervisor   | Instances             | Notes                                                                                                                                                                                          |
 | -------------------------- | ------------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -30,10 +30,15 @@ One VPS to start (≥ 4 vCPU / 8 GB, EU region: Frankfurt or Amsterdam, near Atl
 
 ## Backups & DR
 
-- Atlas: continuous backup with PITR (≥ 7 days) **verified in P0**. If the tier lacks it, a nightly `mongodump --gzip --oplog` to `shortn-backups` (worker cron) runs as a stopgap until the tier is upgraded.
+- **MongoDB (self-hosted on pi-cloud, 8.2.11, single-node replica set `rs0`):**
+  - **Percona Backup for MongoDB (PBM)** agent on the node: daily logical/physical full backup + continuous **oplog slicing (PITR)** to the R2 bucket `shortn-backups` (S3-compatible endpoint), retention 30 days full / 7 days PITR, encrypted at rest (SSE + PBM encryption key held outside the box).
+  - A second copy: a weekly `mongodump --gzip --oplog` to a different provider/location (e.g. the Forge box disk → offsite), so one compromised credential can't destroy both.
+  - The oplog is sized for ≥ 72 h at peak write rate (change-stream resume + PITR continuity).
+  - **Single point of failure:** one node means no failover and every maintenance window is downtime for dashboard writes. Redirects survive on Redis (03 degraded mode), but clicks queue in the stream. **Recommendation:** add a second data-bearing member plus an arbiter (or 3 data members) to `rs0`, ideally one off pi-cloud. This isn't blocking, but it's strongly advised before P4.
+  - Connection: TLS required (`tls=true`), SCRAM credentials per app with least-privilege roles (redirect: read on links/QR; worker: readWrite on analytics + sync; web/api: readWrite), and port 27018 open **only** to the Forge and staging IPs. Drop `directConnection` and use `replicaSet=rs0`, so drivers handle topology properly.
 - Redis: AOF `everysec` on the durable instance; RDB copied to R2 every 6 h. **Unprocessed click events exist only in the stream** (or the redirect spool file) until written to Mongo, so durable-instance health is monitored like a database. Cache and counters are rebuildable from Mongo.
 - **Restore drill** every quarter and before P7: restore to staging, run all migration `verify`s and the redirect golden suite.
-- RPO: ≤ 1 min (Mongo PITR); clicks ≤ ~1 s (Redis AOF). RTO: < 1 h for a full box loss (re-provision via Forge recipe + restore).
+- RPO: ≤ 1 min (PBM PITR); clicks ≤ ~1 s (Redis AOF). RTO: < 1 h for a full box loss (re-provision via Forge recipe + restore).
 
 ## Observability
 
@@ -54,7 +59,7 @@ One VPS to start (≥ 4 vCPU / 8 GB, EU region: Frankfurt or Amsterdam, near Atl
 - **Webhooks in:** Polar signature verification + idempotency (06). Webhooks out: HMAC-signed (10).
 - **Admin/impersonation:** kept, audited in `audit_log`, visible banner, time-boxed.
 - **Dependencies:** grouped Dependabot, `bun audit` in CI, lockfile committed.
-- **GDPR:** EU hosting (Atlas EU + Forge EU + Cloudflare), no raw IPs in new analytics, DPA + subprocessors page (Atlas, Cloudflare, Polar, Resend, Sentry, Google Web Risk), data export and deletion (05), and cookie consent only where needed (embeds on bio pages, since analytics is cookieless).
+- **GDPR:** EU hosting (pi-cloud + Forge EU + Cloudflare), raw IPs kept 90 days only, for abuse handling, DPA + subprocessors page (pi-cloud, Cloudflare, Polar, Resend, Sentry, Google Web Risk), data export and deletion (05), and cookie consent only where needed (embeds on bio pages, since analytics is cookieless).
 
 ## Email
 

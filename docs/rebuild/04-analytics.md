@@ -35,6 +35,7 @@ apps/redirect ──XADD──► Redis Stream `clicks:stream`
 ## Retention & privacy
 
 - Events contain no raw IP and no full UA string (only parsed fields + `uaHash`). The data is pseudonymous at most.
+- **Raw IPs are kept for 90 days (decided)** in `click_ips { sid, ip, ts }`, a regular collection with a TTL index of 90 days, for abuse and fraud investigation only. It's not used in any dashboard, and access is admin-only and audited.
 - Default retention is unlimited for events and rollups. A per-plan _query window_ exists (e.g. free: 30 days visible; data is kept, so an upgrade reveals history). That's honest and drives upgrades.
 - Legacy `clicks` (with raw IPs) are archived, never mutated. The retention/anonymization decision is in 02 C4.
 - The privacy page and DPA are updated to describe this pipeline (13).
@@ -59,9 +60,13 @@ analytics.query({
 
 - CSV/JSON export of raw events (bounded by plan) and of aggregates runs as a BullMQ job. It streams from Mongo → CSV (papaparse unparse stream) → R2, then emails or notifies a signed URL valid for 24 h. This replaces the synchronous `json2csv` generation in server actions.
 
-## Search (decision)
+## Search (decided: Meilisearch)
 
-The legacy code has both Meilisearch and Atlas Search env vars. Recommendation: **Atlas Search** on `links`, `qr_codes`, `bio_pages` and `campaigns`. There's no second datastore to sync, it supports compound filters by `workspaceId`, and the indexes are defined in `packages/db/indexes.ts`. Keyset-paginated list queries cover the 90% case without search at all.
+The database is self-hosted, so Atlas Search isn't available. **Meilisearch** stays, run self-hosted on the Forge box (or pi-cloud), bound to the private network with a master key.
+
+- Indexes: `links`, `qr_codes`, `bio_pages`, `campaigns`. Each has `workspaceId` as a filterable attribute, and every query sets the filter server-side with a **tenant token** scoped to the workspace, so the client never builds the filter.
+- Sync: the worker's change-stream consumer (02 §3a.3) upserts and deletes documents in Meilisearch, batched every 1 s. The resume token is persisted separately from the cache-invalidation consumer. A nightly full reindex job diffs counts and repairs drift.
+- Meilisearch is derived data. Losing it costs a reindex, never data. List pages work without it (keyset pagination on Mongo), and search degrades to a prefix match on `key` if Meilisearch is down.
 
 ## Acceptance
 
