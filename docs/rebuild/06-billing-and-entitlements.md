@@ -47,6 +47,10 @@ export const plans = {
 
 Enterprise is sold through a per-customer Polar product (`metadata.shortn_plan = "enterprise"`, contract values in metadata), created from an internal admin action. The checkout link goes by email; there's no self-serve checkout.
 
+### Currency (decided 2026-10-09)
+
+Polar products stay priced in **USD** (Basic $5, Plus $15, Pro $25 a month, identical in production and the `Shortn.at - Staging` sandbox org). The UI shows prices in **EUR using a live conversion**: a daily ECB reference-rate fetch cached in Redis (`fx:usd:eur`, 24 h TTL, last-known value kept if the fetch fails), labelled "≈ €X, billed as $Y" so the charged amount is never misstated. Checkout and invoices stay in USD.
+
 ### Add-ons (decided)
 
 | Add-on                 | Price                 | Available on                              | Effect                                                                       |
