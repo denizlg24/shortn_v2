@@ -12,6 +12,7 @@ import QRCodeV2 from "@/models/url/QRCodeV2";
 import { TagT } from "@/models/url/Tag";
 import { fetchApi } from "@/lib/utils";
 import Clicks from "@/models/url/Click";
+import { archiveAndDeleteClicks } from "@/lib/click-archive";
 import { parse } from "json2csv";
 import { Campaigns, ICampaign } from "@/models/url/Campaigns";
 import { getUserPlan } from "@/app/actions/polarActions";
@@ -295,8 +296,12 @@ export const deleteShortn = async (urlCode: string) => {
       };
     }
     const sub = user?.sub;
+    const ownedURL = await UrlV3.exists({ urlCode, sub });
+    if (!ownedURL) {
+      return { success: true, deleted: urlCode };
+    }
+    await archiveAndDeleteClicks({ sub, urlCode, type: "click" });
     const foundURL = await UrlV3.findOneAndDelete({ urlCode, sub });
-    await Clicks.deleteMany({ urlCode, type: "click" });
     if (!foundURL) {
       return { success: true, deleted: urlCode };
     }
@@ -481,7 +486,7 @@ export const updateShortnData = async ({
 
     if (updateCode) {
       await Clicks.updateMany(
-        { type: "click", urlCode },
+        { type: "click", urlCode, sub },
         { urlCode: custom_code },
       );
     }
