@@ -25,7 +25,7 @@ export function getMongoClient(config: MongoConfig): Promise<MongoClient> {
     maxPoolSize: config.maxPoolSize ?? 20,
   });
   const connecting = client.connect().catch((error: Error) => {
-    singleton = undefined;
+    if (singleton?.client === client) singleton = undefined;
     throw error;
   });
   singleton = { config, client, connecting };

@@ -1,17 +1,22 @@
+import { physicalNames, legacyCollectionKeys } from "./collections";
+import type { PhysicalNames } from "./collections";
 import { isDeepStrictEqual } from "node:util";
 import type { Db, IndexDescription, IndexDescriptionInfo } from "mongodb";
-export const legacyCollections = [
-  "urlv3s",
-  "qrcodesv2",
-  "biopages",
+export const legacyCollections = legacyCollectionKeys.map(
+  (key) => physicalNames[key],
+);
+const imageCollections = [
+  "links",
+  "qr_codes",
+  "bio_pages",
   "campaigns",
   "tags",
-];
+] as const;
 const partial = (field: string) => ({
   partialFilterExpression: { [field]: { $type: "string" } },
 });
 export const desiredIndexes: Record<string, IndexDescription[]> = {
-  urlv3s: [
+  [physicalNames.links]: [
     {
       name: "v2_domain_key",
       key: { domain: 1, key: 1 },
@@ -27,7 +32,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
     { name: "v2_workspace_tags", key: { workspaceId: 1, tagIds: 1 } },
     { name: "v2_workspace_campaign", key: { workspaceId: 1, campaignId: 1 } },
   ],
-  qrcodesv2: [
+  [physicalNames.qr_codes]: [
     {
       name: "v2_public_id",
       key: { publicId: 1 },
@@ -35,16 +40,20 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("publicId"),
     },
   ],
-  click_events: [{ name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } }],
-  click_rollups: [
+  [physicalNames.click_events]: [
+    { name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } },
+  ],
+  [physicalNames.click_rollups]: [
     { name: "v2_link_day", key: { linkId: 1, day: 1 }, unique: true },
     { name: "v2_workspace_day", key: { workspaceId: 1, day: 1 } },
   ],
-  workspaces: [{ name: "v2_workspace_slug", key: { slug: 1 }, unique: true }],
-  workspace_members: [
+  [physicalNames.workspaces]: [
+    { name: "v2_workspace_slug", key: { slug: 1 }, unique: true },
+  ],
+  [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
   ],
-  tags: [
+  [physicalNames.tags]: [
     {
       name: "v2_tag_name",
       key: { workspaceId: 1, nameLower: 1 },
@@ -52,10 +61,10 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("nameLower"),
     },
   ],
-  campaigns: [
+  [physicalNames.campaigns]: [
     { name: "v2_workspace_campaigns", key: { workspaceId: 1, createdAt: -1 } },
   ],
-  biopages: [
+  [physicalNames.bio_pages]: [
     {
       name: "v2_bio_handle",
       key: { handle: 1 },
@@ -69,23 +78,29 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       ...partial("customDomain"),
     },
   ],
-  bio_aliases: [{ name: "v2_bio_alias", key: { slug: 1 }, unique: true }],
-  domains: [{ name: "v2_hostname", key: { hostname: 1 }, unique: true }],
-  subscriptions: [
+  [physicalNames.bio_aliases]: [
+    { name: "v2_bio_alias", key: { slug: 1 }, unique: true },
+  ],
+  [physicalNames.domains]: [
+    { name: "v2_hostname", key: { hostname: 1 }, unique: true },
+  ],
+  [physicalNames.subscriptions]: [
     {
       name: "v2_polar_subscription",
       key: { polarSubscriptionId: 1 },
       unique: true,
     },
   ],
-  usage_periods: [
+  [physicalNames.usage_periods]: [
     {
       name: "v2_workspace_period",
       key: { workspaceId: 1, period: 1 },
       unique: true,
     },
   ],
-  api_keys: [{ name: "v2_hashed_key", key: { hashedKey: 1 }, unique: true }],
+  [physicalNames.api_keys]: [
+    { name: "v2_hashed_key", key: { hashedKey: 1 }, unique: true },
+  ],
 };
 export function equivalentIndex(
   desired: IndexDescription,
@@ -105,14 +120,31 @@ export function equivalentIndex(
 }
 export async function syncIndexes(
   db: Db,
-  options: { dryRun?: boolean; log?: (message: string) => void } = {},
+  options: {
+    dryRun?: boolean;
+    log?: (message: string) => void;
+    physicalNames?: PhysicalNames;
+  } = {},
 ) {
   const log = options.log ?? console.log;
   const present = await db.listCollections({}, { nameOnly: false }).toArray();
-  for (const [name, desired] of Object.entries(desiredIndexes)) {
+  const names = options.physicalNames ?? physicalNames;
+  for (const key of legacyCollectionKeys)
+    if (!present.some((item) => item.name === names[key]))
+      throw new Error(
+        `Missing legacy collection: ${names[key]}; refusing index sync`,
+      );
+  for (const [original, desired] of Object.entries(desiredIndexes)) {
+    const key = Object.entries(physicalNames).find(
+      ([, name]) => name === original,
+    )?.[0];
+    const name = key
+      ? (Object.entries(names).find(([candidate]) => candidate === key)?.[1] ??
+        original)
+      : original;
     const info = present.find((item) => item.name === name);
     if (!info && !options.dryRun) {
-      if (name === "click_events")
+      if (name === names.click_events)
         await db.createCollection(name, {
           timeseries: {
             timeField: "ts",
@@ -149,7 +181,7 @@ export async function syncIndexes(
       )
         log(`drop suggestion (P7 review only): ${name}.${index.name}`);
     if (
-      legacyCollections.includes(name) &&
+      imageCollections.some((key) => names[key] === name) &&
       !info?.options?.changeStreamPreAndPostImages?.enabled
     ) {
       log(

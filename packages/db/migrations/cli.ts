@@ -1,5 +1,6 @@
+import { confirmMongoTarget } from "../cli-target";
 import { closeMongoClient, getMongoClient } from "../client";
-import { runMigrations } from "./runner";
+import { runMigrations, validateOptions } from "./runner";
 import type { Migration, RunnerOptions } from "./runner";
 // Production data migrations land in subsequent phases. Test fixtures are never registered here.
 const migrations: Migration[] = [];
@@ -7,7 +8,9 @@ const args = process.argv.slice(2);
 const options: RunnerOptions = {};
 for (let i = 0; i < args.length; i++) {
   const arg = args[i];
-  if (arg === "--dry-run") options.dryRun = true;
+  if (arg === "--yes") continue;
+  else if (arg === "--confirm-down") options.confirmDown = true;
+  else if (arg === "--dry-run") options.dryRun = true;
   else if (arg === "--verify-only") options.verifyOnly = true;
   else if (arg === "--confirm-contract") options.confirmContract = true;
   else if (arg === "--down") options.direction = "down";
@@ -23,12 +26,14 @@ for (let i = 0; i < args.length; i++) {
     else options.batchDelayMs = number;
   } else throw new Error(`Unknown argument: ${arg}`);
 }
+validateOptions(migrations, options);
+const url = process.env.MONGODB_URL;
+const database = process.env.MONGODB_DB;
+if (!url || !database)
+  throw new Error("Set MONGODB_URL and MONGODB_DB explicitly");
+confirmMongoTarget(url, database, args);
 if (!migrations.length) console.log("No production migrations registered yet");
 else {
-  const url = process.env.MONGODB_URL;
-  const database = process.env.MONGODB_DB;
-  if (!url || !database)
-    throw new Error("Set MONGODB_URL and MONGODB_DB explicitly");
   try {
     const client = await getMongoClient({ url, database });
     await runMigrations(client, client.db(database), migrations, options);
