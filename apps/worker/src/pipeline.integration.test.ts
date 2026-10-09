@@ -10,7 +10,13 @@ import { createClickQueue } from "../../redirect/src/clicks";
 import { createResolver, mongoLinkLoader } from "../../redirect/src/resolver";
 import { createIngest, ingestGroup } from "./ingest";
 import { createInvalidator } from "./invalidator";
-import { fillEventWorkspaces, refreshRecentRollups, trimStream } from "./jobs";
+import {
+  fillEventWorkspaces,
+  refreshRecentRollups,
+  runContinuousMigrations,
+  trimStream,
+} from "./jobs";
+import type { Migration, MigrationState } from "@shortn/db";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 const cacheUrl = process.env.REDIS_TEST_URL;
@@ -278,4 +284,47 @@ const browser =
     expect(await durable.get("cs:link-invalidate:token")).toBeTruthy();
     await invalidateLinks(cache, "shortn.at", [code]);
   }, 30_000);
+
+  test("continuous migrations repeat once completed, including runs a dead container left behind", async () => {
+    const ran: string[] = [];
+    const migration = (id: string): Migration => ({
+      id,
+      phase: "expand",
+      continuous: true,
+      async up() {
+        ran.push(id);
+      },
+      async verify() {
+        return { ok: true, counts: {}, samples: [], discrepancies: [] };
+      },
+    });
+    const report = { ok: true, counts: {}, samples: [], discrepancies: [] };
+    await db.collection<MigrationState>("_migrations").insertMany([
+      { _id: "0101-applied", status: "applied", verifyReport: report },
+      { _id: "0102-interrupted", status: "running", verifyReport: report },
+      { _id: "0103-reverted", status: "reverted", verifyReport: report },
+      { _id: "0104-first-run-pending", status: "running" },
+    ]);
+    const selected = await runContinuousMigrations(
+      client,
+      db,
+      [
+        "0101-applied",
+        "0102-interrupted",
+        "0103-reverted",
+        "0104-first-run-pending",
+        "0105-never-run",
+      ].map(migration),
+      () => {},
+    );
+    expect(selected).toEqual(["0101-applied", "0102-interrupted"]);
+    expect(ran).toEqual(["0101-applied", "0102-interrupted"]);
+    expect(
+      (
+        await db
+          .collection<MigrationState>("_migrations")
+          .findOne({ _id: "0102-interrupted" })
+      )?.status,
+    ).toBe("applied");
+  });
 });
