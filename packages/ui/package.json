@@ -1,0 +1,58 @@
+{
+  "name": "@shortn/ui",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens.css": "./src/tokens.css",
+    "./theme.css": "./src/theme.css"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p playground",
+    "test": "bun test --pass-with-no-tests",
+    "build": "bun run build:playground",
+    "dev:playground": "vite --config playground/vite.config.ts",
+    "build:playground": "vite build --config playground/vite.config.ts",
+    "preview:playground": "vite preview --config playground/vite.config.ts",
+    "check:tokens": "bun scripts/check-tokens.ts",
+    "review": "bun scripts/capture.ts"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "dependencies": {
+    "@tanstack/react-table": "8.21.3",
+    "@tanstack/react-virtual": "3.14.13",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "cmdk": "1.1.1",
+    "lucide-react": "1.53.0",
+    "radix-ui": "1.7.0",
+    "recharts": "3.10.1",
+    "sonner": "2.0.8",
+    "tailwind-merge": "3.7.0",
+    "uqr": "0.1.3"
+  },
+  "devDependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@happy-dom/global-registrator": "20.14.6",
+    "@shortn/config": "workspace:*",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "6.1.2",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "playwright-core": "1.64.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "tailwindcss": "4.3.3",
+    "vite": "8.3.4"
+  }
+}
