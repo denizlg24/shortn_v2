@@ -1,8 +1,5 @@
-import {
-  closeMongoClient,
-  getMongoClient,
-  productionMigrations,
-} from "@shortn/db";
+import { closeMongoClient, getMongoClient } from "@shortn/db";
+import { productionMigrations } from "@shortn/db/migrations";
 import { parseEnv, workerEnv } from "@shortn/env";
 import { createRedisClients } from "@shortn/redis";
 import { hostname } from "node:os";

@@ -11,24 +11,9 @@ import {
   workspaceMaps,
 } from "./helpers";
 import type { Migration, MigrationContext } from "./runner";
+import { personalWorkspaceSlug } from "../workspace-slug";
 
 const createdBy = "migration:0002-workspaces";
-
-function slugFor(user: Document): string {
-  const source =
-    str(user.username) ??
-    str(user.name) ??
-    str(user.email)?.split("@")[0] ??
-    "workspace";
-  const base =
-    source
-      .normalize("NFKD")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "workspace";
-  return `${base}-${String(user._id).slice(-6)}`;
-}
 
 // Owned by `sub` (BioPage.userId also stores the sub, bioPageActions.ts:42).
 const bySubCollections = [
@@ -100,7 +85,7 @@ export const workspaces: Migration = {
             filter: { ownerUserId: String(user._id), personal: true },
             update: {
               $setOnInsert: {
-                slug: slugFor(user),
+                slug: personalWorkspaceSlug(user),
                 name: str(user.name) ?? str(user.username) ?? "Personal",
                 ownerUserId: String(user._id),
                 personal: true,

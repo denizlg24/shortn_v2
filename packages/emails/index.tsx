@@ -1,0 +1,111 @@
+import { render } from "@react-email/components";
+import type { ReactElement } from "react";
+import { Resend } from "resend";
+import { messages, type Locale } from "./messages";
+import {
+  ConfirmEmailChange,
+  EmailVerified,
+  ResetPassword,
+  VerifyEmail,
+  WorkspaceInvite,
+} from "./templates/account";
+
+export { isLocale, locales, messages, type Locale } from "./messages";
+
+export interface MailerConfig {
+  apiKey: string;
+  from: string;
+  // Comma-separated addresses or "@domain" suffixes. When set, every other
+  // recipient is dropped, so staging can't reach real customers (15).
+  allowlist?: string | undefined;
+}
+
+export function recipientAllowed(allowlist: string | undefined, to: string) {
+  if (!allowlist?.trim()) return true;
+  const address = to.trim().toLowerCase();
+  return allowlist
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .filter(Boolean)
+    .some((entry) =>
+      entry.startsWith("@") ? address.endsWith(entry) : address === entry,
+    );
+}
+
+export function createMailer(config: MailerConfig) {
+  const resend = new Resend(config.apiKey);
+  async function send(to: string, subject: string, element: ReactElement) {
+    if (!recipientAllowed(config.allowlist, to)) {
+      console.info("mail dropped by allowlist", { subject });
+      return;
+    }
+    const html = await render(element);
+    const text = await render(element, { plainText: true });
+    const { error } = await resend.emails.send({
+      from: config.from,
+      to,
+      subject,
+      html,
+      text,
+    });
+    if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
+  }
+  return {
+    verifyEmail(input: {
+      to: string;
+      locale: Locale;
+      name: string;
+      url: string;
+      reason: "signup" | "change";
+    }) {
+      const t = messages[input.locale].verify;
+      return send(
+        input.to,
+        input.reason === "change" ? t.changeSubject : t.subject,
+        <VerifyEmail {...input} />,
+      );
+    },
+    emailVerified(input: { to: string; locale: Locale; url: string }) {
+      return send(
+        input.to,
+        messages[input.locale].verified.subject,
+        <EmailVerified {...input} />,
+      );
+    },
+    resetPassword(input: { to: string; locale: Locale; url: string }) {
+      return send(
+        input.to,
+        messages[input.locale].reset.subject,
+        <ResetPassword {...input} />,
+      );
+    },
+    confirmEmailChange(input: {
+      to: string;
+      locale: Locale;
+      newEmail: string;
+      url: string;
+    }) {
+      return send(
+        input.to,
+        messages[input.locale].emailChange.subject,
+        <ConfirmEmailChange {...input} />,
+      );
+    },
+    workspaceInvite(input: {
+      to: string;
+      locale: Locale;
+      inviter: string;
+      workspace: string;
+      role: "admin" | "member" | "viewer";
+      url: string;
+    }) {
+      return send(
+        input.to,
+        messages[input.locale].invite.subject(input.workspace),
+        <WorkspaceInvite {...input} />,
+      );
+    },
+  };
+}
+
+export type Mailer = ReturnType<typeof createMailer>;

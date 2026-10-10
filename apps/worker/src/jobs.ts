@@ -1,6 +1,7 @@
 import { recomputeRollups, utcDay } from "@shortn/core";
-import { physicalNames, runMigrations } from "@shortn/db";
-import type { Migration, MigrationState } from "@shortn/db";
+import { physicalNames } from "@shortn/db";
+import { runMigrations } from "@shortn/db/migrations";
+import type { Migration, MigrationState } from "@shortn/db/migrations";
 import { keys } from "@shortn/redis";
 import type { Redis } from "ioredis";
 import type { Db, MongoClient, ObjectId } from "mongodb";

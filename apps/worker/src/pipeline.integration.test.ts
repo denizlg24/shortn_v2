@@ -16,7 +16,7 @@ import {
   runContinuousMigrations,
   trimStream,
 } from "./jobs";
-import type { Migration, MigrationState } from "@shortn/db";
+import type { Migration, MigrationState } from "@shortn/db/migrations";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 const cacheUrl = process.env.REDIS_TEST_URL;

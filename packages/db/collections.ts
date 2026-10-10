@@ -12,6 +12,7 @@ export const defaultPhysicalNames = {
   asset_migrations: "asset_migrations",
   workspaces: "workspaces",
   workspace_members: "workspace_members",
+  workspace_invites: "workspace_invites",
   tags: "tags",
   campaigns: "campaigns",
   bio_pages: "biopages",

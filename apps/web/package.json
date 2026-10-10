@@ -1,0 +1,45 @@
+{
+  "name": "@shortn/web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "dependencies": {
+    "@fontsource-variable/geist": "5.3.0",
+    "@fontsource-variable/geist-mono": "5.3.0",
+    "@shortn/auth": "workspace:*",
+    "@shortn/core": "workspace:*",
+    "@shortn/db": "workspace:*",
+    "@shortn/emails": "workspace:*",
+    "@shortn/env": "workspace:*",
+    "@shortn/redis": "workspace:*",
+    "@shortn/ui": "workspace:*",
+    "@tanstack/react-query": "5.104.1",
+    "better-auth": "1.4.18",
+    "ioredis": "6.0.0",
+    "lucide-react": "1.53.0",
+    "mongodb": "7.1.0",
+    "next": "16.3.8",
+    "next-intl": "4.14.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "4.6.5",
+    "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "tailwindcss": "4.3.3",
+    "@types/node": "24.10.1"
+  }
+}

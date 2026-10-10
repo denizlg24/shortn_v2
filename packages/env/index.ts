@@ -130,16 +130,56 @@ const cloudflare = {
   CF_API_TOKEN: secret("Cloudflare custom hostnames token"),
   CF_ZONE_ID: value(z.string().min(1), "replace-me", "Cloudflare zone ID"),
 };
+const oauth = {
+  AUTH_GITHUB_ID: value(z.string().min(1), "replace-me", "GitHub OAuth app id"),
+  AUTH_GITHUB_SECRET: secret("GitHub OAuth app secret"),
+  AUTH_GOOGLE_ID: value(
+    z.string().min(1),
+    "replace-me",
+    "Google OAuth client id",
+  ),
+  AUTH_GOOGLE_SECRET: value(
+    z.string().min(16),
+    "replace-me-google-client-secret",
+    "Google OAuth client secret (Google's format is shorter than 32)",
+  ),
+};
+export const polarEnvironment = value(
+  z.enum(["sandbox", "production"]),
+  "sandbox",
+  "Polar API environment",
+);
 export const webEnv = z
   .object({
     ...common,
-    ...r2,
-    ...billing,
-    ...mail,
-    ...security,
-    ...cloudflare,
     BETTER_AUTH_SECRET: secret("Authentication secret"),
-    BETTER_AUTH_URL: httpUrl("http://localhost:3000", "Authentication origin"),
+    BETTER_AUTH_URL: httpUrl(
+      "http://localhost:3000",
+      "Dashboard origin (app.shortn.at); auth cookies are host-only here",
+    ),
+    ...oauth,
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
+    POLAR_ENVIRONMENT: polarEnvironment,
+    RESEND_API_KEY: mail.RESEND_API_KEY,
+    MAIL_FROM: value(
+      z.string().min(3).default("Shortn <no-reply@shortn.at>"),
+      "Shortn <no-reply@shortn.at>",
+      "Sender for account and workspace email",
+    ),
+    MAIL_ALLOWLIST: value(
+      z.string().optional(),
+      "@denizlg24.com",
+      "Staging only: comma-separated recipients or @domains; others are dropped",
+    ),
+    PUBLIC_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Root site origin (shortn.at) for marketing and legal links",
+    ),
+    LINK_DOMAIN: value(
+      z.string().min(1).default("shortn.at"),
+      "shortn.at",
+      "Domain new links are created on",
+    ),
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3000),
       "3000",

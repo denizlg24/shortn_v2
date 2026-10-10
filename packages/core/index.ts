@@ -5,3 +5,5 @@ export * from "./links/decide";
 export * from "./clicks/message";
 export * from "./clicks/enrich";
 export * from "./analytics/rollups";
+export * from "./workspaces/authz";
+export * from "./workspaces/service";

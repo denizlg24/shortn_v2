@@ -144,6 +144,7 @@ export const qrCodeSchema = z.looseObject({
   urlId: text.optional(),
   options: z.looseObject({ data: z.httpUrl().optional() }).optional(),
 });
+export const workspaceRoles = ["owner", "admin", "member", "viewer"] as const;
 export const workspaceSchema = z.object({
   ...base,
   slug: text.min(1),
@@ -160,8 +161,19 @@ export const workspaceMemberSchema = z.object({
   ...base,
   workspaceId: objectId,
   userId: text,
-  role: z.enum(["owner", "admin", "member", "viewer"]),
+  role: z.enum(workspaceRoles),
   invitedBy: text.optional(),
+});
+export const workspaceInviteSchema = z.object({
+  ...base,
+  workspaceId: objectId,
+  email: text,
+  role: z.enum(["admin", "member", "viewer"]),
+  tokenHash: text,
+  invitedBy: text,
+  expiresAt: z.date(),
+  acceptedAt: z.date().optional(),
+  revokedAt: z.date().optional(),
 });
 export const clickEventSchema = z.object({
   _id: objectId.optional(),
@@ -345,6 +357,7 @@ export const schemas = {
   click_rollups: clickRollupSchema,
   workspaces: workspaceSchema,
   workspace_members: workspaceMemberSchema,
+  workspace_invites: workspaceInviteSchema,
   tags: tagSchema,
   campaigns: campaignSchema,
   bio_pages: bioPageSchema,

@@ -81,6 +81,11 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
+    { name: "v2_member_user", key: { userId: 1 } },
+  ],
+  [physicalNames.workspace_invites]: [
+    { name: "v2_invite_token", key: { tokenHash: 1 }, unique: true },
+    { name: "v2_invite_workspace", key: { workspaceId: 1, email: 1 } },
   ],
   [physicalNames.tags]: [
     {
