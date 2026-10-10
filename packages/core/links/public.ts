@@ -1,0 +1,199 @@
+import { physicalNames } from "@shortn/db";
+import { invalidateLinks, type InvalidationStore } from "@shortn/redis";
+import bcrypt from "bcryptjs";
+import { SignJWT } from "jose";
+import type { Db } from "mongodb";
+
+// Public pages a visitor reaches from the redirect: the password prompt, the
+// safety interstitial and the report form (14: these move to web in P4).
+
+export interface PublicLink {
+  key: string;
+  destination: string;
+  destinationHost: string;
+  passwordHint: string | null;
+  passwordProtected: boolean;
+  blocked: boolean;
+  disabledReason: string | null;
+  safetyStatus: string;
+  createdAt: string;
+  creatorName: string | null;
+}
+
+export async function publicLink(
+  db: Db,
+  key: string,
+): Promise<PublicLink | null> {
+  const doc = await db
+    .collection(physicalNames.links)
+    .findOne({ urlCode: key });
+  if (!doc || typeof doc.longUrl !== "string") return null;
+  let destinationHost = doc.longUrl;
+  try {
+    destinationHost = new URL(doc.longUrl).hostname;
+  } catch {
+    /* shown verbatim */
+  }
+  const creator =
+    typeof doc.sub === "string"
+      ? await db
+          .collection(physicalNames.user)
+          .findOne({ sub: doc.sub }, { projection: { name: 1 } })
+      : null;
+  const date = doc.date instanceof Date ? doc.date : doc._id.getTimestamp();
+  return {
+    key,
+    destination: doc.longUrl,
+    destinationHost,
+    passwordHint:
+      typeof doc.passwordHint === "string" ? doc.passwordHint : null,
+    passwordProtected: Boolean(doc.passwordProtected && doc.passwordHash),
+    blocked: Boolean(
+      doc.disabled ||
+      doc.safetyStatus === "blocked" ||
+      doc.safetyStatus === "malicious",
+    ),
+    disabledReason:
+      typeof doc.disabledReason === "string" ? doc.disabledReason : null,
+    safetyStatus:
+      typeof doc.safetyStatus === "string" ? doc.safetyStatus : "pending",
+    createdAt: date.toISOString(),
+    creatorName: typeof creator?.name === "string" ? creator.name : null,
+  };
+}
+
+export interface CounterStore {
+  incr(key: string): Promise<number>;
+  expire(key: string, seconds: number): Promise<number>;
+  del(key: string): Promise<number>;
+}
+
+async function bump(store: CounterStore, key: string, seconds: number) {
+  const count = await store.incr(key);
+  if (count === 1) await store.expire(key, seconds);
+  return count;
+}
+
+export type PasswordResult =
+  | { ok: true; token: string }
+  | {
+      ok: false;
+      error: "not_found" | "not_protected" | "rate_limited" | "wrong_password";
+    };
+
+// 03: 5 attempts per minute per IP+key, 50 per hour per key. Successful
+// attempts clear the IP counter, like legacy's resetRateLimit.
+export async function verifyLinkPassword(
+  deps: { db: Db; counters: CounterStore; linkAccessSecret: string },
+  input: { key: string; password: string; ipHash: string },
+): Promise<PasswordResult> {
+  const doc = await deps.db
+    .collection(physicalNames.links)
+    .findOne(
+      { urlCode: input.key },
+      { projection: { passwordProtected: 1, passwordHash: 1 } },
+    );
+  if (!doc) return { ok: false, error: "not_found" };
+  if (!doc.passwordProtected || typeof doc.passwordHash !== "string")
+    return { ok: false, error: "not_protected" };
+  const ipKey = `pwd:ip:${input.ipHash}:${input.key}`;
+  const linkKey = `pwd:link:${input.key}`;
+  const [perIp, perLink] = await Promise.all([
+    bump(deps.counters, ipKey, 60),
+    bump(deps.counters, linkKey, 3600),
+  ]);
+  if (perIp > 5 || perLink > 50) return { ok: false, error: "rate_limited" };
+  if (!(await bcrypt.compare(input.password, doc.passwordHash)))
+    return { ok: false, error: "wrong_password" };
+  await deps.counters.del(ipKey);
+  const token = await new SignJWT({ urlCode: input.key })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("24h")
+    .sign(new TextEncoder().encode(deps.linkAccessSecret));
+  return { ok: true, token };
+}
+
+// Same claims as legacy lib/confirmation-token.ts; the redirect accepts the
+// dedicated secret alongside legacy's during coexistence.
+export function confirmationToken(key: string, secret: string) {
+  return new SignJWT({ slug: key, purpose: "link-confirmation" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime("5m")
+    .sign(new TextEncoder().encode(secret));
+}
+
+export const reportReasons = [
+  "phishing",
+  "malware",
+  "spam",
+  "inappropriate",
+  "other",
+] as const;
+export type ReportReason = (typeof reportReasons)[number];
+
+// Port of legacy reportLink: one report per IP per link, 5 per IP per day,
+// and the third report disables the link pending review.
+export async function reportLink(
+  deps: {
+    db: Db;
+    counters: CounterStore;
+    cache: InvalidationStore;
+    linkDomain: string;
+  },
+  input: {
+    key: string;
+    reason: ReportReason;
+    details?: string | undefined;
+    ipHash: string;
+  },
+): Promise<{ ok: true } | { ok: false; error: "not_found" | "rate_limited" }> {
+  const day = new Date().toISOString().slice(0, 10);
+  const links = deps.db.collection(physicalNames.links);
+  const doc = await links.findOne(
+    { urlCode: input.key },
+    { projection: { _id: 1 } },
+  );
+  if (!doc) return { ok: false, error: "not_found" };
+  const reports = deps.db.collection(physicalNames.link_reports);
+  if (
+    await reports.findOne({ urlCode: input.key, reporterIpHash: input.ipHash })
+  )
+    return { ok: true };
+  if ((await bump(deps.counters, `report:${input.ipHash}:${day}`, 86_400)) > 5)
+    return { ok: false, error: "rate_limited" };
+  await reports.insertOne({
+    urlCode: input.key,
+    reason: input.reason,
+    ...(input.details?.trim()
+      ? { details: input.details.trim().slice(0, 1000) }
+      : {}),
+    reporterIpHash: input.ipHash,
+    status: "open",
+    createdAt: new Date(),
+  });
+  const updated = await links.findOneAndUpdate(
+    { _id: doc._id },
+    { $inc: { reportCount: 1, "safety.reportCount": 1 } },
+    { returnDocument: "after" },
+  );
+  if (updated && updated.reportCount >= 3 && !updated.disabled)
+    await links.updateOne(
+      { _id: doc._id },
+      {
+        $set: {
+          disabled: true,
+          flagged: true,
+          safetyStatus: "blocked",
+          disabledReason: "auto:report-threshold",
+          "safety.disabled": true,
+          "safety.flagged": true,
+          "safety.status": "blocked",
+          "safety.disabledReason": "auto:report-threshold",
+        },
+      },
+    );
+  await invalidateLinks(deps.cache, deps.linkDomain, [input.key]);
+  return { ok: true };
+}

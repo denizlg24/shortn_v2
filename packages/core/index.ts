@@ -19,3 +19,4 @@ export * from "./qr/service";
 export * from "./analytics/queries";
 export * from "./workspaces/members";
 export * from "./bio/service";
+export * from "./links/public";

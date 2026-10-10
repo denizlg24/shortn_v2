@@ -39,6 +39,10 @@ const envSchema = z.object({
     .string()
     .min(32, "INTERNAL_API_SECRET must be at least 32 characters"),
   WEB_RISK_API_KEY: z.string().nonempty().optional(),
+  // P4 coexistence: origin of the new dashboard (app.shortn.at).
+  NEW_APP_URL: z.string().url().optional(),
+  // Who sees the beta banner: "*", or comma-separated emails / @domains.
+  NEW_DASHBOARD_BETA: z.string().optional(),
   CRON_SECRET: z
     .string()
     .min(16, "CRON_SECRET must be at least 16 characters")

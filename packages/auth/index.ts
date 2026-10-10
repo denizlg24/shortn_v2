@@ -7,6 +7,7 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { username } from "better-auth/plugins/username";
 import { z } from "zod";
 import { requestGeo } from "./geo";
+import { handoff } from "./handoff";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -153,7 +154,12 @@ export function createAuth(config: AuthConfig) {
           unique: true,
           input: false,
         },
-        phone_number: { type: "string", defaultValue: null, input: true },
+        phone_number: {
+          type: "string",
+          defaultValue: null,
+          input: true,
+          required: false,
+        },
         links_this_month: { type: "number", defaultValue: 0, input: false },
         qr_codes_this_month: { type: "number", defaultValue: 0, input: false },
         redirects_this_month: { type: "number", defaultValue: 0, input: false },
@@ -323,6 +329,7 @@ export function createAuth(config: AuthConfig) {
         displayUsernameValidator: (value) =>
           /^[a-zA-Z0-9 _.-]+$/.test(value) && value.trim().length >= 3,
       }),
+      handoff({ db: () => handles().db }),
       polar({
         client: polarClient,
         createCustomerOnSignUp: true,
@@ -336,3 +343,4 @@ export function createAuth(config: AuthConfig) {
 export type Auth = ReturnType<typeof createAuth>;
 export type Session = Auth["$Infer"]["Session"];
 export { requestGeo } from "./geo";
+export { hashHandoffToken, safeNext } from "./handoff";

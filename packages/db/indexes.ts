@@ -84,6 +84,9 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
     { name: "v2_member_user", key: { userId: 1 } },
   ],
+  [physicalNames.handoff_tokens]: [
+    { name: "v2_handoff_ttl", key: { expiresAt: 1 }, expireAfterSeconds: 0 },
+  ],
   [physicalNames.billing_events]: [
     {
       name: "v2_billing_event_ttl",
