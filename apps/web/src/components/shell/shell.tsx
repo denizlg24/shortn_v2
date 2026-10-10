@@ -58,11 +58,16 @@ export function Shell({
     else setDrawerOpen(true);
   }, []);
 
+  const createLink = useCallback(
+    () => router.push(`/${workspace.slug}/links/new`),
+    [router, workspace.slug],
+  );
   useShellShortcuts({
     navigate,
     openPalette,
     openShortcuts,
     openWorkspaceMenu,
+    createLink,
   });
 
   const value = useMemo<ShellValue>(

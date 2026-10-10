@@ -192,13 +192,11 @@ if (!enabled)
         key: "before",
       });
       if (!created.ok) throw new Error(created.error);
-      await db
-        .collection(physicalNames.clicks)
-        .insertOne({
-          type: "click",
-          urlCode: "before",
-          sub: workspace.legacySub,
-        });
+      await db.collection(physicalNames.clicks).insertOne({
+        type: "click",
+        urlCode: "before",
+        sub: workspace.legacySub,
+      });
       await redis.set("link:shortn.at:before", "stale");
       const updated = await updateLink(ctx, created.value.id, {
         key: "after",
@@ -235,13 +233,11 @@ if (!enabled)
       const created = await createLink(ctx, { url: "https://a.com" });
       if (!created.ok) throw new Error(created.error);
       const linkId = new ObjectId(created.value.id);
-      await db
-        .collection(physicalNames.clicks)
-        .insertOne({
-          type: "click",
-          urlCode: created.value.key,
-          sub: workspace.legacySub,
-        });
+      await db.collection(physicalNames.clicks).insertOne({
+        type: "click",
+        urlCode: created.value.key,
+        sub: workspace.legacySub,
+      });
       await db
         .collection(physicalNames.campaigns)
         .insertOne({ title: "c", links: [linkId] });
@@ -319,6 +315,64 @@ if (!enabled)
         .findOne({ _id: new ObjectId(created.value.id) });
       expect(doc?.sub).toBeUndefined();
       expect(doc?.tags[0].sub).toBeUndefined();
+    });
+
+    test("explicit filters: status, created window, sort by clicks, numbered pages", async () => {
+      const { userId, workspace } = await personal();
+      await db.collection(physicalNames.subscriptions).insertOne({
+        workspaceId: workspace._id,
+        polarSubscriptionId: crypto.randomUUID(),
+        status: "active",
+        plan: "pro",
+        currentPeriodStart: new Date(Date.now() - 864e5),
+        currentPeriodEnd: new Date(Date.now() + 29 * 864e5),
+        cancelAtPeriodEnd: false,
+      });
+      const ctx = ctxFor(workspace, userId);
+      const made = [];
+      for (let i = 0; i < 5; i++) {
+        const r = await createLink(ctx, {
+          url: `https://a.com/${i}`,
+          ...(i === 0 ? { password: "x" } : {}),
+        });
+        if (!r.ok) throw new Error(r.error);
+        made.push(r.value);
+      }
+      await db
+        .collection(physicalNames.links)
+        .updateOne(
+          { _id: new ObjectId(made[3]?.id) },
+          { $set: { "clicks.total": 99 } },
+        );
+      await db
+        .collection(physicalNames.links)
+        .updateOne(
+          { _id: new ObjectId(made[4]?.id) },
+          { $set: { date: new Date("2020-01-01") } },
+        );
+      expect(
+        (await listLinks(ctx, { page: 1, status: "password" })).links.map(
+          (l) => l.id,
+        ),
+      ).toEqual([made[0]?.id ?? ""]);
+      expect(
+        (await listLinks(ctx, { page: 1, sort: "clicks" })).links[0]?.id,
+      ).toBe(made[3]?.id);
+      expect(
+        (
+          await listLinks(ctx, {
+            page: 1,
+            createdAfter: new Date("2025-01-01"),
+          })
+        ).total,
+      ).toBe(4);
+      const second = await listLinks(ctx, { page: 2, limit: 2 });
+      expect([
+        second.total,
+        second.page,
+        second.pages,
+        second.links.length,
+      ]).toEqual([5, 2, 3, 2]);
     });
 
     test("personal workspaces also list legacy links that M2 hasn't assigned yet", async () => {

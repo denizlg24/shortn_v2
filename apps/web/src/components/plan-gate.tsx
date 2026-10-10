@@ -6,7 +6,7 @@ import { Lock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { GatedFeature } from "@/lib/plan-features";
+import type { ExplainedFeature } from "@/lib/plan-features";
 import { useShell } from "./shell/shell-context";
 
 export const billingHref = (workspace: string) =>
@@ -34,7 +34,7 @@ export function PlanGate({
   plan,
   className,
 }: {
-  feature: GatedFeature;
+  feature: ExplainedFeature;
   plan: PlanId;
   className?: string | undefined;
 }) {

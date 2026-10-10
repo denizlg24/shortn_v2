@@ -1,0 +1,186 @@
+{
+  "title": "Páginas de bio",
+  "create": "Criar página de bio",
+  "count": "{used} / {limit}",
+  "viewOnly": "Só leitura",
+  "viewerReason": "Os leitores não podem criar nem alterar páginas de bio. Peça a um administrador do espaço de trabalho que altere a sua função.",
+  "copyUrl": "Copiar URL público",
+  "copied": "URL da página copiado",
+  "openPage": "Abrir página pública",
+  "openPageNamed": "Abrir {slug} num novo separador",
+  "savedSection": "{section} guardado",
+  "empty": {
+    "title": "Ainda não há páginas de bio",
+    "body": "Uma página de bio reúne os seus links numa só página em shortn.at/b/o-seu-nome.",
+    "bodyViewer": "As páginas de bio criadas neste espaço de trabalho aparecem aqui."
+  },
+  "columns": {
+    "page": "Página",
+    "url": "URL público",
+    "links": "Links",
+    "updated": "Atualizada",
+    "actions": "Ações"
+  },
+  "actions": {
+    "label": "Ações para {slug}",
+    "edit": "Editar página",
+    "delete": "Eliminar página"
+  },
+  "delete": {
+    "title": "Eliminar {slug}?",
+    "body": "{url} deixa de funcionar para os visitantes de imediato. Não é possível anular.",
+    "confirm": "Eliminar página",
+    "done": "{slug} eliminada"
+  },
+  "new": {
+    "title": "Nova página de bio",
+    "description": "Escolha o endereço que as pessoas vão visitar. A seguir adiciona links, redes sociais e cores.",
+    "slug": "Endereço",
+    "slugHint": "Letras minúsculas, números e hífenes, de 3 a 63 caracteres.",
+    "slugPlaceholder": "o-seu-nome",
+    "titleLabel": "Título",
+    "titleHint": "Aparece no topo da página. Por omissão, é o endereço.",
+    "submit": "Criar página",
+    "cancel": "Cancelar",
+    "atLimit": "Já usou as {limit} páginas de bio que o seu plano inclui."
+  },
+  "mobileView": {
+    "label": "Mostrar",
+    "edit": "Editar",
+    "preview": "Pré-visualizar"
+  },
+  "preview": {
+    "label": "Pré-visualização em direto",
+    "frame": "Pré-visualização da página",
+    "unsaved": "A pré-visualização inclui alterações por guardar. Os visitantes veem cada secção depois de a guardar.",
+    "live": "Os visitantes veem isto em {url}."
+  },
+  "profile": {
+    "title": "Perfil",
+    "description": "A quem pertence a página.",
+    "save": "Guardar perfil",
+    "name": "Título",
+    "bio": "Descrição",
+    "bioHint": "Aparece numa linha por baixo do título.",
+    "avatar": "URL do avatar",
+    "avatarHint": "Uma imagem quadrada fica melhor.",
+    "shape": "Forma do avatar",
+    "shapes": {
+      "circle": "Círculo",
+      "rounded": "Arredondado",
+      "square": "Quadrado"
+    },
+    "errors": {
+      "titleRequired": "Dê um título à página.",
+      "avatarUrl": "Introduza o URL completo do avatar, a começar por https://."
+    }
+  },
+  "links": {
+    "title": "Links",
+    "description": "Os botões da página, por esta ordem. Arraste a pega ou use as setas para reordenar.",
+    "save": "Guardar links",
+    "empty": "Ainda não há links na página.",
+    "listLabel": "Links na página",
+    "titleLabel": "Texto do botão para {key}",
+    "imageLabel": "URL da imagem para {key}",
+    "imagePlaceholder": "URL da imagem (opcional)",
+    "moveUp": "Subir {title}",
+    "moveDown": "Descer {title}",
+    "remove": "Remover {title}",
+    "moved": "{title} movido para a posição {position} de {total}",
+    "removed": "{title} removido",
+    "added": "{title} adicionado",
+    "add": "Adicionar link",
+    "full": "Uma página tem até {max} links.",
+    "errors": {
+      "image": "O link {position} precisa de um URL de imagem completo, a começar por https://."
+    }
+  },
+  "socials": {
+    "title": "Redes sociais",
+    "description": "Ícones por baixo do título, com ligação aos seus perfis.",
+    "save": "Guardar redes sociais",
+    "empty": "Ainda não há redes sociais.",
+    "listLabel": "Perfis sociais",
+    "platform": "Plataforma da rede social {position}",
+    "url": "URL de {platform}",
+    "urlPlaceholder": "https://",
+    "remove": "Remover {platform}",
+    "add": "Adicionar rede social",
+    "platforms": {
+      "instagram": "Instagram",
+      "twitter": "X (Twitter)",
+      "github": "GitHub",
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "whatsapp": "WhatsApp",
+      "website": "Site"
+    },
+    "errors": {
+      "url": "A rede social {position} precisa de um URL."
+    }
+  },
+  "appearance": {
+    "title": "Aspeto",
+    "description": "Cores, botões, tipo de letra e cabeçalho.",
+    "save": "Guardar aspeto",
+    "colors": {
+      "background": "Fundo",
+      "textColor": "Texto",
+      "primaryColor": "Botões",
+      "buttonTextColor": "Texto dos botões",
+      "headerBackgroundColor": "Cor do cabeçalho"
+    },
+    "pick": {
+      "background": "Escolher a cor de fundo",
+      "textColor": "Escolher a cor do texto",
+      "primaryColor": "Escolher a cor dos botões",
+      "buttonTextColor": "Escolher a cor do texto dos botões",
+      "headerBackgroundColor": "Escolher a cor do cabeçalho",
+      "socialColor": "Escolher a cor dos ícones"
+    },
+    "backgroundHint": "O fundo também aceita qualquer fundo CSS, como um gradiente.",
+    "buttonStyle": "Botões",
+    "buttonStyles": {
+      "rounded": "Arredondados",
+      "pill": "Cápsula",
+      "square": "Mosaicos quadrados"
+    },
+    "font": "Tipo de letra",
+    "fontHint": "A página carrega-o a partir do Google Fonts.",
+    "fontDefault": "Predefinido",
+    "header": "Cabeçalho",
+    "headerHint": "Uma faixa de cor ou uma imagem atrás do avatar.",
+    "headerStyles": {
+      "none": "Nenhum",
+      "centered": "Centrado",
+      "left-aligned": "À esquerda",
+      "right-aligned": "À direita"
+    },
+    "headerImage": "URL da imagem do cabeçalho",
+    "socialColor": "Ícones sociais",
+    "socialColors": {
+      "original": "Cores das marcas",
+      "custom": "Uma só cor"
+    },
+    "socialColorValue": "Cor dos ícones",
+    "errors": {
+      "color": "As cores precisam de um valor hexadecimal como #0f172b, um nome de cor CSS ou rgb().",
+      "background": "O fundo pode ter até 512 caracteres.",
+      "headerImage": "Introduza o URL completo da imagem do cabeçalho, a começar por https://."
+    }
+  },
+  "errors": {
+    "slugTaken": "Esse endereço já está ocupado. Experimente outro.",
+    "invalidSlug": "Use de 3 a 63 letras minúsculas, números e hífenes, a começar e a acabar numa letra ou número.",
+    "limitReached": "Já usou as {limit} páginas de bio que o seu plano inclui.",
+    "linkNotFound": "Um dos links já não existe. Remova-o e guarde novamente.",
+    "forbidden": "Não tem permissão para fazer isto neste espaço de trabalho.",
+    "notFound": "Esta página de bio já não existe. Pode ter sido eliminada.",
+    "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
+    "network": "Não foi possível contactar o Shortn. Verifique a sua ligação e tente novamente.",
+    "generic": "Algo correu mal do nosso lado. Tente novamente.",
+    "copyFailed": "Não foi possível copiar para a área de transferência."
+  }
+}

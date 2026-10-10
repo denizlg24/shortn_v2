@@ -7,5 +7,26 @@
     "es": "Español"
   },
   "terms": "Terms",
-  "privacy": "Privacy"
+  "privacy": "Privacy",
+  "copied": "Copied to the clipboard",
+  "copyFailed": "Couldn't copy to the clipboard.",
+  "error": {
+    "title": "This page didn't load",
+    "body": "Your data is safe; this is a connection problem. Try again in a moment.",
+    "retry": "Retry"
+  },
+  "linkPicker": {
+    "add": "Add link",
+    "search": "Search by key, title or URL",
+    "searching": "Searching…",
+    "empty": "No links match.",
+    "failed": "Links didn't load. Close this and try again.",
+    "allLinks": "All links"
+  },
+  "tags": {
+    "placeholder": "Add tags",
+    "search": "Search or create a tag",
+    "empty": "No tags yet. Type to create one.",
+    "create": "Create “{tag}”"
+  }
 }

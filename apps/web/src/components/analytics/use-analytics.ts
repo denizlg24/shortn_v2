@@ -8,7 +8,7 @@ import type { ActionResult } from "@/server/actions/result";
 import { resolveRange, type AnalyticsQuery } from "./query";
 
 export type AnalyticsScope =
-  { type: "workspace" } | { type: "link"; id: string };
+  { type: "workspace" } | { type: "link" | "qr" | "campaign"; id: string };
 
 /** Pass a memoized object: a new identity triggers a new request. */
 export interface AnalyticsRequest {

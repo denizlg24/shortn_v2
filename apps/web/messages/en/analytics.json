@@ -83,5 +83,9 @@
       "xr": "XR headset",
       "embedded": "Embedded"
     }
+  },
+  "export": {
+    "label": "Export CSV",
+    "failed": "The export failed. Try again."
   }
 }

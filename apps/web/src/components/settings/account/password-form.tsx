@@ -15,6 +15,7 @@ import {
   serverPasswordMinLength,
 } from "@/components/auth/rules";
 import { useAuthForm } from "@/components/auth/use-auth-form";
+import { setPasswordAction } from "@/server/actions/account";
 import { Notice, SettingsSection } from "../section";
 import { providerName } from "./providers";
 import { strong } from "@/lib/rich-text";
@@ -30,36 +31,43 @@ export function PasswordSection({
 }) {
   const t = useTranslations("settings.account.password");
   const format = useFormatter();
-  const [updated, setUpdated] = useState<"kept" | "revoked" | null>(null);
+  const [updated, setUpdated] = useState<"kept" | "revoked" | "set" | null>(
+    null,
+  );
   const [round, setRound] = useState(0);
-
-  if (!hasPassword)
-    return (
-      <SettingsSection
-        title={t("title")}
-        description={t.rich("none", {
-          providers: format.list(providers.map(providerName), {
-            type: "disjunction",
-          }),
-          email,
-          strong,
-        })}
-      />
-    );
+  const mode = hasPassword ? "change" : "set";
 
   return (
-    <SettingsSection title={t("title")}>
+    <SettingsSection
+      title={t("title")}
+      {...(mode === "set"
+        ? {
+            description: t.rich("none", {
+              providers: format.list(providers.map(providerName), {
+                type: "disjunction",
+              }),
+              email,
+              strong,
+            }),
+          }
+        : {})}
+    >
       <PasswordForm
         key={round}
-        onUpdated={(revoked) => {
-          setUpdated(revoked ? "revoked" : "kept");
+        mode={mode}
+        onUpdated={(result) => {
+          setUpdated(result);
           setRound((value) => value + 1);
         }}
         onEdit={() => setUpdated(null)}
       />
       {updated ? (
         <Notice tone="success" live="status">
-          {updated === "revoked" ? t("updatedRevoked") : t("updated")}
+          {updated === "set"
+            ? t("set")
+            : updated === "revoked"
+              ? t("updatedRevoked")
+              : t("updated")}
         </Notice>
       ) : null}
     </SettingsSection>
@@ -67,10 +75,12 @@ export function PasswordSection({
 }
 
 function PasswordForm({
+  mode,
   onUpdated,
   onEdit,
 }: {
-  onUpdated: (revokedOthers: boolean) => void;
+  mode: "change" | "set";
+  onUpdated: (result: "kept" | "revoked" | "set") => void;
   onEdit: () => void;
 }) {
   const t = useTranslations("settings");
@@ -83,9 +93,10 @@ function PasswordForm({
   const form = useAuthForm(
     { current: "", next: "" },
     (values) => ({
-      current: values.current
-        ? undefined
-        : t("account.password.errors.currentRequired"),
+      current:
+        mode === "set" || values.current
+          ? undefined
+          : t("account.password.errors.currentRequired"),
       next: !values.next
         ? tAuth("validation.passwordRequired")
         : values.next.length > passwordMaxLength
@@ -98,13 +109,22 @@ function PasswordForm({
   );
 
   const onSubmit = form.submit(async (values) => {
+    if (mode === "set") {
+      const result = await setPasswordAction(values.next);
+      if (result.ok) {
+        onUpdated("set");
+        router.refresh();
+        return "done";
+      }
+      return { formError: t("common.errors.generic") };
+    }
     const { error } = await authClient.changePassword({
       currentPassword: values.current,
       newPassword: values.next,
       revokeOtherSessions: revokeOthers,
     });
     if (!error) {
-      onUpdated(revokeOthers);
+      onUpdated(revokeOthers ? "revoked" : "kept");
       router.refresh();
       return "done";
     }
@@ -149,20 +169,22 @@ function PasswordForm({
       }}
       className="flex flex-col gap-4"
     >
-      <AuthField
-        id={form.id("current")}
-        label={t("account.password.current")}
-        error={form.errorFor("current")}
-      >
-        {(control) => (
-          <PasswordInput
-            {...form.field("current")}
-            {...control}
-            onChange={(event) => edit("current", event.target.value)}
-            autoComplete="current-password"
-          />
-        )}
-      </AuthField>
+      {mode === "change" ? (
+        <AuthField
+          id={form.id("current")}
+          label={t("account.password.current")}
+          error={form.errorFor("current")}
+        >
+          {(control) => (
+            <PasswordInput
+              {...form.field("current")}
+              {...control}
+              onChange={(event) => edit("current", event.target.value)}
+              autoComplete="current-password"
+            />
+          )}
+        </AuthField>
+      ) : null}
       <AuthField
         id={form.id("next")}
         label={tAuth("fields.newPassword")}
@@ -186,20 +208,24 @@ function PasswordForm({
           />
         )}
       </AuthField>
-      <div className="flex items-center gap-2.5">
-        <Checkbox
-          id={revokeId}
-          checked={revokeOthers}
-          onCheckedChange={(checked) => setRevokeOthers(checked === true)}
-        />
-        <Label htmlFor={revokeId} className="font-normal">
-          {t("account.password.revokeOthers")}
-        </Label>
-      </div>
+      {mode === "change" ? (
+        <div className="flex items-center gap-2.5">
+          <Checkbox
+            id={revokeId}
+            checked={revokeOthers}
+            onCheckedChange={(checked) => setRevokeOthers(checked === true)}
+          />
+          <Label htmlFor={revokeId} className="font-normal">
+            {t("account.password.revokeOthers")}
+          </Label>
+        </div>
+      ) : null}
       {form.formError ? <FormAlert>{form.formError}</FormAlert> : null}
       <div>
         <Button type="submit" variant="primary" loading={form.pending}>
-          {t("account.password.submit")}
+          {mode === "set"
+            ? t("account.password.setSubmit")
+            : t("account.password.submit")}
         </Button>
       </div>
     </form>

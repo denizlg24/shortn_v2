@@ -10,5 +10,7 @@
   "passwords": "A proteção por palavra-passe está incluída a partir do plano {plan}.",
   "campaigns": "As variantes UTM e as campanhas estão incluídas a partir do plano {plan}.",
   "analyticsBreakdowns": "As análises detalhadas e os filtros estão incluídos a partir do plano {plan}.",
+  "qrLogo": "Os logótipos estão incluídos a partir do plano {plan}.",
+  "csvExport": "A exportação para CSV está incluída a partir do plano {plan}.",
   "cta": "Ver planos"
 }

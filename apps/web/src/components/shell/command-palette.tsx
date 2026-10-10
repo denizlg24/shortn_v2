@@ -10,8 +10,9 @@ import {
   CommandSeparator,
   KeyboardHint,
 } from "@shortn/ui";
-import { Keyboard, Languages, Monitor, Moon, Sun } from "lucide-react";
+import { Keyboard, Languages, Monitor, Moon, Plus, Sun } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { locales } from "@/i18n/locale";
 import { useLocaleSwitch } from "@/lib/use-locale-switch";
@@ -36,6 +37,7 @@ export function CommandPalette({
   const locale = useLocale();
   const switchLocale = useLocaleSwitch();
   const [search, setSearch] = useState("");
+  const router = useRouter();
 
   // Close first so focus returns to the page before the action opens anything else.
   const run = (action: () => void) => {
@@ -77,6 +79,18 @@ export function CommandPalette({
       />
       <CommandList>
         <CommandEmpty>{t("empty")}</CommandEmpty>
+        <CommandGroup heading={t("actions")}>
+          <CommandItem
+            value={`new link create ${t("newLink")}`}
+            icon={<Plus aria-hidden />}
+            shortcut="c"
+            onSelect={() =>
+              run(() => router.push(`/${workspace.slug}/links/new`))
+            }
+          >
+            {t("newLink")}
+          </CommandItem>
+        </CommandGroup>
         <CommandGroup heading={t("navigation")}>
           {allNav.map((item) => {
             const Icon = item.icon;

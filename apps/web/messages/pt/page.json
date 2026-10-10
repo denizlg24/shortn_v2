@@ -1,0 +1,18 @@
+{
+  "breadcrumb": "Navegação estrutural",
+  "filters": {
+    "label": "Filtros",
+    "apply": "Aplicar",
+    "applied": "Filtrado por",
+    "clear": "Limpar tudo"
+  },
+  "delete": {
+    "whatHappens": "O que acontece",
+    "cancel": "Cancelar",
+    "failed": "Não foi possível. Tente novamente."
+  },
+  "cancel": "Cancelar",
+  "save": "Guardar alterações",
+  "saved": "Guardado.",
+  "optional": "Opcional"
+}

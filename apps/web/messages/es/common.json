@@ -7,5 +7,26 @@
     "es": "Español"
   },
   "terms": "Términos",
-  "privacy": "Privacidad"
+  "privacy": "Privacidad",
+  "copied": "Copiado al portapapeles",
+  "copyFailed": "No se pudo copiar al portapapeles.",
+  "error": {
+    "title": "Esta página no se ha cargado",
+    "body": "Tus datos están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento.",
+    "retry": "Reintentar"
+  },
+  "linkPicker": {
+    "add": "Añadir enlace",
+    "search": "Buscar por clave, título o URL",
+    "searching": "Buscando…",
+    "empty": "Ningún enlace coincide.",
+    "failed": "No se pudieron cargar los enlaces. Cierra y vuelve a intentarlo.",
+    "allLinks": "Todos los enlaces"
+  },
+  "tags": {
+    "placeholder": "Añadir etiquetas",
+    "search": "Buscar o crear una etiqueta",
+    "empty": "Aún no hay etiquetas. Escribe para crear una.",
+    "create": "Crear “{tag}”"
+  }
 }

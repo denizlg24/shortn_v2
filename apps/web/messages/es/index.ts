@@ -12,8 +12,15 @@ import billing from "./billing.json";
 import invite from "./invite.json";
 import publicPages from "./public.json";
 import notFound from "./notFound.json";
+import qr from "./qr.json";
+import campaigns from "./campaigns.json";
+import bio from "./bio.json";
+import page from "./page.json";
+import linkPages from "./linkPages.json";
 
 export default {
+  page,
+  linkPages,
   common,
   auth,
   nav,
@@ -27,4 +34,7 @@ export default {
   invite,
   public: publicPages,
   notFound,
+  qr,
+  campaigns,
+  bio,
 };

@@ -11,6 +11,7 @@ import { customAlphabet } from "nanoid";
 import { ObjectId, type Document, type Filter } from "mongodb";
 import { archiveLegacyClicks } from "../legacy-clicks";
 import { fail, ok, type Result } from "../result";
+import type { LinkSort, LinkStatusFilter } from "./filters";
 import { isReservedKey } from "../routing";
 import { scanUrl, type ScanDeps } from "../safety/scan";
 import { validateDestination } from "../safety/structural";
@@ -516,9 +517,31 @@ async function deleteOne(ctx: ServiceContext, link: Link) {
 export interface ListLinksInput {
   search?: string | undefined;
   tags?: string[] | undefined;
+  status?: LinkStatusFilter | undefined;
+  createdAfter?: Date | undefined;
+  sort?: LinkSort | undefined;
+  // 1-based page number; numbered pages for the explicit list (17).
+  page?: number | undefined;
   cursor?: string | undefined;
   limit?: number | undefined;
 }
+
+const statusFilter: Record<LinkStatusFilter, Filter<Link>> = {
+  password: { passwordProtected: true },
+  interstitial: { requiresInterstitial: true, disabled: { $ne: true } },
+  disabled: {
+    $or: [
+      { disabled: true },
+      { safetyStatus: { $in: ["blocked", "malicious"] } },
+    ],
+  },
+};
+
+const sortSpec: Record<LinkSort, Record<string, 1 | -1>> = {
+  newest: { date: -1, _id: -1 },
+  oldest: { date: 1, _id: 1 },
+  clicks: { "clicks.total": -1, _id: -1 },
+};
 
 const escapeRegex = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -541,6 +564,28 @@ export async function listLinks(
     });
   }
   if (input.tags?.length) and.push({ "tags.tagName": { $in: input.tags } });
+  if (input.status) and.push(statusFilter[input.status]);
+  if (input.createdAfter) and.push({ date: { $gte: input.createdAfter } });
+  if (input.page !== undefined) {
+    const page = Math.max(1, Math.floor(input.page));
+    const filter = { $and: and };
+    const [total, docs] = await Promise.all([
+      collection(ctx.db, "links").countDocuments(filter),
+      collection(ctx.db, "links")
+        .find(filter)
+        .sort(sortSpec[input.sort ?? "newest"])
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .toArray(),
+    ]);
+    return {
+      total,
+      page,
+      pages: Math.max(1, Math.ceil(total / limit)),
+      links: docs.map((doc) => toLinkView(doc, ctx.linkDomain)),
+      nextCursor: null,
+    };
+  }
   // The whole filtered set, counted once on the first page.
   const total = input.cursor
     ? null
@@ -563,6 +608,8 @@ export async function listLinks(
   const last = page.at(-1);
   return {
     total,
+    page: null,
+    pages: null,
     links: page.map((doc) => toLinkView(doc, ctx.linkDomain)),
     nextCursor:
       docs.length > limit && last

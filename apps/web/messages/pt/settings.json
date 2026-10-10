@@ -158,7 +158,7 @@
     },
     "password": {
       "title": "Palavra-passe",
-      "none": "Inicia sessão com {providers}. Para adicionar uma palavra-passe, termine a sessão e use “Esqueceu-se da palavra-passe?” na página de início de sessão com <strong>{email}</strong>.",
+      "none": "Inicia sessão com {providers}. Adicione uma palavra-passe para também entrar com <strong>{email}</strong>.",
       "current": "Palavra-passe atual",
       "revokeOthers": "Terminar todas as outras sessões",
       "submit": "Atualizar palavra-passe",
@@ -167,7 +167,9 @@
       "errors": {
         "currentRequired": "Introduza a sua palavra-passe atual.",
         "currentWrong": "A palavra-passe atual não está correta."
-      }
+      },
+      "setSubmit": "Adicionar palavra-passe",
+      "set": "Palavra-passe adicionada. Já pode também entrar com o seu email."
     },
     "connections": {
       "title": "Métodos de início de sessão",

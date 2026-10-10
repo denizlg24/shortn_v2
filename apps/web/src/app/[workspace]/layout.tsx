@@ -1,6 +1,9 @@
 import type { Workspace } from "@shortn/core";
+import { getTranslations } from "next-intl/server";
+import { unstable_rethrow } from "next/navigation";
 import { Shell } from "@/components/shell/shell";
-import type { WorkspaceSummary } from "@/components/shell/types";
+import type { UsageItem, WorkspaceSummary } from "@/components/shell/types";
+import { billingOverview } from "@/server/plan";
 import { memberships, requireWorkspace } from "@/server/workspace";
 
 const summarize = (workspace: Workspace): WorkspaceSummary => ({
@@ -11,14 +14,36 @@ const summarize = (workspace: Workspace): WorkspaceSummary => ({
   plan: workspace.plan,
 });
 
+// The meter is secondary: a failed count leaves it out instead of failing
+// every page in the workspace.
+async function usageFor(slug: string): Promise<UsageItem[]> {
+  try {
+    const [{ usage, limits }, t] = await Promise.all([
+      billingOverview(slug),
+      getTranslations("shell.usage"),
+    ]);
+    return [
+      { label: t("links"), used: usage.links, limit: limits.links },
+      { label: t("qrCodes"), used: usage.qrCodes, limit: limits.qrCodes },
+      { label: t("bioPages"), used: usage.bioPages, limit: limits.bioPages },
+    ];
+  } catch (error) {
+    unstable_rethrow(error);
+    console.error("usage meter failed", slug, error);
+    return [];
+  }
+}
+
 export default async function WorkspaceLayout({
   children,
   params,
 }: LayoutProps<"/[workspace]">) {
-  const { session, workspace } = await requireWorkspace(
-    (await params).workspace,
-  );
-  const list = await memberships(session.user.id);
+  const slug = (await params).workspace;
+  const { session, workspace } = await requireWorkspace(slug);
+  const [list, usage] = await Promise.all([
+    memberships(session.user.id),
+    usageFor(slug),
+  ]);
   return (
     <Shell
       workspace={summarize(workspace)}
@@ -29,6 +54,7 @@ export default async function WorkspaceLayout({
         image: session.user.image ?? null,
       }}
       impersonating={Boolean(session.session.impersonatedBy)}
+      usage={usage}
     >
       {children}
     </Shell>

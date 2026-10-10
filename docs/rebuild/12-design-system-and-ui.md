@@ -2,6 +2,14 @@
 
 Produced with the **impeccable** workflow (`PRODUCT.md` at repo root). Direction round seed `2e7ef8a3` (operate, direction scope). The user picked **the category standard, executed at full craft**, with **Linear** and **Dub.co** as the quality bar. That's a deliberate choice for a convention-literate audience: conventions are embraced as-is, without irony or smuggled quirk. The ambition goes into execution: density, typography, keyboard flow, motion and finish at Linear/Dub level, and none of the generic "AI SaaS" look.
 
+> **Superseded IA (owner review, 2026-10-10).** The first P4 build of this contract was rejected. Binding rules from now on, overriding anything below that conflicts:
+> - **No sheets or side panels, ever.** Every view is a full page with its own URL.
+> - **More pages are better than denser pages**, as long as the flow is clear and navigation is easy (breadcrumbs, back links, obvious primary actions).
+> - **Creation and management are separate pages**: list → `/new` → detail → `/edit` (links, QR codes, campaigns, bio pages, members). No inline composers on lists.
+> - **Filters are explicit**: visible, labelled controls (selects, date range, checkboxes), not hidden chips or "+ Filter" combobox tricks.
+>
+> The P4 surfaces built on sheets/inline composers (links desk, link sheet, analytics filter chips) are to be rewritten to these rules before the P4 exit gate.
+
 ## Direction contract (dashboard world; code-led build)
 
 - **THESIS:** A keyboard-first link desk where the table _is_ the product: dense, quiet rows that act instantly. Refuses the category default of KPI-card mosaics, gradient heroes and modal-heavy flows.

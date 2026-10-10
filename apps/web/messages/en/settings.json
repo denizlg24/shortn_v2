@@ -158,7 +158,7 @@
     },
     "password": {
       "title": "Password",
-      "none": "You sign in with {providers}. To add a password, sign out and use “Forgot password?” on the sign-in page with <strong>{email}</strong>.",
+      "none": "You sign in with {providers}. Add a password to also sign in with <strong>{email}</strong>.",
       "current": "Current password",
       "revokeOthers": "Sign out of all other sessions",
       "submit": "Update password",
@@ -167,7 +167,9 @@
       "errors": {
         "currentRequired": "Enter your current password.",
         "currentWrong": "Your current password isn't right."
-      }
+      },
+      "setSubmit": "Add password",
+      "set": "Password added. You can now sign in with your email too."
     },
     "connections": {
       "title": "Sign-in methods",

@@ -1,0 +1,147 @@
+{
+  "title": "Campañas",
+  "create": "Crear campaña",
+  "viewOnly": "Solo lectura",
+  "viewerReason": "Los lectores no pueden crear ni cambiar campañas. Pide a un administrador del espacio de trabajo que cambie tu rol.",
+  "copiedParam": "Valor de utm_campaign copiado",
+  "gated": {
+    "title": "Lee todos los canales de una campaña en un solo lugar",
+    "body": "Las campañas agrupan las variantes etiquetadas de tus enlaces: sus clics en una sola página, un generador de UTM con tus valores predeterminados y exportación a CSV."
+  },
+  "empty": {
+    "title": "Aún no hay campañas",
+    "body": "Una campaña agrupa las variantes etiquetadas de tus enlaces para que leas sus clics juntos.",
+    "bodyViewer": "Las campañas creadas en este espacio de trabajo aparecen aquí."
+  },
+  "columns": {
+    "campaign": "Campaña",
+    "links": "Enlaces",
+    "created": "Creada",
+    "actions": "Acciones"
+  },
+  "actions": {
+    "label": "Acciones para {title}",
+    "open": "Abrir",
+    "edit": "Editar detalles",
+    "copyParam": "Copiar valor de utm_campaign",
+    "delete": "Eliminar campaña"
+  },
+  "delete": {
+    "title": "¿Eliminar “{title}”?",
+    "body": "Sus variantes UTM se quitan de {count, plural, one {# enlace} other {# enlaces}}. Los enlaces siguen funcionando. No se puede deshacer.",
+    "confirm": "Eliminar campaña",
+    "done": "{title} eliminada"
+  },
+  "createPage": {
+    "section": "Campañas",
+    "title": "Nueva campaña",
+    "description": "Ponle el nombre con el que debe aparecer como utm_campaign en tus analíticas. Después etiquetarás enlaces para ella.",
+    "titleRequired": "Ponle un título a la campaña.",
+    "cancel": "Cancelar",
+    "submit": "Crear campaña"
+  },
+  "editPage": {
+    "title": "Editar",
+    "back": "Volver a la campaña",
+    "details": "Detalles",
+    "saveDetails": "Guardar detalles"
+  },
+  "fields": {
+    "title": "Título",
+    "titleHint": "Se usa como utm_campaign en las URL que etiquetes.",
+    "renameHint": "Las variantes guardadas pasan al nuevo título. Las URL que ya compartiste mantienen el antiguo y sus clics dejan de contar aquí.",
+    "description": "Descripción",
+    "descriptionPlaceholder": "Para qué es esta campaña (opcional)"
+  },
+  "summary": {
+    "label": "Detalles de la campaña",
+    "param": "utm_campaign",
+    "links": "Enlaces",
+    "created": "Creada",
+    "description": "Descripción",
+    "addDescription": "Añadir una descripción"
+  },
+  "tabs": {
+    "analytics": "Analíticas",
+    "links": "Enlaces",
+    "builder": "Generador de UTM"
+  },
+  "links": {
+    "bulk": "Enlaces seleccionados",
+    "copy": "Copiar enlaces",
+    "copied": "{count, plural, one {# enlace corto copiado} other {# enlaces cortos copiados}}, uno por línea",
+    "open": "Abrir enlace",
+    "emptyTitle": "Aún no hay enlaces en esta campaña",
+    "emptyBody": "Un enlace entra cuando una de sus variantes UTM usa esta campaña. Crea una y guárdala como variante.",
+    "openBuilder": "Abrir el generador de UTM"
+  },
+  "builder": {
+    "title": "Generador de UTM",
+    "description": "Etiqueta un enlace corto para un canal. utm_campaign es siempre el título de esta campaña.",
+    "link": "Enlace",
+    "pickLink": "Elige un enlace",
+    "campaignLinks": "En esta campaña",
+    "notInCampaign": "Este enlace aún no está en la campaña. Guardar la variante lo añade; hasta entonces sus clics no cuentan aquí.",
+    "fields": {
+      "source": "Fuente",
+      "medium": "Medio",
+      "term": "Término",
+      "content": "Contenido"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "term": "zapatillas running",
+      "content": "banner-cabecera"
+    },
+    "suggestions": "Valores sugeridos para {field}",
+    "campaignParam": "utm_campaign es <code>{title}</code>.",
+    "result": "URL etiquetada",
+    "pickLinkFirst": "Elige un enlace para crear su URL.",
+    "copy": "Copiar URL",
+    "save": "Guardar como variante",
+    "saved": "Guardado en {link}",
+    "saveHint": "Al guardar, la variante se queda en el enlace: aparece en su lista de UTM y la campaña cuenta sus clics.",
+    "viewerReason": "Los lectores no pueden cambiar enlaces.",
+    "duplicate": "Esta variante ya está guardada en el enlace.",
+    "full": "Este enlace ya tiene {max} variantes."
+  },
+  "defaults": {
+    "title": "Valores UTM predeterminados",
+    "description": "Valores que el generador sugiere para esta campaña. Se guardan en minúsculas.",
+    "save": "Guardar valores",
+    "lists": {
+      "sources": "Fuentes",
+      "mediums": "Medios",
+      "terms": "Términos",
+      "contents": "Contenidos"
+    },
+    "hints": {
+      "sources": "De dónde viene el tráfico, como newsletter o instagram.",
+      "mediums": "El tipo de canal, como email o social.",
+      "terms": "Palabras clave de búsqueda de pago.",
+      "contents": "Lo que distingue enlaces en el mismo sitio, como cabecera o pie."
+    },
+    "placeholders": {
+      "sources": "Escribe una fuente y pulsa Intro",
+      "mediums": "Escribe un medio y pulsa Intro",
+      "terms": "Escribe un término y pulsa Intro",
+      "contents": "Escribe un valor y pulsa Intro"
+    },
+    "viewerReason": "Los lectores no pueden cambiar campañas."
+  },
+  "chips": {
+    "remove": "Quitar {value}"
+  },
+  "errors": {
+    "titleTaken": "Ya hay otra campaña con este título.",
+    "titleRequired": "Ponle un título a la campaña.",
+    "gated": "Tu plan no incluye campañas.",
+    "forbidden": "No tienes permiso para hacer esto en este espacio de trabajo.",
+    "notFound": "Esta campaña o enlace ya no existe. Puede que se haya eliminado.",
+    "invalidInput": "Algunos campos son demasiado largos o no son válidos. Revísalos y vuelve a intentarlo.",
+    "network": "No se ha podido conectar con Shortn. Revisa tu conexión y vuelve a intentarlo.",
+    "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
+    "copyFailed": "No se pudo copiar al portapapeles."
+  }
+}

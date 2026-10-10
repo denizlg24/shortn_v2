@@ -122,6 +122,15 @@ export function parseQuery(params: ParamSource): AnalyticsQuery {
   return { range, from, to, interval, filters };
 }
 
+/** Every search param the query owns; pages keep the rest (e.g. `tab`). */
+export const queryParamNames: ReadonlySet<string> = new Set([
+  "range",
+  "from",
+  "to",
+  "interval",
+  ...filterDimensions,
+]);
+
 /** Only non-default values, so a plain /analytics URL means "last 30 days". */
 export function toSearchParams(query: AnalyticsQuery): URLSearchParams {
   const params = new URLSearchParams();

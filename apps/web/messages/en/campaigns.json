@@ -1,0 +1,147 @@
+{
+  "title": "Campaigns",
+  "create": "Create campaign",
+  "viewOnly": "View only",
+  "viewerReason": "Viewers can't create or change campaigns. Ask a workspace admin to change your role.",
+  "copiedParam": "Copied the utm_campaign value",
+  "gated": {
+    "title": "Read every channel of a campaign in one place",
+    "body": "Campaigns group the tagged variants of your links: their clicks on one page, a UTM builder with your defaults, and CSV export."
+  },
+  "empty": {
+    "title": "No campaigns yet",
+    "body": "A campaign groups the tagged variants of your links so you can read their clicks together.",
+    "bodyViewer": "Campaigns created in this workspace appear here."
+  },
+  "columns": {
+    "campaign": "Campaign",
+    "links": "Links",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "actions": {
+    "label": "Actions for {title}",
+    "open": "Open",
+    "edit": "Edit details",
+    "copyParam": "Copy utm_campaign value",
+    "delete": "Delete campaign"
+  },
+  "delete": {
+    "title": "Delete “{title}”?",
+    "body": "Its UTM variants are removed from {count, plural, one {# link} other {# links}}. The links themselves keep working. This can't be undone.",
+    "confirm": "Delete campaign",
+    "done": "Deleted {title}"
+  },
+  "createPage": {
+    "section": "Campaigns",
+    "title": "New campaign",
+    "description": "Name it the way it should read as utm_campaign in your analytics. You'll tag links for it next.",
+    "titleRequired": "Give the campaign a title.",
+    "cancel": "Cancel",
+    "submit": "Create campaign"
+  },
+  "editPage": {
+    "title": "Edit",
+    "back": "Back to campaign",
+    "details": "Details",
+    "saveDetails": "Save details"
+  },
+  "fields": {
+    "title": "Title",
+    "titleHint": "Used as utm_campaign in the URLs you tag.",
+    "renameHint": "Saved variants switch to the new title. URLs you've already shared keep the old one, and their clicks stop counting here.",
+    "description": "Description",
+    "descriptionPlaceholder": "What this campaign is for (optional)"
+  },
+  "summary": {
+    "label": "Campaign details",
+    "param": "utm_campaign",
+    "links": "Links",
+    "created": "Created",
+    "description": "Description",
+    "addDescription": "Add a description"
+  },
+  "tabs": {
+    "analytics": "Analytics",
+    "links": "Links",
+    "builder": "UTM builder"
+  },
+  "links": {
+    "bulk": "Selected links",
+    "copy": "Copy links",
+    "copied": "Copied {count, plural, one {# short link} other {# short links}}, one per line",
+    "open": "Open link",
+    "emptyTitle": "No links in this campaign yet",
+    "emptyBody": "A link joins when one of its UTM variants uses this campaign. Build one and save it as a variant.",
+    "openBuilder": "Open the UTM builder"
+  },
+  "builder": {
+    "title": "UTM builder",
+    "description": "Tag a short link for one channel. utm_campaign is always this campaign's title.",
+    "link": "Link",
+    "pickLink": "Choose a link",
+    "campaignLinks": "In this campaign",
+    "notInCampaign": "This link isn't in the campaign yet. Saving the variant adds it; until then its clicks don't count here.",
+    "fields": {
+      "source": "Source",
+      "medium": "Medium",
+      "term": "Term",
+      "content": "Content"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "term": "running shoes",
+      "content": "header-banner"
+    },
+    "suggestions": "Suggested values for {field}",
+    "campaignParam": "utm_campaign is set to <code>{title}</code>.",
+    "result": "Tagged URL",
+    "pickLinkFirst": "Choose a link to build its URL.",
+    "copy": "Copy URL",
+    "save": "Save as variant",
+    "saved": "Saved on {link}",
+    "saveHint": "Saving keeps the variant on the link: it shows in the link's UTM list and the campaign counts its clicks.",
+    "viewerReason": "Viewers can't change links.",
+    "duplicate": "This variant is already saved on the link.",
+    "full": "This link already has {max} variants."
+  },
+  "defaults": {
+    "title": "UTM defaults",
+    "description": "Values the builder suggests for this campaign. They're saved in lowercase.",
+    "save": "Save defaults",
+    "lists": {
+      "sources": "Sources",
+      "mediums": "Mediums",
+      "terms": "Terms",
+      "contents": "Contents"
+    },
+    "hints": {
+      "sources": "Where the traffic comes from, like newsletter or instagram.",
+      "mediums": "The kind of channel, like email or social.",
+      "terms": "Paid search keywords.",
+      "contents": "What tells links in the same place apart, like header or footer."
+    },
+    "placeholders": {
+      "sources": "Type a source and press Enter",
+      "mediums": "Type a medium and press Enter",
+      "terms": "Type a term and press Enter",
+      "contents": "Type a value and press Enter"
+    },
+    "viewerReason": "Viewers can't change campaigns."
+  },
+  "chips": {
+    "remove": "Remove {value}"
+  },
+  "errors": {
+    "titleTaken": "Another campaign already has this title.",
+    "titleRequired": "Give the campaign a title.",
+    "gated": "Your plan doesn't include campaigns.",
+    "forbidden": "You don't have permission to do this in this workspace.",
+    "notFound": "This campaign or link no longer exists. It may have been deleted.",
+    "invalidInput": "Some fields are too long or not valid. Check them and try again.",
+    "network": "Couldn't reach Shortn. Check your connection and try again.",
+    "generic": "Something went wrong on our side. Try again.",
+    "copyFailed": "Couldn't copy to the clipboard."
+  }
+}

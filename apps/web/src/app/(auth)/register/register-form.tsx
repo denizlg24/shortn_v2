@@ -38,9 +38,11 @@ import { rememberVerifyEmail } from "@/components/auth/verify-email-cookie";
 export function RegisterForm({
   oauthFailure,
   providers,
+  next,
 }: {
   oauthFailure: OAuthFailure;
   providers: EnabledProviders;
+  next: string;
 }) {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -104,7 +106,10 @@ export function RegisterForm({
       username: values.username,
       email,
       password: values.password,
-      callbackURL: "/verify",
+      // Verification signs the user in and lands on /verify, which forwards
+      // to `next` (an invite they signed up for).
+      callbackURL:
+        next === "/" ? "/verify" : `/verify?next=${encodeURIComponent(next)}`,
     });
     if (!error) {
       rememberVerifyEmail(email);
@@ -256,6 +261,7 @@ export function RegisterForm({
           <OrDivider label={t("or")} />
           <SocialSignIn
             providers={providers}
+            callbackURL={next}
             errorCallbackURL="/register"
             disabled={form.pending}
             onError={form.setFormError}

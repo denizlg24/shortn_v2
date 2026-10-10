@@ -174,7 +174,11 @@ export function LoginForm({
       <AuthPrompt
         prompt={t("login.prompt")}
         action={t("login.register")}
-        href="/register"
+        href={
+          next === "/"
+            ? "/register"
+            : `/register?next=${encodeURIComponent(next)}`
+        }
       />
     </>
   );

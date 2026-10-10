@@ -83,5 +83,9 @@
       "xr": "Gafas XR",
       "embedded": "Integrado"
     }
+  },
+  "export": {
+    "label": "Exportar CSV",
+    "failed": "La exportación ha fallado. Vuelve a intentarlo."
   }
 }

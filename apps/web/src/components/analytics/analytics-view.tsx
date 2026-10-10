@@ -24,16 +24,19 @@ import type { AnalyticsResult } from "@/server/actions/analytics";
 import { GateNote, UpgradeLink } from "../plan-gate";
 import { PageHeader } from "../shell/page-header";
 import { BreakdownPanel } from "./breakdown-panel";
+import { ExportButton } from "./export-button";
 import { useValueLabel } from "./labels";
 import {
   allowedIntervals,
   filterDimensions,
   intervals,
   parseQuery,
+  queryParamNames,
   spanDays,
   toSearchParams,
   type AnalyticsFilters,
   type AnalyticsQuery,
+  type FilterDimension,
 } from "./query";
 import { RangePicker } from "./range-picker";
 import { Segmented } from "./segmented";
@@ -46,6 +49,18 @@ import {
 
 const linkDimension = ["link"] as const satisfies readonly Dimension[];
 
+// A campaign scope is already filtered to its utm_campaign, and QR scans
+// arrive through the code's own URL, which carries no UTM tags.
+const hiddenDimensions: Record<
+  AnalyticsScope["type"],
+  readonly FilterDimension[]
+> = {
+  workspace: [],
+  link: [],
+  campaign: ["utmCampaign"],
+  qr: ["utmSource", "utmMedium", "utmCampaign"],
+};
+
 const delta = (current: number, previous: number) =>
   previous > 0 ? current / previous - 1 : undefined;
 
@@ -55,14 +70,21 @@ export function AnalyticsView({
   title,
   summary,
   breakdownGate,
+  embedded = false,
+  csvExport,
 }: {
   workspace: string;
   scope: AnalyticsScope;
+  /** The page title, or the section's accessible name when embedded. */
   title: ReactNode;
   /** Rendered between the header and the numbers, e.g. the link's details. */
   summary?: ReactNode;
   /** Plan that unlocks breakdowns and filters; null when the plan has them. */
   breakdownGate: PlanId | null;
+  /** Inside a page that owns the header (a tab): controls sit in a toolbar row. */
+  embedded?: boolean;
+  /** Adds an export of the raw events for the selected range. */
+  csvExport?: { params: Record<string, string>; gate: PlanId | null };
 }) {
   const t = useTranslations("analytics");
   const tGate = useTranslations("gate");
@@ -75,7 +97,10 @@ export function AnalyticsView({
   const query = useMemo(() => parseQuery(searchParams), [searchParams]);
   const setQuery = useCallback(
     (next: AnalyticsQuery) => {
-      const search = toSearchParams(next).toString();
+      const params = toSearchParams(next);
+      for (const [name, value] of new URLSearchParams(window.location.search))
+        if (!queryParamNames.has(name)) params.append(name, value);
+      const search = params.toString();
       window.history.pushState(
         null,
         "",
@@ -86,17 +111,27 @@ export function AnalyticsView({
   );
 
   const scopeType = scope.type;
-  const scopeId = scope.type === "link" ? scope.id : null;
+  const scopeId = scope.type === "workspace" ? null : scope.id;
+  const dimensions = useMemo(
+    () =>
+      filterDimensions.filter(
+        (dimension) => !hiddenDimensions[scopeType].includes(dimension),
+      ),
+    [scopeType],
+  );
   const request = useMemo<AnalyticsRequest>(
     () => ({
-      scope: scopeId ? { type: "link", id: scopeId } : { type: "workspace" },
+      scope:
+        scopeType === "workspace" || scopeId === null
+          ? { type: "workspace" }
+          : { type: scopeType, id: scopeId },
       query,
       dimensions:
         scopeType === "workspace"
-          ? [...filterDimensions, ...linkDimension]
-          : [...filterDimensions],
+          ? [...dimensions, ...linkDimension]
+          : [...dimensions],
     }),
-    [scopeType, scopeId, query],
+    [scopeType, scopeId, dimensions, query],
   );
   const { status, data, retry } = useAnalytics(workspace, request);
   const valueLabel = useValueLabel(data?.linkLabels);
@@ -112,7 +147,7 @@ export function AnalyticsView({
     setQuery({ ...query, filters });
   };
 
-  const filterFields: FilterField[] = filterDimensions.map((dimension) => {
+  const filterFields: FilterField[] = dimensions.map((dimension) => {
     const values = (data?.breakdowns[dimension] ?? []).map((row) => row.value);
     const active = query.filters[dimension];
     if (active && !values.includes(active)) values.unshift(active);
@@ -135,31 +170,54 @@ export function AnalyticsView({
   const days = spanDays(query.range, query.from, query.to);
   const allowed = allowedIntervals(days);
 
-  return (
+  const controls = (
     <>
-      <PageHeader title={title} className="flex-wrap gap-y-2 py-2.5">
-        {filterable ? (
-          <FilterBar
-            fields={filterFields}
-            value={filterValue}
-            onValueChange={(next) => {
-              const filters: AnalyticsFilters = {};
-              for (const dimension of filterDimensions) {
-                const value = next[dimension]?.at(-1);
-                if (value) filters[dimension] = value;
-              }
-              setQuery({ ...query, filters });
-            }}
-            pickerPlaceholder={t("filterBy")}
-            className="max-md:order-last max-md:w-full"
-          />
-        ) : null}
+      {filterable ? (
+        <FilterBar
+          fields={filterFields}
+          value={filterValue}
+          onValueChange={(next) => {
+            const filters: AnalyticsFilters = {};
+            for (const dimension of dimensions) {
+              const value = next[dimension]?.at(-1);
+              if (value) filters[dimension] = value;
+            }
+            setQuery({ ...query, filters });
+          }}
+          pickerPlaceholder={t("filterBy")}
+          className="max-md:order-last max-md:w-full"
+        />
+      ) : null}
+      <div className="ml-auto flex min-w-0 items-center gap-2 max-sm:ml-0 max-sm:w-full">
         <RangePicker
           query={query}
           onChange={setQuery}
-          className="ml-auto max-sm:ml-0 max-sm:w-full max-sm:overflow-x-auto"
+          className="max-sm:min-w-0 max-sm:flex-1 max-sm:overflow-x-auto"
         />
-      </PageHeader>
+        {csvExport ? (
+          <ExportButton
+            workspace={workspace}
+            query={query}
+            params={csvExport.params}
+            gate={csvExport.gate}
+          />
+        ) : null}
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      {embedded ? (
+        <div className="flex flex-wrap items-center gap-3 gap-y-2 px-gutter pt-5">
+          <h2 className="sr-only">{title}</h2>
+          {controls}
+        </div>
+      ) : (
+        <PageHeader title={title} className="flex-wrap gap-y-2 py-2.5">
+          {controls}
+        </PageHeader>
+      )}
       {summary}
       {status === "error" && data === null ? (
         <EmptyState
@@ -214,11 +272,12 @@ export function AnalyticsView({
                         plan: tGate(`plans.${breakdownGate}`),
                       })
                     : null,
+                scansOnly: scopeType === "qr",
                 intlLocale,
               })}
             />
           ) : (
-            <StatStripSkeleton />
+            <StatStripSkeleton count={scopeType === "qr" ? 3 : 4} />
           )}
 
           <section aria-labelledby={chartHeadingId} className="min-w-0">
@@ -272,7 +331,7 @@ export function AnalyticsView({
                 className="border-t border-line pt-5 md:col-span-2"
               />
             ) : null}
-            {filterDimensions.map((dimension) => (
+            {dimensions.map((dimension) => (
               <BreakdownPanel
                 key={dimension}
                 dimension={dimension}
@@ -303,11 +362,14 @@ function statsFor(
     labels,
     topCountry,
     countryLocked,
+    scansOnly,
     intlLocale,
   }: {
     labels: Record<"clicks" | "scans" | "uniques" | "topCountry", string>;
     topCountry: string | null;
     countryLocked: string | null;
+    /** A QR scope counts scans only, so a clicks figure would always read 0. */
+    scansOnly: boolean;
     intlLocale: string;
   },
 ): Stat[] {
@@ -320,7 +382,7 @@ function statsFor(
     };
   };
   return [
-    number("clicks"),
+    ...(scansOnly ? [] : [number("clicks")]),
     number("scans"),
     number("uniques"),
     {

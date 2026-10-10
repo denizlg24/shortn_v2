@@ -83,5 +83,9 @@
       "xr": "Óculos XR",
       "embedded": "Integrado"
     }
+  },
+  "export": {
+    "label": "Exportar CSV",
+    "failed": "A exportação falhou. Tente novamente."
   }
 }

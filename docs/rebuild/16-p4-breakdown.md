@@ -27,6 +27,7 @@ P4 (14) delivers `app.shortn.at` at parity with the legacy dashboard, the new bi
 | 4.6   | Settings: general, members + invites, account (profile, email, password, OAuth linking, sessions, delete), billing (plan, usage, checkout, portal, change plan, cancel)                                                                                                    | Polar sandbox: subscribe → upgrade → scheduled downgrade → cancel                                            |
 | 4.7   | `apps/api` with the Polar webhook handler in shadow mode, worker `billing.apply` consumer, nightly reconciler, `packages/emails`                                                                                                                                           | Replay 10× = same state; shadow diff report empty on staging                                                 |
 | 4.8   | Session handoff (legacy mints, web exchanges), "Try the new Shortn" banner in legacy, `/authenticate` + link-password verification on web (bcrypt + `LINK_ACCESS_SECRET`), safety interstitial and report pages, edge Worker P4 routing column behind a variable | Logged-in legacy user reaches the new dashboard without re-login; password link round-trip on staging        |
+| 4.8b  | **UI rewrite to the owner's IA rules (12, superseded IA note)**: full pages instead of sheets, separate create/manage pages, explicit filters, across links, analytics, QR, campaigns, bio, settings | Owner review passes on local dev before staging                                                              |
 | 4.9   | Playwright e2e suite, parity checklist filled in, staging sign-off, promotion PR                                                                                                                                                                                          | 14 P4 exit gate on staging                                                                                   |
 
 ## Operator steps after the slices (need explicit go-ahead)
@@ -63,3 +64,21 @@ Status: ✅ built and tested · 🟡 built, not yet verified on staging · ⏳ p
 | Legal pages                                                      | ↪ legacy marketing (D7); app links to them                                   | ↪      |
 | `/qr/{code}` legacy URLs                                         | apps/redirect (P2)                                                           | ✅     |
 | `/b/{slug}` legacy URLs                                          | ↪ legacy until P5                                                            | ↪      |
+
+## Deployment wiring (staging first, then production)
+
+New Forge targets, one project each (Forge convention): `shortn-web[-staging]` (rootDirectory `apps/web`, health `/api/health`, hosts `app.shortn.at` / `app-staging.shortn.at`) and `shortn-api[-staging]` (rootDirectory `apps/api`, health `/__health`, hosts `api.shortn.at` / `api-staging.shortn.at`).
+
+Secrets that must match across services:
+
+| Variable                    | Set on                         | Why                                                                                   |
+| --------------------------- | ------------------------------ | ------------------------------------------------------------------------------------- |
+| `LINK_ACCESS_SECRET`        | web, redirect                  | web signs the `link_access_{key}` cookie, the redirect verifies it                    |
+| `CONFIRMATION_TOKEN_SECRET` | web, redirect                  | safety-page tokens                                                                    |
+| `INTERNAL_API_SECRET` (legacy) = `LEGACY_INTERNAL_SECRET` (web) | legacy, web | `/api/internal/revalidate-bio`                                     |
+| `POLAR_WEBHOOK_SECRET`      | api                            | the second Polar endpoint's own secret (shadow), not legacy's                         |
+| Mongo + both Redis URLs     | web, api (Mongo only), worker  | same database and caches as the redirect                                              |
+
+Order: set `LINK_ACCESS_SECRET` and `CONFIRMATION_TOKEN_SECRET` on the redirect **before** the edge Worker routes `/authenticate` and `/safety` to web, otherwise visitors get a cookie the redirect can't read. Legacy needs `NEW_APP_URL` (and `NEW_DASHBOARD_BETA` for the banner) for the handoff. Web is built with `WEB_ASSET_ORIGIN` = its own origin so pages proxied on shortn.at load their assets. Worker gets `POLAR_ACCESS_TOKEN` to process billing events (shadow by default).
+
+Before the first web deploy: `bun run db:indexes` against the environment's database (new indexes: `m.workspaceId` time index on click_events, members by user, invites, billing events TTL, handoff token TTL, subscriptions by workspace).

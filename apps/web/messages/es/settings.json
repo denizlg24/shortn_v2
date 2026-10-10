@@ -158,7 +158,7 @@
     },
     "password": {
       "title": "Contraseña",
-      "none": "Inicias sesión con {providers}. Para añadir una contraseña, cierra la sesión y usa «¿Olvidaste tu contraseña?» en la página de inicio de sesión con <strong>{email}</strong>.",
+      "none": "Inicias sesión con {providers}. Añade una contraseña para entrar también con <strong>{email}</strong>.",
       "current": "Contraseña actual",
       "revokeOthers": "Cerrar todas las demás sesiones",
       "submit": "Actualizar contraseña",
@@ -167,7 +167,9 @@
       "errors": {
         "currentRequired": "Introduce tu contraseña actual.",
         "currentWrong": "Tu contraseña actual no es correcta."
-      }
+      },
+      "setSubmit": "Añadir contraseña",
+      "set": "Contraseña añadida. Ahora también puedes entrar con tu email."
     },
     "connections": {
       "title": "Métodos de inicio de sesión",

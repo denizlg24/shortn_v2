@@ -10,8 +10,10 @@ export function useShellShortcuts({
   openPalette,
   openShortcuts,
   openWorkspaceMenu,
+  createLink,
 }: {
   navigate: (section: Section) => void;
+  createLink: () => void;
   openPalette: () => void;
   openShortcuts: () => void;
   openWorkspaceMenu: () => void;
@@ -50,7 +52,13 @@ export function useShellShortcuts({
         return;
       }
       const section = goKeys.get(key);
-      if (section && Date.now() - goPressedAt.current < sequenceWindowMs) {
+      const inSequence = Date.now() - goPressedAt.current < sequenceWindowMs;
+      if (key === "c" && !inSequence) {
+        event.preventDefault();
+        createLink();
+        return;
+      }
+      if (section && inSequence) {
         event.preventDefault();
         goPressedAt.current = 0;
         navigate(section);
@@ -60,5 +68,5 @@ export function useShellShortcuts({
     };
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, [navigate, openPalette, openShortcuts, openWorkspaceMenu]);
+  }, [navigate, openPalette, openShortcuts, openWorkspaceMenu, createLink]);
 }

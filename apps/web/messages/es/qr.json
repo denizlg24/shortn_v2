@@ -1,0 +1,186 @@
+{
+  "title": "Códigos QR",
+  "search": "Buscar códigos QR",
+  "clearSearch": "Borrar búsqueda",
+  "create": "Crear código QR",
+  "createPage": {
+    "title": "Nuevo código QR",
+    "description": "Apúntalo a cualquier URL. Después eliges colores, formas y un logotipo, y puedes cambiar el destino tras imprimirlo.",
+    "url": "URL de destino",
+    "urlPlaceholder": "https://ejemplo.es/menu",
+    "titleLabel": "Título",
+    "titleHint": "Opcional. Te ayuda a encontrar el código más tarde.",
+    "tags": "Etiquetas",
+    "cancel": "Cancelar",
+    "submit": "Crear y diseñar"
+  },
+  "viewOnly": "Solo lectura",
+  "viewerReason": "Los lectores no pueden crear ni cambiar códigos QR. Pide a un administrador del espacio de trabajo que cambie tu rol.",
+  "retry": "Reintentar",
+  "copied": "{link} copiado",
+  "scans": "{count, plural, one {{formatted} escaneo} other {{formatted} escaneos}}",
+  "select": "Seleccionar {title}",
+  "selectAll": "Seleccionar todos",
+  "view": {
+    "label": "Vista",
+    "grid": "Cuadrícula",
+    "list": "Lista"
+  },
+  "actions": {
+    "label": "Acciones para {title}",
+    "edit": "Editar diseño",
+    "copy": "Copiar enlace corto",
+    "scans": "Ver escaneos",
+    "delete": "Eliminar"
+  },
+  "columns": {
+    "select": "Seleccionar",
+    "code": "Código QR",
+    "link": "Enlace corto",
+    "destination": "Destino",
+    "scans": "Escaneos",
+    "created": "Creado",
+    "actions": "Acciones"
+  },
+  "bulk": {
+    "label": "Códigos QR seleccionados",
+    "selected": "{count} seleccionados",
+    "clear": "Borrar selección",
+    "delete": "Eliminar"
+  },
+  "delete": {
+    "title": "¿Eliminar {count, plural, one {# código QR} other {# códigos QR}}?",
+    "body": "Las copias impresas dejan de escanearse, porque el enlace corto de cada código se elimina con él. No se puede deshacer.",
+    "confirm": "Eliminar {count, plural, one {# código QR} other {# códigos QR}}",
+    "done": "{count, plural, one {# código QR eliminado} other {# códigos QR eliminados}}"
+  },
+  "empty": {
+    "firstTitle": "Aún no hay códigos QR",
+    "firstBody": "Crea un código para cualquier URL. Cada código tiene su propio enlace corto, así que puedes cambiar adónde lleva después de imprimirlo.",
+    "firstBodyViewer": "Los códigos QR creados en este espacio de trabajo aparecen aquí.",
+    "noMatch": "Ningún código QR coincide con “{query}”",
+    "noMatchBody": "Revisa la ortografía o borra la búsqueda.",
+    "clear": "Borrar búsqueda"
+  },
+  "error": {
+    "title": "No se han cargado los códigos QR",
+    "body": "Tus códigos están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento."
+  },
+  "errors": {
+    "invalidUrl": "Escribe una URL completa, como https://ejemplo.es/pagina.",
+    "unsafeDestination": "No se puede usar este destino. Apunta a una dirección privada o insegura.",
+    "logoGated": "Tu plan no incluye logotipos.",
+    "limitReached": "Has creado los {limit} códigos QR que incluye tu plan este mes.",
+    "forbidden": "No tienes permiso para hacer esto en este espacio de trabajo.",
+    "notFound": "Este código QR ya no existe. Puede que se haya eliminado.",
+    "invalidInput": "Algunos campos son demasiado largos o no son válidos. Revísalos y vuelve a intentarlo.",
+    "network": "No se ha podido conectar con Shortn. Revisa tu conexión y vuelve a intentarlo.",
+    "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
+    "copyFailed": "No se pudo copiar al portapapeles.",
+    "urlRequired": "Escribe la URL que debe abrir el código.",
+    "logoUrl": "Escribe la URL completa del logotipo, empezando por https://.",
+    "color": "Cada color necesita un valor de hasta 32 caracteres, como #0f172b."
+  },
+  "editor": {
+    "title": "Editar diseño",
+    "save": "Guardar",
+    "saved": "Guardado",
+    "unsaved": "Cambios sin guardar",
+    "legend": "Ajustes del código QR"
+  },
+  "preview": {
+    "label": "Vista previa",
+    "alt": "Código QR de {link}",
+    "size": "{width} × {height} px",
+    "opens": "Abre {url}"
+  },
+  "content": {
+    "title": "Contenido",
+    "description": "Adónde lleva el código. El patrón nunca cambia, así que las copias impresas siguen el nuevo destino.",
+    "url": "URL de destino",
+    "applyToLink": "Actualizar también el enlace <key>{link}</key>",
+    "applyToLinkHint": "Copia un nuevo destino o título al enlace al que está asociado este código.",
+    "titleLabel": "Título",
+    "tags": "Etiquetas"
+  },
+  "colors": {
+    "title": "Colores",
+    "presets": "Predefinidos",
+    "preset": "Usar {color} sobre blanco",
+    "foreground": "Código",
+    "background": "Fondo",
+    "pickForeground": "Elegir el color del código",
+    "pickBackground": "Elegir el color de fondo",
+    "pickCorner": "Elegir el color de las esquinas",
+    "corners": "Esquinas",
+    "cornersSame": "Igual que el código",
+    "cornersCustom": "Color propio",
+    "cornerColor": "Color de las esquinas"
+  },
+  "pattern": {
+    "title": "Patrón",
+    "description": "Las formas cambian el aspecto; el enlace que contiene sigue igual.",
+    "dots": "Puntos",
+    "cornerSquares": "Cuadrados de las esquinas",
+    "cornerDots": "Puntos de las esquinas",
+    "styles": {
+      "square": "Cuadrado",
+      "dots": "Puntos",
+      "rounded": "Redondeado",
+      "extra-rounded": "Muy redondeado",
+      "classy": "Clásico",
+      "classy-rounded": "Clásico redondeado",
+      "dot": "Círculo"
+    }
+  },
+  "errorLevel": {
+    "title": "Corrección de errores",
+    "description": "Los niveles más altos permiten que el código resista rozaduras y un logotipo, a cambio de un patrón más denso.",
+    "label": "Nivel",
+    "option": "{level} · {share}%"
+  },
+  "logo": {
+    "title": "Logotipo",
+    "description": "Se dibuja en el centro del código.",
+    "url": "URL del logotipo",
+    "urlHint": "Un PNG, JPEG o SVG en un servidor que permita solicitudes de otros orígenes (CORS).",
+    "urlPlaceholder": "https://ejemplo.es/logo.png",
+    "remove": "Quitar",
+    "size": "Tamaño del logotipo",
+    "sizeHint": "La parte de la corrección de errores que ocupa el logotipo. Mantenla en el 50 % o menos.",
+    "hideDots": "Ocultar el patrón detrás del logotipo",
+    "gatedExisting": "Tu plan ya no incluye logotipos. Puedes mantener este o quitarlo."
+  },
+  "check": {
+    "title": "Comprobación de escaneo",
+    "contrastOk": "Buen contraste ({value}). Los móviles lo leen sin problemas.",
+    "contrastLow": "Contraste bajo ({value}). Pruébalo con varios móviles antes de imprimir.",
+    "contrastFail": "Contraste insuficiente ({value}). Muchos móviles no lo leerán: oscurece el código o aclara el fondo.",
+    "unknownColor": "Estos colores no se pueden comprobar automáticamente. Prueba el código antes de imprimir.",
+    "inverted": "Código claro sobre fondo oscuro. Algunas apps de escaneo antiguas no leen códigos invertidos.",
+    "transparent": "El fondo es transparente, así que el contraste depende de dónde se imprima.",
+    "logoLarge": "El logotipo ocupa el {value} de la corrección de errores. Mantenlo en el 50 % o menos para que una impresión rozada se siga leyendo.",
+    "logoSmall": "Con corrección de errores L o M, el logotipo se dibuja pequeño. Elige Q o H para un logotipo más grande.",
+    "logoUnavailable": "El logotipo no se ha cargado, así que la vista previa no lo muestra. Revisa la URL y que su servidor permita solicitudes de otros orígenes."
+  },
+  "download": {
+    "label": "Descargar",
+    "size": "Tamaño",
+    "pixels": "{size} px",
+    "formats": {
+      "svg": "SVG (vectorial)",
+      "png": "PNG",
+      "jpeg": "JPEG"
+    },
+    "logoFailed": "No se pudo cargar el logotipo, así que la descarga saldría sin él.",
+    "failed": "La descarga ha fallado. Vuelve a intentarlo."
+  },
+  "detail": {
+    "summary": "Detalles del código QR",
+    "openDestination": "Abrir destino",
+    "created": "Creado",
+    "code": "Código",
+    "attached": "Asociado a",
+    "tags": "Etiquetas"
+  }
+}

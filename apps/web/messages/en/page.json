@@ -1,0 +1,18 @@
+{
+  "breadcrumb": "Breadcrumb",
+  "filters": {
+    "label": "Filters",
+    "apply": "Apply",
+    "applied": "Filtered by",
+    "clear": "Clear all"
+  },
+  "delete": {
+    "whatHappens": "What happens",
+    "cancel": "Cancel",
+    "failed": "That didn't work. Try again."
+  },
+  "cancel": "Cancel",
+  "save": "Save changes",
+  "saved": "Saved.",
+  "optional": "Optional"
+}
