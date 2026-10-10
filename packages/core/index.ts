@@ -17,3 +17,5 @@ export * from "./safety/structural";
 export * from "./campaigns/service";
 export * from "./qr/service";
 export * from "./analytics/queries";
+export * from "./workspaces/members";
+export * from "./bio/service";
