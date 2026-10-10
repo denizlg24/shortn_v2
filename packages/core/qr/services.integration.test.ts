@@ -150,17 +150,15 @@ const enabled = Boolean(mongoUrl && redisUrl);
       type: "linear",
       colorStops: [{ offset: 0, color: "#000" }],
     };
-    await db
-      .collection(physicalNames.qr_codes)
-      .updateOne(
-        { _id: new ObjectId(qr.value.id) },
-        {
-          $set: {
-            "options.dotsOptions": { color: "#123456", type: "dots", gradient },
-            "options.width": "300",
-          },
+    await db.collection(physicalNames.qr_codes).updateOne(
+      { _id: new ObjectId(qr.value.id) },
+      {
+        $set: {
+          "options.dotsOptions": { color: "#123456", type: "dots", gradient },
+          "options.width": "300",
         },
-      );
+      },
+    );
     const view = await getQr(ctx, qr.value.id);
     expect(view?.design.dotsOptions).toEqual({
       color: "#123456",
@@ -180,6 +178,26 @@ const enabled = Boolean(mongoUrl && redisUrl);
     expect(stored?.options.dotsOptions.gradient).toEqual(gradient);
     expect(stored?.options.width).toBe("300");
     expect(stored?.options.backgroundOptions.color).toBe("#eeeeee");
+    expect(
+      (
+        await updateQr(ctx, qr.value.id, {
+          design: { dotsOptions: { color: "#000000" } },
+        })
+      ).ok,
+    ).toBe(true);
+    const deep = await db
+      .collection(physicalNames.qr_codes)
+      .findOne({ _id: new ObjectId(qr.value.id) });
+    expect(deep?.options.dotsOptions).toEqual({
+      color: "#000000",
+      type: "dots",
+      gradient,
+    });
+    expect((await getQr(ctx, qr.value.id))?.storedDesign.dotsOptions).toEqual({
+      color: "#000000",
+      type: "dots",
+      gradient,
+    });
   });
 
   test("campaigns: UTM variants create campaigns by title; rename and delete keep links consistent", async () => {

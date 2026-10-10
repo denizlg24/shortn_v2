@@ -23,6 +23,8 @@ const qr: QrView = {
     backgroundOptions: { color: "#ffffff" },
     imageOptions: { crossOrigin: "anonymous", margin: 5 },
   },
+  storedDesign: {},
+  createdBy: null,
   attachedLinkKey: "menu",
   createdAt: "2026-01-01T00:00:00.000Z",
 };

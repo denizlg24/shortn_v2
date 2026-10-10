@@ -31,6 +31,7 @@ export interface CampaignView {
   linkCount: number;
   utmDefaults: UtmDefaults;
   createdAt: string;
+  createdBy: string | null;
 }
 
 export interface UtmVariant {
@@ -58,6 +59,8 @@ export function toCampaignView(campaign: Campaign): CampaignView {
     createdAt: (
       campaign.createdAt ?? campaign._id.getTimestamp()
     ).toISOString(),
+    createdBy:
+      typeof campaign.createdBy === "string" ? campaign.createdBy : null,
   };
 }
 
@@ -130,6 +133,7 @@ async function upsertByTitle(ctx: ServiceContext, title: string) {
     ...(sub ? { sub } : {}),
     workspaceId: ctx.workspace._id,
     links: [],
+    createdBy: ctx.actor.userId,
     createdAt: now,
     updatedAt: now,
   });

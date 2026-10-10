@@ -17,6 +17,7 @@ const bio: BioEditable = {
   title: "Ana",
   linkCount: 1,
   avatarUrl: null,
+  createdBy: null,
   updatedAt: "2026-01-01T00:00:00.000Z",
   description: "",
   avatarShape: "circle",

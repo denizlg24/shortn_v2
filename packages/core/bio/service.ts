@@ -77,6 +77,7 @@ export interface BioSummary {
   linkCount: number;
   avatarUrl: string | null;
   updatedAt: string;
+  createdBy: string | null;
 }
 
 export interface BioEditable extends BioSummary {
@@ -117,6 +118,7 @@ function summary(page: BioPage): BioSummary {
       page.createdAt ??
       page._id.getTimestamp()
     ).toISOString(),
+    createdBy: typeof page.createdBy === "string" ? page.createdBy : null,
   };
 }
 

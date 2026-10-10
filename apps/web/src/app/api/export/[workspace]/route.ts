@@ -45,11 +45,6 @@ export async function GET(
   const { workspace } = await params;
   const ctx = await serviceContext(workspace);
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
-  if (!hasFeature(entitlements, "csvExport"))
-    return Response.json(
-      { error: "feature_required", feature: "csvExport" },
-      { status: 403 },
-    );
   const url = new URL(request.url);
   const from = new Date(url.searchParams.get("from") ?? "");
   const to = new Date(url.searchParams.get("to") ?? "");
@@ -59,6 +54,13 @@ export async function GET(
   const filters: Filters = {};
   const linkId = url.searchParams.get("link");
   const campaignId = url.searchParams.get("campaign");
+  // Campaign export stays Pro, as in legacy; other exports are Plus (csvExport).
+  const feature = campaignId ? "campaignExport" : "csvExport";
+  if (!hasFeature(entitlements, feature))
+    return Response.json(
+      { error: "feature_required", feature },
+      { status: 403 },
+    );
   if (linkId) {
     const link = await getLink(ctx, linkId);
     if (!link) return Response.json({ error: "not_found" }, { status: 404 });

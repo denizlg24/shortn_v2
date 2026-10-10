@@ -34,7 +34,7 @@ export default async function CampaignDetailPage({
   if (!access.allowed) return <CampaignsGate plan={access.plan} />;
   const [result, exportAccess, features] = await Promise.all([
     loadCampaign(slug, id),
-    featureAccess(slug, "csvExport"),
+    featureAccess(slug, "campaignExport"),
     planFeatures(slug),
   ]);
   if (!result.ok) notFound();

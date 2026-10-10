@@ -80,8 +80,12 @@ export interface QrView {
   scans: number;
   lastScanAt: string | null;
   design: QrDesign;
+  // Everything stored, including options the schema doesn't model (legacy
+  // gradients), so previews and downloads render the code as printed.
+  storedDesign: Record<string, unknown>;
   attachedLinkKey: string | null;
   createdAt: string;
+  createdBy: string | null;
 }
 
 // Legacy options can hold values this schema doesn't model (gradients,
@@ -120,11 +124,13 @@ export function toQrView(qr: QrCode, linkDomain: string): QrView {
     scans: qr.clicks?.total ?? qr.stats?.scans ?? 0,
     lastScanAt: qr.clicks?.lastClick?.toISOString() ?? null,
     design: designOf(qr),
+    storedDesign: storedOptions(qr),
     attachedLinkKey:
       typeof qr.attachedUrl === "string" && qr.attachedUrl
         ? qr.attachedUrl
         : null,
     createdAt: (qr.createdAt ?? qr.date ?? qr._id.getTimestamp()).toISOString(),
+    createdBy: typeof qr.createdBy === "string" ? qr.createdBy : null,
   };
 }
 
@@ -363,6 +369,77 @@ export async function listQrs(
   return docs.map((doc) => toQrView(doc, ctx.linkDomain));
 }
 
+// Option groups (dotsOptions, …) merge one level deep, so changing a dot
+// colour keeps a legacy gradient stored in the same group.
+function mergeDesign(stored: Record<string, unknown>, edit: QrDesign) {
+  const merged: Record<string, unknown> = { ...stored };
+  for (const [key, value] of Object.entries(edit)) {
+    const before = stored[key];
+    merged[key] =
+      value &&
+      typeof value === "object" &&
+      before &&
+      typeof before === "object" &&
+      !Array.isArray(before)
+        ? { ...before, ...value }
+        : value;
+  }
+  return merged;
+}
+
+// Numbered pages for the QR list (17), alongside the unpaged listQrs.
+export async function pageQrs(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  input: {
+    search?: string | undefined;
+    tag?: string | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+  } = {},
+) {
+  const limit = Math.min(Math.max(input.limit ?? 24, 1), 100);
+  const page = Math.max(1, Math.floor(input.page ?? 1));
+  const search = input.search?.trim();
+  const pattern = search
+    ? new RegExp(
+        search.slice(0, 200).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+        "i",
+      )
+    : null;
+  const filter = {
+    $and: [
+      ownedBy<QrCode>(ctx.workspace),
+      ...(pattern
+        ? [
+            {
+              $or: [
+                { title: pattern },
+                { longUrl: pattern },
+                { qrCodeId: pattern },
+              ],
+            },
+          ]
+        : []),
+      ...(input.tag ? [{ "tags.tagName": input.tag }] : []),
+    ],
+  };
+  const [total, docs] = await Promise.all([
+    collection(ctx.db, "qr_codes").countDocuments(filter),
+    collection(ctx.db, "qr_codes")
+      .find(filter)
+      .sort({ date: -1, _id: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .toArray(),
+  ]);
+  return {
+    items: docs.map((doc) => toQrView(doc, ctx.linkDomain)),
+    total,
+    page,
+    pages: Math.max(1, Math.ceil(total / limit)),
+  };
+}
+
 export interface UpdateQrInput {
   url?: string | undefined;
   title?: string | undefined;
@@ -405,8 +482,7 @@ export async function updateQr(
     // Merged onto what is stored, so options the editor doesn't model
     // (legacy gradients) survive an edit.
     const design = {
-      ...storedOptions(qr),
-      ...input.design,
+      ...mergeDesign(storedOptions(qr), input.design),
       data: `https://${ctx.linkDomain}/${qr.urlId ?? ""}`,
     };
     $set.options = design;
