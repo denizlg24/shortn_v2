@@ -43,6 +43,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.click_events]: [
     { name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } },
+    { name: "v2_workspace_time", key: { "m.workspaceId": 1, ts: -1 } },
     { name: "v2_event_sid", key: { sid: 1 } },
     { name: "v2_event_legacy_id", key: { legacyId: 1 } },
   ],

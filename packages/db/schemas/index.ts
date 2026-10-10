@@ -240,7 +240,15 @@ export const campaignSchema = z.looseObject({
   workspaceId: objectId.optional(),
   title: text,
   description: text.optional(),
-  utmDefaults: utm.optional(),
+  // Legacy shape: suggestion lists offered in the UTM builder.
+  utmDefaults: z
+    .object({
+      sources: z.array(text).optional(),
+      mediums: z.array(text).optional(),
+      terms: z.array(text).optional(),
+      contents: z.array(text).optional(),
+    })
+    .optional(),
   links: z.array(objectId).optional(),
 });
 const block = z.discriminatedUnion("type", [

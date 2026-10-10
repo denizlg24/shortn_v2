@@ -1,0 +1,21 @@
+{
+  "name": "@shortn/billing",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "@shortn/db": "workspace:*",
+    "mongodb": "7.1.0"
+  }
+}

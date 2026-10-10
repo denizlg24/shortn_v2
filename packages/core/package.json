@@ -13,7 +13,8 @@
     "test": "bun test"
   },
   "devDependencies": {
-    "@shortn/config": "workspace:*"
+    "@shortn/config": "workspace:*",
+    "ioredis": "6.0.0"
   },
   "dependencies": {
     "@shortn/db": "workspace:*",
@@ -21,6 +22,10 @@
     "jose": "6.1.2",
     "mongodb": "7.1.0",
     "ua-parser-js": "2.0.9",
-    "zod": "4.6.5"
+    "zod": "4.6.5",
+    "@shortn/billing": "workspace:*",
+    "@shortn/redis": "workspace:*",
+    "bcryptjs": "3.0.3",
+    "nanoid": "5.1.6"
   }
 }
