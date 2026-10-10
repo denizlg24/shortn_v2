@@ -99,3 +99,80 @@ test("CANARY_PERCENT=0 is the kill switch", async () => {
   expect(seen.redirect).toHaveLength(0);
   expect(bucket("anything")).toBeLessThan(100);
 });
+
+test("P4 column is off until WEB_ORIGIN and DASHBOARD_HANDOFF are set", async () => {
+  const { handler, seen } = setup(redirected);
+  await handler(new Request("https://shortn.at/authenticate/abc"), env);
+  const dashboard = await handler(
+    new Request("https://shortn.at/en/dashboard/links"),
+    env,
+  );
+  expect(seen.legacy).toHaveLength(2);
+  expect(dashboard.status).toBe(200);
+});
+
+test("with the P4 column, public link pages go to web and dashboards to the handoff", async () => {
+  const p4: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    DASHBOARD_HANDOFF: "1",
+  };
+  const webSeen: Request[] = [];
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      webSeen.push(request);
+      return new Response(null, { status: 303, headers: { location: "/abc" } });
+    },
+  );
+  const post = await handler(
+    new Request("https://shortn.at/authenticate/abc", {
+      method: "POST",
+      body: "password=x",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie: "a=b",
+      },
+    }),
+    p4,
+  );
+  expect(post.status).toBe(303);
+  expect(webSeen[0]?.url).toBe("https://app.shortn.at/authenticate/abc");
+  expect(webSeen[0]?.headers.get("x-forwarded-host")).toBe("shortn.at");
+  expect(await webSeen[0]?.text()).toBe("password=x");
+  await handler(new Request("https://shortn.at/pt/safety/abc"), p4);
+  expect(webSeen[1]?.url).toBe("https://app.shortn.at/pt/safety/abc");
+  const dashboard = await handler(
+    new Request("https://shortn.at/pt/dashboard/qr-codes"),
+    p4,
+  );
+  expect(dashboard.status).toBe(302);
+  expect(dashboard.headers.get("location")).toBe(
+    "https://shortn.at/api/handoff?from=%2Fpt%2Fdashboard%2Fqr-codes",
+  );
+});
+
+test("a failing web origin falls back to legacy for the same request", async () => {
+  const p4: Env = { ...env, WEB_ORIGIN: "https://app.shortn.at" };
+  let legacyBody = "";
+  const handler = createHandler(
+    redirected,
+    async (request) => {
+      legacyBody = await request.text();
+      return new Response("legacy");
+    },
+    50,
+    async () => new Response("down", { status: 502 }),
+  );
+  const response = await handler(
+    new Request("https://shortn.at/authenticate/abc", {
+      method: "POST",
+      body: "password=x",
+    }),
+    p4,
+  );
+  expect(await response.text()).toBe("legacy");
+  expect(legacyBody).toBe("password=x");
+});
