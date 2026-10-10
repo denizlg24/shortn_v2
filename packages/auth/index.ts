@@ -47,8 +47,8 @@ export interface AuthConfig {
   // Rate-limit counters only. Sessions stay in Mongo while legacy can revoke
   // them there (16 D2); a Redis copy would outlive a legacy revocation.
   redis?: KeyValueStore;
-  github: { clientId: string; clientSecret: string };
-  google: { clientId: string; clientSecret: string };
+  github?: { clientId: string; clientSecret: string } | undefined;
+  google?: { clientId: string; clientSecret: string } | undefined;
   polar: { accessToken: string; server: "sandbox" | "production" };
   trustedOrigins?: string[];
   emails: AuthEmails;
@@ -291,35 +291,44 @@ export function createAuth(config: AuthConfig) {
       },
     },
     socialProviders: {
-      github: {
-        clientId: config.github.clientId,
-        clientSecret: config.github.clientSecret,
-        mapProfileToUser: (profile) => ({
-          name: profile.name || profile.login,
-          email: profile.email,
-          username:
-            profile.login || profile.email.slice(0, profile.email.indexOf("@")),
-          image: profile.avatar_url,
-          emailVerified: true,
-          sub: `github|${profile.id}`,
-        }),
-      },
-      google: {
-        prompt: "select_account",
-        clientId: config.google.clientId,
-        clientSecret: config.google.clientSecret,
-        mapProfileToUser: (profile) => ({
-          name:
-            [profile.given_name, profile.family_name].join(" ").trim() ||
-            profile.name ||
-            profile.email.slice(0, profile.email.indexOf("@")),
-          username: profile.email.slice(0, profile.email.indexOf("@")),
-          email: profile.email,
-          image: profile.picture,
-          emailVerified: profile.email_verified,
-          sub: `google|${profile.sub}`,
-        }),
-      },
+      ...(config.github
+        ? {
+            github: {
+              clientId: config.github.clientId,
+              clientSecret: config.github.clientSecret,
+              mapProfileToUser: (profile) => ({
+                name: profile.name || profile.login,
+                email: profile.email,
+                username:
+                  profile.login ||
+                  profile.email.slice(0, profile.email.indexOf("@")),
+                image: profile.avatar_url,
+                emailVerified: true,
+                sub: `github|${profile.id}`,
+              }),
+            },
+          }
+        : {}),
+      ...(config.google
+        ? {
+            google: {
+              prompt: "select_account",
+              clientId: config.google.clientId,
+              clientSecret: config.google.clientSecret,
+              mapProfileToUser: (profile) => ({
+                name:
+                  [profile.given_name, profile.family_name].join(" ").trim() ||
+                  profile.name ||
+                  profile.email.slice(0, profile.email.indexOf("@")),
+                username: profile.email.slice(0, profile.email.indexOf("@")),
+                email: profile.email,
+                image: profile.picture,
+                emailVerified: profile.email_verified,
+                sub: `google|${profile.sub}`,
+              }),
+            },
+          }
+        : {}),
     },
     plugins: [
       username({

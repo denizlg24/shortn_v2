@@ -8,6 +8,9 @@ import {
   type SubscriptionLike,
 } from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
+import { messages, type Mailer } from "@shortn/emails";
+import { ObjectId } from "mongodb";
+import { noticesFor } from "./billing-notices";
 import { planFromProductName } from "@shortn/db/migrations";
 import type { Db } from "mongodb";
 
@@ -132,4 +135,56 @@ export async function runReconcile(deps: BillingDeps & { polar: Polar }) {
     drift && deps.mode === "live" ? new Error("billing drift") : undefined,
   );
   return report;
+}
+
+// Live-mode side effect: email the workspace owner about the transition.
+// English only for now: the user's language isn't stored server-side yet.
+export function billingMailer(deps: {
+  db: Db;
+  mailer: Pick<Mailer, "billing">;
+  appUrl: string;
+  log: (message: string, error?: unknown) => void;
+}): NonNullable<BillingDeps["onApplied"]> {
+  return async ({ before, after }) => {
+    const notices = noticesFor(before, after);
+    if (!notices.length) return;
+    const workspace = await collection(deps.db, "workspaces").findOne({
+      _id: after.workspaceId,
+    });
+    if (!workspace || !ObjectId.isValid(workspace.ownerUserId)) return;
+    const owner = await deps.db
+      .collection(physicalNames.user)
+      .findOne(
+        { _id: new ObjectId(workspace.ownerUserId) },
+        { projection: { email: 1 } },
+      );
+    if (typeof owner?.email !== "string") return;
+    const locale = "en";
+    const plans = messages[locale].billing.plans;
+    const date = (at: Date) =>
+      at.toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    for (const notice of notices)
+      await deps.mailer.billing({
+        to: owner.email,
+        locale,
+        workspace: workspace.name,
+        url: `${deps.appUrl}/${workspace.slug}/settings/billing`,
+        notice:
+          notice.kind === "started" || notice.kind === "changed"
+            ? { kind: notice.kind, plan: plans[notice.plan] }
+            : notice.kind === "scheduled"
+              ? {
+                  kind: "scheduled",
+                  plan: plans[notice.plan],
+                  date: date(notice.at),
+                }
+              : notice.kind === "canceled"
+                ? { kind: "canceled", date: date(notice.at) }
+                : { kind: "payment_failed" },
+      });
+  };
 }

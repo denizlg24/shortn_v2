@@ -254,6 +254,19 @@ export const apiEnv = z
     ),
   })
   .superRefine(productionRules);
+const liveBillingNeedsMail = (
+  env: Record<string, unknown>,
+  ctx: z.RefinementCtx,
+) => {
+  if (env.BILLING_MODE !== "live") return;
+  for (const key of ["POLAR_ACCESS_TOKEN", "RESEND_API_KEY", "APP_URL"])
+    if (!env[key])
+      ctx.addIssue({
+        code: "custom",
+        path: [key],
+        message: "Required when BILLING_MODE=live",
+      });
+};
 export const workerEnv = z
   .object({
     ...common,
@@ -272,13 +285,24 @@ export const workerEnv = z
     POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN.optional(),
     POLAR_ENVIRONMENT: polarEnvironment,
     BILLING_MODE: billingMode,
+    RESEND_API_KEY: mail.RESEND_API_KEY.optional(),
+    MAIL_FROM: value(
+      z.string().min(3).default("Shortn <no-reply@shortn.at>"),
+      "Shortn <no-reply@shortn.at>",
+      "Sender for billing email",
+    ),
+    APP_URL: httpUrl(
+      "http://localhost:3000",
+      "Dashboard origin for links in billing email",
+    ).optional(),
     RUN_CONTINUOUS_MIGRATIONS: value(
       z.enum(["0", "1"]).default("1"),
       "1",
       "Run continuous expand migrations every minute",
     ),
   })
-  .superRefine(productionRules);
+  .superRefine(productionRules)
+  .superRefine(liveBillingNeedsMail);
 
 // Legacy infrastructure variables also belong in the generated root example.
 // The legacy app validates its complete runtime environment in utils/env.ts.

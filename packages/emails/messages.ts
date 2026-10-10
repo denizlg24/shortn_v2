@@ -36,6 +36,21 @@ interface Messages {
     body: (newEmail: string) => string;
     action: string;
   };
+  billing: {
+    plans: Record<"free" | "basic" | "plus" | "pro" | "enterprise", string>;
+    startedSubject: (plan: string) => string;
+    startedHeading: (plan: string) => string;
+    startedBody: (workspace: string) => string;
+    changedSubject: (plan: string) => string;
+    changedBody: (workspace: string, plan: string) => string;
+    scheduledSubject: string;
+    scheduledBody: (workspace: string, plan: string, date: string) => string;
+    canceledSubject: string;
+    canceledBody: (workspace: string, date: string) => string;
+    paymentFailedSubject: string;
+    paymentFailedBody: (workspace: string) => string;
+    action: string;
+  };
   invite: {
     subject: (workspace: string) => string;
     heading: (inviter: string, workspace: string) => string;
@@ -80,6 +95,31 @@ const en: Messages = {
     body: (newEmail) =>
       `You asked to change your Shortn email to ${newEmail}. Approve the change from this address first.`,
     action: "Approve change",
+  },
+  billing: {
+    plans: {
+      free: "Free",
+      basic: "Basic",
+      plus: "Plus",
+      pro: "Pro",
+      enterprise: "Enterprise",
+    },
+    startedSubject: (plan) => `Your Shortn ${plan} plan is active`,
+    startedHeading: (plan) => `Welcome to ${plan}`,
+    startedBody: (workspace) =>
+      `${workspace} now has the new plan's limits and features.`,
+    changedSubject: (plan) => `Your plan is now ${plan}`,
+    changedBody: (workspace, plan) => `${workspace} moved to the ${plan} plan.`,
+    scheduledSubject: "Your plan change is scheduled",
+    scheduledBody: (workspace, plan, date) =>
+      `${workspace} moves to ${plan} on ${date}. Until then nothing changes.`,
+    canceledSubject: "Your subscription will end",
+    canceledBody: (workspace, date) =>
+      `The subscription for ${workspace} ends on ${date}. Your links keep working on the Free plan after that.`,
+    paymentFailedSubject: "We couldn't take your payment",
+    paymentFailedBody: (workspace) =>
+      `The last payment for ${workspace} failed. Everything keeps working for 7 days while you update your payment method.`,
+    action: "Open billing",
   },
   invite: {
     subject: (workspace) => `You're invited to ${workspace} on Shortn`,
@@ -126,6 +166,32 @@ const pt: Messages = {
       `Pediu para alterar o email do Shortn para ${newEmail}. Aprove primeiro a alteração a partir deste endereço.`,
     action: "Aprovar alteração",
   },
+  billing: {
+    plans: {
+      free: "Grátis",
+      basic: "Basic",
+      plus: "Plus",
+      pro: "Pro",
+      enterprise: "Enterprise",
+    },
+    startedSubject: (plan) => `O seu plano ${plan} do Shortn está ativo`,
+    startedHeading: (plan) => `Bem-vindo ao ${plan}`,
+    startedBody: (workspace) =>
+      `${workspace} tem agora os limites e funcionalidades do novo plano.`,
+    changedSubject: (plan) => `O seu plano é agora ${plan}`,
+    changedBody: (workspace, plan) =>
+      `${workspace} passou para o plano ${plan}.`,
+    scheduledSubject: "A alteração de plano está agendada",
+    scheduledBody: (workspace, plan, date) =>
+      `${workspace} passa para ${plan} em ${date}. Até lá nada muda.`,
+    canceledSubject: "A sua subscrição vai terminar",
+    canceledBody: (workspace, date) =>
+      `A subscrição de ${workspace} termina em ${date}. Depois disso os seus links continuam a funcionar no plano Grátis.`,
+    paymentFailedSubject: "Não foi possível cobrar o pagamento",
+    paymentFailedBody: (workspace) =>
+      `O último pagamento de ${workspace} falhou. Tudo continua a funcionar durante 7 dias enquanto atualiza o método de pagamento.`,
+    action: "Abrir faturação",
+  },
   invite: {
     subject: (workspace) => `Foi convidado para ${workspace} no Shortn`,
     heading: (inviter, workspace) => `${inviter} convidou-o para ${workspace}`,
@@ -170,6 +236,31 @@ const es: Messages = {
     body: (newEmail) =>
       `Pediste cambiar tu email de Shortn a ${newEmail}. Aprueba primero el cambio desde esta dirección.`,
     action: "Aprobar cambio",
+  },
+  billing: {
+    plans: {
+      free: "Gratis",
+      basic: "Basic",
+      plus: "Plus",
+      pro: "Pro",
+      enterprise: "Enterprise",
+    },
+    startedSubject: (plan) => `Tu plan ${plan} de Shortn está activo`,
+    startedHeading: (plan) => `Bienvenido a ${plan}`,
+    startedBody: (workspace) =>
+      `${workspace} ya tiene los límites y funciones del nuevo plan.`,
+    changedSubject: (plan) => `Tu plan ahora es ${plan}`,
+    changedBody: (workspace, plan) => `${workspace} pasó al plan ${plan}.`,
+    scheduledSubject: "El cambio de plan está programado",
+    scheduledBody: (workspace, plan, date) =>
+      `${workspace} pasa a ${plan} el ${date}. Hasta entonces no cambia nada.`,
+    canceledSubject: "Tu suscripción terminará",
+    canceledBody: (workspace, date) =>
+      `La suscripción de ${workspace} termina el ${date}. Después, tus enlaces siguen funcionando en el plan Gratis.`,
+    paymentFailedSubject: "No pudimos cobrar tu pago",
+    paymentFailedBody: (workspace) =>
+      `El último pago de ${workspace} falló. Todo sigue funcionando durante 7 días mientras actualizas tu método de pago.`,
+    action: "Abrir facturación",
   },
   invite: {
     subject: (workspace) => `Te invitaron a ${workspace} en Shortn`,

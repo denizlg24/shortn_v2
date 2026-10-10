@@ -3,6 +3,11 @@ import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { messages, type Locale } from "./messages";
 import {
+  BillingEmail,
+  billingSubject,
+  type BillingNotice,
+} from "./templates/billing";
+import {
   ConfirmEmailChange,
   EmailVerified,
   ResetPassword,
@@ -11,6 +16,7 @@ import {
 } from "./templates/account";
 
 export { isLocale, locales, messages, type Locale } from "./messages";
+export type { BillingNotice } from "./templates/billing";
 
 export interface MailerConfig {
   apiKey: string;
@@ -89,6 +95,19 @@ export function createMailer(config: MailerConfig) {
         input.to,
         messages[input.locale].emailChange.subject,
         <ConfirmEmailChange {...input} />,
+      );
+    },
+    billing(input: {
+      to: string;
+      locale: Locale;
+      workspace: string;
+      notice: BillingNotice;
+      url: string;
+    }) {
+      return send(
+        input.to,
+        billingSubject(input.locale, input.notice),
+        <BillingEmail {...input} />,
       );
     },
     workspaceInvite(input: {

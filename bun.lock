@@ -105,6 +105,7 @@
         "@shortn/billing": "workspace:*",
         "@shortn/core": "workspace:*",
         "@shortn/db": "workspace:*",
+        "@shortn/emails": "workspace:*",
         "@shortn/env": "workspace:*",
         "@shortn/redis": "workspace:*",
         "ioredis": "6.0.0",

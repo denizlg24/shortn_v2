@@ -35,3 +35,31 @@ P4 (14) delivers `app.shortn.at` at parity with the legacy dashboard, the new bi
 2. Beta: enable the legacy banner in production (internal first, then Vida Económica with consent, then everyone).
 3. Shadow the Polar webhook in production for 7 days with zero diffs, then the billing switch (06 §Migration step 5).
 4. Default switch: deploy the edge Worker with the P4 routing column; email + changelog the week before (14 §Communication).
+
+## Parity checklist (14 §Parity checklist, completed here)
+
+Status: ✅ built and tested · 🟡 built, not yet verified on staging · ⏳ pending · ↪ stays in legacy until a later phase (with reason).
+
+| Legacy feature                                                  | New home                                                                     | Status |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
+| Links CRUD, custom codes (Basic+), tags                          | `/{ws}/links` table, composer, sheet · `core/links`, `core/tags`             | ⏳     |
+| UTM variants, campaigns, UTM defaults                            | link sheet UTM editor, `/{ws}/campaigns` · `core/campaigns`                  | ⏳     |
+| Password links + hint (Pro)                                      | link sheet · `/authenticate/{key}` on web · `core/links/public`              | ⏳     |
+| Safety interstitial, blocked page, report                        | `/{locale}/safety/{key}` on web · `core/links/public`                        | ⏳     |
+| QR create/edit/customize/download                                | `/{ws}/qr` · `core/qr` (legacy option format kept)                           | ⏳     |
+| QR analytics                                                     | analytics scope `qr`                                                         | ⏳     |
+| Link analytics: time series, geo, devices, browsers, OS, referrers, UTM tables | `/{ws}/links/{id}`, `/{ws}/analytics` · `core/analytics/queries` | ⏳     |
+| Analytics CSV export                                             | export route on analytics (csvExport feature)                                | ⏳     |
+| Bio pages: create, customize, links, socials, header, fonts      | `/{ws}/bio` editor writing legacy fields; public render stays legacy `/b/`   | ⏳     |
+| Subscription: checkout, portal, success page                     | `/{ws}/settings/billing` · `billing/polar`                                   | ⏳     |
+| Upgrade, downgrade, cancel                                       | billing page, behind `BILLING_WRITES` (D8)                                   | ⏳     |
+| Subscription emails                                              | worker `billingMailer` in live mode                                          | ✅     |
+| Account: profile, email change, password, OAuth linking, sessions | `/{ws}/settings/account` via better-auth client                            | ⏳     |
+| Account deletion                                                 | not in legacy (14's checklist listed it); 05's soft-delete flow follows P4    | ↪      |
+| Sign up, sign in (email or username), verify, recover, reset     | `(auth)` routes                                                              | ✅     |
+| Admin impersonation                                              | handoff carries `impersonatedBy`; banner in shell                            | 🟡     |
+| Contact form                                                     | ↪ legacy marketing until the marketing round (D7)                            | ↪      |
+| i18n en/pt/es                                                    | next-intl catalogs per namespace                                             | 🟡     |
+| Legal pages                                                      | ↪ legacy marketing (D7); app links to them                                   | ↪      |
+| `/qr/{code}` legacy URLs                                         | apps/redirect (P2)                                                           | ✅     |
+| `/b/{slug}` legacy URLs                                          | ↪ legacy until P5                                                            | ↪      |

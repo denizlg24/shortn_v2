@@ -5,7 +5,8 @@ import { createPolar } from "@shortn/billing";
 import { createRedisClients } from "@shortn/redis";
 import { hostname } from "node:os";
 import { createIngest } from "./ingest";
-import { processBillingEvents, runReconcile } from "./billing";
+import { createMailer } from "@shortn/emails";
+import { billingMailer, processBillingEvents, runReconcile } from "./billing";
 import { createInvalidator } from "./invalidator";
 import {
   every,
@@ -51,12 +52,18 @@ const polar = env.POLAR_ACCESS_TOKEN
       server: env.POLAR_ENVIRONMENT,
     })
   : undefined;
+const mailer = env.RESEND_API_KEY
+  ? createMailer({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM })
+  : undefined;
 const billing = polar && {
   db,
   polar,
   server: env.POLAR_ENVIRONMENT,
   mode: env.BILLING_MODE,
   log,
+  ...(mailer && env.APP_URL
+    ? { onApplied: billingMailer({ db, mailer, appUrl: env.APP_URL, log }) }
+    : {}),
 };
 
 const timers = [

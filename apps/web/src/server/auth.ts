@@ -30,8 +30,14 @@ export function auth(): Auth {
       set: async (key, value, ttl) =>
         (await redis()).cache.set(key, value, "EX", ttl),
     },
-    github: { clientId: e.AUTH_GITHUB_ID, clientSecret: e.AUTH_GITHUB_SECRET },
-    google: { clientId: e.AUTH_GOOGLE_ID, clientSecret: e.AUTH_GOOGLE_SECRET },
+    github:
+      e.AUTH_GITHUB_ID && e.AUTH_GITHUB_SECRET
+        ? { clientId: e.AUTH_GITHUB_ID, clientSecret: e.AUTH_GITHUB_SECRET }
+        : undefined,
+    google:
+      e.AUTH_GOOGLE_ID && e.AUTH_GOOGLE_SECRET
+        ? { clientId: e.AUTH_GOOGLE_ID, clientSecret: e.AUTH_GOOGLE_SECRET }
+        : undefined,
     polar: { accessToken: e.POLAR_ACCESS_TOKEN, server: e.POLAR_ENVIRONMENT },
     emails: {
       verifyEmail: (input, request) =>
@@ -55,3 +61,12 @@ export function auth(): Auth {
 export const getSession = cache(async () =>
   auth().api.getSession({ headers: await headers() }),
 );
+
+// Which OAuth buttons the sign-in screens may show.
+export function socialProviders() {
+  const e = env();
+  return {
+    github: Boolean(e.AUTH_GITHUB_ID && e.AUTH_GITHUB_SECRET),
+    google: Boolean(e.AUTH_GOOGLE_ID && e.AUTH_GOOGLE_SECRET),
+  };
+}
