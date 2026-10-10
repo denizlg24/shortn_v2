@@ -95,15 +95,6 @@ const common = {
   ...mongo,
   ...redis,
 };
-const r2 = {
-  R2_ENDPOINT: httpUrl(
-    "https://account-id.r2.cloudflarestorage.com",
-    "R2 S3 endpoint",
-  ),
-  R2_ACCESS_KEY_ID: value(z.string().min(1), "replace-me", "R2 access key"),
-  R2_SECRET_ACCESS_KEY: secret("R2 secret key"),
-  R2_BUCKET: value(z.string().min(1), "shortn-assets", "R2 assets bucket"),
-};
 const billing = {
   POLAR_ACCESS_TOKEN: secret("Polar API token"),
   POLAR_WEBHOOK_SECRET: secret("Polar signature secret"),
@@ -125,10 +116,6 @@ const mail = {
 const security = {
   LINK_ACCESS_SECRET: secret("Link access token secret"),
   API_KEY_PEPPER: secret("API key hashing pepper"),
-};
-const cloudflare = {
-  CF_API_TOKEN: secret("Cloudflare custom hostnames token"),
-  CF_ZONE_ID: value(z.string().min(1), "replace-me", "Cloudflare zone ID"),
 };
 const oauth = {
   AUTH_GITHUB_ID: value(z.string().min(1), "replace-me", "GitHub OAuth app id"),
@@ -223,14 +210,18 @@ export const redirectEnv = z
     ),
   })
   .superRefine(productionRules);
+export const billingMode = value(
+  z.enum(["shadow", "live"]).default("shadow"),
+  "shadow",
+  "shadow: mirror + diff only, no emails or legacy hand-off; live after the billing switch (06)",
+);
 export const apiEnv = z
   .object({
-    ...common,
-    ...r2,
-    ...billing,
-    ...mail,
-    ...security,
-    ...cloudflare,
+    NODE_ENV: common.NODE_ENV,
+    ...mongo,
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
+    POLAR_WEBHOOK_SECRET: billing.POLAR_WEBHOOK_SECRET,
+    POLAR_ENVIRONMENT: polarEnvironment,
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3003),
       "3003",
@@ -253,6 +244,9 @@ export const workerEnv = z
       "worker-1",
       "Stream consumer name; defaults to the hostname",
     ),
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN.optional(),
+    POLAR_ENVIRONMENT: polarEnvironment,
+    BILLING_MODE: billingMode,
     RUN_CONTINUOUS_MIGRATIONS: value(
       z.enum(["0", "1"]).default("1"),
       "1",

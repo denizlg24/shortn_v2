@@ -84,6 +84,13 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
     { name: "v2_member_user", key: { userId: 1 } },
   ],
+  [physicalNames.billing_events]: [
+    {
+      name: "v2_billing_event_ttl",
+      key: { receivedAt: 1 },
+      expireAfterSeconds: 400 * 86_400,
+    },
+  ],
   [physicalNames.workspace_invites]: [
     { name: "v2_invite_token", key: { tokenHash: 1 }, unique: true },
     { name: "v2_invite_workspace", key: { workspaceId: 1, email: 1 } },
@@ -125,6 +132,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       key: { polarSubscriptionId: 1 },
       unique: true,
     },
+    { name: "v2_workspace_subscriptions", key: { workspaceId: 1, status: 1 } },
   ],
   [physicalNames.usage_periods]: [
     {

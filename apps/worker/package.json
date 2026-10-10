@@ -20,6 +20,8 @@
     "@shortn/env": "workspace:*",
     "@shortn/redis": "workspace:*",
     "ioredis": "6.0.0",
-    "mongodb": "7.1.0"
+    "mongodb": "7.1.0",
+    "@shortn/billing": "workspace:*",
+    "@polar-sh/sdk": "0.49.0"
   }
 }

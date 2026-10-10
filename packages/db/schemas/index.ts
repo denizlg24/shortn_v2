@@ -337,6 +337,26 @@ export const subscriptionSchema = z.object({
   currentPeriodStart: z.date(),
   currentPeriodEnd: z.date(),
   cancelAtPeriodEnd: z.boolean(),
+  // Polar's modified_at; a refetch older than the stored one is ignored.
+  modifiedAt: z.date().optional(),
+  endsAt: z.date().optional(),
+  scheduledChange: z
+    .object({
+      productId: text,
+      plan: workspaceSchema.shape.plan.optional(),
+      at: z.date(),
+    })
+    .optional(),
+});
+export const billingEventSchema = z.object({
+  _id: text,
+  type: text,
+  subscriptionIds: z.array(text),
+  receivedAt: z.date(),
+  processedAt: z.date().optional(),
+  error: text.optional(),
+  attempts: count.optional(),
+  lockedUntil: z.date().optional(),
 });
 export const usagePeriodSchema = z.object({
   ...base,
@@ -372,6 +392,7 @@ export const schemas = {
   bio_aliases: bioAliasSchema,
   domains: domainSchema,
   subscriptions: subscriptionSchema,
+  billing_events: billingEventSchema,
   usage_periods: usagePeriodSchema,
   api_keys: apiKeySchema,
 };

@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@shortn/db": "workspace:*",
-    "mongodb": "7.1.0"
+    "mongodb": "7.1.0",
+    "@polar-sh/sdk": "0.49.0",
+    "@shortn/redis": "workspace:*",
+    "zod": "4.6.5"
   }
 }

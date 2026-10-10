@@ -88,7 +88,7 @@ test("href environment URLs require http(s)", () => {
   expect(
     redirectEnv.shape.PUBLIC_ORIGIN.safeParse("data:text/plain,foo").success,
   ).toBe(false);
-  expect(
-    apiEnv.shape.R2_ENDPOINT.safeParse("https://example.com").success,
-  ).toBe(true);
+  expect(apiEnv.shape.POLAR_ENVIRONMENT.safeParse("production").success).toBe(
+    true,
+  );
 });
