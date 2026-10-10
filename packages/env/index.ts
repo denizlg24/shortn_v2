@@ -173,6 +173,25 @@ export const webEnv = z
       "",
       "Google Web Risk key for link scans; without it scans are structural only",
     ),
+    LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET,
+    CONFIRMATION_TOKEN_SECRET: mail.CONFIRMATION_TOKEN_SECRET,
+    IP_HASH_SECRET: secret(
+      "HMAC secret for visitor IPs (reports, rate limits)",
+    ),
+    LEGACY_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Legacy app origin, for the /b/ revalidation hook during coexistence",
+    ).optional(),
+    LEGACY_INTERNAL_SECRET: value(
+      z.string().min(32).optional(),
+      "",
+      "Legacy INTERNAL_API_SECRET, sent to its revalidation hook",
+    ),
+    BILLING_WRITES: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "1 after the billing switch: plan changes and cancellation from this app (16 D8)",
+    ),
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3000),
       "3000",

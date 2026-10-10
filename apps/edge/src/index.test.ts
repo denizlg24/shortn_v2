@@ -154,6 +154,26 @@ test("with the P4 column, public link pages go to web and dashboards to the hand
   );
 });
 
+test("only the public link routes match the web paths", async () => {
+  const { isWebPath } = await import("./index");
+  for (const path of [
+    "/authenticate/abc",
+    "/authenticate/abc/verify",
+    "/pt/safety/abc",
+    "/en/safety/abc/token",
+    "/es/safety/abc/report",
+  ])
+    expect(isWebPath(path)).toBe(true);
+  for (const path of [
+    "/abc",
+    "/authenticate",
+    "/de/safety/abc",
+    "/en/safety/abc/other",
+    "/en/dashboard",
+  ])
+    expect(isWebPath(path)).toBe(false);
+});
+
 test("a failing web origin falls back to legacy for the same request", async () => {
   const p4: Env = { ...env, WEB_ORIGIN: "https://app.shortn.at" };
   let legacyBody = "";

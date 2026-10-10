@@ -7,6 +7,7 @@ const config: NextConfig = {
   outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   transpilePackages: [
     "@shortn/auth",
+    "@shortn/billing",
     "@shortn/core",
     "@shortn/db",
     "@shortn/emails",
@@ -22,6 +23,16 @@ const config: NextConfig = {
     ? { assetPrefix: process.env.WEB_ASSET_ORIGIN }
     : {}),
   typedRoutes: true,
+  // The redirect sends flagged links to /{locale}/safety/{key}; the page
+  // lives at /safety/{key} so it can't collide with /[workspace].
+  async rewrites() {
+    return [
+      {
+        source: "/:locale(en|pt|es)/safety/:key/:rest*",
+        destination: "/safety/:key/:rest*?locale=:locale",
+      },
+    ];
+  },
   async headers() {
     return [
       {

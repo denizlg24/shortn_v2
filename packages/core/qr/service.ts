@@ -8,6 +8,7 @@ import {
 import { invalidateLinks } from "@shortn/redis";
 import { customAlphabet } from "nanoid";
 import { ObjectId, type Document } from "mongodb";
+import { z } from "zod";
 import { archiveLegacyClicks } from "../legacy-clicks";
 import { fail, ok, type Result } from "../result";
 import { validateDestination } from "../safety/structural";
@@ -27,25 +28,35 @@ const code = customAlphabet(
 
 // qr-code-styling options, the format legacy stores and renders. The new
 // editor writes the same shape so both dashboards show the same code.
-export interface QrDesign {
-  width?: number;
-  height?: number;
-  type?: "svg" | "canvas";
-  data?: string;
-  image?: string;
-  margin?: number;
-  dotsOptions?: { color?: string; type?: string };
-  backgroundOptions?: { color?: string };
-  cornersSquareOptions?: { color?: string; type?: string };
-  cornersDotOptions?: { color?: string; type?: string };
-  imageOptions?: {
-    crossOrigin?: string;
-    margin?: number;
-    hideBackgroundDots?: boolean;
-    imageSize?: number;
-  };
-  qrOptions?: { errorCorrectionLevel?: "L" | "M" | "Q" | "H" };
-}
+const qrColor = z.string().max(32);
+const qrStyle = z.object({
+  color: qrColor.optional(),
+  type: z.string().max(32).optional(),
+});
+export const qrDesignSchema = z.object({
+  width: z.number().int().min(64).max(4096).optional(),
+  height: z.number().int().min(64).max(4096).optional(),
+  type: z.enum(["svg", "canvas"]).optional(),
+  data: z.string().max(2048).optional(),
+  image: z.string().max(2048).optional(),
+  margin: z.number().int().min(0).max(100).optional(),
+  dotsOptions: qrStyle.optional(),
+  backgroundOptions: z.object({ color: qrColor.optional() }).optional(),
+  cornersSquareOptions: qrStyle.optional(),
+  cornersDotOptions: qrStyle.optional(),
+  imageOptions: z
+    .object({
+      crossOrigin: z.string().max(32).optional(),
+      margin: z.number().int().min(0).max(50).optional(),
+      hideBackgroundDots: z.boolean().optional(),
+      imageSize: z.number().min(0).max(1).optional(),
+    })
+    .optional(),
+  qrOptions: z
+    .object({ errorCorrectionLevel: z.enum(["L", "M", "Q", "H"]).optional() })
+    .optional(),
+});
+export type QrDesign = z.infer<typeof qrDesignSchema>;
 
 export const defaultQrDesign = (data: string): QrDesign => ({
   width: 300,
@@ -73,9 +84,24 @@ export interface QrView {
   createdAt: string;
 }
 
-const designOf = (qr: QrCode): QrDesign => {
-  const options: unknown = qr.options ?? qr.design;
-  return options && typeof options === "object" ? { ...options } : {};
+// Legacy options can hold values this schema doesn't model (gradients,
+// string sizes). Each field is read on its own so one odd value never blanks
+// the whole design in the editor.
+function designOf(qr: QrCode): QrDesign {
+  const stored: unknown = qr.options ?? qr.design;
+  if (!stored || typeof stored !== "object") return {};
+  const design: Record<string, unknown> = {};
+  for (const [field, schema] of Object.entries(qrDesignSchema.shape)) {
+    const parsed = schema.safeParse(Reflect.get(stored, field));
+    if (parsed.success && parsed.data !== undefined)
+      design[field] = parsed.data;
+  }
+  return qrDesignSchema.parse(design);
+}
+
+const storedOptions = (qr: QrCode): Record<string, unknown> => {
+  const stored: unknown = qr.options ?? qr.design;
+  return stored && typeof stored === "object" ? { ...stored } : {};
 };
 
 export function toQrView(qr: QrCode, linkDomain: string): QrView {
@@ -376,11 +402,13 @@ export async function updateQr(
   if (input.design) {
     if (input.design.image && !hasFeature(entitlements, "qrLogo"))
       return fail("feature_required", { feature: "qrLogo" });
-    const design = sanitizeDesign(
-      input.design,
-      `https://${ctx.linkDomain}/${qr.urlId ?? ""}`,
-      hasFeature(entitlements, "qrLogo"),
-    );
+    // Merged onto what is stored, so options the editor doesn't model
+    // (legacy gradients) survive an edit.
+    const design = {
+      ...storedOptions(qr),
+      ...input.design,
+      data: `https://${ctx.linkDomain}/${qr.urlId ?? ""}`,
+    };
     $set.options = design;
     $set.design = design;
   }
@@ -479,28 +507,24 @@ export async function deleteQrs(
     await ctx.db.collection(physicalNames.qr_codes).deleteOne({ _id: qr._id });
     const keys: string[] = [];
     if (qr.urlId) {
-      await ctx.db
-        .collection(physicalNames.links)
-        .deleteOne({
-          $and: [
-            { urlCode: qr.urlId, isQrCode: true },
-            ownedBy<Document>(ctx.workspace),
-          ],
-        });
+      await ctx.db.collection(physicalNames.links).deleteOne({
+        $and: [
+          { urlCode: qr.urlId, isQrCode: true },
+          ownedBy<Document>(ctx.workspace),
+        ],
+      });
       keys.push(qr.urlId);
     }
     if (qr.qrCodeId && typeof qr.attachedUrl === "string" && qr.attachedUrl) {
-      await ctx.db
-        .collection(physicalNames.links)
-        .updateOne(
-          {
-            $and: [
-              { qrCodeId: qr.qrCodeId, isQrCode: { $ne: true } },
-              ownedBy<Document>(ctx.workspace),
-            ],
-          },
-          { $set: { qrCodeId: "" }, $unset: { attachedQrId: "" } },
-        );
+      await ctx.db.collection(physicalNames.links).updateOne(
+        {
+          $and: [
+            { qrCodeId: qr.qrCodeId, isQrCode: { $ne: true } },
+            ownedBy<Document>(ctx.workspace),
+          ],
+        },
+        { $set: { qrCodeId: "" }, $unset: { attachedQrId: "" } },
+      );
       keys.push(qr.attachedUrl);
     }
     await invalidateLinks(ctx.cache, ctx.linkDomain, keys);

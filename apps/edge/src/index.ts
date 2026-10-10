@@ -60,8 +60,8 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
 // Public link pages that apps/web owns from P4: password prompt and safety
 // interstitial (the redirect sends visitors to exactly these paths).
 const webPaths = [
-  /^\/authenticate\/[^/]+\/?$/,
-  /^\/(?:en|pt|es)\/safety\/[^/]+(?:\/report)?\/?$/,
+  /^\/authenticate\/[^/]+(?:\/verify)?\/?$/,
+  /^\/(?:en|pt|es)\/safety\/[^/]+(?:\/report|\/token)?\/?$/,
 ];
 export const isWebPath = (pathname: string) =>
   webPaths.some((pattern) => pattern.test(pathname));

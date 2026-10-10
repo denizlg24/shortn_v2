@@ -13,7 +13,7 @@ import { isLegacyQrBacked, toCachedLink } from "../links/cached-link";
 import { createLink } from "../links/service";
 import type { ServiceContext } from "../workspaces/context";
 import { ensurePersonalWorkspace } from "../workspaces/service";
-import { createQr, deleteQrs, updateQr } from "./service";
+import { createQr, deleteQrs, getQr, updateQr } from "./service";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 const redisUrl = process.env.REDIS_TEST_URL;
@@ -140,6 +140,46 @@ const enabled = Boolean(mongoUrl && redisUrl);
           .findOne({ urlCode: link.value.key })
       )?.qrCodeId,
     ).toBe("");
+  });
+
+  test("editing a legacy design keeps options the editor doesn't model", async () => {
+    const ctx = await context();
+    const qr = await createQr(ctx, { url: "https://a.com" });
+    if (!qr.ok) throw new Error(qr.error);
+    const gradient = {
+      type: "linear",
+      colorStops: [{ offset: 0, color: "#000" }],
+    };
+    await db
+      .collection(physicalNames.qr_codes)
+      .updateOne(
+        { _id: new ObjectId(qr.value.id) },
+        {
+          $set: {
+            "options.dotsOptions": { color: "#123456", type: "dots", gradient },
+            "options.width": "300",
+          },
+        },
+      );
+    const view = await getQr(ctx, qr.value.id);
+    expect(view?.design.dotsOptions).toEqual({
+      color: "#123456",
+      type: "dots",
+    });
+    expect(view?.design.backgroundOptions?.color).toBe("#ffffff");
+    expect(
+      (
+        await updateQr(ctx, qr.value.id, {
+          design: { backgroundOptions: { color: "#eeeeee" } },
+        })
+      ).ok,
+    ).toBe(true);
+    const stored = await db
+      .collection(physicalNames.qr_codes)
+      .findOne({ _id: new ObjectId(qr.value.id) });
+    expect(stored?.options.dotsOptions.gradient).toEqual(gradient);
+    expect(stored?.options.width).toBe("300");
+    expect(stored?.options.backgroundOptions.color).toBe("#eeeeee");
   });
 
   test("campaigns: UTM variants create campaigns by title; rename and delete keep links consistent", async () => {
