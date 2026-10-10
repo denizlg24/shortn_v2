@@ -27,6 +27,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - **Parity check (replaces shadow mode):** on staging, against the restored prod snapshot, a script resolves **every** link and QR key through apps/redirect and through the legacy resolution logic, and compares status + `Location`. Mismatches are fixed or documented as intentional. This covers every key in minutes instead of waiting a week for ~400 real requests.
 - **Cutover:** deploy the Worker with single-segment paths and `/qr/{key}` routed to apps/redirect at 100%. `CANARY_PERCENT` stays as the kill switch, not a ramp; at this volume a 5% slice carries no signal.
 - Exit gate: 48 h at 100% with no alert, and the dual-write counts match for that window (`click_events` vs legacy `clicks` with `src:"v2"`, per link).
+- **Done 2026-10-10:** apps/redirect, apps/worker and the edge Worker are live in production (#424–#431, #433). Parity was 3,214/3,214 on staging and on prod. The Worker routes attach to the `denizlg24.com` zone, because Forge hostnames are Cloudflare-for-SaaS custom hostnames. The owner manually verified a link and a QR code, and signed off the gate.
 - Rollback: set `CANARY_PERCENT=0` (one Worker config deploy, seconds). The Worker's retry-to-legacy on 5xx is the automatic version of the same thing. The worker's dual-write means legacy analytics never had a gap.
 
 ## P3 · Data expansion (≈ 2 weeks, runs in parallel with P2)
@@ -34,6 +35,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - Work: M2 (workspaces), M5 (tags), M6 (campaigns/UTM), M8 (bio v2), M9, M10, M11 (shadow only), M12 (assets). All of these are additive and continuous while legacy runs.
 - **Entry:** P1 done; starts alongside P2. Same backup floor as P2 before the first prod run.
 - Exit gate: every migration's `verify` is green on staging (prod snapshot) and then on prod after two consecutive continuous runs.
+- **Done 2026-10-10:** migrations 0001–0012 applied and verified on prod after a full backup (`~/shortn-prod-backups/prod-before-p2p3-20261010T044241Z.archive.gz` on pi-cloud). 0001–0008 re-run every minute in apps/worker. 0012 targets the self-hosted S3, not R2.
 - Rollback: each migration's `down` (additive fields only, so legacy is unaffected either way).
 
 ## P4 · New dashboard + billing (≈ 5–7 weeks)
