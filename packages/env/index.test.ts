@@ -92,3 +92,11 @@ test("href environment URLs require http(s)", () => {
     true,
   );
 });
+test("http(s) URLs may be localhost for local development", () => {
+  expect(
+    webEnv.shape.BETTER_AUTH_URL.safeParse("http://localhost:3000").success,
+  ).toBe(true);
+  expect(
+    webEnv.shape.BETTER_AUTH_URL.safeParse("ftp://example.com").success,
+  ).toBe(false);
+});

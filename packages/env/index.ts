@@ -7,8 +7,9 @@ const value = <S extends z.ZodType>(
 ) => schema.meta({ example, description });
 const url = (example: string, description: string) =>
   value(z.url(), example, description);
+// z.httpUrl() also demands a dotted hostname, which rules out localhost.
 const httpUrl = (example: string, description: string) =>
-  value(z.httpUrl(), example, description);
+  value(z.url({ protocol: /^https?$/ }), example, description);
 const secret = (description: string) =>
   value(
     z
