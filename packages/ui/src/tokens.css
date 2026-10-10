@@ -1,0 +1,133 @@
+/* Run `bun run check:tokens` after editing: it verifies text contrast and chart CVD separation. */
+
+:root {
+  color-scheme: light;
+
+  --brand-navy: oklch(0.208 0.042 265.755);
+
+  --bg: oklch(1 0 0);
+  --bg-subtle: oklch(0.985 0.004 265);
+  --bg-muted: oklch(0.965 0.007 265);
+  --field: oklch(1 0 0);
+  --overlay: oklch(1 0 0);
+
+  --line: oklch(0.925 0.01 265);
+  --line-strong: oklch(0.87 0.014 265);
+
+  --fg: var(--brand-navy);
+  --fg-muted: oklch(0.46 0.03 265);
+  --fg-subtle: oklch(0.54 0.025 265);
+
+  --primary: var(--brand-navy);
+  --primary-hover: oklch(0.285 0.05 265);
+  --primary-fg: oklch(1 0 0);
+
+  --signal: oklch(0.545 0.19 262);
+  --signal-fg: oklch(1 0 0);
+  --signal-wash: oklch(0.545 0.19 262 / 9%);
+
+  --success: oklch(0.52 0.13 150);
+  --warning: oklch(0.53 0.12 65);
+  --danger: oklch(0.55 0.2 27);
+  --danger-hover: oklch(0.5 0.19 27);
+  --danger-fg: oklch(1 0 0);
+
+  --tooltip-bg: var(--brand-navy);
+  --tooltip-fg: oklch(0.975 0.004 265);
+  --scrim: oklch(0.208 0.042 265.755 / 16%);
+  --selection: oklch(0.545 0.19 262 / 20%);
+
+  --chart-1: var(--signal);
+  --chart-2: oklch(0.55 0.18 352);
+  --chart-3: oklch(0.645 0.1 185);
+  --chart-4: oklch(0.67 0.13 80);
+  --chart-5: oklch(0.46 0.15 297);
+  --chart-6: oklch(0.47 0.12 52);
+
+  --elevation-overlay: 0 8px 24px -8px oklch(0.2 0.04 265 / 18%);
+
+  --font-ui: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "Geist Mono Variable", "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --type-meta: 0.75rem;
+  --type-meta-lh: 1rem;
+  --type-small: 0.8125rem;
+  --type-small-lh: 1.125rem;
+  --type-body: 0.875rem;
+  --type-body-lh: 1.25rem;
+  --type-emphasis: 1rem;
+  --type-emphasis-lh: 1.5rem;
+  --type-title: 1.25rem;
+  --type-title-lh: 1.75rem;
+  --type-section: 1.75rem;
+  --type-section-lh: 2.25rem;
+
+  --chip-radius: 4px;
+  --control-radius: 6px;
+  --overlay-radius: 8px;
+
+  --space-unit: 4px;
+  --space-gutter: 24px;
+  --space-cell-x: 12px;
+  --row-height: 44px;
+  --header-row-height: 36px;
+  --page-header-height: 56px;
+  --sidebar-width: 232px;
+  --rail-width: 56px;
+
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 120ms;
+  --motion-base: 160ms;
+  --motion-slow: 180ms;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --space-gutter: 16px;
+  }
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg: oklch(0.155 0.03 265);
+  --bg-subtle: oklch(0.185 0.03 265);
+  --bg-muted: oklch(0.225 0.03 265);
+  --field: oklch(0.185 0.03 265);
+  --overlay: oklch(0.2 0.03 265);
+
+  --line: oklch(1 0 0 / 9%);
+  --line-strong: oklch(1 0 0 / 16%);
+
+  --fg: oklch(0.975 0.004 265);
+  --fg-muted: oklch(0.74 0.025 265);
+  --fg-subtle: oklch(0.63 0.025 265);
+
+  --primary: oklch(0.975 0.004 265);
+  --primary-hover: oklch(0.9 0.01 265);
+  --primary-fg: var(--brand-navy);
+
+  --signal: oklch(0.7 0.15 262);
+  --signal-fg: oklch(0.155 0.03 265);
+  --signal-wash: oklch(0.7 0.15 262 / 12%);
+
+  --success: oklch(0.76 0.15 150);
+  --warning: oklch(0.81 0.14 80);
+  --danger: oklch(0.7 0.17 25);
+  --danger-hover: oklch(0.75 0.15 25);
+  --danger-fg: oklch(0.155 0.03 265);
+
+  --tooltip-bg: oklch(0.29 0.03 265);
+  --tooltip-fg: oklch(0.975 0.004 265);
+  --scrim: oklch(0.1 0.02 265 / 55%);
+  --selection: oklch(0.7 0.15 262 / 32%);
+
+  --chart-1: var(--signal);
+  --chart-2: oklch(0.63 0.13 340);
+  --chart-3: oklch(0.79 0.11 182);
+  --chart-4: oklch(0.8 0.125 74);
+  --chart-5: oklch(0.81 0.1 292);
+  --chart-6: oklch(0.66 0.155 51);
+
+  --elevation-overlay: 0 8px 24px -8px oklch(0 0 0 / 55%);
+}
