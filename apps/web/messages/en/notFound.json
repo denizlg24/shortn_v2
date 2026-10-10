@@ -1,0 +1,14 @@
+{
+  "metaTitle": "Not found",
+  "page": {
+    "title": "There's nothing here",
+    "body": "The address may be mistyped, or the workspace isn't shared with you. If someone sent you this link, ask them to invite you.",
+    "action": "Go to my workspace"
+  },
+  "workspace": {
+    "header": "Not found",
+    "title": "This isn't in {workspace}",
+    "body": "It may have been deleted, or the address is mistyped.",
+    "action": "Go to Links"
+  }
+}

@@ -20,7 +20,8 @@ export {
 } from "./lib/format";
 export { isApplePlatform, isTypingTarget } from "./lib/platform";
 
-export { Button, buttonVariants, type ButtonProps } from "./components/button";
+export { Button, type ButtonProps } from "./components/button";
+export { buttonVariants } from "./components/button-variants";
 export {
   Input,
   Textarea,
@@ -145,6 +146,7 @@ export {
 export {
   TimeSeriesChart,
   type TimeSeriesChartProps,
+  type TimeSeriesInterval,
   type TimeSeriesPoint,
 } from "./components/time-series-chart";
 export {

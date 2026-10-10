@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { parseOAuthFailure } from "@/components/auth/oauth-failure";
+import { socialProviders } from "@/server/auth";
 import { RegisterForm } from "./register-form";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,5 +13,10 @@ export default async function RegisterPage({
   searchParams,
 }: PageProps<"/register">) {
   const { error } = await searchParams;
-  return <RegisterForm oauthFailure={parseOAuthFailure(error)} />;
+  return (
+    <RegisterForm
+      oauthFailure={parseOAuthFailure(error)}
+      providers={socialProviders()}
+    />
+  );
 }

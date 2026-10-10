@@ -91,7 +91,13 @@ function scanLater(workspace: string, id: string) {
 export async function listLinksAction(
   workspace: string,
   input: z.input<typeof listInput> = {},
-): Promise<ActionResult<{ links: LinkListItem[]; nextCursor: string | null }>> {
+): Promise<
+  ActionResult<{
+    links: LinkListItem[];
+    nextCursor: string | null;
+    total: number | null;
+  }>
+> {
   const parsed = listInput.safeParse(input);
   if (!slug.safeParse(workspace).success || !parsed.success)
     return invalidInput;
@@ -102,6 +108,7 @@ export async function listLinksAction(
     data: {
       links: await withTrends(ctx.db, page.links),
       nextCursor: page.nextCursor,
+      total: page.total,
     },
   };
 }

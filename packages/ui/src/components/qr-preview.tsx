@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo } from "react";
 import { encode } from "uqr";
 import { cn } from "../lib/cn";

@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { useUILocale } from "../i18n/provider";
 import { cn } from "../lib/cn";

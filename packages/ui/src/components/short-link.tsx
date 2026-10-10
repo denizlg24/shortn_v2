@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useUILocale } from "../i18n/provider";
 import { announce, copyText, shortUrl } from "../lib/clipboard";

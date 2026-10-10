@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Area,
   AreaChart,
@@ -20,12 +22,48 @@ export interface TimeSeriesPoint {
   value: number;
 }
 
+export type TimeSeriesInterval = "hour" | "day" | "week" | "month";
+
 export interface TimeSeriesChartProps {
   data: TimeSeriesPoint[];
   /** Series name used in the tooltip and accessible label, e.g. "Clicks". */
   seriesLabel: string;
+  /** Bucket size of each point; picks the axis and tooltip date formats. */
+  interval?: TimeSeriesInterval;
   height?: number;
   className?: string;
+}
+
+function formatTick(
+  date: Date,
+  interval: TimeSeriesInterval,
+  intlLocale: string,
+) {
+  if (interval === "hour")
+    return new Intl.DateTimeFormat(intlLocale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  if (interval === "month")
+    return new Intl.DateTimeFormat(intlLocale, {
+      month: "short",
+      year: "2-digit",
+    }).format(date);
+  return formatShortDate(date, intlLocale);
+}
+
+function formatPointLabel(
+  date: Date,
+  interval: TimeSeriesInterval,
+  intlLocale: string,
+) {
+  if (interval === "hour") return formatDate(date, intlLocale, true);
+  if (interval === "month")
+    return new Intl.DateTimeFormat(intlLocale, {
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  return formatDate(date, intlLocale);
 }
 
 const axisTick = {
@@ -37,6 +75,7 @@ const axisTick = {
 export function TimeSeriesChart({
   data,
   seriesLabel,
+  interval = "day",
   height = 168,
   className,
 }: TimeSeriesChartProps) {
@@ -59,7 +98,7 @@ export function TimeSeriesChart({
             minTickGap={48}
             interval="preserveStartEnd"
             tickFormatter={(value: string) =>
-              formatShortDate(new Date(value), intlLocale)
+              formatTick(new Date(value), interval, intlLocale)
             }
           />
           <YAxis
@@ -79,6 +118,7 @@ export function TimeSeriesChart({
               <ChartTooltip
                 {...props}
                 seriesLabel={seriesLabel}
+                interval={interval}
                 intlLocale={intlLocale}
               />
             )}
@@ -105,14 +145,19 @@ function ChartTooltip({
   payload,
   label,
   seriesLabel,
+  interval,
   intlLocale,
-}: ChartTooltipProps & { seriesLabel: string; intlLocale: string }) {
+}: ChartTooltipProps & {
+  seriesLabel: string;
+  interval: TimeSeriesInterval;
+  intlLocale: string;
+}) {
   const point = payload?.[0];
   if (!active || !point || typeof label !== "string") return null;
   return (
     <div className="rounded-control border border-line bg-overlay px-2.5 py-1.5 text-meta shadow-overlay">
       <div className="text-fg-muted">
-        {formatDate(new Date(label), intlLocale)}
+        {formatPointLabel(new Date(label), interval, intlLocale)}
       </div>
       <div className="flex items-baseline gap-2">
         <span

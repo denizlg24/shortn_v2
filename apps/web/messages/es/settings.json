@@ -1,0 +1,206 @@
+{
+  "title": "Configuración",
+  "nav": {
+    "label": "Configuración",
+    "workspace": "Espacio de trabajo",
+    "personal": "Personal",
+    "general": "General",
+    "members": "Miembros",
+    "billing": "Facturación",
+    "account": "Cuenta"
+  },
+  "common": {
+    "save": "Guardar",
+    "saved": "Guardado",
+    "cancel": "Cancelar",
+    "you": "Tú",
+    "seePlans": "Ver planes",
+    "retry": "Reintentar",
+    "loadFailed": "No se pudo cargar esta configuración",
+    "loadFailedBody": "Algo salió mal por nuestra parte. Vuelve a intentarlo en un momento.",
+    "errors": {
+      "generic": "Algo salió mal por nuestra parte. Inténtalo de nuevo.",
+      "network": "No se pudo conectar con Shortn. Revisa tu conexión e inténtalo de nuevo.",
+      "forbidden": "No tienes permiso para hacer esto.",
+      "tooManyAttempts": "Demasiados intentos. Espera un minuto e inténtalo de nuevo."
+    }
+  },
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "member": "Miembro",
+    "viewer": "Lector"
+  },
+  "roleDescriptions": {
+    "admin": "Los administradores gestionan miembros, dominios y la configuración del espacio de trabajo, y pueden hacer todo lo que hacen los miembros.",
+    "member": "Los miembros crean y editan enlaces, códigos QR, páginas bio y campañas.",
+    "viewer": "Los lectores ven enlaces y estadísticas, pero no pueden cambiar nada."
+  },
+  "general": {
+    "title": "General",
+    "description": "Cómo se llama {workspace} y dónde está.",
+    "identity": {
+      "title": "Nombre y URL",
+      "name": "Nombre del espacio de trabajo",
+      "slug": "URL",
+      "slugHint": "Si lo cambias, cambian todas las direcciones del panel. Los marcadores a la dirección anterior dejarán de funcionar.",
+      "readOnly": "Solo los propietarios y administradores pueden cambiar la configuración del espacio de trabajo."
+    },
+    "validation": {
+      "nameRequired": "Introduce un nombre.",
+      "nameTooLong": "Usa {max} caracteres como máximo.",
+      "slugInvalid": "Usa entre 3 y 48 letras minúsculas, números o guiones, empezando y terminando con una letra o un número."
+    },
+    "errors": {
+      "slugTaken": "Otro espacio de trabajo ya usa esta URL.",
+      "slugInvalid": "Esta URL está reservada. Prueba otra."
+    },
+    "create": {
+      "title": "Nuevo espacio de trabajo",
+      "description": "Un espacio de trabajo de equipo tiene sus propios enlaces, miembros y facturación. Serás su propietario.",
+      "open": "Crear espacio de trabajo",
+      "name": "Nombre",
+      "namePlaceholder": "Acme Marketing",
+      "slug": "URL",
+      "submit": "Crear espacio de trabajo",
+      "limitReached": "Tu plan incluye {limit, plural, one {# espacio de trabajo} other {# espacios de trabajo}} y ya eres propietario de todos. Mejora el plan de tu espacio de trabajo personal para crear más."
+    },
+    "delete": {
+      "title": "Eliminar espacio de trabajo",
+      "description": "Elimina {workspace} de forma permanente, junto con sus miembros, invitaciones y etiquetas. Antes hay que quitar sus enlaces, códigos QR, páginas bio y campañas.",
+      "personal": "Tu espacio de trabajo personal no se puede eliminar.",
+      "ownerOnly": "Solo el propietario puede eliminar este espacio de trabajo.",
+      "action": "Eliminar espacio de trabajo",
+      "dialogTitle": "¿Eliminar {workspace}?",
+      "dialogBody": "No se puede deshacer. Todos sus miembros pierden el acceso al instante.",
+      "confirmLabel": "Escribe <strong>{slug}</strong> para confirmar.",
+      "confirm": "Eliminar espacio de trabajo",
+      "notEmpty": "Este espacio de trabajo todavía tiene enlaces, códigos QR, páginas bio, campañas o una suscripción activa. Quítalos y cancela la suscripción primero."
+    }
+  },
+  "members": {
+    "title": "Miembros",
+    "description": "Personas con acceso a {workspace}.",
+    "readOnly": "Solo los propietarios y administradores pueden gestionar miembros.",
+    "invite": {
+      "title": "Invitar personas",
+      "email": "Correo",
+      "emailPlaceholder": "nombre@empresa.es",
+      "role": "Rol",
+      "submit": "Enviar invitación",
+      "seats": "{used} de {limit} plazas ocupadas, incluidas las invitaciones pendientes.",
+      "sent": "Invitación enviada a <strong>{email}</strong>. Es válida durante 7 días.",
+      "errors": {
+        "emailRequired": "Introduce un correo.",
+        "emailInvalid": "Introduce un correo válido, como nombre@empresa.es.",
+        "alreadyMember": "Esta persona ya es miembro.",
+        "seatsExhausted": "{seats, plural, one {# plaza está ocupada} other {# plazas están ocupadas}} y las invitaciones pendientes también cuentan. Mejora el plan para añadir más personas.",
+        "seatsExhaustedAskOwner": "{seats, plural, one {# plaza está ocupada} other {# plazas están ocupadas}} y las invitaciones pendientes también cuentan. Pide al propietario que mejore el plan."
+      }
+    },
+    "list": {
+      "title": "{count, plural, one {# miembro} other {# miembros}}",
+      "member": "Miembro",
+      "role": "Rol",
+      "actions": "Acciones",
+      "changeRole": "Rol de {name}",
+      "remove": "Quitar",
+      "removeLabel": "Quitar a {name}",
+      "leave": "Salir",
+      "readOnly": "Solo los propietarios y administradores pueden gestionar miembros.",
+      "adminOwnerOnly": "Solo el propietario puede cambiar o quitar administradores.",
+      "noName": "Miembro sin nombre"
+    },
+    "remove": {
+      "title": "¿Quitar a {name}?",
+      "body": "Pierde el acceso a {workspace} al instante. Los enlaces que creó siguen en el espacio de trabajo.",
+      "confirm": "Quitar miembro"
+    },
+    "leave": {
+      "title": "¿Salir de {workspace}?",
+      "body": "Pierdes el acceso al instante. Para volver, un propietario o administrador tendrá que invitarte de nuevo.",
+      "confirm": "Salir del espacio de trabajo"
+    },
+    "invites": {
+      "title": "{count, plural, one {# invitación pendiente} other {# invitaciones pendientes}}",
+      "empty": "Nadie está esperando para unirse.",
+      "expires": "Caduca {when}",
+      "invitedBy": "Invitado por {name}",
+      "revoke": "Revocar",
+      "revokeLabel": "Revocar la invitación de {email}"
+    },
+    "errors": {
+      "ownerProtected": "El propietario no se puede quitar ni cambiar de rol.",
+      "notFound": "Esta persona ya no es miembro. Recarga la página para ver la lista actual."
+    }
+  },
+  "account": {
+    "title": "Cuenta",
+    "description": "Tu perfil y tu configuración de inicio de sesión. Se aplican en todos los espacios de trabajo de los que formas parte.",
+    "profile": {
+      "title": "Perfil",
+      "description": "Cómo te ven las personas de tus espacios de trabajo.",
+      "image": "URL de la imagen de perfil",
+      "imageHint": "Un enlace a una imagen cuadrada de al menos 64 × 64 píxeles. Déjalo vacío para mostrar tus iniciales.",
+      "imageInvalid": "Introduce una dirección completa que empiece por https://."
+    },
+    "email": {
+      "title": "Correo",
+      "current": "Inicias sesión y recibes notificaciones en <strong>{email}</strong>.",
+      "currentUnverified": "Inicias sesión con <strong>{email}</strong>, que aún no está verificado.",
+      "new": "Nuevo correo",
+      "submit": "Cambiar correo",
+      "sent": "Hemos enviado un enlace de aprobación a <strong>{current}</strong>. Cuando lo apruebes, pediremos a <strong>{next}</strong> que también lo confirme.",
+      "errors": {
+        "same": "Ese ya es tu correo.",
+        "taken": "Otra cuenta ya usa este correo."
+      }
+    },
+    "password": {
+      "title": "Contraseña",
+      "none": "Inicias sesión con {providers}. Para añadir una contraseña, cierra la sesión y usa «¿Olvidaste tu contraseña?» en la página de inicio de sesión con <strong>{email}</strong>.",
+      "current": "Contraseña actual",
+      "revokeOthers": "Cerrar todas las demás sesiones",
+      "submit": "Actualizar contraseña",
+      "updated": "Contraseña actualizada.",
+      "updatedRevoked": "Contraseña actualizada. Se cerraron tus demás sesiones.",
+      "errors": {
+        "currentRequired": "Introduce tu contraseña actual.",
+        "currentWrong": "Tu contraseña actual no es correcta."
+      }
+    },
+    "connections": {
+      "title": "Métodos de inicio de sesión",
+      "description": "Formas de iniciar sesión en Shortn.",
+      "credential": "Correo y contraseña",
+      "on": "Configurado",
+      "off": "Sin configurar",
+      "connected": "Conectado",
+      "notConnected": "Sin conectar",
+      "connect": "Conectar",
+      "connectLabel": "Conectar {provider}",
+      "disconnect": "Desconectar",
+      "disconnectLabel": "Desconectar {provider}",
+      "lastMethod": "Es tu única forma de iniciar sesión. Añade otro método primero.",
+      "errors": {
+        "emailMismatch": "Esa cuenta usa un correo distinto al de tu cuenta de Shortn. Conecta una con el mismo correo.",
+        "linkedElsewhere": "Esa cuenta ya está conectada a otro usuario de Shortn.",
+        "failed": "La conexión no se completó. Inténtalo de nuevo.",
+        "notFresh": "Por seguridad, vuelve a iniciar sesión antes de desconectar un método de inicio de sesión."
+      }
+    },
+    "sessions": {
+      "title": "Sesiones",
+      "description": "Dispositivos en los que tienes la sesión iniciada.",
+      "device": "{browser} en {os}",
+      "unknownDevice": "Dispositivo desconocido",
+      "thisDevice": "Este dispositivo",
+      "support": "Soporte de Shortn",
+      "unknownLocation": "Ubicación desconocida",
+      "lastActive": "Activa {when}",
+      "revoke": "Cerrar sesión",
+      "revokeLabel": "Cerrar la sesión de {device}",
+      "revokeOthers": "Cerrar las demás sesiones"
+    }
+  }
+}

@@ -26,12 +26,22 @@ import {
   usernameMaxLength,
   usernameMinLength,
 } from "@/components/auth/rules";
-import { SocialSignIn } from "@/components/auth/social-sign-in";
+import {
+  hasSocialSignIn,
+  SocialSignIn,
+  type EnabledProviders,
+} from "@/components/auth/social-sign-in";
 import { useAuthForm } from "@/components/auth/use-auth-form";
 import { useOAuthFailureMessage } from "@/components/auth/use-oauth-failure-message";
 import { rememberVerifyEmail } from "@/components/auth/verify-email-cookie";
 
-export function RegisterForm({ oauthFailure }: { oauthFailure: OAuthFailure }) {
+export function RegisterForm({
+  oauthFailure,
+  providers,
+}: {
+  oauthFailure: OAuthFailure;
+  providers: EnabledProviders;
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const oauthMessage = useOAuthFailureMessage(oauthFailure);
@@ -241,12 +251,17 @@ export function RegisterForm({ oauthFailure }: { oauthFailure: OAuthFailure }) {
           {t("register.submit")}
         </Button>
       </form>
-      <OrDivider label={t("or")} />
-      <SocialSignIn
-        errorCallbackURL="/register"
-        disabled={form.pending}
-        onError={form.setFormError}
-      />
+      {hasSocialSignIn(providers) ? (
+        <>
+          <OrDivider label={t("or")} />
+          <SocialSignIn
+            providers={providers}
+            errorCallbackURL="/register"
+            disabled={form.pending}
+            onError={form.setFormError}
+          />
+        </>
+      ) : null}
       <AuthPrompt
         prompt={t("register.prompt")}
         action={t("register.login")}

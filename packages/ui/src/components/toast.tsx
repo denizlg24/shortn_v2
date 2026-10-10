@@ -1,3 +1,5 @@
+"use client";
+
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { Toaster as Sonner, toast, type ToasterProps } from "sonner";
 

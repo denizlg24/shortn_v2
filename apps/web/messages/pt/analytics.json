@@ -1,0 +1,87 @@
+{
+  "range": "Intervalo de datas",
+  "ranges": {
+    "7d": "7d",
+    "30d": "30d",
+    "90d": "90d",
+    "12m": "12m",
+    "custom": "Personalizado"
+  },
+  "rangeLabels": {
+    "7d": "Últimos 7 dias",
+    "30d": "Últimos 30 dias",
+    "90d": "Últimos 90 dias",
+    "12m": "Últimos 12 meses"
+  },
+  "customRange": "Intervalo personalizado",
+  "from": "De",
+  "to": "Até",
+  "apply": "Aplicar",
+  "invalidRange": "Escolha uma data de início igual ou anterior à data de fim.",
+  "interval": "Intervalo",
+  "intervals": {
+    "hour": "Hora",
+    "day": "Dia",
+    "week": "Semana",
+    "month": "Mês"
+  },
+  "intervalUnavailable": "Indisponível para este intervalo de datas",
+  "filterBy": "Filtrar por…",
+  "filters": {
+    "country": "País",
+    "referrer": "Origem",
+    "device": "Dispositivo",
+    "browser": "Navegador",
+    "os": "Sistema operativo",
+    "utmSource": "Origem UTM",
+    "utmMedium": "Meio UTM",
+    "utmCampaign": "Campanha UTM"
+  },
+  "dimensions": {
+    "country": "Países",
+    "referrer": "Origens",
+    "device": "Dispositivos",
+    "browser": "Navegadores",
+    "os": "Sistemas operativos",
+    "utmSource": "Origens UTM",
+    "utmMedium": "Meios UTM",
+    "utmCampaign": "Campanhas UTM",
+    "link": "Links principais"
+  },
+  "stats": {
+    "clicks": "Cliques",
+    "scans": "Leituras QR",
+    "uniques": "Visitantes únicos",
+    "topCountry": "País principal"
+  },
+  "series": "Cliques e leituras",
+  "noActivity": "Sem cliques nem leituras neste período.",
+  "clamped": "Os dados anteriores a {date} estão fora do período de estatísticas do seu plano.",
+  "lockedStat": "Plano {plan} ou superior",
+  "empty": "Sem dados para este período.",
+  "showAll": "Mostrar todos ({count})",
+  "showFewer": "Mostrar menos",
+  "error": {
+    "title": "Não foi possível carregar as estatísticas",
+    "body": "Os seus dados estão seguros; trata-se de um problema de ligação. Tente novamente daqui a pouco.",
+    "refresh": "Estes números não foram atualizados.",
+    "retry": "Tentar novamente"
+  },
+  "values": {
+    "unknown": "Desconhecido",
+    "direct": "Direto",
+    "click": "Clique",
+    "scan": "Leitura QR",
+    "deleted": "Link eliminado",
+    "devices": {
+      "desktop": "Computador",
+      "mobile": "Telemóvel",
+      "tablet": "Tablet",
+      "console": "Consola",
+      "smarttv": "Smart TV",
+      "wearable": "Dispositivo vestível",
+      "xr": "Óculos XR",
+      "embedded": "Integrado"
+    }
+  }
+}

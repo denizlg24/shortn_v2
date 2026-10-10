@@ -1,0 +1,71 @@
+{
+  "goHome": "Go to Shortn",
+  "linkNotFound": {
+    "title": "This link doesn't exist",
+    "body": "Check the address for typos. Its owner may also have deleted it."
+  },
+  "blocked": {
+    "title": "This link has been disabled",
+    "body": "Shortn turned it off because it may be harmful, so it can't take you anywhere.",
+    "reported": "Several visitors reported this link, so it's switched off until we review it."
+  },
+  "authenticate": {
+    "metaTitle": "Password required",
+    "title": "This link is password-protected",
+    "body": "Enter the password you were given to continue.",
+    "password": "Password",
+    "hint": "Hint: {hint}",
+    "submit": "Continue",
+    "errors": {
+      "wrongPassword": "That password isn't right. Try again.",
+      "missing": "Enter the password.",
+      "rateLimited": "Too many attempts. Wait a minute, then try again."
+    },
+    "notProtected": {
+      "title": "This link doesn't need a password",
+      "body": "You can open it directly.",
+      "action": "Open link"
+    }
+  },
+  "safety": {
+    "metaTitle": "Check this link",
+    "leaving": "This short link takes you to",
+    "fullUrl": "Full destination address",
+    "createdBy": "Created by",
+    "createdOn": "Created",
+    "status": "Safety check",
+    "statuses": {
+      "pending": "Not checked yet",
+      "safe": "No threats found",
+      "suspicious": "Flagged as suspicious",
+      "malicious": "Flagged as harmful",
+      "blocked": "Blocked"
+    },
+    "unknownCreator": "A Shortn user",
+    "wait": "Continue in {seconds, plural, one {# second} other {# seconds}}",
+    "continue": "Continue to {host}",
+    "preparing": "Getting the link ready…",
+    "ready": "You can continue now.",
+    "tokenFailed": "We couldn't get this link ready.",
+    "retry": "Try again",
+    "noscript": "Turn on JavaScript to continue to this link.",
+    "trust": "Only continue if you trust where it goes.",
+    "suspiciousNote": "Our checks flagged this destination as suspicious. Don't enter passwords or payment details there unless you're sure it's genuine.",
+    "report": {
+      "toggle": "Report this link",
+      "reason": "What's wrong with it?",
+      "reasons": {
+        "phishing": "Phishing or scam",
+        "malware": "Malware or unwanted software",
+        "spam": "Spam",
+        "inappropriate": "Inappropriate content",
+        "other": "Something else"
+      },
+      "details": "Details (optional)",
+      "submit": "Send report",
+      "sent": "Thanks for the report. We'll review this link.",
+      "invalid": "Choose what's wrong with the link.",
+      "rateLimited": "You've sent several reports today. Try again tomorrow."
+    }
+  }
+}

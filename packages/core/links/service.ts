@@ -541,6 +541,10 @@ export async function listLinks(
     });
   }
   if (input.tags?.length) and.push({ "tags.tagName": { $in: input.tags } });
+  // The whole filtered set, counted once on the first page.
+  const total = input.cursor
+    ? null
+    : await collection(ctx.db, "links").countDocuments({ $and: [...and] });
   if (input.cursor) {
     const [time, id] = input.cursor.split("_");
     const objectId = id ? parseObjectId(id) : null;
@@ -558,6 +562,7 @@ export async function listLinks(
   const page = docs.slice(0, limit);
   const last = page.at(-1);
   return {
+    total,
     links: page.map((doc) => toLinkView(doc, ctx.linkDomain)),
     nextCursor:
       docs.length > limit && last

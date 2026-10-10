@@ -1,0 +1,87 @@
+{
+  "range": "Intervalo de fechas",
+  "ranges": {
+    "7d": "7d",
+    "30d": "30d",
+    "90d": "90d",
+    "12m": "12m",
+    "custom": "Personalizado"
+  },
+  "rangeLabels": {
+    "7d": "Últimos 7 días",
+    "30d": "Últimos 30 días",
+    "90d": "Últimos 90 días",
+    "12m": "Últimos 12 meses"
+  },
+  "customRange": "Intervalo personalizado",
+  "from": "Desde",
+  "to": "Hasta",
+  "apply": "Aplicar",
+  "invalidRange": "Elige una fecha de inicio igual o anterior a la fecha de fin.",
+  "interval": "Intervalo",
+  "intervals": {
+    "hour": "Hora",
+    "day": "Día",
+    "week": "Semana",
+    "month": "Mes"
+  },
+  "intervalUnavailable": "No disponible para este intervalo de fechas",
+  "filterBy": "Filtrar por…",
+  "filters": {
+    "country": "País",
+    "referrer": "Origen",
+    "device": "Dispositivo",
+    "browser": "Navegador",
+    "os": "Sistema operativo",
+    "utmSource": "Fuente UTM",
+    "utmMedium": "Medio UTM",
+    "utmCampaign": "Campaña UTM"
+  },
+  "dimensions": {
+    "country": "Países",
+    "referrer": "Orígenes",
+    "device": "Dispositivos",
+    "browser": "Navegadores",
+    "os": "Sistemas operativos",
+    "utmSource": "Fuentes UTM",
+    "utmMedium": "Medios UTM",
+    "utmCampaign": "Campañas UTM",
+    "link": "Enlaces principales"
+  },
+  "stats": {
+    "clicks": "Clics",
+    "scans": "Escaneos QR",
+    "uniques": "Visitantes únicos",
+    "topCountry": "País principal"
+  },
+  "series": "Clics y escaneos",
+  "noActivity": "Sin clics ni escaneos en este período.",
+  "clamped": "Los datos anteriores al {date} quedan fuera del período de estadísticas de tu plan.",
+  "lockedStat": "Plan {plan} o superior",
+  "empty": "Sin datos para este período.",
+  "showAll": "Mostrar todos ({count})",
+  "showFewer": "Mostrar menos",
+  "error": {
+    "title": "No se pudieron cargar las estadísticas",
+    "body": "Tus datos están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento.",
+    "refresh": "Estas cifras no se han actualizado.",
+    "retry": "Reintentar"
+  },
+  "values": {
+    "unknown": "Desconocido",
+    "direct": "Directo",
+    "click": "Clic",
+    "scan": "Escaneo QR",
+    "deleted": "Enlace eliminado",
+    "devices": {
+      "desktop": "Ordenador",
+      "mobile": "Móvil",
+      "tablet": "Tableta",
+      "console": "Consola",
+      "smarttv": "Smart TV",
+      "wearable": "Dispositivo ponible",
+      "xr": "Gafas XR",
+      "embedded": "Integrado"
+    }
+  }
+}

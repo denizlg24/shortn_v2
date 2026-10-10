@@ -316,6 +316,11 @@ const reservedSlugs = new Set([
   "account",
   "_next",
   "static",
+  "authenticate",
+  "safety",
+  "en",
+  "pt",
+  "es",
 ]);
 
 async function checkWorkspaceSlug(db: Db, raw: string, except?: ObjectId) {

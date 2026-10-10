@@ -1,0 +1,28 @@
+{
+  "metaTitle": "Invitación a un espacio de trabajo",
+  "title": "Únete a {workspace}",
+  "body": "<strong>{inviter}</strong> te invitó a unirte como {role}.",
+  "bodyNoInviter": "Te han invitado a unirte como {role}.",
+  "roleAs": {
+    "admin": "administrador",
+    "member": "miembro",
+    "viewer": "lector"
+  },
+  "accept": "Aceptar invitación",
+  "signedInAs": "Sesión iniciada como {email}",
+  "goHome": "Ir a mi espacio de trabajo",
+  "invalid": {
+    "title": "Esta invitación ya no es válida",
+    "body": "Las invitaciones solo se pueden usar una vez y caducan a los 7 días. Pide a quien te invitó que te envíe una nueva."
+  },
+  "mismatch": {
+    "title": "Esta invitación es para otra cuenta",
+    "body": "Se envió a <strong>{invited}</strong>, pero tienes la sesión iniciada como <strong>{email}</strong>.",
+    "switch": "Iniciar sesión con otra cuenta"
+  },
+  "errors": {
+    "invalid": "Esta invitación ya no es válida. Pide una nueva.",
+    "mismatch": "Esta invitación se envió a otra dirección de correo.",
+    "generic": "Algo salió mal por nuestra parte. Inténtalo de nuevo."
+  }
+}

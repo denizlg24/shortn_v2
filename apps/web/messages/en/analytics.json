@@ -1,0 +1,87 @@
+{
+  "range": "Date range",
+  "ranges": {
+    "7d": "7d",
+    "30d": "30d",
+    "90d": "90d",
+    "12m": "12m",
+    "custom": "Custom"
+  },
+  "rangeLabels": {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    "12m": "Last 12 months"
+  },
+  "customRange": "Custom range",
+  "from": "From",
+  "to": "To",
+  "apply": "Apply",
+  "invalidRange": "Pick a start date on or before the end date.",
+  "interval": "Interval",
+  "intervals": {
+    "hour": "Hour",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month"
+  },
+  "intervalUnavailable": "Not available for this date range",
+  "filterBy": "Filter by…",
+  "filters": {
+    "country": "Country",
+    "referrer": "Referrer",
+    "device": "Device",
+    "browser": "Browser",
+    "os": "OS",
+    "utmSource": "UTM source",
+    "utmMedium": "UTM medium",
+    "utmCampaign": "UTM campaign"
+  },
+  "dimensions": {
+    "country": "Countries",
+    "referrer": "Referrers",
+    "device": "Devices",
+    "browser": "Browsers",
+    "os": "Operating systems",
+    "utmSource": "UTM sources",
+    "utmMedium": "UTM mediums",
+    "utmCampaign": "UTM campaigns",
+    "link": "Top links"
+  },
+  "stats": {
+    "clicks": "Clicks",
+    "scans": "QR scans",
+    "uniques": "Unique visitors",
+    "topCountry": "Top country"
+  },
+  "series": "Clicks and scans",
+  "noActivity": "No clicks or scans in this period.",
+  "clamped": "Data before {date} is outside your plan's analytics window.",
+  "lockedStat": "{plan} plan and up",
+  "empty": "No data for this period.",
+  "showAll": "Show all {count}",
+  "showFewer": "Show fewer",
+  "error": {
+    "title": "Analytics didn't load",
+    "body": "Your data is safe; this is a connection problem. Try again in a moment.",
+    "refresh": "These numbers didn't refresh.",
+    "retry": "Retry"
+  },
+  "values": {
+    "unknown": "Unknown",
+    "direct": "Direct",
+    "click": "Click",
+    "scan": "QR scan",
+    "deleted": "Deleted link",
+    "devices": {
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "console": "Console",
+      "smarttv": "Smart TV",
+      "wearable": "Wearable",
+      "xr": "XR headset",
+      "embedded": "Embedded"
+    }
+  }
+}

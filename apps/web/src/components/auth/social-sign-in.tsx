@@ -7,12 +7,22 @@ import { useState } from "react";
 import { GitHubIcon, GoogleIcon } from "./brand-icons";
 
 type Provider = "github" | "google";
+export type EnabledProviders = Record<Provider, boolean>;
 
+export const hasSocialSignIn = (providers: EnabledProviders) =>
+  providers.github || providers.google;
+
+/** Only providers configured on the server get a button. */
 export function SocialSignIn({
+  providers,
+  callbackURL = "/",
   errorCallbackURL,
   disabled,
   onError,
 }: {
+  providers: EnabledProviders;
+  /** Where the user lands after signing in. */
+  callbackURL?: string;
   /** Where better-auth sends the user back with `?error=` if OAuth fails. */
   errorCallbackURL: string;
   disabled: boolean;
@@ -26,7 +36,7 @@ export function SocialSignIn({
     try {
       const { error } = await authClient.signIn.social({
         provider,
-        callbackURL: "/",
+        callbackURL,
         errorCallbackURL,
       });
       if (!error) return;
@@ -40,28 +50,33 @@ export function SocialSignIn({
   };
 
   const blocked = disabled || pending !== null;
+  if (!hasSocialSignIn(providers)) return null;
   return (
     <div className="flex flex-col gap-2">
-      <Button
-        size="lg"
-        className="w-full"
-        disabled={blocked && pending !== "github"}
-        loading={pending === "github"}
-        onClick={() => start("github")}
-      >
-        {pending === "github" ? null : <GitHubIcon />}
-        {t("continueWithGithub")}
-      </Button>
-      <Button
-        size="lg"
-        className="w-full"
-        disabled={blocked && pending !== "google"}
-        loading={pending === "google"}
-        onClick={() => start("google")}
-      >
-        {pending === "google" ? null : <GoogleIcon />}
-        {t("continueWithGoogle")}
-      </Button>
+      {providers.github ? (
+        <Button
+          size="lg"
+          className="w-full"
+          disabled={blocked && pending !== "github"}
+          loading={pending === "github"}
+          onClick={() => start("github")}
+        >
+          {pending === "github" ? null : <GitHubIcon />}
+          {t("continueWithGithub")}
+        </Button>
+      ) : null}
+      {providers.google ? (
+        <Button
+          size="lg"
+          className="w-full"
+          disabled={blocked && pending !== "google"}
+          loading={pending === "google"}
+          onClick={() => start("google")}
+        >
+          {pending === "google" ? null : <GoogleIcon />}
+          {t("continueWithGoogle")}
+        </Button>
+      ) : null}
     </div>
   );
 }

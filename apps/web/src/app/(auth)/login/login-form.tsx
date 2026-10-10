@@ -15,12 +15,25 @@ import {
 } from "@/components/auth/auth-parts";
 import type { OAuthFailure } from "@/components/auth/oauth-failure";
 import { PasswordInput } from "@/components/auth/password-input";
-import { SocialSignIn } from "@/components/auth/social-sign-in";
+import {
+  hasSocialSignIn,
+  SocialSignIn,
+  type EnabledProviders,
+} from "@/components/auth/social-sign-in";
 import { useAuthForm } from "@/components/auth/use-auth-form";
 import { useOAuthFailureMessage } from "@/components/auth/use-oauth-failure-message";
 import { rememberVerifyEmail } from "@/components/auth/verify-email-cookie";
 
-export function LoginForm({ oauthFailure }: { oauthFailure: OAuthFailure }) {
+export function LoginForm({
+  oauthFailure,
+  providers,
+  next,
+}: {
+  oauthFailure: OAuthFailure;
+  providers: EnabledProviders;
+  /** Same-app path to land on after signing in (already sanitized). */
+  next: string;
+}) {
   const t = useTranslations("auth");
   const router = useRouter();
   const oauthMessage = useOAuthFailureMessage(oauthFailure);
@@ -46,12 +59,12 @@ export function LoginForm({ oauthFailure }: { oauthFailure: OAuthFailure }) {
       ? await authClient.signIn.email({
           email: identifier,
           password: values.password,
-          callbackURL: "/",
+          callbackURL: next,
         })
       : await authClient.signIn.username({
           username: identifier,
           password: values.password,
-          callbackURL: "/",
+          callbackURL: next,
         });
     if (!error) return "navigating";
 
@@ -142,12 +155,22 @@ export function LoginForm({ oauthFailure }: { oauthFailure: OAuthFailure }) {
           {t("login.submit")}
         </Button>
       </form>
-      <OrDivider label={t("or")} />
-      <SocialSignIn
-        errorCallbackURL="/login"
-        disabled={form.pending}
-        onError={form.setFormError}
-      />
+      {hasSocialSignIn(providers) ? (
+        <>
+          <OrDivider label={t("or")} />
+          <SocialSignIn
+            providers={providers}
+            callbackURL={next}
+            errorCallbackURL={
+              next === "/"
+                ? "/login"
+                : `/login?next=${encodeURIComponent(next)}`
+            }
+            disabled={form.pending}
+            onError={form.setFormError}
+          />
+        </>
+      ) : null}
       <AuthPrompt
         prompt={t("login.prompt")}
         action={t("login.register")}
