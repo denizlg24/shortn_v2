@@ -44,6 +44,13 @@ export interface LinkView {
   password: { hint: string | null } | null;
   safety: { status: string; disabled: boolean; interstitial: boolean };
   qrCodeId: string | null;
+  utm: {
+    source: string | null;
+    medium: string | null;
+    campaign: string | null;
+    term: string | null;
+    content: string | null;
+  }[];
 }
 
 // Legacy fields are authoritative during coexistence (02 §3a.1), so views
@@ -79,7 +86,18 @@ export function toLinkView(link: Link, linkDomain: string): LinkView {
         link.requiresInterstitial ?? link.safety?.interstitial,
       ),
     },
-    qrCodeId: link.qrCodeId ?? null,
+    qrCodeId: link.qrCodeId || null,
+    utm: (link.utmLinks ?? []).map((variant) => {
+      const text = (value: unknown) =>
+        typeof value === "string" && value ? value : null;
+      return {
+        source: text(variant.source),
+        medium: text(variant.medium),
+        campaign: text(variant.campaign?.title),
+        term: text(variant.term),
+        content: text(variant.content),
+      };
+    }),
   };
 }
 

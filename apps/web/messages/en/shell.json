@@ -1,0 +1,64 @@
+{
+  "skipToContent": "Skip to content",
+  "workspace": {
+    "switch": "Switch workspace",
+    "current": "Current",
+    "plans": {
+      "free": "Free plan",
+      "basic": "Basic plan",
+      "plus": "Plus plan",
+      "pro": "Pro plan",
+      "enterprise": "Enterprise plan"
+    }
+  },
+  "help": {
+    "label": "Help",
+    "center": "Help center",
+    "shortcuts": "Keyboard shortcuts"
+  },
+  "account": {
+    "menu": "Account",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "language": "Language",
+    "signOut": "Sign out"
+  },
+  "usage": {
+    "label": "Usage",
+    "unlimited": "Unlimited"
+  },
+  "impersonation": {
+    "label": "Impersonation",
+    "notice": "You're signed in as <strong>{name}</strong> ({email}) through impersonation.",
+    "end": "End session"
+  },
+  "palette": {
+    "title": "Command palette",
+    "placeholder": "Type a command or search…",
+    "empty": "No commands match.",
+    "navigation": "Go to",
+    "workspaces": "Workspaces",
+    "preferences": "Preferences",
+    "themeLight": "Use light theme",
+    "themeDark": "Use dark theme",
+    "themeSystem": "Match system theme",
+    "language": "Change language to {language}",
+    "shortcuts": "Show keyboard shortcuts",
+    "current": "Current",
+    "navigate": "Navigate",
+    "select": "Select",
+    "close": "Close"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "description": "Shortcuts work anywhere outside text fields.",
+    "general": "General",
+    "navigation": "Navigation",
+    "palette": "Command palette",
+    "switchWorkspace": "Switch workspace",
+    "help": "Show shortcuts",
+    "goTo": "Go to {section}"
+  }
+}

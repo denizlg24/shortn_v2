@@ -342,3 +342,36 @@ export function exportCursor(
       utmContent: doc.utm?.content,
     }));
 }
+
+// Daily clicks+scans per link for the last `days` UTC days, oldest first,
+// from rollups (refreshed every 5 minutes), for the links table sparklines.
+export async function dailyTrends(
+  db: Db,
+  linkIds: ObjectId[],
+  days = 30,
+  now = new Date(),
+): Promise<Map<string, number[]>> {
+  const today = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+  );
+  const from = new Date(today - (days - 1) * 86_400_000);
+  const trends = new Map(
+    linkIds.map((id) => [id.toHexString(), Array<number>(days).fill(0)]),
+  );
+  if (!linkIds.length) return trends;
+  const rows = await collection(db, "click_rollups")
+    .find(
+      { linkId: { $in: linkIds }, day: { $gte: from } },
+      { projection: { linkId: 1, day: 1, clicks: 1, scans: 1 } },
+    )
+    .toArray();
+  for (const row of rows) {
+    const series = trends.get(row.linkId.toHexString());
+    const index = Math.round((row.day.getTime() - from.getTime()) / 86_400_000);
+    if (series && index >= 0 && index < days)
+      series[index] = (series[index] ?? 0) + row.clicks + row.scans;
+  }
+  return trends;
+}

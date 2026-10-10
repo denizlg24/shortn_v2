@@ -1,0 +1,64 @@
+{
+  "skipToContent": "Saltar al contenido",
+  "workspace": {
+    "switch": "Cambiar de espacio de trabajo",
+    "current": "Actual",
+    "plans": {
+      "free": "Plan Gratis",
+      "basic": "Plan Basic",
+      "plus": "Plan Plus",
+      "pro": "Plan Pro",
+      "enterprise": "Plan Enterprise"
+    }
+  },
+  "help": {
+    "label": "Ayuda",
+    "center": "Centro de ayuda",
+    "shortcuts": "Atajos de teclado"
+  },
+  "account": {
+    "menu": "Cuenta",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Oscuro",
+    "system": "Sistema",
+    "language": "Idioma",
+    "signOut": "Cerrar sesión"
+  },
+  "usage": {
+    "label": "Uso",
+    "unlimited": "Ilimitado"
+  },
+  "impersonation": {
+    "label": "Suplantación",
+    "notice": "Has iniciado sesión como <strong>{name}</strong> ({email}) mediante suplantación.",
+    "end": "Cerrar sesión"
+  },
+  "palette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Escribe un comando o busca…",
+    "empty": "Ningún comando coincide.",
+    "navigation": "Ir a",
+    "workspaces": "Espacios de trabajo",
+    "preferences": "Preferencias",
+    "themeLight": "Usar tema claro",
+    "themeDark": "Usar tema oscuro",
+    "themeSystem": "Usar el tema del sistema",
+    "language": "Cambiar el idioma a {language}",
+    "shortcuts": "Mostrar atajos de teclado",
+    "current": "Actual",
+    "navigate": "Navegar",
+    "select": "Seleccionar",
+    "close": "Cerrar"
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "description": "Los atajos funcionan en cualquier lugar excepto en los campos de texto.",
+    "general": "General",
+    "navigation": "Navegación",
+    "palette": "Paleta de comandos",
+    "switchWorkspace": "Cambiar de espacio de trabajo",
+    "help": "Mostrar atajos",
+    "goTo": "Ir a {section}"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "skipToContent": "Saltar para o conteúdo",
+  "workspace": {
+    "switch": "Mudar de espaço de trabalho",
+    "current": "Atual",
+    "plans": {
+      "free": "Plano Gratuito",
+      "basic": "Plano Basic",
+      "plus": "Plano Plus",
+      "pro": "Plano Pro",
+      "enterprise": "Plano Enterprise"
+    }
+  },
+  "help": {
+    "label": "Ajuda",
+    "center": "Centro de ajuda",
+    "shortcuts": "Atalhos de teclado"
+  },
+  "account": {
+    "menu": "Conta",
+    "theme": "Tema",
+    "light": "Claro",
+    "dark": "Escuro",
+    "system": "Sistema",
+    "language": "Idioma",
+    "signOut": "Terminar sessão"
+  },
+  "usage": {
+    "label": "Utilização",
+    "unlimited": "Ilimitado"
+  },
+  "impersonation": {
+    "label": "Personificação",
+    "notice": "Tem sessão iniciada como <strong>{name}</strong> ({email}) através de personificação.",
+    "end": "Terminar sessão"
+  },
+  "palette": {
+    "title": "Paleta de comandos",
+    "placeholder": "Escreva um comando ou pesquise…",
+    "empty": "Nenhum comando corresponde.",
+    "navigation": "Ir para",
+    "workspaces": "Espaços de trabalho",
+    "preferences": "Preferências",
+    "themeLight": "Usar tema claro",
+    "themeDark": "Usar tema escuro",
+    "themeSystem": "Seguir o tema do sistema",
+    "language": "Mudar o idioma para {language}",
+    "shortcuts": "Mostrar atalhos de teclado",
+    "current": "Atual",
+    "navigate": "Navegar",
+    "select": "Selecionar",
+    "close": "Fechar"
+  },
+  "shortcuts": {
+    "title": "Atalhos de teclado",
+    "description": "Os atalhos funcionam em qualquer lado, exceto em campos de texto.",
+    "general": "Geral",
+    "navigation": "Navegação",
+    "palette": "Paleta de comandos",
+    "switchWorkspace": "Mudar de espaço de trabalho",
+    "help": "Mostrar atalhos",
+    "goTo": "Ir para {section}"
+  }
+}

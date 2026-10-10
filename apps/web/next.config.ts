@@ -16,9 +16,18 @@ const config: NextConfig = {
   ],
   serverExternalPackages: ["mongodb", "ioredis"],
   poweredByHeader: false,
+  // Pages the edge Worker serves on shortn.at (password, safety) load their
+  // assets from the web origin itself; legacy owns shortn.at/_next until P7.
+  ...(process.env.WEB_ASSET_ORIGIN
+    ? { assetPrefix: process.env.WEB_ASSET_ORIGIN }
+    : {}),
   typedRoutes: true,
   async headers() {
     return [
+      {
+        source: "/_next/static/:path*",
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
+      },
       {
         source: "/:path*",
         headers: [

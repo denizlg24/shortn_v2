@@ -1,0 +1,11 @@
+{
+  "brand": "Shortn",
+  "language": "Idioma",
+  "languages": {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "terms": "Termos",
+  "privacy": "Privacidade"
+}

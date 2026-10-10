@@ -324,7 +324,7 @@ export function createAuth(config: AuthConfig) {
     plugins: [
       username({
         maxUsernameLength: 100,
-        minUsernameLength: 8,
+        minUsernameLength: 3,
         usernameValidator: (value) => /^[a-zA-Z0-9_]+$/.test(value),
         displayUsernameValidator: (value) =>
           /^[a-zA-Z0-9 _.-]+$/.test(value) && value.trim().length >= 3,

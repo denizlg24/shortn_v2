@@ -1,10 +1,12 @@
-import { requireWorkspace } from "@/server/workspace";
+import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+import { SectionPlaceholder } from "@/components/shell/section-placeholder";
 
-export default async function LinksPage({
-  params,
-}: {
-  params: Promise<{ workspace: string }>;
-}) {
-  const { workspace } = await requireWorkspace((await params).workspace);
-  return <main className="p-6">{workspace.name}</main>;
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("nav");
+  return { title: t("links") };
+}
+
+export default function LinksPage() {
+  return <SectionPlaceholder section="links" />;
 }

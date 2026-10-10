@@ -167,6 +167,11 @@ export const webEnv = z
       "shortn.at",
       "Domain new links are created on",
     ),
+    WEB_RISK_API_KEY: value(
+      z.string().min(1).optional(),
+      "",
+      "Google Web Risk key for link scans; without it scans are structural only",
+    ),
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3000),
       "3000",
