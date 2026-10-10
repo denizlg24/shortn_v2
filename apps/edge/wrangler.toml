@@ -10,7 +10,7 @@ compatibility_date = "2026-09-01"
 routes = [{ pattern = "shortn.at/*", zone_name = "denizlg24.com" }]
 
 [vars]
-REDIRECT_ORIGIN = "https://redirect-origin.shortn.at"
+REDIRECT_ORIGIN = "https://shortn-redirect.denizlg24.com"
 # Kill switch, not a ramp: 100 in normal operation, 0 to roll back (14 P2).
 CANARY_PERCENT = "100"
 # EDGE_AUTH_SECRET is a secret: `wrangler secret put EDGE_AUTH_SECRET`.
