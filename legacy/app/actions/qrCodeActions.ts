@@ -12,6 +12,7 @@ import { ITag, TagT } from "@/models/url/Tag";
 import { fetchApi, BASEURL } from "@/lib/utils";
 import { archiveAndDeleteClicks } from "@/lib/click-archive";
 import { deletePicture } from "./deletePicture";
+import { invalidateLinkCache } from "@/lib/link-cache";
 import { getUserPlan } from "@/app/actions/polarActions";
 import {
   ingestUsageEvent,
@@ -170,6 +171,7 @@ export async function createQrCode({
             },
           },
     });
+    await invalidateLinkCache([newQrCode.urlId]);
 
     await ingestUsageEvent({
       customerId: user.id,
@@ -214,7 +216,11 @@ export const updateQRCodeOptions = async (
 
     const sub = user.sub;
     await connectDB();
-    await QRCodeV2.updateOne({ sub, qrCodeId: codeId }, { options });
+    const qr = await QRCodeV2.findOneAndUpdate(
+      { sub, qrCodeId: codeId },
+      { options },
+    );
+    await invalidateLinkCache([qr?.urlId]);
     return { success: true };
   } catch (error) {
     console.log(error);
@@ -276,6 +282,7 @@ export const updateQRCodeData = async ({
     const redirectorUpdated = updated
       ? await UrlV3.findOneAndUpdate({ sub, urlCode: qr!.urlId }, { longUrl })
       : undefined;
+    if (updated) await invalidateLinkCache([qr?.urlId]);
 
     if (isChangingLongUrl && redirectorUpdated) {
       await ingestUsageEvent({
@@ -295,6 +302,7 @@ export const updateQRCodeData = async ({
         { title, tags, longUrl },
       );
       if (updatedURL) {
+        await invalidateLinkCache([urlCode]);
         return { success: true };
       }
       return { success: false };
@@ -329,6 +337,7 @@ export const attachShortnToQR = async (urlCode: string, qrCodeId: string) => {
     if (!updated) {
       return { success: false, message: "error-updating" };
     }
+    await invalidateLinkCache([updated.urlId]);
     return { success: true };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {
@@ -367,12 +376,13 @@ export const deleteQRCode = async (qrCodeId: string) => {
       urlCode: foundQR.urlId,
       isQrCode: true,
     });
-    if (foundQR.attachedUrl) {
-      await UrlV3.findOneAndUpdate(
-        { sub, qrCodeId: foundQR.qrCodeId },
-        { qrCodeId: "" },
-      );
-    }
+    const detached = foundQR.attachedUrl
+      ? await UrlV3.findOneAndUpdate(
+          { sub, qrCodeId: foundQR.qrCodeId },
+          { qrCodeId: "" },
+        )
+      : null;
+    await invalidateLinkCache([foundQR.urlId, detached?.urlCode]);
     return { success: true, deleted: qrCodeId };
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (error) {

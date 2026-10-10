@@ -1,0 +1,153 @@
+{
+  "title": "Choose Shortn's visual world",
+  "question": "The roll picked Registered Post. Keep it, choose an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Registered Post",
+      "kicker": "THE ROLL",
+      "lineage": "CTT registered-mail labels, airmail envelopes, postmarks, franking meters, sorting-office dispatch ledgers",
+      "thesis": "Each link is an addressed label: a key, a destination, and a trail of postmarks as people pass through it.",
+      "palette": ["#0F172B", "#FFFFFF", "#D7262E", "#E6ECF4"],
+      "materials": [
+        "gummed label stock",
+        "rubber-stamp cancellation ink",
+        "airmail chevron border"
+      ],
+      "viewport": "The Links ledger: an addressing bar sits on top; below it every link is a label row with a heavy-grotesque key, a routed destination, and wavy postmark cancellation lines that show the last 7 days of clicks.",
+      "risk": "Becomes a costume if the postal motifs show up as ornament instead of carrying state (routing, cancellation, franking).",
+      "raised": [
+        {
+          "from": "challenger-doujin-catalog",
+          "raise": "The QR library is a perforated stamp sheet packed edge to edge in whole cells, with a code under each stamp."
+        },
+        {
+          "from": "challenger-emigre-bitmap",
+          "raise": "QR modules and the S mark only ever render at whole-pixel multiples, so previews are print-honest."
+        },
+        {
+          "from": "challenger-acetate-manual",
+          "raise": "State changes stamp in as a 90ms two-frame thunk. Nothing fades or floats."
+        },
+        {
+          "from": "challenger-jcard",
+          "raise": "Plan usage is a franking meter that always shows exactly how much capacity is left. Limits are never hidden."
+        },
+        {
+          "from": "challenger-orienteering",
+          "raise": "Postal red is reserved for one role only: the live route and the primary action."
+        }
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Prepress Proof",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "print-shop proof sheets, crop and registration marks, colour bars, imposition sheets",
+      "thesis": "Every link is a proof on press, checked digitally and in print, signed off and run.",
+      "palette": ["#0F172B", "#FFFFFF", "#00A3E0", "#E5007D", "#FFE600"],
+      "materials": [
+        "coated proof stock",
+        "registration marks",
+        "CMYK control strip"
+      ],
+      "viewport": "Links laid out as an imposition sheet. Crop marks frame each row, a CMYK control strip doubles as the usage meter, and the QR preview sits at true print size.",
+      "risk": "The most familiar route for a print + digital product, and the one most runs here would land on."
+    },
+    {
+      "id": "challenger-emission-rail",
+      "label": "Emission-Line Rail",
+      "verdict": "competitive",
+      "lineage": "glass spectrogram plates",
+      "thesis": "Click history drawn as hairline emission lines along one calibrated time rail.",
+      "palette": ["#2A2D33", "#E8E4DA", "#FFD23F", "#5B8DEF"],
+      "materials": ["charcoal continuum", "1px hairlines"],
+      "viewport": "Analytics as a single rail: every click is a line, and state is shown by line height and dash pattern.",
+      "case": "Strong analytics clarity because state is carried by line form, not hue. Marketers don't recognise themselves in it.",
+      "risk": "Cold and lab-like for a marketing team, and it fights the navy brand.",
+      "hero": "https://impeccable.style/worlds/cards/operate-c-emission-line-rail-hero.webp"
+    },
+    {
+      "id": "challenger-doujin-catalog",
+      "label": "Convention Catalog",
+      "verdict": "declined",
+      "lineage": "doujin event circle catalog",
+      "thesis": "Thousands of stamp-size cells packed into a numbered hall grid.",
+      "palette": ["#111111", "#ECEAE4", "#2E6FD8"],
+      "materials": ["newsprint", "single ink"],
+      "viewport": "A dense numbered grid of thumbnails.",
+      "risk": "Pop-culture world foreign to newsroom marketers.",
+      "case": "Loses on both axes.",
+      "kept": "Edge-to-edge whole-cell grid → QR stamp sheet.",
+      "hero": "https://impeccable.style/worlds/cards/pop-culture-shelf-doujin-event-catalog-hero.webp"
+    },
+    {
+      "id": "challenger-emigre-bitmap",
+      "label": "Bitmap Specimen",
+      "verdict": "declined",
+      "lineage": "Emigre bitmap type specimens",
+      "thesis": "Low resolution as the aesthetic.",
+      "palette": ["#FFFFFF", "#000000", "#FF3B00"],
+      "materials": ["halftone", "dot matrix"],
+      "viewport": "Poster-scale pixel display type.",
+      "risk": "Retro novelty; poor fit for long working sessions.",
+      "case": "Loses on both axes.",
+      "kept": "Integer-honest rendering → crisp QR and mark.",
+      "hero": "https://impeccable.style/worlds/cards/emigre-bitmap-specimen-hero.webp"
+    },
+    {
+      "id": "challenger-acetate-manual",
+      "label": "Acetate Tab Manual",
+      "verdict": "declined",
+      "lineage": "boxed-software reference manuals",
+      "thesis": "Sections as hued divider boards under acetate leaves.",
+      "palette": ["#E8641E", "#F4C20D", "#2D9C4A", "#2B3FB8"],
+      "materials": ["milk acetate", "divider board"],
+      "viewport": "Stepped tab rail down the fore edge.",
+      "risk": "Rainbow section hues overrule the navy brand.",
+      "case": "Loses on both axes.",
+      "kept": "No easing: two-frame 90ms steps.",
+      "hero": "https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board-hero.webp"
+    },
+    {
+      "id": "challenger-jcard",
+      "label": "Mixtape J-Card",
+      "verdict": "declined",
+      "lineage": "cassette inlay cards",
+      "thesis": "Sides with hard running-time limits.",
+      "palette": ["#1F3FA8", "#FFFFFF", "#C8102E"],
+      "materials": ["ballpoint", "lined inlay stock"],
+      "viewport": "A folded tracklist sheet.",
+      "risk": "Hand-lettered whimsy undermines trust.",
+      "case": "Loses on both axes.",
+      "kept": "Capacity always visible → honest franking meter.",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-cassette-j-card-hero.webp"
+    },
+    {
+      "id": "challenger-orienteering",
+      "label": "Orienteering Map",
+      "verdict": "declined",
+      "lineage": "ISOM orienteering maps",
+      "thesis": "A purple course riding over fixed terrain.",
+      "palette": ["#FFFFFF", "#B5651D", "#F7D44C", "#A626A4"],
+      "materials": ["contour ink", "course overprint"],
+      "viewport": "Campaign as a numbered course.",
+      "risk": "Niche sport; marketers won't read it.",
+      "case": "Loses on both axes.",
+      "kept": "One reserved colour only for the active leg.",
+      "hero": "https://impeccable.style/worlds/cards/notation-diagram-systems-orienteering-map-hero.webp"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] },
+  "buildPath": { "value": "code" },
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A Dub/Linear-style SaaS dashboard at full craft.",
+    "palette": ["#FFFFFF", "#0F172B", "#3B82F6"],
+    "materials": ["clean grid", "sidebar + data table"],
+    "viewport": "Sidebar, a filter bar, and a dense links table with sparkline columns.",
+    "risk": "Looks like the competition by design."
+  },
+  "steer": true
+}

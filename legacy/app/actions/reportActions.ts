@@ -4,6 +4,7 @@ import { createHash } from "crypto";
 import { headers } from "next/headers";
 import { connectDB } from "@/lib/mongodb";
 import UrlV3 from "@/models/url/UrlV3";
+import { invalidateLinkCache } from "@/lib/link-cache";
 import LinkReport, {
   REPORT_REASONS,
   type ReportReason,
@@ -93,6 +94,7 @@ export async function reportLink({ urlCode, reason, details }: ReportInput) {
       updated.disabledReason = "auto:report-threshold";
       await updated.save();
     }
+    if (updated) await invalidateLinkCache([updated.urlCode]);
 
     return { success: true };
   } catch (error) {

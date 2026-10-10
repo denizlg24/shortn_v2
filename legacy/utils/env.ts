@@ -30,6 +30,7 @@ const envSchema = z.object({
   PICRON_URL: z.string().url().default("https://picron.denizlg24.com"),
   PICRON_USERNAME: z.string().nonempty(),
   PICRON_PASSWORD: z.string().nonempty(),
+  REDIS_CACHE_URL: z.string().url().optional(),
   MEILI_URL: z.string().url().optional(),
   MEILI_MASTER_KEY: z.string().nonempty().optional(),
   MEILI_INDEX_LINKS: z.string().nonempty().optional(),

@@ -1,9 +1,8 @@
 import { confirmMongoTarget } from "../cli-target";
 import { closeMongoClient, getMongoClient } from "../client";
 import { runMigrations, validateOptions } from "./runner";
-import type { Migration, RunnerOptions } from "./runner";
-// Production data migrations land in subsequent phases. Test fixtures are never registered here.
-const migrations: Migration[] = [];
+import type { RunnerOptions } from "./runner";
+import { productionMigrations as migrations } from "./registry";
 const args = process.argv.slice(2);
 const options: RunnerOptions = {};
 for (let i = 0; i < args.length; i++) {
