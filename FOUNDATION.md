@@ -133,7 +133,10 @@ Parity gate (14 P2), against a database both apps read:
 MONGODB_URL=… MONGODB_DB=… bun run --cwd apps/redirect parity <legacy-origin> <redirect-origin>
 ```
 
-The edge Worker (`apps/edge`) deploys with `bunx wrangler deploy [--env staging]`
+Forge hostnames are Cloudflare-for-SaaS custom hostnames of `denizlg24.com`, so
+Worker routes for `shortn.at` hosts attach to that zone; a route on the
+`shortn.at` zone never runs (verified on staging 2026-10-10). The edge Worker
+(`apps/edge`) deploys with `bunx wrangler deploy [--env staging]`
 and `wrangler secret put EDGE_AUTH_SECRET`. Set the route's request-limit
 failure mode to fail open in the Cloudflare dashboard. `CANARY_PERCENT=0` is the
 rollback.

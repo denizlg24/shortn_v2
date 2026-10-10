@@ -5,7 +5,9 @@ compatibility_date = "2026-09-01"
 # the zone's own origin (legacy): subrequests to the routed host skip the Worker.
 # Hitting the free plan's daily limit falls through to the zone's origin
 # (legacy, which resolves every key) instead of erroring (13 §Edge routing).
-routes = [{ pattern = "shortn.at/*", zone_name = "shortn.at" }]
+# shortn.at, like staging, is served as a Cloudflare-for-SaaS custom hostname of
+# denizlg24.com (Forge), so its routes attach to that provider zone.
+routes = [{ pattern = "shortn.at/*", zone_name = "denizlg24.com" }]
 
 [vars]
 REDIRECT_ORIGIN = "https://redirect-origin.shortn.at"
@@ -15,7 +17,10 @@ CANARY_PERCENT = "100"
 
 [env.staging]
 name = "shortn-edge-staging"
-routes = [{ pattern = "staging.shortn.at/*", zone_name = "shortn.at" }]
+# staging.shortn.at is a Cloudflare-for-SaaS custom hostname of denizlg24.com
+# (Forge). Its record in the shortn.at zone isn't proxied, so the request
+# never touches that zone's Worker routes; it lands on the provider zone.
+routes = [{ pattern = "staging.shortn.at/*", zone_name = "denizlg24.com" }]
 
 [env.staging.vars]
 REDIRECT_ORIGIN = "https://shortn-redirect-staging.denizlg24.com"
