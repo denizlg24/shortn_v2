@@ -5,7 +5,9 @@ ENV HUSKY=0
 COPY --parents package.json bun.lock legacy/package.json apps/*/package.json packages/*/package.json ./
 RUN bun install --frozen-lockfile --ignore-scripts
 
-FROM dependencies AS build
+FROM node:24-trixie-slim AS build
+WORKDIR /workspace
+COPY --from=dependencies /workspace /workspace
 COPY packages packages
 COPY apps/web apps/web
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -13,7 +15,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # public asset origin is read at build time, from the target's env.
 RUN --mount=type=secret,id=forge-env,required=false \
   if [ -f /run/secrets/forge-env ]; then set -a; . /run/secrets/forge-env; set +a; fi; \
-  bun run --cwd apps/web build
+  cd apps/web && node node_modules/next/dist/bin/next build
 
 FROM node:24-trixie-slim AS runtime
 WORKDIR /app
