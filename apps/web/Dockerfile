@@ -3,7 +3,7 @@ FROM oven/bun:1.3.14-slim AS dependencies
 WORKDIR /workspace
 ENV HUSKY=0
 COPY --parents package.json bun.lock legacy/package.json apps/*/package.json packages/*/package.json ./
-RUN bun install --frozen-lockfile --ignore-scripts --filter @shortn/web
+RUN bun install --frozen-lockfile --ignore-scripts
 
 FROM dependencies AS build
 COPY packages packages

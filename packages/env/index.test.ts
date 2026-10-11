@@ -81,6 +81,23 @@ test("production requires distinct secrets and separate Redis URLs", () => {
     }).success,
   ).toBe(true);
 });
+test("production API starts without Redis and still rejects reused secrets", () => {
+  const fixture = {
+    NODE_ENV: "production",
+    MONGODB_URL: "mongodb://127.0.0.1:27017",
+    MONGODB_DB: "fixture",
+    POLAR_ENVIRONMENT: "sandbox",
+    POLAR_ACCESS_TOKEN: "polar-api-7c8dd46cd294442db3163258",
+    POLAR_WEBHOOK_SECRET: "polar-hook-94f9c23ee8624b2cb0b7237e",
+  };
+  expect(apiEnv.safeParse(fixture).success).toBe(true);
+  expect(
+    apiEnv.safeParse({
+      ...fixture,
+      POLAR_WEBHOOK_SECRET: fixture.POLAR_ACCESS_TOKEN,
+    }).success,
+  ).toBe(false);
+});
 test("href environment URLs require http(s)", () => {
   expect(
     webEnv.shape.BETTER_AUTH_URL.safeParse("javascript:alert(1)").success,

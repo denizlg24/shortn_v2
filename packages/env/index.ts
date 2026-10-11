@@ -65,7 +65,10 @@ const productionRules = (
   ctx: z.RefinementCtx,
 ) => {
   if (env.NODE_ENV !== "production") return;
-  if (env.REDIS_CACHE_URL === env.REDIS_DURABLE_URL)
+  if (
+    env.REDIS_CACHE_URL !== undefined &&
+    env.REDIS_CACHE_URL === env.REDIS_DURABLE_URL
+  )
     ctx.addIssue({
       code: "custom",
       path: ["REDIS_DURABLE_URL"],

@@ -19,6 +19,8 @@ P4 (14) delivers `app.shortn.at` at parity with the legacy dashboard, the new bi
 
 ### Staging integration checkpoint — 2026-10-11
 
+Owner acceptance update: visual/product review is approved, with refinements deferred. The owner explicitly waived the seven-day observation requirement and requested immediate execution of all remaining checks. This removes the duration gate; staging/provider results must still be recorded accurately.
+
 The dashboard implementation is being integrated into `staging` so P5 development can branch from it. This is not P4 production acceptance: slice 4.9 remains open, including the complete page-map/parity audit, owner review, live OAuth and external email, Polar sandbox lifecycle/history/invoices, actual legacy-host handoff, legacy bio rendering, staging public-link checks, the seven-day P1 observation period and zero-drift billing reconciliation. Track local evidence in `audit/2026-10-11-p4-ux.md`; retain the 🟡 staging statuses until those checks pass. P5 development can proceed while these checks run, but production promotion and switches remain gated by 14.
 
 | Slice | Content                                                                                                                                                                                                                                                                   | Exit                                                                                                         |
