@@ -181,6 +181,8 @@ export async function portalPageAction(workspace: string) {
 
 export async function invoicePageAction(workspace: string, orderId: string) {
   const result = await invoiceAction(workspace, orderId);
+  if (!result.ok && result.error === "invoice_pending")
+    redirect(`/${workspace}/settings/billing?pending=invoice`);
   if (result.ok && isExternalUrl(result.data.url)) redirect(result.data.url);
   redirect(`/${workspace}/settings/billing?failed=invoice`);
 }

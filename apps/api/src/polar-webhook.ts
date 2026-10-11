@@ -4,32 +4,32 @@ import {
 } from "@polar-sh/sdk/webhooks";
 import { Webhook } from "standardwebhooks";
 import type { VerifiedEvent } from "./webhooks";
-import { WebhookSubscriptionCreatedPayload$inboundSchema as schema0 } from "@polar-sh/sdk/models/components/webhooksubscriptioncreatedpayload.js";
-import { WebhookSubscriptionUpdatedPayload$inboundSchema as schema1 } from "@polar-sh/sdk/models/components/webhooksubscriptionupdatedpayload.js";
-import { WebhookSubscriptionActivePayload$inboundSchema as schema2 } from "@polar-sh/sdk/models/components/webhooksubscriptionactivepayload.js";
-import { WebhookSubscriptionCanceledPayload$inboundSchema as schema3 } from "@polar-sh/sdk/models/components/webhooksubscriptioncanceledpayload.js";
-import { WebhookSubscriptionUncanceledPayload$inboundSchema as schema4 } from "@polar-sh/sdk/models/components/webhooksubscriptionuncanceledpayload.js";
-import { WebhookSubscriptionRevokedPayload$inboundSchema as schema5 } from "@polar-sh/sdk/models/components/webhooksubscriptionrevokedpayload.js";
-import { WebhookSubscriptionPastDuePayload$inboundSchema as schema6 } from "@polar-sh/sdk/models/components/webhooksubscriptionpastduepayload.js";
-import { WebhookOrderCreatedPayload$inboundSchema as schema7 } from "@polar-sh/sdk/models/components/webhookordercreatedpayload.js";
-import { WebhookOrderUpdatedPayload$inboundSchema as schema8 } from "@polar-sh/sdk/models/components/webhookorderupdatedpayload.js";
-import { WebhookOrderPaidPayload$inboundSchema as schema9 } from "@polar-sh/sdk/models/components/webhookorderpaidpayload.js";
-import { WebhookOrderRefundedPayload$inboundSchema as schema10 } from "@polar-sh/sdk/models/components/webhookorderrefundedpayload.js";
-import { WebhookCustomerStateChangedPayload$inboundSchema as schema11 } from "@polar-sh/sdk/models/components/webhookcustomerstatechangedpayload.js";
+import { WebhookSubscriptionCreatedPayload$inboundSchema as subscriptionCreated } from "@polar-sh/sdk/models/components/webhooksubscriptioncreatedpayload.js";
+import { WebhookSubscriptionUpdatedPayload$inboundSchema as subscriptionUpdated } from "@polar-sh/sdk/models/components/webhooksubscriptionupdatedpayload.js";
+import { WebhookSubscriptionActivePayload$inboundSchema as subscriptionActive } from "@polar-sh/sdk/models/components/webhooksubscriptionactivepayload.js";
+import { WebhookSubscriptionCanceledPayload$inboundSchema as subscriptionCanceled } from "@polar-sh/sdk/models/components/webhooksubscriptioncanceledpayload.js";
+import { WebhookSubscriptionUncanceledPayload$inboundSchema as subscriptionUncanceled } from "@polar-sh/sdk/models/components/webhooksubscriptionuncanceledpayload.js";
+import { WebhookSubscriptionRevokedPayload$inboundSchema as subscriptionRevoked } from "@polar-sh/sdk/models/components/webhooksubscriptionrevokedpayload.js";
+import { WebhookSubscriptionPastDuePayload$inboundSchema as subscriptionPastDue } from "@polar-sh/sdk/models/components/webhooksubscriptionpastduepayload.js";
+import { WebhookOrderCreatedPayload$inboundSchema as orderCreated } from "@polar-sh/sdk/models/components/webhookordercreatedpayload.js";
+import { WebhookOrderUpdatedPayload$inboundSchema as orderUpdated } from "@polar-sh/sdk/models/components/webhookorderupdatedpayload.js";
+import { WebhookOrderPaidPayload$inboundSchema as orderPaid } from "@polar-sh/sdk/models/components/webhookorderpaidpayload.js";
+import { WebhookOrderRefundedPayload$inboundSchema as orderRefunded } from "@polar-sh/sdk/models/components/webhookorderrefundedpayload.js";
+import { WebhookCustomerStateChangedPayload$inboundSchema as customerStateChanged } from "@polar-sh/sdk/models/components/webhookcustomerstatechangedpayload.js";
 
 const schemas = {
-  "subscription.created": schema0,
-  "subscription.updated": schema1,
-  "subscription.active": schema2,
-  "subscription.canceled": schema3,
-  "subscription.uncanceled": schema4,
-  "subscription.revoked": schema5,
-  "subscription.past_due": schema6,
-  "order.created": schema7,
-  "order.updated": schema8,
-  "order.paid": schema9,
-  "order.refunded": schema10,
-  "customer.state_changed": schema11,
+  "subscription.created": subscriptionCreated,
+  "subscription.updated": subscriptionUpdated,
+  "subscription.active": subscriptionActive,
+  "subscription.canceled": subscriptionCanceled,
+  "subscription.uncanceled": subscriptionUncanceled,
+  "subscription.revoked": subscriptionRevoked,
+  "subscription.past_due": subscriptionPastDue,
+  "order.created": orderCreated,
+  "order.updated": orderUpdated,
+  "order.paid": orderPaid,
+  "order.refunded": orderRefunded,
+  "customer.state_changed": customerStateChanged,
 };
 
 // Polar secrets generated since 2026-09-08 use Standard Webhooks key

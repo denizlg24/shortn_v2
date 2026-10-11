@@ -130,7 +130,10 @@
       "partiallyRefunded": "Partially refunded",
       "void": "Void",
       "unknown": "Unknown"
-    }
+    },
+    "prepare": "Prepare invoice",
+    "prepareInvoice": "Prepare invoice {number}",
+    "generating": "Your invoice is being prepared. Check again in a few seconds."
   },
   "plansPage": {
     "title": "Compare plans"

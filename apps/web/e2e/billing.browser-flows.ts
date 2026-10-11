@@ -116,6 +116,29 @@ export async function checkBillingFailures({
       }
       await page.setViewportSize({ width: 1440, height: 1000 });
     }
+    fixture.order.is_invoice_generated = false;
+    await go(base);
+    await page
+      .getByRole("button", {
+        name: "Prepare invoice TEST-2026-001",
+        exact: true,
+      })
+      .click();
+    await page.waitForURL(/pending=invoice/);
+    await page
+      .getByRole("status")
+      .filter({ hasText: "Your invoice is being prepared" })
+      .waitFor();
+    assert(
+      requests.some((r) => r.method === "POST" && r.path.endsWith("/invoice")),
+    );
+    await page
+      .getByRole("button", {
+        name: "Download invoice TEST-2026-001",
+        exact: true,
+      })
+      .waitFor();
+
     // An order returned for another workspace must never yield an invoice URL.
     fixture.order.subscription_id = "other-workspace-subscription";
     const invoiceReads = requests.filter((request) =>

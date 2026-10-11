@@ -136,8 +136,13 @@ export async function invoiceAction(
         polarSubscriptionId: order.subscriptionId,
         polarCustomerId: order.customerId,
       }));
-    if (!subscription || !order.isInvoiceGenerated)
-      return { ok: false, error: "not_found" };
+    if (!subscription) return { ok: false, error: "not_found" };
+    if (!order.isInvoiceGenerated) {
+      if (!["paid", "refunded", "partially_refunded"].includes(order.status))
+        return { ok: false, error: "not_found" };
+      await client.orders.generateInvoice({ id: orderId });
+      return { ok: false, error: "invoice_pending" };
+    }
     return { ok: true, data: await client.orders.invoice({ id: orderId }) };
   } catch {
     return { ok: false, error: "generic" };
