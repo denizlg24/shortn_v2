@@ -4,7 +4,7 @@ P5 delivers the new public bio renderer, bio subdomains and custom domains descr
 
 ## Entry checkpoint — 2026-10-11
 
-P4 has been integrated into staging for acceptance. Its production exit gate remains open as recorded in [16](16-p4-breakdown.md). P5 development can proceed from staging while those checks run. P4 production promotion and switches remain gated separately.
+P4 staging acceptance is complete, and its fixes are merged into staging. Local checks, deployed flows and real provider acceptance are recorded in [16](16-p4-breakdown.md) and its audit. The owner approved visuals, waived the seven-day observation period and deferred OAuth configuration/tests to production. P5 starts from the accepted staging implementation; production promotion and switches remain a separate operator rollout.
 
 ## Implementation slices
 
@@ -21,9 +21,9 @@ P4 has been integrated into staging for acceptance. Its production exit gate rem
 
 Start 5.1 with the existing migrated bio schema and service reads. Build the public renderer and content-extreme fixtures before adding host routing. Reuse that component in the dashboard preview. The legacy public layout is migration evidence, not the visual design target.
 
-## Acceptance still carried from P4
+## P4 acceptance and production follow-up
 
-Live OAuth, external email delivery, Polar sandbox lifecycle/history/invoices, actual legacy-host handoff, legacy bio rendering, staging public-link checks, full page-map/parity review, owner sign-off, seven-day P1 observation and zero-drift billing reconciliation remain tracked in 16 and its local audit. Starting P5 does not close them.
+External email, Polar sandbox lifecycle/history/invoices, legacy-host handoff, legacy bio rendering, public-link flows and all 141 localized page renders passed. The owned sandbox subscription reconciled without drift; two pre-existing orphan sandbox records are documented and preserved. OAuth configuration/callback tests remain deferred to production setup. Production routing and billing switches remain separate from P5 development. The waived P4 observation period does not change P5 custom-domain acceptance.
 
 ## Operator steps
 
