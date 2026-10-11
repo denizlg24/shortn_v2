@@ -1,0 +1,338 @@
+{
+  "title": "Settings",
+  "nav": {
+    "label": "Settings",
+    "workspace": "Workspace",
+    "personal": "Personal",
+    "general": "General",
+    "members": "Members",
+    "billing": "Billing",
+    "account": "Account",
+    "profile": "Profile",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign-in methods",
+    "sessions": "Sessions"
+  },
+  "common": {
+    "save": "Save",
+    "saved": "Saved",
+    "cancel": "Cancel",
+    "you": "You",
+    "seePlans": "See plans",
+    "retry": "Try again",
+    "loadFailed": "These settings didn't load",
+    "loadFailedBody": "Something went wrong on our side. Try again in a moment.",
+    "errors": {
+      "generic": "Something went wrong on our side. Try again.",
+      "network": "Couldn't reach Shortn. Check your connection and try again.",
+      "forbidden": "You don't have permission to do that.",
+      "tooManyAttempts": "Too many attempts. Wait a minute, then try again."
+    }
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "roleDescriptions": {
+    "admin": "Admins manage members, domains and workspace settings, and do everything members can.",
+    "member": "Members create and edit links, QR codes, bio pages and campaigns.",
+    "viewer": "Viewers see links and analytics but can't change anything."
+  },
+  "general": {
+    "title": "General",
+    "description": "How {workspace} is named and where it lives.",
+    "identity": {
+      "title": "Name and URL",
+      "name": "Workspace name",
+      "slug": "URL",
+      "slugHint": "Changing it moves every dashboard address. Bookmarks to the old one stop working.",
+      "readOnly": "Only owners and admins can change workspace settings."
+    },
+    "validation": {
+      "nameRequired": "Enter a name.",
+      "nameTooLong": "Use {max} characters or fewer.",
+      "slugInvalid": "Use 3 to 48 lowercase letters, numbers or hyphens, starting and ending with a letter or number."
+    },
+    "errors": {
+      "slugTaken": "Another workspace already uses this URL.",
+      "slugInvalid": "This URL is reserved. Try another one."
+    },
+    "create": {
+      "title": "New workspace",
+      "description": "A team workspace has its own links, members and billing. You'll be its owner.",
+      "open": "Create workspace",
+      "name": "Name",
+      "namePlaceholder": "Acme Marketing",
+      "slug": "URL",
+      "submit": "Create workspace",
+      "limitReached": "Your plan includes {limit, plural, one {# workspace} other {# workspaces}}, and you already own that many. Upgrade your personal workspace to create more."
+    },
+    "delete": {
+      "title": "Delete workspace",
+      "description": "Permanently deletes {workspace} with its members, invites and tags. Its links, QR codes, bio pages and campaigns must be gone first.",
+      "personal": "Your personal workspace can't be deleted.",
+      "ownerOnly": "Only the owner can delete this workspace.",
+      "action": "Delete workspace",
+      "dialogTitle": "Delete {workspace}?",
+      "dialogBody": "This can't be undone. Everyone in it loses access right away.",
+      "confirmLabel": "Type <strong>{slug}</strong> to confirm.",
+      "confirm": "Delete workspace",
+      "notEmpty": "This workspace still has links, QR codes, bio pages, campaigns or an active subscription. Remove them and cancel the subscription first."
+    },
+    "save": "Save",
+    "workspaces": {
+      "create": "Create workspace",
+      "title": "Team workspaces",
+      "description": "Give each team its own links, members and billing."
+    },
+    "danger": {
+      "personal": "Your personal workspace can't be deleted.",
+      "ownerOnly": "Only the owner can delete this workspace.",
+      "action": "Delete workspace",
+      "title": "Delete workspace",
+      "description": "Permanently remove this workspace and its memberships."
+    },
+    "saved": "Workspace saved."
+  },
+  "members": {
+    "title": "Members",
+    "description": "People with access to {workspace}.",
+    "readOnly": "Only owners and admins can manage members.",
+    "invite": {
+      "title": "Invite people",
+      "email": "Email",
+      "emailPlaceholder": "name@company.com",
+      "role": "Role",
+      "submit": "Send invite",
+      "seats": "{used} of {limit} seats used, including pending invites.",
+      "sent": "Invite sent to <strong>{email}</strong>. It works for 7 days.",
+      "errors": {
+        "emailRequired": "Enter an email address.",
+        "emailInvalid": "Enter a valid email address, like name@company.com.",
+        "alreadyMember": "This person is already a member.",
+        "seatsExhausted": "All {seats, plural, one {# seat is} other {# seats are}} in use, and pending invites count too. Upgrade the plan to add more people.",
+        "seatsExhaustedAskOwner": "All {seats, plural, one {# seat is} other {# seats are}} in use, and pending invites count too. Ask the owner to upgrade the plan."
+      }
+    },
+    "list": {
+      "title": "{count, plural, one {# member} other {# members}}",
+      "member": "Member",
+      "role": "Role",
+      "actions": "Actions",
+      "changeRole": "Role for {name}",
+      "remove": "Remove",
+      "removeLabel": "Remove {name}",
+      "leave": "Leave",
+      "readOnly": "Only owners and admins can manage members.",
+      "adminOwnerOnly": "Only the owner can change or remove admins.",
+      "noName": "Unnamed member",
+      "joined": "Joined",
+      "manageLabel": "Manage {name}",
+      "manage": "Manage",
+      "view": "View"
+    },
+    "remove": {
+      "title": "Remove {name}?",
+      "body": "They lose access to {workspace} right away. Links they created stay in the workspace.",
+      "confirm": "Remove member"
+    },
+    "leave": {
+      "title": "Leave {workspace}?",
+      "body": "You lose access right away. An owner or admin has to invite you again to come back.",
+      "confirm": "Leave workspace"
+    },
+    "invites": {
+      "title": "{count, plural, one {# pending invite} other {# pending invites}}",
+      "empty": "Nobody is waiting to join.",
+      "expires": "Expires",
+      "invitedBy": "Invited by",
+      "revoke": "Revoke",
+      "revokeLabel": "Revoke invite for {email}",
+      "email": "Email"
+    },
+    "errors": {
+      "ownerProtected": "The owner can't be removed or given another role.",
+      "notFound": "This person is no longer a member. Reload to see the current list."
+    },
+    "seats": "{used} of {limit} seats used, including pending invites.",
+    "inviteAction": "Invite member",
+    "notices": {
+      "invited": "Invitation sent.",
+      "removed": "Member removed.",
+      "revoked": "Invitation revoked."
+    }
+  },
+  "account": {
+    "title": "Account",
+    "description": "Your profile and sign-in settings. They apply in every workspace you're part of.",
+    "profile": {
+      "title": "Profile",
+      "description": "How you appear to people in your workspaces.",
+      "image": "Avatar image",
+      "imageHint": "A square image, at least 64 × 64 pixels. Remove it to show your initials.",
+      "imageInvalid": "Enter a full address that starts with https://."
+    },
+    "email": {
+      "title": "Email",
+      "current": "You sign in and get notifications at <strong>{email}</strong>.",
+      "currentUnverified": "You sign in at <strong>{email}</strong>, which isn't verified yet.",
+      "new": "New email",
+      "submit": "Change email",
+      "sent": "We sent an approval link to <strong>{current}</strong>. Once you approve it, we'll ask <strong>{next}</strong> to confirm too.",
+      "errors": {
+        "same": "That's already your email.",
+        "taken": "Another account already uses this email.",
+        "expired": "This confirmation link has expired. Request the email change again below.",
+        "invalid": "This confirmation link is invalid or has already been used. Request the email change again below."
+      },
+      "approved": "Current address approved. Check <strong>{email}</strong> and follow the confirmation link to finish.",
+      "changed": "Your email address has been changed. Use the new address next time you sign in.",
+      "sentUnverified": "We sent a confirmation link to <strong>{next}</strong>. Follow it to finish changing your email."
+    },
+    "password": {
+      "title": "Password",
+      "none": "You sign in with {providers}. Add a password to also sign in with <strong>{email}</strong>.",
+      "current": "Current password",
+      "revokeOthers": "Sign out of all other sessions",
+      "submit": "Update password",
+      "updated": "Password updated.",
+      "updatedRevoked": "Password updated. Your other sessions were signed out.",
+      "errors": {
+        "currentRequired": "Enter your current password.",
+        "currentWrong": "Your current password isn't right."
+      },
+      "setSubmit": "Add password",
+      "set": "Password added. You can now sign in with your email too."
+    },
+    "connections": {
+      "title": "Sign-in methods",
+      "description": "Ways you can sign in to Shortn.",
+      "credential": "Email and password",
+      "on": "Set up",
+      "off": "Not set up",
+      "connected": "Connected",
+      "notConnected": "Not connected",
+      "connect": "Connect",
+      "connectLabel": "Connect {provider}",
+      "disconnect": "Disconnect",
+      "disconnectLabel": "Disconnect {provider}",
+      "lastMethod": "It's your only way to sign in. Add another method first.",
+      "errors": {
+        "emailMismatch": "That account uses a different email from your Shortn account. Connect one with the same email.",
+        "linkedElsewhere": "That account is already connected to another Shortn user.",
+        "failed": "Connecting didn't finish. Try again.",
+        "notFresh": "For your security, sign in again before disconnecting a sign-in method."
+      }
+    },
+    "sessions": {
+      "title": "Sessions",
+      "description": "Devices where you're signed in.",
+      "device": "{browser} on {os}",
+      "unknownDevice": "Unknown device",
+      "thisDevice": "This device",
+      "support": "Shortn support",
+      "unknownLocation": "Unknown location",
+      "lastActive": "Active {when}",
+      "revoke": "Sign out",
+      "revokeLabel": "Sign out {device}",
+      "revokeOthers": "Sign out of other sessions"
+    }
+  },
+  "create": {
+    "title": "New workspace",
+    "description": "A team workspace has its own links, members and billing. You'll be its owner.",
+    "open": "Create workspace",
+    "name": "Name",
+    "namePlaceholder": "Acme Marketing",
+    "slug": "URL",
+    "submit": "Create workspace",
+    "limitReached": "Your plan includes {limit, plural, one {# workspace} other {# workspaces}}, and you already own that many. Upgrade your personal workspace to create more.",
+    "cancel": "Cancel",
+    "seePlans": "See plans",
+    "slugHint": "Your dashboard address will be {host}/your-url."
+  },
+  "delete": {
+    "title": "Delete workspace",
+    "whatHappens": "Delete workspace",
+    "confirm": "Delete workspace",
+    "cancel": "Cancel",
+    "errors": {
+      "notEmpty": "This workspace still has links, QR codes, bio pages, campaigns or an active subscription. Remove them and cancel the subscription first.",
+      "mismatch": "Enter the workspace name exactly as shown."
+    },
+    "description": "Permanently delete {workspace}. Review what happens before confirming.",
+    "confirmLabel": "Type <strong>{name}</strong> to confirm.",
+    "consequences": {
+      "access": "All members immediately lose access.",
+      "removed": "Workspace settings, invitations and tags are removed.",
+      "final": "This cannot be undone."
+    },
+    "emptyFirst": "Delete all links, QR codes, bio pages and campaigns, and cancel any active subscription first."
+  },
+  "invite": {
+    "title": "Invite people",
+    "email": "Email",
+    "emailPlaceholder": "name@company.com",
+    "role": "Role",
+    "submit": "Send invite",
+    "seats": "{used} of {limit} seats used, including pending invites.",
+    "sent": "Invite sent to <strong>{email}</strong>. It works for 7 days.",
+    "errors": {
+      "emailRequired": "Enter an email address.",
+      "emailInvalid": "Enter a valid email address, like name@company.com.",
+      "alreadyMember": "This person is already a member.",
+      "seatsExhausted": "All {seats, plural, one {# seat is} other {# seats are}} in use, and pending invites count too. Upgrade the plan to add more people.",
+      "seatsExhaustedAskOwner": "All {seats, plural, one {# seat is} other {# seats are}} in use, and pending invites count too. Ask the owner to upgrade the plan."
+    },
+    "description": "Invite someone to {workspace} and choose their access.",
+    "who": "Who to invite",
+    "emailHint": "They will receive a link to join this workspace.",
+    "roleHint": "Choose what this person can do in the workspace."
+  },
+  "member": {
+    "you": "You",
+    "adminOwnerOnly": "Only the owner can change or remove admins.",
+    "errors": {
+      "ownerProtected": "The owner can't be removed or given another role.",
+      "notFound": "This person is no longer a member. Reload to see the current list."
+    },
+    "leave": {
+      "action": "Leave workspace",
+      "title": "Leave workspace",
+      "description": "You will lose access to this workspace."
+    },
+    "remove": {
+      "action": "Remove member",
+      "title": "Remove member",
+      "description": "Remove this person’s access to the workspace."
+    },
+    "ownerRole": "The owner’s role cannot be changed.",
+    "selfRole": "Ask an owner or admin to change your role.",
+    "saved": "Role saved.",
+    "details": "Member details",
+    "email": "Email",
+    "roleTitle": "Role",
+    "roleSubmit": "Save role"
+  },
+  "remove": {
+    "heading": "Remove {name}?",
+    "leaveHeading": "Leave {workspace}?",
+    "confirm": "Remove member",
+    "leaveConfirm": "Leave workspace",
+    "title": "Remove member",
+    "leaveTitle": "Leave workspace",
+    "member": {
+      "access": "{name} immediately loses access to {workspace}.",
+      "content": "Their links and other content stay in the workspace.",
+      "again": "They need a new invitation to rejoin."
+    },
+    "leave": {
+      "access": "You immediately lose access to {workspace}.",
+      "content": "Your links and other content stay in the workspace.",
+      "again": "An owner or admin must invite you to rejoin."
+    }
+  }
+}

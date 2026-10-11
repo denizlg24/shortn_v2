@@ -1,3 +1,5 @@
+"use client";
+
 import { Check, ChevronRight, Dot } from "lucide-react";
 import { DropdownMenu as MenuPrimitive } from "radix-ui";
 import type { ComponentProps, ReactNode } from "react";

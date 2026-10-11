@@ -1,12 +1,12 @@
-import {
-  closeMongoClient,
-  getMongoClient,
-  productionMigrations,
-} from "@shortn/db";
+import { closeMongoClient, getMongoClient } from "@shortn/db";
+import { productionMigrations } from "@shortn/db/migrations";
 import { parseEnv, workerEnv } from "@shortn/env";
+import { createPolar } from "@shortn/billing";
 import { createRedisClients } from "@shortn/redis";
 import { hostname } from "node:os";
 import { createIngest } from "./ingest";
+import { createMailer } from "@shortn/emails";
+import { billingMailer, processBillingEvents, runReconcile } from "./billing";
 import { createInvalidator } from "./invalidator";
 import {
   every,
@@ -46,7 +46,43 @@ const invalidator = createInvalidator({
   log,
 });
 
+const polar = env.POLAR_ACCESS_TOKEN
+  ? createPolar({
+      accessToken: env.POLAR_ACCESS_TOKEN,
+      server: env.POLAR_ENVIRONMENT,
+    })
+  : undefined;
+const mailer = env.RESEND_API_KEY
+  ? createMailer({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM })
+  : undefined;
+const billing = polar && {
+  db,
+  polar,
+  server: env.POLAR_ENVIRONMENT,
+  mode: env.BILLING_MODE,
+  log,
+  ...(mailer && env.APP_URL
+    ? { onApplied: billingMailer({ db, mailer, appUrl: env.APP_URL, log }) }
+    : {}),
+};
+
 const timers = [
+  ...(billing
+    ? [
+        every(
+          5_000,
+          "billing-events",
+          () => processBillingEvents(billing),
+          log,
+        ),
+        every(
+          24 * 3_600_000,
+          "billing-reconcile",
+          () => runReconcile(billing),
+          log,
+        ),
+      ]
+    : []),
   every(60_000, "trim", () => trimStream(durable), log),
   every(5 * 60_000, "rollups", () => refreshRecentRollups(db), log),
   every(5 * 60_000, "event-workspaces", () => fillEventWorkspaces(db), log),

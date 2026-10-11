@@ -1,4 +1,9 @@
 {
+  "new-dashboard": {
+    "message": "The new Shortn dashboard is ready to try. Same links, same data — switch back any time.",
+    "open": "Try the new dashboard",
+    "dismiss": "Hide for now"
+  },
   "redesign-notice": {
     "message": "We're redesigning Shortn. Expect short, planned downtime later this quarter (Q4 2026). Your links and data won't be lost.",
     "dismiss": "Dismiss notice"

@@ -144,6 +144,7 @@ export const qrCodeSchema = z.looseObject({
   urlId: text.optional(),
   options: z.looseObject({ data: z.httpUrl().optional() }).optional(),
 });
+export const workspaceRoles = ["owner", "admin", "member", "viewer"] as const;
 export const workspaceSchema = z.object({
   ...base,
   slug: text.min(1),
@@ -160,8 +161,19 @@ export const workspaceMemberSchema = z.object({
   ...base,
   workspaceId: objectId,
   userId: text,
-  role: z.enum(["owner", "admin", "member", "viewer"]),
+  role: z.enum(workspaceRoles),
   invitedBy: text.optional(),
+});
+export const workspaceInviteSchema = z.object({
+  ...base,
+  workspaceId: objectId,
+  email: text,
+  role: z.enum(["admin", "member", "viewer"]),
+  tokenHash: text,
+  invitedBy: text,
+  expiresAt: z.date(),
+  acceptedAt: z.date().optional(),
+  revokedAt: z.date().optional(),
 });
 export const clickEventSchema = z.object({
   _id: objectId.optional(),
@@ -228,7 +240,15 @@ export const campaignSchema = z.looseObject({
   workspaceId: objectId.optional(),
   title: text,
   description: text.optional(),
-  utmDefaults: utm.optional(),
+  // Legacy shape: suggestion lists offered in the UTM builder.
+  utmDefaults: z
+    .object({
+      sources: z.array(text).optional(),
+      mediums: z.array(text).optional(),
+      terms: z.array(text).optional(),
+      contents: z.array(text).optional(),
+    })
+    .optional(),
   links: z.array(objectId).optional(),
 });
 const block = z.discriminatedUnion("type", [
@@ -317,6 +337,26 @@ export const subscriptionSchema = z.object({
   currentPeriodStart: z.date(),
   currentPeriodEnd: z.date(),
   cancelAtPeriodEnd: z.boolean(),
+  // Polar's modified_at; a refetch older than the stored one is ignored.
+  modifiedAt: z.date().optional(),
+  endsAt: z.date().optional(),
+  scheduledChange: z
+    .object({
+      productId: text,
+      plan: workspaceSchema.shape.plan.optional(),
+      at: z.date(),
+    })
+    .optional(),
+});
+export const billingEventSchema = z.object({
+  _id: text,
+  type: text,
+  subscriptionIds: z.array(text),
+  receivedAt: z.date(),
+  processedAt: z.date().optional(),
+  error: text.optional(),
+  attempts: count.optional(),
+  lockedUntil: z.date().optional(),
 });
 export const usagePeriodSchema = z.object({
   ...base,
@@ -345,12 +385,14 @@ export const schemas = {
   click_rollups: clickRollupSchema,
   workspaces: workspaceSchema,
   workspace_members: workspaceMemberSchema,
+  workspace_invites: workspaceInviteSchema,
   tags: tagSchema,
   campaigns: campaignSchema,
   bio_pages: bioPageSchema,
   bio_aliases: bioAliasSchema,
   domains: domainSchema,
   subscriptions: subscriptionSchema,
+  billing_events: billingEventSchema,
   usage_periods: usagePeriodSchema,
   api_keys: apiKeySchema,
 };

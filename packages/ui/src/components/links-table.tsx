@@ -1,3 +1,5 @@
+"use client";
+
 import {
   getCoreRowModel,
   getSortedRowModel,
@@ -142,8 +144,14 @@ export interface LinksTableProps {
   /** Row to highlight and show as copied, e.g. right after create-and-copy. */
   fresh?: { id: string; at: number } | null;
   onActiveChange?: (link: LinkRow | null) => void;
+  /** Called when the last rows scroll into view, e.g. to fetch the next keyset page. May fire repeatedly; guard in the caller. */
+  onEndReached?: () => void;
+  /** Shows skeleton rows after the last row while the next page loads. */
+  loadingMore?: boolean;
   className?: string;
 }
+
+const END_REACHED_THRESHOLD = 8;
 
 export function LinksTable({
   links,
@@ -160,6 +168,8 @@ export function LinksTable({
   bulkActionsLabel,
   fresh,
   onActiveChange,
+  onEndReached,
+  loadingMore = false,
   className,
 }: LinksTableProps) {
   const { t, intlLocale } = useUILocale();
@@ -492,6 +502,13 @@ export function LinksTable({
         );
   const items = virtualizer.getVirtualItems();
   const tabStopIndex = activeIndex >= 0 ? activeIndex : 0;
+  const lastRenderedIndex = items.at(-1)?.index ?? -1;
+
+  useEffect(() => {
+    if (!onEndReached || !showRows || loadingMore) return;
+    if (lastRenderedIndex >= ordered.length - END_REACHED_THRESHOLD)
+      onEndReached();
+  }, [onEndReached, showRows, loadingMore, lastRenderedIndex, ordered.length]);
 
   return (
     <div
@@ -660,6 +677,15 @@ export function LinksTable({
             })}
           </div>
         )}
+        {showRows && loadingMore ? (
+          <SkeletonRows
+            template={template}
+            visibleColumns={visibleColumns}
+            listLayout={listLayout}
+            label={t.loadingLinks}
+            count={3}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -1103,15 +1129,17 @@ function SkeletonRows({
   visibleColumns,
   listLayout,
   label,
+  count = 14,
 }: {
   template: string;
   visibleColumns: LinkColumnId[];
   listLayout: boolean;
   label: string;
+  count?: number;
 }) {
   return (
     <div role="rowgroup" aria-label={label}>
-      {Array.from({ length: 14 }, (_, index) => {
+      {Array.from({ length: count }, (_, index) => {
         const [linkWidth, destWidth, tagCount] =
           SKELETON_WIDTHS[index % SKELETON_WIDTHS.length] ?? SKELETON_WIDTHS[0];
         if (listLayout) {

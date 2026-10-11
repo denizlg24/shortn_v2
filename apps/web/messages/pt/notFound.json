@@ -1,0 +1,14 @@
+{
+  "metaTitle": "Não encontrado",
+  "page": {
+    "title": "Não há nada aqui",
+    "body": "O endereço pode ter erros ou o espaço de trabalho não foi partilhado consigo. Se alguém lhe enviou este link, peça-lhe um convite.",
+    "action": "Ir para o meu espaço de trabalho"
+  },
+  "workspace": {
+    "header": "Não encontrado",
+    "title": "Isto não está em {workspace}",
+    "body": "Pode ter sido eliminado ou o endereço tem erros.",
+    "action": "Ir para Links"
+  }
+}

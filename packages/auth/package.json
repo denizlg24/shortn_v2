@@ -1,0 +1,30 @@
+{
+  "name": "@shortn/auth",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./client": "./client.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "bun test --pass-with-no-tests"
+  },
+  "devDependencies": {
+    "@shortn/config": "workspace:*"
+  },
+  "dependencies": {
+    "@polar-sh/better-auth": "1.8.4",
+    "@polar-sh/sdk": "0.49.0",
+    "@shortn/core": "workspace:*",
+    "@shortn/db": "workspace:*",
+    "better-auth": "1.4.18",
+    "mongodb": "7.1.0",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "^19.2.0"
+  }
+}

@@ -1,0 +1,213 @@
+{
+  "list": {
+    "title": "Bio pages",
+    "count": "{count, plural, one {# bio page} other {# bio pages}}",
+    "countOf": "{count, plural, one {# of {limit} bio pages} other {# of {limit} bio pages}}",
+    "new": "New bio page",
+    "deleted": "Bio page deleted.",
+    "empty": "No bio pages yet. A bio page gathers your links on one page at shortn.at/b/your-name.",
+    "columns": {
+      "page": "Page",
+      "url": "Public URL",
+      "links": "Links",
+      "updated": "Updated"
+    }
+  },
+  "tabs": {
+    "label": "Bio page sections",
+    "overview": "Overview",
+    "profile": "Profile",
+    "links": "Links",
+    "socials": "Socials",
+    "appearance": "Appearance"
+  },
+  "overview": {
+    "copy": "Copy URL",
+    "copied": "Copied",
+    "open": "Open page",
+    "created": "Bio page created. Add links, socials and colours in the tabs above.",
+    "saved": {
+      "profile": "Profile saved.",
+      "links": "Links saved.",
+      "socials": "Socials saved.",
+      "appearance": "Appearance saved."
+    },
+    "details": "Details",
+    "url": "Public URL",
+    "title": "Title",
+    "description": "Description",
+    "none": "None",
+    "links": "Links",
+    "linkCount": "{count, plural, =0 {No links} one {# link} other {# links}}",
+    "socials": "Socials",
+    "socialCount": "{count, plural, =0 {No socials} one {# social profile} other {# social profiles}}",
+    "updated": "Updated",
+    "edit": "Edit",
+    "delete": "Delete bio page",
+    "deleteHint": "The public address stops working for visitors."
+  },
+  "form": {
+    "cancel": "Cancel",
+    "optional": "Optional"
+  },
+  "preview": {
+    "label": "Live preview",
+    "frame": "Page preview",
+    "live": "Visitors see this at {url}.",
+    "draft": "The preview shows your changes. Visitors see them once you save."
+  },
+  "new": {
+    "title": "New bio page",
+    "description": "Pick the address people will visit. You'll add links, socials and colours next.",
+    "slug": "Address",
+    "slugHint": "Lowercase letters, numbers and hyphens, 3 to 63 characters.",
+    "slugPlaceholder": "your-name",
+    "titleLabel": "Title",
+    "titleHint": "Shown at the top of the page. Defaults to the address.",
+    "submit": "Create page",
+    "atLimit": "You've used all {limit} bio pages your plan includes.",
+    "addressSection": "Address",
+    "available": "{url} is available.",
+    "checking": "Checking…",
+    "checkFailed": "Couldn't check the address. It's checked again when you create the page.",
+    "detailsSection": "Details",
+    "firstLink": "First link",
+    "pickLink": "Choose a link",
+    "removeLink": "Remove",
+    "firstLinkHint": "You can add more links, socials and colours once the page exists."
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Who the page belongs to.",
+    "save": "Save profile",
+    "name": "Title",
+    "bio": "Description",
+    "bioHint": "Shown on one line under the title.",
+    "avatar": "Avatar",
+    "avatarHint": "A square image works best.",
+    "shape": "Avatar shape",
+    "shapes": {
+      "circle": "Circle",
+      "rounded": "Rounded",
+      "square": "Square"
+    },
+    "errors": {
+      "titleRequired": "Give the page a title.",
+      "avatarUrl": "Enter the avatar's full URL, starting with https://."
+    }
+  },
+  "links": {
+    "title": "Links",
+    "description": "The buttons on the page, in this order. Drag the handle or use the arrows to reorder.",
+    "save": "Save links",
+    "empty": "No links on the page yet.",
+    "listLabel": "Links on the page",
+    "titleLabel": "Button text for {key}",
+    "imageLabel": "Image for {key}",
+    "imagePlaceholder": "Image URL (optional)",
+    "moveUp": "Move {title} up",
+    "moveDown": "Move {title} down",
+    "remove": "Remove {title}",
+    "moved": "Moved {title} to position {position} of {total}",
+    "removed": "Removed {title}",
+    "added": "Added {title}",
+    "add": "Add link",
+    "full": "A page holds up to {max} links.",
+    "errors": {
+      "image": "Link {position} needs a full image URL, starting with https://."
+    }
+  },
+  "socials": {
+    "title": "Socials",
+    "description": "Icons under the title, linking to your profiles.",
+    "save": "Save socials",
+    "empty": "No socials yet.",
+    "listLabel": "Social profiles",
+    "platform": "Platform for social {position}",
+    "url": "{platform} URL",
+    "urlPlaceholder": "https://",
+    "remove": "Remove {platform}",
+    "add": "Add social",
+    "platforms": {
+      "instagram": "Instagram",
+      "twitter": "X (Twitter)",
+      "github": "GitHub",
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "whatsapp": "WhatsApp",
+      "website": "Website"
+    },
+    "errors": {
+      "url": "Social {position} needs a URL."
+    }
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Colours, buttons, type and header.",
+    "save": "Save appearance",
+    "colors": {
+      "background": "Background",
+      "textColor": "Text",
+      "primaryColor": "Buttons",
+      "buttonTextColor": "Button text",
+      "headerBackgroundColor": "Header colour"
+    },
+    "pick": {
+      "background": "Choose the background colour",
+      "textColor": "Choose the text colour",
+      "primaryColor": "Choose the button colour",
+      "buttonTextColor": "Choose the button text colour",
+      "headerBackgroundColor": "Choose the header colour",
+      "socialColor": "Choose the icon colour"
+    },
+    "backgroundHint": "The background also takes any CSS background, like a gradient.",
+    "buttonStyle": "Buttons",
+    "buttonStyles": {
+      "rounded": "Rounded",
+      "pill": "Pill",
+      "square": "Square tiles"
+    },
+    "font": "Font",
+    "fontHint": "The page loads it from Google Fonts.",
+    "fontDefault": "Default",
+    "header": "Header",
+    "headerHint": "A band of colour or an image behind the avatar.",
+    "headerStyles": {
+      "none": "None",
+      "centered": "Centred",
+      "left-aligned": "Left",
+      "right-aligned": "Right"
+    },
+    "headerImage": "Header image",
+    "socialColor": "Social icons",
+    "socialColors": {
+      "original": "Brand colours",
+      "custom": "One colour"
+    },
+    "socialColorValue": "Icon colour",
+    "errors": {
+      "color": "Colours need a hex value like #0f172b, a CSS colour name or rgb().",
+      "background": "The background can be up to 512 characters.",
+      "headerImage": "Enter the header image's full URL, starting with https://."
+    }
+  },
+  "deletePage": {
+    "title": "Delete bio page",
+    "description": "This can't be undone.",
+    "stops": "{url} stops working for visitors right away.",
+    "links": "The links on the page keep working; only the page goes.",
+    "address": "The address becomes free for anyone to claim.",
+    "confirm": "Delete bio page"
+  },
+  "errors": {
+    "slugTaken": "That address is taken. Try another.",
+    "invalidSlug": "Use 3 to 63 lowercase letters, numbers and hyphens, starting and ending with a letter or number.",
+    "limitReached": "You've used all {limit} bio pages your plan includes.",
+    "linkNotFound": "One of the links no longer exists. Remove it and save again.",
+    "forbidden": "You don't have permission to do this in this workspace.",
+    "notFound": "This bio page no longer exists. It may have been deleted.",
+    "invalidInput": "Some fields are too long or not valid. Check them and try again.",
+    "generic": "Something went wrong on our side. Try again."
+  }
+}

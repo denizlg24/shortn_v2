@@ -1,0 +1,64 @@
+{
+  "breadcrumb": "Ruta de navegación",
+  "filters": {
+    "label": "Filtros",
+    "apply": "Aplicar",
+    "applied": "Filtrado por",
+    "clear": "Quitar todo",
+    "searchOptions": "Buscar opciones…",
+    "noOptions": "No se encontraron opciones.",
+    "remove": "Eliminar {value}",
+    "groups": {
+      "period": "Período",
+      "activity": "Actividad",
+      "location": "Ubicación",
+      "technology": "Dispositivos y software",
+      "attribution": "Adquisición"
+    }
+  },
+  "delete": {
+    "whatHappens": "Qué ocurre",
+    "cancel": "Cancelar",
+    "failed": "No se pudo. Inténtalo de nuevo."
+  },
+  "cancel": "Cancelar",
+  "save": "Guardar cambios",
+  "saved": "Guardado.",
+  "optional": "Opcional",
+  "tags": {
+    "placeholder": "Seleccionar etiquetas…",
+    "search": "Buscar o crear una etiqueta…",
+    "empty": "No se encontraron etiquetas.",
+    "create": "Crear «{tag}»",
+    "selected": "Etiquetas seleccionadas",
+    "remove": "Eliminar {tag}",
+    "hint": "Busca para seleccionar etiquetas existentes o escribe una nueva para crearla. Hasta 50 etiquetas."
+  },
+  "share": {
+    "label": "Compartir",
+    "copied": "Enlace copiado. Pégalo para compartirlo.",
+    "failed": "No se pudo copiar. Selecciona y copia el enlace manualmente."
+  },
+  "created": {
+    "group": "Fecha de creación",
+    "label": "Período",
+    "any": "Cualquier fecha",
+    "custom": "Intervalo personalizado",
+    "from": "Desde (UTC)",
+    "to": "Hasta (UTC)",
+    "fromSummary": "Creado desde {date} (UTC)",
+    "toSummary": "Creado hasta {date} (UTC)",
+    "presets": {
+      "7": "Últimos 7 días",
+      "30": "Últimos 30 días",
+      "90": "Últimos 90 días",
+      "365": "Último año"
+    }
+  },
+  "selection": {
+    "selectPage": "Seleccionar esta página",
+    "count": "{count, plural, one {# seleccionado} other {# seleccionados}}",
+    "clear": "Borrar selección",
+    "delete": "Eliminar seleccionados"
+  }
+}

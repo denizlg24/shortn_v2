@@ -1,0 +1,172 @@
+{
+  "title": "Links",
+  "search": "Search links",
+  "clearSearch": "Clear search",
+  "filterBy": "Filter by…",
+  "tag": "Tag",
+  "create": "Create link",
+  "viewOnly": "View only",
+  "viewerReason": "Viewers can't create or change links. Ask a workspace admin to change your role.",
+  "deleteReason": "Members can delete only the links they created.",
+  "paste": "Paste a URL to shorten",
+  "loadMoreFailed": "More links didn't load.",
+  "retry": "Retry",
+  "composer": {
+    "label": "New short link",
+    "url": "Destination URL",
+    "urlPlaceholder": "Paste or type a destination URL",
+    "key": "Short link key",
+    "keyPlaceholder": "random",
+    "more": "More options",
+    "create": "Create",
+    "close": "Close",
+    "created": "Created {link} and copied it to the clipboard",
+    "createdNotCopied": "Created {link}. Copy it from the table.",
+    "copied": "Copied {link}"
+  },
+  "bulk": {
+    "label": "Bulk actions",
+    "copy": "Copy links",
+    "copied": "Copied {count, plural, one {# short link} other {# short links}}, one per line",
+    "delete": "Delete"
+  },
+  "rowActions": {
+    "open": "Open details",
+    "edit": "Edit",
+    "copy": "Copy short link",
+    "analytics": "View analytics",
+    "qr": "QR code",
+    "delete": "Delete"
+  },
+  "delete": {
+    "title": "Delete {count, plural, one {# link} other {# links}}?",
+    "noneTitle": "You can't delete these links",
+    "body": "Their short URLs stop working immediately. This can't be undone.",
+    "partial": "You can delete {deletable} of the {count} selected links, because members can delete only the links they created. Their short URLs stop working immediately. This can't be undone.",
+    "none": "Members can delete only the links they created. Ask a workspace admin to delete them.",
+    "cancel": "Cancel",
+    "confirm": "Delete {count, plural, one {# link} other {# links}}",
+    "done": "Deleted {count, plural, one {# link} other {# links}}"
+  },
+  "empty": {
+    "firstTitle": "No links yet",
+    "firstBody": "Paste a URL anywhere on this page to create your first short link.",
+    "firstBodyViewer": "Links created in this workspace appear here.",
+    "noMatch": "No links match “{query}”",
+    "noMatchFilters": "No links match these filters",
+    "noMatchBody": "Check the spelling, or clear the search and filters.",
+    "clear": "Clear search and filters"
+  },
+  "error": {
+    "title": "Links didn't load",
+    "body": "Your links are safe; this is a connection problem. Try again in a moment."
+  },
+  "errors": {
+    "invalidUrl": "Enter a full URL, like https://example.com/page.",
+    "unsafeDestination": "This destination can't be shortened. It points to a private or unsafe address.",
+    "invalidKey": "Use letters, numbers, hyphens and underscores, up to 64 characters.",
+    "keyReserved": "“{key}” is reserved by Shortn. Choose another key.",
+    "keyTaken": "“{key}” is already taken. Choose another key.",
+    "limitReached": "You've created all {limit} links your plan includes this month.",
+    "forbidden": "You don't have permission to do this in this workspace.",
+    "notFound": "This link no longer exists. It may have been deleted.",
+    "invalidInput": "Some fields are too long or not valid. Check them and try again.",
+    "network": "Couldn't reach Shortn. Check your connection and try again.",
+    "generic": "Something went wrong on our side. Try again.",
+    "copyFailed": "Couldn't copy to the clipboard."
+  },
+  "sheet": {
+    "overview": "Overview",
+    "edit": "Edit",
+    "qr": "QR code",
+    "openDestination": "Open destination"
+  },
+  "overview": {
+    "clicks30": "Clicks, 30 days",
+    "allTime": "All-time clicks",
+    "topCountry": "Top country",
+    "topReferrer": "Top referrer",
+    "noData": "No clicks in the last 30 days. Share the link and this fills in within seconds.",
+    "created": "Created",
+    "title": "Title",
+    "description": "Description",
+    "tags": "Tags",
+    "password": "Password",
+    "passwordOn": "Password protected",
+    "passwordHint": "Password protected, hint “{hint}”",
+    "passwordOff": "Off",
+    "safety": "Safety",
+    "fullAnalytics": "Full analytics"
+  },
+  "form": {
+    "readOnly": "View only. Ask a workspace admin to change your role to edit this link.",
+    "destination": "Destination URL",
+    "key": "Short link",
+    "keyPlaceholder": "random",
+    "keyHint": "The old key keeps redirecting after a change.",
+    "title": "Title",
+    "titlePlaceholder": "Shown in lists and analytics",
+    "description": "Description",
+    "tags": "Tags",
+    "tagsPlaceholder": "Add tags",
+    "tagSearch": "Find or create a tag",
+    "noTags": "No tags found",
+    "createTag": "Create tag “{tag}”",
+    "password": "Password protection",
+    "passwordOn": "Visitors need a password to open this link.",
+    "passwordRemoved": "The password is removed when you save.",
+    "keepPassword": "Keep password",
+    "changePassword": "Change password",
+    "removePassword": "Remove password",
+    "newPassword": "New password",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Leave empty for no password",
+    "hint": "Password hint",
+    "hintHelp": "Optional. Shown on the password page.",
+    "utm": "UTM variants",
+    "delete": "Delete link",
+    "cancel": "Cancel",
+    "discard": "Discard",
+    "save": "Save changes"
+  },
+  "utm": {
+    "empty": "Variants add UTM parameters for each channel, so analytics can tell them apart.",
+    "variant": "Variant {number}",
+    "remove": "Remove variant {number}",
+    "add": "Add variant",
+    "fields": {
+      "source": "Source",
+      "medium": "Medium",
+      "campaign": "Campaign",
+      "term": "Term",
+      "content": "Content"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "campaign": "autumn-launch",
+      "term": "running-shoes",
+      "content": "header-link"
+    }
+  },
+  "qr": {
+    "attached": "A QR code is attached to this link:",
+    "none": "This link has no QR code yet. QR codes are created and designed in QR codes.",
+    "open": "Open QR codes"
+  },
+  "safety": {
+    "pending": "Scanning",
+    "safe": "No issues found",
+    "suspicious": "Suspicious destination",
+    "malicious": "Unsafe destination",
+    "blocked": "Blocked",
+    "disabled": "Disabled for safety",
+    "interstitial": "visitors see a safety page first",
+    "unknown": "Safety status unavailable"
+  },
+  "summary": {
+    "label": "Link details",
+    "edit": "Edit link",
+    "open": "Open in Links"
+  }
+}

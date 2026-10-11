@@ -1,3 +1,5 @@
+"use client";
+
 import { useSyncExternalStore } from "react";
 import { cn } from "../lib/cn";
 import { isApplePlatform } from "../lib/platform";

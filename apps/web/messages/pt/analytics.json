@@ -1,0 +1,148 @@
+{
+  "title": "Estatísticas",
+  "description": "Cliques e leituras de códigos QR neste espaço de trabalho. Todos os filtros ficam no endereço, para poder partilhar ou guardar cada vista.",
+  "range": "Intervalo de datas",
+  "rangeLabels": {
+    "7d": "Últimos 7 dias",
+    "30d": "Últimos 30 dias",
+    "90d": "Últimos 90 dias",
+    "12m": "Últimos 12 meses"
+  },
+  "customRange": "Intervalo personalizado",
+  "from": "De",
+  "to": "Até",
+  "interval": "Intervalo",
+  "intervals": {
+    "hour": "Por hora",
+    "day": "Por dia",
+    "week": "Por semana",
+    "month": "Por mês"
+  },
+  "filters": {
+    "link": "Link",
+    "kind": "Tipo",
+    "country": "País",
+    "device": "Dispositivo",
+    "browser": "Navegador",
+    "os": "Sistema operativo",
+    "referrer": "Origem",
+    "utmSource": "Origem UTM",
+    "utmMedium": "Meio UTM",
+    "utmCampaign": "Campanha UTM"
+  },
+  "allLinks": "Todos os links",
+  "any": "Qualquer",
+  "kinds": {
+    "all": "Cliques e leituras",
+    "click": "Cliques",
+    "scan": "Leituras QR"
+  },
+  "stats": {
+    "clicks": "Cliques",
+    "scans": "Leituras QR",
+    "uniques": "Visitantes únicos",
+    "topCountry": "País principal"
+  },
+  "series": "Cliques e leituras",
+  "noActivity": "Sem cliques nem leituras neste período.",
+  "clamped": "Os dados anteriores a {date} estão fora do período de estatísticas do seu plano.",
+  "empty": "Sem dados para este período.",
+  "breakdowns": {
+    "links": {
+      "title": "Links",
+      "column": "Link",
+      "description": "Cliques e leituras por link curto."
+    },
+    "countries": {
+      "title": "Países",
+      "column": "País",
+      "description": "Onde estavam os visitantes quando clicaram ou leram o código."
+    },
+    "cities": {
+      "title": "Cidades",
+      "column": "Cidade",
+      "description": "A cidade mais próxima a que conseguimos associar cada visita."
+    },
+    "referrers": {
+      "title": "Origens",
+      "column": "Origem",
+      "description": "O site de onde veio cada visita. Direto significa sem site de origem, como um endereço escrito, uma app ou uma leitura QR."
+    },
+    "devices": {
+      "title": "Dispositivos",
+      "column": "Dispositivo",
+      "description": "Computador, telemóvel, tablet e outros tipos de dispositivo."
+    },
+    "browsers": {
+      "title": "Navegadores",
+      "column": "Navegador",
+      "description": "O navegador usado em cada visita."
+    },
+    "os": {
+      "title": "Sistemas operativos",
+      "column": "Sistema operativo",
+      "description": "O sistema operativo usado em cada visita."
+    },
+    "utm-source": {
+      "title": "Origens UTM",
+      "column": "Origem UTM",
+      "description": "A etiqueta utm_source dos links etiquetados, como newsletter ou facebook."
+    },
+    "utm-medium": {
+      "title": "Meios UTM",
+      "column": "Meio UTM",
+      "description": "A etiqueta utm_medium dos links etiquetados, como email ou cpc."
+    },
+    "utm-campaign": {
+      "title": "Campanhas UTM",
+      "column": "Campanha UTM",
+      "description": "A etiqueta utm_campaign dos links etiquetados."
+    }
+  },
+  "table": {
+    "seeAll": "Ver tudo",
+    "seeAllLabel": "Ver tudo: {title}",
+    "clicks": "Cliques",
+    "scans": "Leituras",
+    "total": "Cliques e leituras",
+    "share": "Percentagem",
+    "value": "Valor",
+    "filterBy": "Filtrar por {value}",
+    "clearFilter": "Remover este filtro",
+    "summary": "{count, plural, one {# linha} other {# linhas}} · {total, plural, one {# clique ou leitura} other {# cliques e leituras}}",
+    "capped": "A mostrar as {count, number} linhas principais."
+  },
+  "gated": {
+    "title": "Análises detalhadas",
+    "body": "Países, cidades, origens, dispositivos, navegadores, sistemas operativos e etiquetas UTM, e os filtros por cada um, estão incluídos a partir do plano {plan}.",
+    "withExport": "Países, cidades, origens, dispositivos, navegadores, sistemas operativos e etiquetas UTM, os filtros por cada um e a exportação para CSV estão incluídos a partir do plano {plan}."
+  },
+  "error": {
+    "title": "Não foi possível carregar as estatísticas",
+    "body": "Os seus dados estão seguros; trata-se de um problema de ligação. Tente novamente daqui a pouco.",
+    "refresh": "Estes números não foram atualizados.",
+    "retry": "Tentar novamente"
+  },
+  "values": {
+    "unknown": "Desconhecido",
+    "direct": "Direto",
+    "click": "Clique",
+    "scan": "Leitura QR",
+    "deleted": "Link eliminado",
+    "selectedLink": "Link selecionado",
+    "devices": {
+      "desktop": "Computador",
+      "mobile": "Telemóvel",
+      "tablet": "Tablet",
+      "console": "Consola",
+      "smarttv": "Smart TV",
+      "wearable": "Dispositivo vestível",
+      "xr": "Óculos XR",
+      "embedded": "Integrado"
+    }
+  },
+  "export": {
+    "label": "Exportar CSV",
+    "failed": "A exportação falhou. Tente novamente."
+  }
+}

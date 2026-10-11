@@ -1,3 +1,5 @@
+"use client";
+
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
@@ -60,26 +62,35 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selected = new Set(value);
-  const labels = options
+  // A value identifies an option in both React and the selection model.
+  // Keep the first label when sources contain overlapping choices.
+  const seen = new Set<string>();
+  const uniqueOptions = options.filter((option) => {
+    if (seen.has(option.value)) return false;
+    seen.add(option.value);
+    return true;
+  });
+  const labels = uniqueOptions
     .filter((option) => selected.has(option.value))
     .map((option) => option.label);
   const trimmedQuery = query.trim();
   const canCreate =
     Boolean(createLabel && onCreate && trimmedQuery) &&
-    !options.some(
+    !uniqueOptions.some(
       (option) => option.label.toLowerCase() === trimmedQuery.toLowerCase(),
     );
 
   const toggle = (next: string) => {
     if (!multiple) {
       onValueChange([next]);
+      setQuery("");
       setOpen(false);
       return;
     }
     onValueChange(
       selected.has(next)
         ? value.filter((item) => item !== next)
-        : [...value, next],
+        : [...selected, next],
     );
   };
 
@@ -141,7 +152,7 @@ export function Combobox({
               {canCreate ? null : emptyText}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
+              {uniqueOptions.map((option) => {
                 const isSelected = selected.has(option.value);
                 return (
                   <CommandItem

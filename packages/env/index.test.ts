@@ -88,7 +88,27 @@ test("href environment URLs require http(s)", () => {
   expect(
     redirectEnv.shape.PUBLIC_ORIGIN.safeParse("data:text/plain,foo").success,
   ).toBe(false);
+  expect(apiEnv.shape.POLAR_ENVIRONMENT.safeParse("production").success).toBe(
+    true,
+  );
+});
+test("http(s) URLs may be localhost for local development", () => {
   expect(
-    apiEnv.shape.R2_ENDPOINT.safeParse("https://example.com").success,
+    webEnv.shape.BETTER_AUTH_URL.safeParse("http://localhost:3000").success,
   ).toBe(true);
+  expect(
+    webEnv.shape.BETTER_AUTH_URL.safeParse("ftp://example.com").success,
+  ).toBe(false);
+});
+
+test("blank dotenv entries remain unconfigured", () => {
+  const schema = z.object({
+    OPTIONAL: z.string().optional(),
+    PORT: z.coerce.number().default(3000),
+    REQUIRED: z.string().min(1),
+  });
+  expect(
+    parseEnv(schema, { OPTIONAL: "", PORT: "", REQUIRED: "present" }),
+  ).toEqual({ PORT: 3000, REQUIRED: "present" });
+  expect(() => parseEnv(schema, { REQUIRED: "" })).toThrow("REQUIRED:");
 });

@@ -43,6 +43,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.click_events]: [
     { name: "v2_link_time", key: { "m.linkId": 1, ts: -1 } },
+    { name: "v2_workspace_time", key: { "m.workspaceId": 1, ts: -1 } },
     { name: "v2_event_sid", key: { sid: 1 } },
     { name: "v2_event_legacy_id", key: { legacyId: 1 } },
   ],
@@ -81,6 +82,21 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
+    { name: "v2_member_user", key: { userId: 1 } },
+  ],
+  [physicalNames.handoff_tokens]: [
+    { name: "v2_handoff_ttl", key: { expiresAt: 1 }, expireAfterSeconds: 0 },
+  ],
+  [physicalNames.billing_events]: [
+    {
+      name: "v2_billing_event_ttl",
+      key: { receivedAt: 1 },
+      expireAfterSeconds: 400 * 86_400,
+    },
+  ],
+  [physicalNames.workspace_invites]: [
+    { name: "v2_invite_token", key: { tokenHash: 1 }, unique: true },
+    { name: "v2_invite_workspace", key: { workspaceId: 1, email: 1 } },
   ],
   [physicalNames.tags]: [
     {
@@ -119,6 +135,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       key: { polarSubscriptionId: 1 },
       unique: true,
     },
+    { name: "v2_workspace_subscriptions", key: { workspaceId: 1, status: 1 } },
   ],
   [physicalNames.usage_periods]: [
     {

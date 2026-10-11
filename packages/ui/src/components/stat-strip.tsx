@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowDownRight, ArrowRight, ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
 import { useUILocale } from "../i18n/provider";

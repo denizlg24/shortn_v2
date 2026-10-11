@@ -1,0 +1,213 @@
+{
+  "list": {
+    "title": "Páginas bio",
+    "count": "{count, plural, one {# página bio} other {# páginas bio}}",
+    "countOf": "{count, plural, one {# de {limit} páginas bio} other {# de {limit} páginas bio}}",
+    "new": "Nueva página bio",
+    "deleted": "Página bio eliminada.",
+    "empty": "Aún no hay páginas bio. Una página bio reúne tus enlaces en una sola página en shortn.at/b/tu-nombre.",
+    "columns": {
+      "page": "Página",
+      "url": "URL pública",
+      "links": "Enlaces",
+      "updated": "Actualizada"
+    }
+  },
+  "tabs": {
+    "label": "Secciones de la página bio",
+    "overview": "Resumen",
+    "profile": "Perfil",
+    "links": "Enlaces",
+    "socials": "Redes sociales",
+    "appearance": "Apariencia"
+  },
+  "overview": {
+    "copy": "Copiar URL",
+    "copied": "Copiado",
+    "open": "Abrir página",
+    "created": "Página bio creada. Añade enlaces, redes sociales y colores en las pestañas de arriba.",
+    "saved": {
+      "profile": "Perfil guardado.",
+      "links": "Enlaces guardados.",
+      "socials": "Redes sociales guardadas.",
+      "appearance": "Apariencia guardada."
+    },
+    "details": "Detalles",
+    "url": "URL pública",
+    "title": "Título",
+    "description": "Descripción",
+    "none": "Ninguna",
+    "links": "Enlaces",
+    "linkCount": "{count, plural, =0 {Sin enlaces} one {# enlace} other {# enlaces}}",
+    "socials": "Redes sociales",
+    "socialCount": "{count, plural, =0 {Sin redes sociales} one {# perfil social} other {# perfiles sociales}}",
+    "updated": "Actualizada",
+    "edit": "Editar",
+    "delete": "Eliminar página bio",
+    "deleteHint": "La dirección pública deja de funcionar para los visitantes."
+  },
+  "form": {
+    "cancel": "Cancelar",
+    "optional": "Opcional"
+  },
+  "preview": {
+    "label": "Vista previa en directo",
+    "frame": "Vista previa de la página",
+    "live": "Los visitantes ven esto en {url}.",
+    "draft": "La vista previa muestra tus cambios. Los visitantes los ven cuando guardas."
+  },
+  "new": {
+    "title": "Nueva página bio",
+    "description": "Elige la dirección que visitará la gente. Después añadirás enlaces, redes sociales y colores.",
+    "slug": "Dirección",
+    "slugHint": "Letras minúsculas, números y guiones, de 3 a 63 caracteres.",
+    "slugPlaceholder": "tu-nombre",
+    "titleLabel": "Título",
+    "titleHint": "Aparece arriba de la página. Por defecto, la dirección.",
+    "submit": "Crear página",
+    "atLimit": "Has usado las {limit} páginas bio que incluye tu plan.",
+    "addressSection": "Dirección",
+    "available": "{url} está disponible.",
+    "checking": "Comprobando…",
+    "checkFailed": "No se pudo comprobar la dirección. Se vuelve a comprobar al crear la página.",
+    "detailsSection": "Detalles",
+    "firstLink": "Primer enlace",
+    "pickLink": "Elegir un enlace",
+    "removeLink": "Quitar",
+    "firstLinkHint": "Puedes añadir más enlaces, redes sociales y colores cuando la página exista."
+  },
+  "profile": {
+    "title": "Perfil",
+    "description": "De quién es la página.",
+    "save": "Guardar perfil",
+    "name": "Título",
+    "bio": "Descripción",
+    "bioHint": "Aparece en una línea bajo el título.",
+    "avatar": "Avatar",
+    "avatarHint": "Una imagen cuadrada queda mejor.",
+    "shape": "Forma del avatar",
+    "shapes": {
+      "circle": "Círculo",
+      "rounded": "Redondeado",
+      "square": "Cuadrado"
+    },
+    "errors": {
+      "titleRequired": "Ponle un título a la página.",
+      "avatarUrl": "Escribe la URL completa del avatar, empezando por https://."
+    }
+  },
+  "links": {
+    "title": "Enlaces",
+    "description": "Los botones de la página, en este orden. Arrastra el asa o usa las flechas para reordenar.",
+    "save": "Guardar enlaces",
+    "empty": "Aún no hay enlaces en la página.",
+    "listLabel": "Enlaces de la página",
+    "titleLabel": "Texto del botón de {key}",
+    "imageLabel": "Imagen de {key}",
+    "imagePlaceholder": "URL de la imagen (opcional)",
+    "moveUp": "Subir {title}",
+    "moveDown": "Bajar {title}",
+    "remove": "Quitar {title}",
+    "moved": "{title} movido a la posición {position} de {total}",
+    "removed": "{title} quitado",
+    "added": "{title} añadido",
+    "add": "Añadir enlace",
+    "full": "Una página admite hasta {max} enlaces.",
+    "errors": {
+      "image": "El enlace {position} necesita una URL de imagen completa, empezando por https://."
+    }
+  },
+  "socials": {
+    "title": "Redes sociales",
+    "description": "Iconos bajo el título que enlazan a tus perfiles.",
+    "save": "Guardar redes sociales",
+    "empty": "Aún no hay redes sociales.",
+    "listLabel": "Perfiles sociales",
+    "platform": "Plataforma de la red social {position}",
+    "url": "URL de {platform}",
+    "urlPlaceholder": "https://",
+    "remove": "Quitar {platform}",
+    "add": "Añadir red social",
+    "platforms": {
+      "instagram": "Instagram",
+      "twitter": "X (Twitter)",
+      "github": "GitHub",
+      "facebook": "Facebook",
+      "youtube": "YouTube",
+      "linkedin": "LinkedIn",
+      "whatsapp": "WhatsApp",
+      "website": "Sitio web"
+    },
+    "errors": {
+      "url": "La red social {position} necesita una URL."
+    }
+  },
+  "appearance": {
+    "title": "Apariencia",
+    "description": "Colores, botones, tipografía y cabecera.",
+    "save": "Guardar apariencia",
+    "colors": {
+      "background": "Fondo",
+      "textColor": "Texto",
+      "primaryColor": "Botones",
+      "buttonTextColor": "Texto de los botones",
+      "headerBackgroundColor": "Color de la cabecera"
+    },
+    "pick": {
+      "background": "Elegir el color de fondo",
+      "textColor": "Elegir el color del texto",
+      "primaryColor": "Elegir el color de los botones",
+      "buttonTextColor": "Elegir el color del texto de los botones",
+      "headerBackgroundColor": "Elegir el color de la cabecera",
+      "socialColor": "Elegir el color de los iconos"
+    },
+    "backgroundHint": "El fondo también admite cualquier fondo CSS, como un degradado.",
+    "buttonStyle": "Botones",
+    "buttonStyles": {
+      "rounded": "Redondeados",
+      "pill": "Píldora",
+      "square": "Mosaicos cuadrados"
+    },
+    "font": "Tipografía",
+    "fontHint": "La página la carga desde Google Fonts.",
+    "fontDefault": "Predeterminada",
+    "header": "Cabecera",
+    "headerHint": "Una franja de color o una imagen detrás del avatar.",
+    "headerStyles": {
+      "none": "Ninguna",
+      "centered": "Centrada",
+      "left-aligned": "A la izquierda",
+      "right-aligned": "A la derecha"
+    },
+    "headerImage": "Imagen de cabecera",
+    "socialColor": "Iconos sociales",
+    "socialColors": {
+      "original": "Colores de marca",
+      "custom": "Un solo color"
+    },
+    "socialColorValue": "Color de los iconos",
+    "errors": {
+      "color": "Los colores necesitan un valor hexadecimal como #0f172b, un nombre de color CSS o rgb().",
+      "background": "El fondo puede tener hasta 512 caracteres.",
+      "headerImage": "Escribe la URL completa de la imagen de cabecera, empezando por https://."
+    }
+  },
+  "deletePage": {
+    "title": "Eliminar página bio",
+    "description": "No se puede deshacer.",
+    "stops": "{url} deja de funcionar para los visitantes al instante.",
+    "links": "Los enlaces de la página siguen funcionando; solo desaparece la página.",
+    "address": "La dirección queda libre para que cualquiera la use.",
+    "confirm": "Eliminar página bio"
+  },
+  "errors": {
+    "slugTaken": "Esa dirección ya está ocupada. Prueba otra.",
+    "invalidSlug": "Usa de 3 a 63 letras minúsculas, números y guiones, empezando y terminando por una letra o un número.",
+    "limitReached": "Has usado las {limit} páginas bio que incluye tu plan.",
+    "linkNotFound": "Uno de los enlaces ya no existe. Quítalo y vuelve a guardar.",
+    "forbidden": "No tienes permiso para hacer esto en este espacio de trabajo.",
+    "notFound": "Esta página bio ya no existe. Puede que se haya eliminado.",
+    "invalidInput": "Algunos campos son demasiado largos o no son válidos. Revísalos y vuelve a intentarlo.",
+    "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo."
+  }
+}

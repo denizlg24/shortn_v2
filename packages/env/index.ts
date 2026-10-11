@@ -7,8 +7,9 @@ const value = <S extends z.ZodType>(
 ) => schema.meta({ example, description });
 const url = (example: string, description: string) =>
   value(z.url(), example, description);
+// z.httpUrl() also demands a dotted hostname, which rules out localhost.
 const httpUrl = (example: string, description: string) =>
-  value(z.httpUrl(), example, description);
+  value(z.url({ protocol: /^https?$/ }), example, description);
 const secret = (description: string) =>
   value(
     z
@@ -95,15 +96,6 @@ const common = {
   ...mongo,
   ...redis,
 };
-const r2 = {
-  R2_ENDPOINT: httpUrl(
-    "https://account-id.r2.cloudflarestorage.com",
-    "R2 S3 endpoint",
-  ),
-  R2_ACCESS_KEY_ID: value(z.string().min(1), "replace-me", "R2 access key"),
-  R2_SECRET_ACCESS_KEY: secret("R2 secret key"),
-  R2_BUCKET: value(z.string().min(1), "shortn-assets", "R2 assets bucket"),
-};
 const billing = {
   POLAR_ACCESS_TOKEN: secret("Polar API token"),
   POLAR_WEBHOOK_SECRET: secret("Polar signature secret"),
@@ -126,20 +118,121 @@ const security = {
   LINK_ACCESS_SECRET: secret("Link access token secret"),
   API_KEY_PEPPER: secret("API key hashing pepper"),
 };
-const cloudflare = {
-  CF_API_TOKEN: secret("Cloudflare custom hostnames token"),
-  CF_ZONE_ID: value(z.string().min(1), "replace-me", "Cloudflare zone ID"),
+const oauth = {
+  AUTH_GITHUB_ID: value(z.string().min(1), "replace-me", "GitHub OAuth app id"),
+  AUTH_GITHUB_SECRET: secret("GitHub OAuth app secret"),
+  AUTH_GOOGLE_ID: value(
+    z.string().min(1),
+    "replace-me",
+    "Google OAuth client id",
+  ),
+  AUTH_GOOGLE_SECRET: value(
+    z.string().min(16),
+    "replace-me-google-client-secret",
+    "Google OAuth client secret (Google's format is shorter than 32)",
+  ),
 };
+export const polarEnvironment = value(
+  z.enum(["sandbox", "production"]),
+  "sandbox",
+  "Polar API environment",
+);
+const objectStorage = {
+  S3_ENDPOINT: url(
+    "https://api.denizlg24.com/v2",
+    "Self-hosted path-style S3 gateway",
+  ),
+  S3_REGION: value(z.string().min(1), "eu-west-1", "S3 signing region"),
+  S3_BUCKET: value(
+    z.string().min(1),
+    "shortn-v2-staging",
+    "S3 bucket; use shortn-v2 in production",
+  ),
+  S3_ACCESS_KEY_ID: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project access key",
+  ),
+  S3_SECRET_ACCESS_KEY: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project secret key",
+  ),
+};
+
 export const webEnv = z
   .object({
     ...common,
-    ...r2,
-    ...billing,
-    ...mail,
-    ...security,
-    ...cloudflare,
+    S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional().meta(
+      objectStorage.S3_ENDPOINT.meta() ?? {},
+    ),
+    S3_REGION: objectStorage.S3_REGION.optional().meta(
+      objectStorage.S3_REGION.meta() ?? {},
+    ),
+    S3_BUCKET: objectStorage.S3_BUCKET.optional().meta(
+      objectStorage.S3_BUCKET.meta() ?? {},
+    ),
+    S3_ACCESS_KEY_ID: objectStorage.S3_ACCESS_KEY_ID.optional().meta(
+      objectStorage.S3_ACCESS_KEY_ID.meta() ?? {},
+    ),
+    S3_SECRET_ACCESS_KEY: objectStorage.S3_SECRET_ACCESS_KEY.optional().meta(
+      objectStorage.S3_SECRET_ACCESS_KEY.meta() ?? {},
+    ),
     BETTER_AUTH_SECRET: secret("Authentication secret"),
-    BETTER_AUTH_URL: httpUrl("http://localhost:3000", "Authentication origin"),
+    BETTER_AUTH_URL: httpUrl(
+      "http://localhost:3000",
+      "Dashboard origin (app.shortn.at); auth cookies are host-only here",
+    ),
+    AUTH_GITHUB_ID: oauth.AUTH_GITHUB_ID.optional(),
+    AUTH_GITHUB_SECRET: oauth.AUTH_GITHUB_SECRET.optional(),
+    AUTH_GOOGLE_ID: oauth.AUTH_GOOGLE_ID.optional(),
+    AUTH_GOOGLE_SECRET: oauth.AUTH_GOOGLE_SECRET.optional(),
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
+    POLAR_ENVIRONMENT: polarEnvironment,
+    RESEND_API_KEY: mail.RESEND_API_KEY,
+    MAIL_FROM: value(
+      z.string().min(3).default("Shortn <no-reply@shortn.at>"),
+      "Shortn <no-reply@shortn.at>",
+      "Sender for account and workspace email",
+    ),
+    MAIL_ALLOWLIST: value(
+      z.string().optional(),
+      "@denizlg24.com",
+      "Staging only: comma-separated recipients or @domains; others are dropped",
+    ),
+    PUBLIC_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Root site origin (shortn.at) for marketing and legal links",
+    ),
+    LINK_DOMAIN: value(
+      z.string().min(1).default("shortn.at"),
+      "shortn.at",
+      "Domain new links are created on",
+    ),
+    WEB_RISK_API_KEY: value(
+      z.string().min(1).optional(),
+      "",
+      "Google Web Risk key for link scans; without it scans are structural only",
+    ),
+    LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET,
+    CONFIRMATION_TOKEN_SECRET: mail.CONFIRMATION_TOKEN_SECRET,
+    IP_HASH_SECRET: secret(
+      "HMAC secret for visitor IPs (reports, rate limits)",
+    ),
+    LEGACY_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Legacy app origin, for the /b/ revalidation hook during coexistence",
+    ).optional(),
+    LEGACY_INTERNAL_SECRET: value(
+      z.string().min(32).optional(),
+      "",
+      "Legacy INTERNAL_API_SECRET, sent to its revalidation hook",
+    ),
+    BILLING_WRITES: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "1 after the billing switch: plan changes and cancellation from this app (16 D8)",
+    ),
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3000),
       "3000",
@@ -183,14 +276,18 @@ export const redirectEnv = z
     ),
   })
   .superRefine(productionRules);
+export const billingMode = value(
+  z.enum(["shadow", "live"]).default("shadow"),
+  "shadow",
+  "shadow: mirror + diff only, no emails or legacy hand-off; live after the billing switch (06)",
+);
 export const apiEnv = z
   .object({
-    ...common,
-    ...r2,
-    ...billing,
-    ...mail,
-    ...security,
-    ...cloudflare,
+    NODE_ENV: common.NODE_ENV,
+    ...mongo,
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
+    POLAR_WEBHOOK_SECRET: billing.POLAR_WEBHOOK_SECRET,
+    POLAR_ENVIRONMENT: polarEnvironment,
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3003),
       "3003",
@@ -198,6 +295,19 @@ export const apiEnv = z
     ),
   })
   .superRefine(productionRules);
+const liveBillingNeedsMail = (
+  env: Record<string, unknown>,
+  ctx: z.RefinementCtx,
+) => {
+  if (env.BILLING_MODE !== "live") return;
+  for (const key of ["POLAR_ACCESS_TOKEN", "RESEND_API_KEY", "APP_URL"])
+    if (!env[key])
+      ctx.addIssue({
+        code: "custom",
+        path: [key],
+        message: "Required when BILLING_MODE=live",
+      });
+};
 export const workerEnv = z
   .object({
     ...common,
@@ -213,13 +323,27 @@ export const workerEnv = z
       "worker-1",
       "Stream consumer name; defaults to the hostname",
     ),
+    POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN.optional(),
+    POLAR_ENVIRONMENT: polarEnvironment,
+    BILLING_MODE: billingMode,
+    RESEND_API_KEY: mail.RESEND_API_KEY.optional(),
+    MAIL_FROM: value(
+      z.string().min(3).default("Shortn <no-reply@shortn.at>"),
+      "Shortn <no-reply@shortn.at>",
+      "Sender for billing email",
+    ),
+    APP_URL: httpUrl(
+      "http://localhost:3000",
+      "Dashboard origin for links in billing email",
+    ).optional(),
     RUN_CONTINUOUS_MIGRATIONS: value(
       z.enum(["0", "1"]).default("1"),
       "1",
       "Run continuous expand migrations every minute",
     ),
   })
-  .superRefine(productionRules);
+  .superRefine(productionRules)
+  .superRefine(liveBillingNeedsMail);
 
 // Legacy infrastructure variables also belong in the generated root example.
 // The legacy app validates its complete runtime environment in utils/env.ts.
@@ -231,26 +355,7 @@ export const legacyInfraEnv = z.object({
   ),
   PICRON_USERNAME: value(z.string().min(1), "replace-me", "PiCron username"),
   PICRON_PASSWORD: value(z.string().min(1), "replace-me", "PiCron password"),
-  S3_ENDPOINT: url(
-    "https://api.denizlg24.com/v2",
-    "Self-hosted path-style S3 gateway",
-  ),
-  S3_REGION: value(z.string().min(1), "eu-west-1", "S3 signing region"),
-  S3_BUCKET: value(
-    z.string().min(1),
-    "shortn-v2-staging",
-    "S3 bucket; use shortn-v2 in production",
-  ),
-  S3_ACCESS_KEY_ID: value(
-    z.string().min(1),
-    "replace-me",
-    "S3 project access key",
-  ),
-  S3_SECRET_ACCESS_KEY: value(
-    z.string().min(1),
-    "replace-me",
-    "S3 project secret key",
-  ),
+  ...objectStorage,
   NEXT_PUBLIC_APP_URL: url(
     "http://localhost:3000",
     "Legacy app origin for public asset URLs",
@@ -261,7 +366,12 @@ export function parseEnv<S extends z.ZodType>(
   schema: S,
   source: Record<string, string | undefined>,
 ): z.output<S> {
-  const result = schema.safeParse(source);
+  // Empty entries in dotenv files mean "not configured". This also lets a
+  // dev launcher mask local files without enabling optional integrations.
+  const configured = Object.fromEntries(
+    Object.entries(source).filter(([, value]) => value !== ""),
+  );
+  const result = schema.safeParse(configured);
   if (result.success) return result.data;
   throw new Error(
     `Invalid environment:\n${result.error.issues.map((issue) => `  ${issue.path.join(".")}: ${issue.message}`).join("\n")}`,

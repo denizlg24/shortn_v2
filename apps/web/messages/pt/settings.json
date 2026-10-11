@@ -1,0 +1,338 @@
+{
+  "title": "Definições",
+  "nav": {
+    "label": "Definições",
+    "workspace": "Espaço de trabalho",
+    "personal": "Pessoal",
+    "general": "Geral",
+    "members": "Membros",
+    "billing": "Faturação",
+    "account": "Conta",
+    "profile": "Perfil",
+    "email": "Email",
+    "password": "Palavra-passe",
+    "signIn": "Métodos de início de sessão",
+    "sessions": "Sessões"
+  },
+  "common": {
+    "save": "Guardar",
+    "saved": "Guardado",
+    "cancel": "Cancelar",
+    "you": "Você",
+    "seePlans": "Ver planos",
+    "retry": "Tentar novamente",
+    "loadFailed": "Não foi possível carregar estas definições",
+    "loadFailedBody": "Algo correu mal do nosso lado. Tente novamente daqui a pouco.",
+    "errors": {
+      "generic": "Algo correu mal do nosso lado. Tente novamente.",
+      "network": "Não foi possível contactar o Shortn. Verifique a ligação e tente novamente.",
+      "forbidden": "Não tem permissão para fazer isto.",
+      "tooManyAttempts": "Demasiadas tentativas. Aguarde um minuto e tente novamente."
+    }
+  },
+  "roles": {
+    "owner": "Proprietário",
+    "admin": "Administrador",
+    "member": "Membro",
+    "viewer": "Leitor"
+  },
+  "roleDescriptions": {
+    "admin": "Os administradores gerem membros, domínios e as definições do espaço de trabalho, e fazem tudo o que os membros fazem.",
+    "member": "Os membros criam e editam links, códigos QR, páginas bio e campanhas.",
+    "viewer": "Os leitores veem links e estatísticas, mas não podem alterar nada."
+  },
+  "general": {
+    "title": "Geral",
+    "description": "O nome de {workspace} e o endereço onde fica.",
+    "identity": {
+      "title": "Nome e URL",
+      "name": "Nome do espaço de trabalho",
+      "slug": "URL",
+      "slugHint": "Ao alterá-lo, todos os endereços do painel mudam. Os marcadores para o endereço antigo deixam de funcionar.",
+      "readOnly": "Só proprietários e administradores podem alterar as definições do espaço de trabalho."
+    },
+    "validation": {
+      "nameRequired": "Introduza um nome.",
+      "nameTooLong": "Use no máximo {max} caracteres.",
+      "slugInvalid": "Use entre 3 e 48 letras minúsculas, números ou hífenes, a começar e a acabar com uma letra ou um número."
+    },
+    "errors": {
+      "slugTaken": "Outro espaço de trabalho já usa este URL.",
+      "slugInvalid": "Este URL está reservado. Experimente outro."
+    },
+    "create": {
+      "title": "Novo espaço de trabalho",
+      "description": "Um espaço de trabalho de equipa tem os seus próprios links, membros e faturação. Será o proprietário.",
+      "open": "Criar espaço de trabalho",
+      "name": "Nome",
+      "namePlaceholder": "Acme Marketing",
+      "slug": "URL",
+      "submit": "Criar espaço de trabalho",
+      "limitReached": "O seu plano inclui {limit, plural, one {# espaço de trabalho} other {# espaços de trabalho}} e já é proprietário de todos. Faça upgrade do seu espaço de trabalho pessoal para criar mais."
+    },
+    "delete": {
+      "title": "Eliminar espaço de trabalho",
+      "description": "Elimina {workspace} de forma permanente, com os seus membros, convites e etiquetas. Os links, códigos QR, páginas bio e campanhas têm de ser removidos antes.",
+      "personal": "O seu espaço de trabalho pessoal não pode ser eliminado.",
+      "ownerOnly": "Só o proprietário pode eliminar este espaço de trabalho.",
+      "action": "Eliminar espaço de trabalho",
+      "dialogTitle": "Eliminar {workspace}?",
+      "dialogBody": "Esta ação não pode ser anulada. Todos os membros perdem o acesso de imediato.",
+      "confirmLabel": "Escreva <strong>{slug}</strong> para confirmar.",
+      "confirm": "Eliminar espaço de trabalho",
+      "notEmpty": "Este espaço de trabalho ainda tem links, códigos QR, páginas bio, campanhas ou uma subscrição ativa. Remova-os e cancele a subscrição primeiro."
+    },
+    "save": "Guardar",
+    "workspaces": {
+      "create": "Criar espaço de trabalho",
+      "title": "Espaços de trabalho de equipa",
+      "description": "Dê a cada equipa as suas próprias ligações, membros e faturação."
+    },
+    "danger": {
+      "personal": "O seu espaço de trabalho pessoal não pode ser eliminado.",
+      "ownerOnly": "Só o proprietário pode eliminar este espaço de trabalho.",
+      "action": "Eliminar espaço de trabalho",
+      "title": "Eliminar espaço de trabalho",
+      "description": "Elimine permanentemente este espaço de trabalho e os seus membros."
+    },
+    "saved": "Espaço de trabalho guardado."
+  },
+  "members": {
+    "title": "Membros",
+    "description": "Pessoas com acesso a {workspace}.",
+    "readOnly": "Só proprietários e administradores podem gerir membros.",
+    "invite": {
+      "title": "Convidar pessoas",
+      "email": "E-mail",
+      "emailPlaceholder": "nome@empresa.pt",
+      "role": "Função",
+      "submit": "Enviar convite",
+      "seats": "{used} de {limit} lugares ocupados, incluindo convites pendentes.",
+      "sent": "Convite enviado para <strong>{email}</strong>. É válido durante 7 dias.",
+      "errors": {
+        "emailRequired": "Introduza um endereço de e-mail.",
+        "emailInvalid": "Introduza um endereço de e-mail válido, como nome@empresa.pt.",
+        "alreadyMember": "Esta pessoa já é membro.",
+        "seatsExhausted": "{seats, plural, one {# lugar está ocupado} other {# lugares estão ocupados}}, e os convites pendentes também contam. Faça upgrade do plano para adicionar mais pessoas.",
+        "seatsExhaustedAskOwner": "{seats, plural, one {# lugar está ocupado} other {# lugares estão ocupados}}, e os convites pendentes também contam. Peça ao proprietário para fazer upgrade do plano."
+      }
+    },
+    "list": {
+      "title": "{count, plural, one {# membro} other {# membros}}",
+      "member": "Membro",
+      "role": "Função",
+      "actions": "Ações",
+      "changeRole": "Função de {name}",
+      "remove": "Remover",
+      "removeLabel": "Remover {name}",
+      "leave": "Sair",
+      "readOnly": "Só proprietários e administradores podem gerir membros.",
+      "adminOwnerOnly": "Só o proprietário pode alterar ou remover administradores.",
+      "noName": "Membro sem nome",
+      "joined": "Entrou em",
+      "manageLabel": "Gerir {name}",
+      "manage": "Gerir",
+      "view": "Ver"
+    },
+    "remove": {
+      "title": "Remover {name}?",
+      "body": "Perde o acesso a {workspace} de imediato. Os links que criou continuam no espaço de trabalho.",
+      "confirm": "Remover membro"
+    },
+    "leave": {
+      "title": "Sair de {workspace}?",
+      "body": "Perde o acesso de imediato. Para voltar, um proprietário ou administrador tem de o convidar novamente.",
+      "confirm": "Sair do espaço de trabalho"
+    },
+    "invites": {
+      "title": "{count, plural, one {# convite pendente} other {# convites pendentes}}",
+      "empty": "Ninguém está à espera de entrar.",
+      "expires": "Expira",
+      "invitedBy": "Convidado por",
+      "revoke": "Revogar",
+      "revokeLabel": "Revogar convite para {email}",
+      "email": "Email"
+    },
+    "errors": {
+      "ownerProtected": "O proprietário não pode ser removido nem mudar de função.",
+      "notFound": "Esta pessoa já não é membro. Recarregue a página para ver a lista atual."
+    },
+    "seats": "{used} de {limit} lugares ocupados, incluindo convites pendentes.",
+    "inviteAction": "Convidar membro",
+    "notices": {
+      "invited": "Convite enviado.",
+      "removed": "Membro removido.",
+      "revoked": "Convite revogado."
+    }
+  },
+  "account": {
+    "title": "Conta",
+    "description": "O seu perfil e as definições de início de sessão. Aplicam-se em todos os espaços de trabalho de que faz parte.",
+    "profile": {
+      "title": "Perfil",
+      "description": "Como aparece às pessoas dos seus espaços de trabalho.",
+      "image": "Imagem do avatar",
+      "imageHint": "Uma imagem quadrada com pelo menos 64 × 64 píxeis. Remova-a para mostrar as suas iniciais.",
+      "imageInvalid": "Introduza um endereço completo que comece por https://."
+    },
+    "email": {
+      "title": "E-mail",
+      "current": "Inicia sessão e recebe notificações em <strong>{email}</strong>.",
+      "currentUnverified": "Inicia sessão com <strong>{email}</strong>, que ainda não está verificado.",
+      "new": "Novo e-mail",
+      "submit": "Alterar e-mail",
+      "sent": "Enviámos um link de aprovação para <strong>{current}</strong>. Depois de aprovar, também pedimos a <strong>{next}</strong> que confirme.",
+      "errors": {
+        "same": "Esse já é o seu e-mail.",
+        "taken": "Outra conta já usa este e-mail.",
+        "expired": "Esta ligação de confirmação expirou. Volte a pedir a alteração de email abaixo.",
+        "invalid": "Esta ligação de confirmação é inválida ou já foi utilizada. Volte a pedir a alteração de email abaixo."
+      },
+      "approved": "Endereço atual aprovado. Consulte <strong>{email}</strong> e siga a ligação de confirmação para concluir.",
+      "changed": "O seu endereço de email foi alterado. Use o novo endereço no próximo início de sessão.",
+      "sentUnverified": "Enviámos uma ligação de confirmação para <strong>{next}</strong>. Siga-a para concluir a alteração do email."
+    },
+    "password": {
+      "title": "Palavra-passe",
+      "none": "Inicia sessão com {providers}. Adicione uma palavra-passe para também entrar com <strong>{email}</strong>.",
+      "current": "Palavra-passe atual",
+      "revokeOthers": "Terminar todas as outras sessões",
+      "submit": "Atualizar palavra-passe",
+      "updated": "Palavra-passe atualizada.",
+      "updatedRevoked": "Palavra-passe atualizada. As suas outras sessões foram terminadas.",
+      "errors": {
+        "currentRequired": "Introduza a sua palavra-passe atual.",
+        "currentWrong": "A palavra-passe atual não está correta."
+      },
+      "setSubmit": "Adicionar palavra-passe",
+      "set": "Palavra-passe adicionada. Já pode também entrar com o seu email."
+    },
+    "connections": {
+      "title": "Métodos de início de sessão",
+      "description": "Formas de iniciar sessão no Shortn.",
+      "credential": "E-mail e palavra-passe",
+      "on": "Configurado",
+      "off": "Não configurado",
+      "connected": "Ligado",
+      "notConnected": "Não ligado",
+      "connect": "Ligar",
+      "connectLabel": "Ligar {provider}",
+      "disconnect": "Desligar",
+      "disconnectLabel": "Desligar {provider}",
+      "lastMethod": "É a sua única forma de iniciar sessão. Adicione outro método primeiro.",
+      "errors": {
+        "emailMismatch": "Essa conta usa um e-mail diferente do da sua conta Shortn. Ligue uma com o mesmo e-mail.",
+        "linkedElsewhere": "Essa conta já está ligada a outro utilizador do Shortn.",
+        "failed": "A ligação não foi concluída. Tente novamente.",
+        "notFresh": "Por segurança, inicie sessão novamente antes de desligar um método de início de sessão."
+      }
+    },
+    "sessions": {
+      "title": "Sessões",
+      "description": "Dispositivos onde tem sessão iniciada.",
+      "device": "{browser} em {os}",
+      "unknownDevice": "Dispositivo desconhecido",
+      "thisDevice": "Este dispositivo",
+      "support": "Suporte Shortn",
+      "unknownLocation": "Localização desconhecida",
+      "lastActive": "Ativa {when}",
+      "revoke": "Terminar sessão",
+      "revokeLabel": "Terminar sessão em {device}",
+      "revokeOthers": "Terminar outras sessões"
+    }
+  },
+  "create": {
+    "title": "Novo espaço de trabalho",
+    "description": "Um espaço de trabalho de equipa tem os seus próprios links, membros e faturação. Será o proprietário.",
+    "open": "Criar espaço de trabalho",
+    "name": "Nome",
+    "namePlaceholder": "Acme Marketing",
+    "slug": "URL",
+    "submit": "Criar espaço de trabalho",
+    "limitReached": "O seu plano inclui {limit, plural, one {# espaço de trabalho} other {# espaços de trabalho}} e já é proprietário de todos. Faça upgrade do seu espaço de trabalho pessoal para criar mais.",
+    "cancel": "Cancelar",
+    "seePlans": "Ver planos",
+    "slugHint": "O endereço do painel será {host}/o-seu-url."
+  },
+  "delete": {
+    "title": "Eliminar espaço de trabalho",
+    "whatHappens": "Eliminar espaço de trabalho",
+    "confirm": "Eliminar espaço de trabalho",
+    "cancel": "Cancelar",
+    "errors": {
+      "notEmpty": "Este espaço de trabalho ainda tem links, códigos QR, páginas bio, campanhas ou uma subscrição ativa. Remova-os e cancele a subscrição primeiro.",
+      "mismatch": "Escreva o nome do espaço de trabalho exatamente como aparece."
+    },
+    "description": "Elimine permanentemente {workspace}. Reveja as consequências antes de confirmar.",
+    "confirmLabel": "Escreva <strong>{name}</strong> para confirmar.",
+    "consequences": {
+      "access": "Todos os membros perdem o acesso imediatamente.",
+      "removed": "As definições, os convites e as etiquetas do espaço de trabalho são eliminados.",
+      "final": "Esta ação não pode ser anulada."
+    },
+    "emptyFirst": "Elimine primeiro todas as ligações, códigos QR, páginas de bio e campanhas, e cancele qualquer subscrição ativa."
+  },
+  "invite": {
+    "title": "Convidar pessoas",
+    "email": "E-mail",
+    "emailPlaceholder": "nome@empresa.pt",
+    "role": "Função",
+    "submit": "Enviar convite",
+    "seats": "{used} de {limit} lugares ocupados, incluindo convites pendentes.",
+    "sent": "Convite enviado para <strong>{email}</strong>. É válido durante 7 dias.",
+    "errors": {
+      "emailRequired": "Introduza um endereço de e-mail.",
+      "emailInvalid": "Introduza um endereço de e-mail válido, como nome@empresa.pt.",
+      "alreadyMember": "Esta pessoa já é membro.",
+      "seatsExhausted": "{seats, plural, one {# lugar está ocupado} other {# lugares estão ocupados}}, e os convites pendentes também contam. Faça upgrade do plano para adicionar mais pessoas.",
+      "seatsExhaustedAskOwner": "{seats, plural, one {# lugar está ocupado} other {# lugares estão ocupados}}, e os convites pendentes também contam. Peça ao proprietário para fazer upgrade do plano."
+    },
+    "description": "Convide alguém para {workspace} e escolha o seu acesso.",
+    "who": "Quem convidar",
+    "emailHint": "Receberá uma ligação para aderir a este espaço de trabalho.",
+    "roleHint": "Escolha o que esta pessoa pode fazer no espaço de trabalho."
+  },
+  "member": {
+    "you": "Você",
+    "adminOwnerOnly": "Só o proprietário pode alterar ou remover administradores.",
+    "errors": {
+      "ownerProtected": "O proprietário não pode ser removido nem mudar de função.",
+      "notFound": "Esta pessoa já não é membro. Recarregue a página para ver a lista atual."
+    },
+    "leave": {
+      "action": "Sair do espaço de trabalho",
+      "title": "Sair do espaço de trabalho",
+      "description": "Perderá o acesso a este espaço de trabalho."
+    },
+    "remove": {
+      "action": "Remover membro",
+      "title": "Remover membro",
+      "description": "Remova o acesso desta pessoa ao espaço de trabalho."
+    },
+    "ownerRole": "A função do proprietário não pode ser alterada.",
+    "selfRole": "Peça a um proprietário ou administrador para alterar a sua função.",
+    "saved": "Função guardada.",
+    "details": "Detalhes do membro",
+    "email": "Email",
+    "roleTitle": "Função",
+    "roleSubmit": "Guardar função"
+  },
+  "remove": {
+    "heading": "Remover {name}?",
+    "leaveHeading": "Sair de {workspace}?",
+    "confirm": "Remover membro",
+    "leaveConfirm": "Sair do espaço de trabalho",
+    "title": "Remover membro",
+    "leaveTitle": "Sair do espaço de trabalho",
+    "member": {
+      "access": "{name} perde imediatamente o acesso a {workspace}.",
+      "content": "As suas ligações e outros conteúdos permanecem no espaço de trabalho.",
+      "again": "Precisará de um novo convite para voltar a aderir."
+    },
+    "leave": {
+      "access": "Perde imediatamente o acesso a {workspace}.",
+      "content": "As suas ligações e outros conteúdos permanecem no espaço de trabalho.",
+      "again": "Um proprietário ou administrador terá de o convidar para voltar."
+    }
+  }
+}

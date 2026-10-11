@@ -49,7 +49,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 
 ## P5 · Bio subdomains + custom domains (≈ 2–3 weeks)
 
-- Work: `{handle}.shortn.at` routing, `/b/` 301s, owner notification emails, the custom domain add-on in Polar, Cloudflare for SaaS, and the domain UI.
+- Work: new public bio renderer and visual redesign (08), including typed blocks, preset themes, and responsive layouts that remain usable with many links; `{handle}.shortn.at` routing, `/b/` 301s, owner notification emails, the custom domain add-on in Polar, Cloudflare for SaaS, and the domain UI.
 - Exit gate: 100% of bio slugs resolve via the 301 in the URL sample; one real custom domain in production for ≥ 7 days.
 - Rollback: `/b/{slug}` served by the new web app directly (no 301) while the subdomain issue is fixed.
 

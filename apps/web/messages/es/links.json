@@ -1,0 +1,172 @@
+{
+  "title": "Enlaces",
+  "search": "Buscar enlaces",
+  "clearSearch": "Borrar búsqueda",
+  "filterBy": "Filtrar por…",
+  "tag": "Etiqueta",
+  "create": "Crear enlace",
+  "viewOnly": "Solo lectura",
+  "viewerReason": "Los lectores no pueden crear ni cambiar enlaces. Pide a un administrador del espacio de trabajo que cambie tu rol.",
+  "deleteReason": "Los miembros solo pueden eliminar los enlaces que han creado.",
+  "paste": "Pega una URL para acortarla",
+  "loadMoreFailed": "No se pudieron cargar más enlaces.",
+  "retry": "Reintentar",
+  "composer": {
+    "label": "Nuevo enlace corto",
+    "url": "URL de destino",
+    "urlPlaceholder": "Pega o escribe la URL de destino",
+    "key": "Clave del enlace corto",
+    "keyPlaceholder": "aleatoria",
+    "more": "Más opciones",
+    "create": "Crear",
+    "close": "Cerrar",
+    "created": "{link} creado y copiado al portapapeles",
+    "createdNotCopied": "{link} creado. Cópialo desde la tabla.",
+    "copied": "{link} copiado"
+  },
+  "bulk": {
+    "label": "Acciones en lote",
+    "copy": "Copiar enlaces",
+    "copied": "{count, plural, one {# enlace corto copiado} other {# enlaces cortos copiados}}, uno por línea",
+    "delete": "Eliminar"
+  },
+  "rowActions": {
+    "open": "Abrir detalles",
+    "edit": "Editar",
+    "copy": "Copiar enlace corto",
+    "analytics": "Ver estadísticas",
+    "qr": "Código QR",
+    "delete": "Eliminar"
+  },
+  "delete": {
+    "title": "¿Eliminar {count, plural, one {# enlace} other {# enlaces}}?",
+    "noneTitle": "No puedes eliminar estos enlaces",
+    "body": "Los enlaces cortos dejan de funcionar de inmediato. Esta acción no se puede deshacer.",
+    "partial": "Puedes eliminar {deletable} de los {count} enlaces seleccionados, porque los miembros solo pueden eliminar los enlaces que han creado. Los enlaces cortos dejan de funcionar de inmediato. Esta acción no se puede deshacer.",
+    "none": "Los miembros solo pueden eliminar los enlaces que han creado. Pide a un administrador del espacio de trabajo que los elimine.",
+    "cancel": "Cancelar",
+    "confirm": "Eliminar {count, plural, one {# enlace} other {# enlaces}}",
+    "done": "{count, plural, one {# enlace eliminado} other {# enlaces eliminados}}"
+  },
+  "empty": {
+    "firstTitle": "Todavía no hay enlaces",
+    "firstBody": "Pega una URL en cualquier parte de esta página para crear tu primer enlace corto.",
+    "firstBodyViewer": "Los enlaces creados en este espacio de trabajo aparecen aquí.",
+    "noMatch": "Ningún enlace coincide con «{query}»",
+    "noMatchFilters": "Ningún enlace coincide con estos filtros",
+    "noMatchBody": "Revisa la ortografía o borra la búsqueda y los filtros.",
+    "clear": "Borrar búsqueda y filtros"
+  },
+  "error": {
+    "title": "No se pudieron cargar los enlaces",
+    "body": "Tus enlaces están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento."
+  },
+  "errors": {
+    "invalidUrl": "Introduce una URL completa, como https://ejemplo.es/pagina.",
+    "unsafeDestination": "No se puede acortar este destino. Apunta a una dirección privada o insegura.",
+    "invalidKey": "Usa letras, números, guiones y guiones bajos, hasta 64 caracteres.",
+    "keyReserved": "«{key}» está reservada por Shortn. Elige otra clave.",
+    "keyTaken": "«{key}» ya está en uso. Elige otra clave.",
+    "limitReached": "Ya has creado los {limit} enlaces que incluye tu plan este mes.",
+    "forbidden": "No tienes permiso para hacer esto en este espacio de trabajo.",
+    "notFound": "Este enlace ya no existe. Puede que se haya eliminado.",
+    "invalidInput": "Algunos campos son demasiado largos o no son válidos. Revísalos y vuelve a intentarlo.",
+    "network": "No se pudo conectar con Shortn. Comprueba tu conexión y vuelve a intentarlo.",
+    "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
+    "copyFailed": "No se pudo copiar al portapapeles."
+  },
+  "sheet": {
+    "overview": "Resumen",
+    "edit": "Editar",
+    "qr": "Código QR",
+    "openDestination": "Abrir destino"
+  },
+  "overview": {
+    "clicks30": "Clics, 30 días",
+    "allTime": "Clics totales",
+    "topCountry": "País principal",
+    "topReferrer": "Origen principal",
+    "noData": "Sin clics en los últimos 30 días. Comparte el enlace y los datos aparecerán en segundos.",
+    "created": "Creado",
+    "title": "Título",
+    "description": "Descripción",
+    "tags": "Etiquetas",
+    "password": "Contraseña",
+    "passwordOn": "Protegido con contraseña",
+    "passwordHint": "Protegido con contraseña, pista «{hint}»",
+    "passwordOff": "Desactivada",
+    "safety": "Seguridad",
+    "fullAnalytics": "Estadísticas completas"
+  },
+  "form": {
+    "readOnly": "Solo lectura. Pide a un administrador del espacio de trabajo que cambie tu rol para editar este enlace.",
+    "destination": "URL de destino",
+    "key": "Enlace corto",
+    "keyPlaceholder": "aleatoria",
+    "keyHint": "La clave anterior sigue redirigiendo después del cambio.",
+    "title": "Título",
+    "titlePlaceholder": "Aparece en las listas y las estadísticas",
+    "description": "Descripción",
+    "tags": "Etiquetas",
+    "tagsPlaceholder": "Añadir etiquetas",
+    "tagSearch": "Buscar o crear una etiqueta",
+    "noTags": "No se encontraron etiquetas",
+    "createTag": "Crear etiqueta «{tag}»",
+    "password": "Protección con contraseña",
+    "passwordOn": "Los visitantes necesitan una contraseña para abrir este enlace.",
+    "passwordRemoved": "La contraseña se elimina al guardar.",
+    "keepPassword": "Mantener contraseña",
+    "changePassword": "Cambiar contraseña",
+    "removePassword": "Quitar contraseña",
+    "newPassword": "Nueva contraseña",
+    "passwordLabel": "Contraseña",
+    "passwordPlaceholder": "Déjala vacía para no usar contraseña",
+    "hint": "Pista de la contraseña",
+    "hintHelp": "Opcional. Aparece en la página de la contraseña.",
+    "utm": "Variantes UTM",
+    "delete": "Eliminar enlace",
+    "cancel": "Cancelar",
+    "discard": "Descartar",
+    "save": "Guardar cambios"
+  },
+  "utm": {
+    "empty": "Las variantes añaden parámetros UTM para cada canal, para que las estadísticas los distingan.",
+    "variant": "Variante {number}",
+    "remove": "Quitar variante {number}",
+    "add": "Añadir variante",
+    "fields": {
+      "source": "Fuente",
+      "medium": "Medio",
+      "campaign": "Campaña",
+      "term": "Término",
+      "content": "Contenido"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "campaign": "lanzamiento-otono",
+      "term": "zapatillas-running",
+      "content": "enlace-cabecera"
+    }
+  },
+  "qr": {
+    "attached": "Este enlace tiene un código QR asociado:",
+    "none": "Este enlace todavía no tiene código QR. Los códigos QR se crean y se diseñan en Códigos QR.",
+    "open": "Abrir Códigos QR"
+  },
+  "safety": {
+    "pending": "En análisis",
+    "safe": "Sin problemas detectados",
+    "suspicious": "Destino sospechoso",
+    "malicious": "Destino inseguro",
+    "blocked": "Bloqueado",
+    "disabled": "Desactivado por seguridad",
+    "interstitial": "los visitantes ven primero una página de seguridad",
+    "unknown": "Estado de seguridad no disponible"
+  },
+  "summary": {
+    "label": "Detalles del enlace",
+    "edit": "Editar enlace",
+    "open": "Abrir en Enlaces"
+  }
+}

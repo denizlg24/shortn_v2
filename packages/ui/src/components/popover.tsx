@@ -1,3 +1,5 @@
+"use client";
+
 import { Popover as PopoverPrimitive } from "radix-ui";
 import type { ComponentProps } from "react";
 import { cn } from "../lib/cn";

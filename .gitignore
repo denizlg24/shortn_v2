@@ -49,8 +49,12 @@ next-env.d.ts
 
 package-lock.json
 scripts/*
+!scripts/dev.ts
+!scripts/dev-config.ts
+!scripts/dev-config.test.ts
 
 # workspaces
+.claude/worktrees/
 **/node_modules/
 **/.next/
 **/.turbo/
