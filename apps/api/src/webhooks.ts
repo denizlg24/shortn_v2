@@ -50,6 +50,7 @@ export async function receivePolarWebhook(
   deps: {
     db: Db;
     verify?: Verify;
+    log?: (message: string, error?: unknown) => void;
   },
 ): Promise<WebhookResult> {
   let event: VerifiedEvent;
@@ -60,7 +61,10 @@ export async function receivePolarWebhook(
       input.secret,
     );
   } catch (error) {
-    if (error instanceof WebhookVerificationError) return { status: 403 };
+    if (error instanceof WebhookVerificationError) {
+      deps.log?.("polar webhook verification failed", error);
+      return { status: 403 };
+    }
     throw error;
   }
   const id = input.headers["webhook-id"];
