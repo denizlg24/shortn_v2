@@ -148,8 +148,8 @@ const billingServer = createMailServer(async (request, response) => {
     request.url?.endsWith("/invoice")
   ) {
     billingFixture.order.is_invoice_generated = true;
-    response.writeHead(202);
-    response.end();
+    response.writeHead(202, { "content-type": "application/json" });
+    response.end("null");
     return;
   }
   if (

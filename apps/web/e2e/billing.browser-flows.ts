@@ -141,6 +141,7 @@ export async function checkBillingFailures({
 
     // An order returned for another workspace must never yield an invoice URL.
     fixture.order.subscription_id = "other-workspace-subscription";
+    fixture.order.is_invoice_generated = false;
     const invoiceReads = requests.filter((request) =>
       request.path.endsWith("/invoice"),
     ).length;
@@ -156,6 +157,7 @@ export async function checkBillingFailures({
       invoiceReads,
     );
     fixture.order.subscription_id = original.polarSubscriptionId;
+    fixture.order.is_invoice_generated = true;
     await go(base);
     fixture.failInvoice = true;
     await page

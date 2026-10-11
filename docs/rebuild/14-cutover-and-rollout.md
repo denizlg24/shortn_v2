@@ -42,9 +42,10 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 
 - Work: apps/web dashboard at parity (links, analytics, QR, bio editor, campaigns, settings, members, billing), apps/api webhooks for Polar in shadow, session handoff (05), and email templates.
 - **Beta:** an opt-in "Try the new Shortn" banner in legacy, with feedback collected in-app. Internal + Vida Económica first (with their consent), then all users opt-in. Both UIs operate on the **same data**. That's safe because new code writes legacy-compatible fields until contract (the new services also set `sub`, `urlCode`, `longUrl`, … on create/update during coexistence).
-- **Billing switch:** move the Polar webhook URL to the new handler after 7 days of zero-diff shadow processing (06), then retire the scheduler.
+- **Billing switch:** move the Polar webhook URL to the new handler after verified zero-diff shadow processing (06), then retire the scheduler. The owner waived the fixed seven-day P4 observation duration on 2026-10-11.
 - **Default switch:** `shortn.at/{locale}/dashboard*` → 302 to `app.shortn.at` with handoff. Legacy marketing is replaced by the new marketing on root at the same time or shortly after.
-- Exit gate: parity checklist (every legacy feature mapped and checked), e2e suite green, no P1 bugs open for 7 days, billing reconciler at zero drift.
+- Exit gate: parity checklist (every legacy feature mapped and checked), e2e suite green, no known P1 blockers, billing reconciler at zero drift (with documented staging-only data exceptions). OAuth configuration/callback checks were explicitly deferred to production setup by the owner.
+- **Staging accepted 2026-10-11:** implementation and deployment fixes are merged to staging; automated parity and real provider checks are recorded in [16](16-p4-breakdown.md) and its audit. Visual review is approved, the seven-day P4 duration is waived, and OAuth is deferred to production setup. Production promotion, beta/default routing and billing switches remain separate operator steps.
 - Rollback: remove the 302 (legacy dashboard is still deployed and still reads the same data). For billing, point the webhook back at legacy, since the mirror rebuilds from Polar.
 
 ## P5 · Bio subdomains + custom domains (≈ 2–3 weeks)

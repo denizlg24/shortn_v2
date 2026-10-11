@@ -106,7 +106,7 @@ Better-auth's Polar plugin is kept for **checkout and portal** only (`checkout()
 1. Create the new products in Polar **only if prices change**. Otherwise keep the existing product IDs and add `metadata.shortn_plan` to them. Note: product metadata writes don't fire subscription webhooks, but verify this on the Polar sandbox first.
 2. Map **every** product ID that appears on a non-terminal subscription (M0 #11: archived, yearly and old products included) to a plan using the legacy name rule, into `catalog.legacyProductIds`. An unmapped ID blocks the switch. `past_due` counts as paid, as legacy does.
 3. M11 builds the mirror **read-only** during P3 (no Polar writes while legacy hooks are live).
-4. The new webhook handler runs in **shadow** (processing + diffing, no side effects) for ≥ 7 days with zero diffs.
+4. The new webhook handler runs in **shadow** (processing + diffing, no side effects) with zero diffs. The owner waived the fixed seven-day P4 observation duration on 2026-10-11; record deterministic provider/reconciliation evidence instead.
 5. **Billing switch**, in one maintenance window: freeze the external scheduler (stop accepting and executing) → move the Polar webhook URL to `api.shortn.at/webhooks/polar` (legacy hooks are now dead) → write `metadata.workspaceId` to subscriptions → convert pending `ScheduledChange`s into the new downgrade mechanism (principle 4) → verify each one → mark them migrated.
 6. Decommission the scheduler service after confirming no pending schedules remain (`listSchedules`).
 
