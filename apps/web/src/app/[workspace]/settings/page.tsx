@@ -1,56 +1,81 @@
 import { can } from "@shortn/core";
+import { buttonVariants } from "@shortn/ui";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { CreateWorkspace } from "@/components/settings/general/create-workspace";
-import { DeleteWorkspace } from "@/components/settings/general/delete-workspace";
-import { WorkspaceIdentityForm } from "@/components/settings/general/identity-form";
-import { SettingsPage } from "@/components/settings/section";
+import Link from "next/link";
+import { Notice } from "@/components/page/notice";
+import { Page, Section } from "@/components/page/page";
+import { WorkspaceForm } from "@/components/settings/general/workspace-form";
+import { updateWorkspacePageAction } from "@/server/actions/settings-pages";
 import { env } from "@/server/env";
-import { memberships, requireWorkspace } from "@/server/workspace";
+import { requireWorkspace } from "@/server/workspace";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings");
-  return { title: `${t("nav.general")} · ${t("title")}` };
+  return { title: `${t("general.title")} · ${t("title")}` };
 }
 
 export default async function GeneralSettingsPage({
   params,
+  searchParams,
 }: PageProps<"/[workspace]/settings">) {
-  const { session, workspace, actor } = await requireWorkspace(
-    (await params).workspace,
-  );
-  const [t, list] = await Promise.all([
-    getTranslations("settings.general"),
-    memberships(session.user.id),
+  const slug = (await params).workspace;
+  const [{ saved }, { workspace, actor }, t] = await Promise.all([
+    searchParams,
+    requireWorkspace(slug),
+    getTranslations("settings"),
   ]);
-  const personal = list.find(
-    (membership) =>
-      membership.workspace.personal &&
-      membership.workspace.ownerUserId === session.user.id,
-  );
-  const host = new URL(env().BETTER_AUTH_URL).host;
+  const base = `/${slug}/settings`;
+  const canDelete = !workspace.personal && can(actor, "workspace.delete");
 
   return (
-    <SettingsPage
-      title={t("title")}
-      description={t("description", { workspace: workspace.name })}
+    <Page
+      crumbs={[
+        { label: t("title"), href: base },
+        { label: t("general.title") },
+      ]}
+      title={t("general.title")}
+      description={t("general.description", { workspace: workspace.name })}
+      width="form"
     >
-      <WorkspaceIdentityForm
+      {saved ? <Notice tone="success">{t("general.saved")}</Notice> : null}
+      <WorkspaceForm
         name={workspace.name}
         slug={workspace.slug}
-        host={host}
+        host={new URL(env().BETTER_AUTH_URL).host}
         canUpdate={can(actor, "workspace.update")}
+        action={updateWorkspacePageAction.bind(null, slug)}
       />
-      <CreateWorkspace
-        host={host}
-        personalSlug={personal?.workspace.slug ?? null}
-      />
-      <DeleteWorkspace
-        name={workspace.name}
-        slug={workspace.slug}
-        personal={workspace.personal}
-        canDelete={can(actor, "workspace.delete")}
-      />
-    </SettingsPage>
+      <Section
+        title={t("general.workspaces.title")}
+        description={t("general.workspaces.description")}
+      >
+        <Link
+          href="/workspaces/new"
+          className={buttonVariants({ variant: "secondary", size: "md" })}
+        >
+          {t("general.workspaces.create")}
+        </Link>
+      </Section>
+      <Section
+        title={t("general.danger.title")}
+        description={
+          workspace.personal
+            ? t("general.danger.personal")
+            : canDelete
+              ? t("general.danger.description", { workspace: workspace.name })
+              : t("general.danger.ownerOnly")
+        }
+      >
+        {canDelete ? (
+          <Link
+            href={`${base}/delete`}
+            className={buttonVariants({ variant: "dangerGhost", size: "md" })}
+          >
+            {t("general.danger.action")}
+          </Link>
+        ) : null}
+      </Section>
+    </Page>
   );
 }

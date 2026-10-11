@@ -1,39 +1,34 @@
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
-import type { ActionError, ActionFailure } from "../editor/action-error";
 
-export type QrField = "url" | "logo" | "form";
-
-/** Localized message for a failed QR action, on the field it concerns. */
-export function useQrError() {
+/** Localized message for an error code from the QR form actions. */
+export function useQrErrorMessage() {
   const t = useTranslations("qr.errors");
   return useCallback(
-    (failure: ActionFailure): ActionError<QrField> => {
-      switch (failure.error) {
+    (code: string, detail?: Record<string, string | number | null>) => {
+      switch (code) {
+        case "url_required":
+          return t("urlRequired");
         case "invalid_url":
-          return { field: "url", message: t("invalidUrl") };
+          return t("invalidUrl");
         case "unsafe_destination":
-          return { field: "url", message: t("unsafeDestination") };
+          return t("unsafeDestination");
         case "feature_required":
-          return { field: "logo", message: t("logoGated"), upgrade: true };
+          return t("logoGated");
+        case "logo_url":
+          return t("logoUrl");
+        case "color":
+          return t("color");
         case "limit_reached":
-          return {
-            field: "form",
-            message: t("limitReached", {
-              limit: Number(failure.detail?.limit ?? 0),
-            }),
-            upgrade: true,
-          };
+          return t("limitReached", { limit: Number(detail?.limit ?? 0) });
         case "forbidden":
-          return { field: "form", message: t("forbidden") };
+          return t("forbidden");
         case "not_found":
-          return { field: "form", message: t("notFound") };
+          return t("notFound");
         case "invalid_input":
-          return { field: "form", message: t("invalidInput") };
-        case "network":
-          return { field: "form", message: t("network") };
+          return t("invalidInput");
         default:
-          return { field: "form", message: t("generic") };
+          return t("generic");
       }
     },
     [t],

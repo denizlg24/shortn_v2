@@ -15,7 +15,8 @@ export type CampaignError =
   | "feature_required"
   | "not_found"
   | "title_taken"
-  | "invalid_title";
+  | "invalid_title"
+  | "conflict";
 
 export interface UtmDefaults {
   sources: string[];
@@ -288,6 +289,8 @@ export async function setLinkUtm(
   ctx: ServiceContext,
   linkId: string,
   variants: UtmVariant[],
+  /** Reject a form opened before another editor changed the variants. */
+  expected?: readonly UtmVariant[],
 ): Promise<Result<null, CampaignError>> {
   const blocked = await gate(ctx, true);
   if (blocked) return blocked;
@@ -298,6 +301,25 @@ export async function setLinkUtm(
       })
     : null;
   if (!link) return fail("not_found");
+  const current = (link.utmLinks ?? []).map((variant) => ({
+    source: typeof variant.source === "string" ? variant.source : undefined,
+    medium: typeof variant.medium === "string" ? variant.medium : undefined,
+    campaign: variant.campaign?.title,
+    term: typeof variant.term === "string" ? variant.term : undefined,
+    content: typeof variant.content === "string" ? variant.content : undefined,
+  }));
+  const snapshot = (items: readonly UtmVariant[]) =>
+    JSON.stringify(
+      items.map((item) => [
+        item.source || "",
+        item.medium || "",
+        item.campaign || "",
+        item.term || "",
+        item.content || "",
+      ]),
+    );
+  if (expected && snapshot(current) !== snapshot(expected))
+    return fail("conflict");
   const clean = (value: string | undefined) => value?.trim() || undefined;
   const titles = [
     ...new Set(
@@ -332,12 +354,13 @@ export async function setLinkUtm(
   });
   const kept = new Set([...ids.values()].map(String));
   const removed = before.filter((id) => !kept.has(id));
-  await ctx.db
+  const updated = await ctx.db
     .collection(physicalNames.links)
     .updateOne(
-      { _id: link._id },
+      { _id: link._id, utmLinks: link.utmLinks ?? { $exists: false } },
       { $set: { utmLinks, updatedAt: nowOf(ctx) } },
     );
+  if (!updated.matchedCount) return fail("conflict");
   if (ids.size)
     await campaigns.updateMany(
       { _id: { $in: [...ids.values()] } },

@@ -11,18 +11,44 @@ export const intervals = [
   "month",
 ] as const satisfies readonly Interval[];
 
+// Filters on event attributes; they need the analyticsBreakdowns feature.
 export const filterDimensions = [
   "country",
-  "referrer",
   "device",
   "browser",
   "os",
+  "referrer",
   "utmSource",
   "utmMedium",
   "utmCampaign",
 ] as const satisfies readonly Dimension[];
 export type FilterDimension = (typeof filterDimensions)[number];
-export type AnalyticsFilters = Partial<Record<FilterDimension, string>>;
+
+// Filters that only narrow what is counted (one link, clicks or scans); every
+// plan has them, since the link and QR pages already show the same numbers.
+export const scopeFilters = ["link", "kind"] as const;
+export type ScopeFilter = (typeof scopeFilters)[number];
+
+export type QueryFilter = ScopeFilter | FilterDimension;
+export const queryFilters: readonly QueryFilter[] = [
+  ...scopeFilters,
+  ...filterDimensions,
+];
+export type AnalyticsFilters = Partial<Record<QueryFilter, string>>;
+
+export const eventKinds = ["click", "scan"] as const;
+export type EventKind = (typeof eventKinds)[number];
+export const isEventKind = (value: unknown): value is EventKind =>
+  eventKinds.some((kind) => kind === value);
+
+const objectIdPattern = /^[a-f0-9]{24}$/;
+
+const filterValue = (filter: QueryFilter, raw: string | null) => {
+  if (!raw) return null;
+  if (filter === "link") return objectIdPattern.test(raw) ? raw : null;
+  if (filter === "kind") return isEventKind(raw) ? raw : null;
+  return raw.slice(0, 200);
+};
 
 export interface AnalyticsQuery {
   range: RangeChoice;
@@ -115,20 +141,20 @@ export function parseQuery(params: ParamSource): AnalyticsQuery {
     allowedIntervals(days).find((option) => option === rawInterval) ??
     defaultInterval(days);
   const filters: AnalyticsFilters = {};
-  for (const dimension of filterDimensions) {
-    const value = params.get(dimension);
-    if (value) filters[dimension] = value.slice(0, 200);
+  for (const filter of queryFilters) {
+    const value = filterValue(filter, params.get(filter));
+    if (value) filters[filter] = value;
   }
   return { range, from, to, interval, filters };
 }
 
-/** Every search param the query owns; pages keep the rest (e.g. `tab`). */
+/** Every search param the query owns; pages keep the rest (e.g. `sort`). */
 export const queryParamNames: ReadonlySet<string> = new Set([
   "range",
   "from",
   "to",
   "interval",
-  ...filterDimensions,
+  ...queryFilters,
 ]);
 
 /** Only non-default values, so a plain /analytics URL means "last 30 days". */
@@ -142,31 +168,62 @@ export function toSearchParams(query: AnalyticsQuery): URLSearchParams {
   const days = spanDays(query.range, query.from, query.to);
   if (query.interval !== defaultInterval(days))
     params.set("interval", query.interval);
-  for (const dimension of filterDimensions) {
-    const value = query.filters[dimension];
-    if (value) params.set(dimension, value);
+  for (const filter of queryFilters) {
+    const value = query.filters[filter];
+    if (value) params.set(filter, value);
   }
   return params;
 }
 
-/** Changes the range and keeps the interval only if it still fits. */
-export function withRange(
+/**
+ * Tidies what the filter bar submits: picking "Custom" fills in the last 30
+ * days, swapped dates are put in order, a new range gets its default
+ * interval, and defaults leave the URL. Params the query doesn't own stay.
+ */
+export function normalizeSearch(
+  next: URLSearchParams,
+  current: URLSearchParams,
+  now: Date,
+): URLSearchParams {
+  const submitted = new URLSearchParams(next);
+  if (submitted.get("range") === "custom") {
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let end = parseDay(submitted.get("to")) ?? today;
+    let start =
+      parseDay(submitted.get("from")) ??
+      new Date(end.getFullYear(), end.getMonth(), end.getDate() - 29);
+    if (start > end) [start, end] = [end, start];
+    submitted.set("from", formatDay(start));
+    submitted.set("to", formatDay(end));
+  }
+  const previous = parseQuery(current);
+  const parsed = parseQuery(submitted);
+  const query =
+    parsed.range === previous.range &&
+    parsed.from === previous.from &&
+    parsed.to === previous.to
+      ? parsed
+      : {
+          ...parsed,
+          interval: defaultInterval(
+            spanDays(parsed.range, parsed.from, parsed.to),
+          ),
+        };
+  const params = toSearchParams(query);
+  for (const [name, value] of next)
+    if (!queryParamNames.has(name)) params.append(name, value);
+  return params;
+}
+
+/** The query as a search string, with extra params such as a scope's filters. */
+export function queryString(
   query: AnalyticsQuery,
-  range: RangeChoice,
-  from: string | null = null,
-  to: string | null = null,
-): AnalyticsQuery {
-  const days = spanDays(range, from, to);
-  const interval = allowedIntervals(days).includes(query.interval)
-    ? query.interval
-    : defaultInterval(days);
-  return {
-    ...query,
-    range,
-    from: range === "custom" ? from : null,
-    to: range === "custom" ? to : null,
-    interval: range === query.range ? interval : defaultInterval(days),
-  };
+  extra: Record<string, string> = {},
+): string {
+  const params = toSearchParams(query);
+  for (const [name, value] of Object.entries(extra)) params.set(name, value);
+  const search = params.toString();
+  return search ? `?${search}` : "";
 }
 
 /** Local-time bounds; preset ranges end now and start at a local midnight. */

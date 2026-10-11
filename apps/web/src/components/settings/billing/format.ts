@@ -28,16 +28,31 @@ export function useBillingFormat() {
   );
 
   const price = useCallback(
-    (usd: number | null) =>
-      usd === null
-        ? t("priceCustom")
-        : t("price", {
-            price: format.number(usd, {
-              style: "currency",
-              currency: "USD",
-              maximumFractionDigits: 0,
-            }),
+    (usd: number | null, eurPerUsd?: number | null) => {
+      if (usd === null) return t("priceCustom");
+      const dollars = format.number(usd, {
+        style: "currency",
+        currency: "USD",
+        maximumFractionDigits: 0,
+      });
+      if (usd === 0)
+        return t("price", {
+          price: format.number(0, {
+            style: "currency",
+            currency: "EUR",
+            maximumFractionDigits: 0,
           }),
+        });
+      if (eurPerUsd && Number.isFinite(eurPerUsd) && eurPerUsd > 0)
+        return t("priceEstimate", {
+          eur: format.number(usd * eurPerUsd, {
+            style: "currency",
+            currency: "EUR",
+          }),
+          usd: dollars,
+        });
+      return t("price", { price: dollars });
+    },
     [format, t],
   );
 

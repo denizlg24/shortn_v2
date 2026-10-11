@@ -83,7 +83,14 @@
     "protectedHint": "Protegido — dica: {hint}",
     "unprotected": "Sem proteção",
     "safety": "Segurança",
-    "delete": "Eliminar link"
+    "delete": "Eliminar link",
+    "activity": "Cliques e leituras",
+    "historyLimited": "O seu plano inclui histórico desde {date}.",
+    "noActivity": "Sem cliques ou leituras neste período.",
+    "createdBy": "Criado por",
+    "unknownCreator": "Criador indisponível",
+    "disabledNotice": "Esta ligação curta está desativada e não redireciona os visitantes.",
+    "safetyPage": "Os visitantes veem uma página de segurança antes de continuar."
   },
   "form": {
     "newTitle": "Novo link",
@@ -158,7 +165,15 @@
       "campaign": "Agrupa o link numa campanha com o mesmo nome.",
       "term": "Palavra-chave de pesquisa paga. Opcional.",
       "content": "Distingue links semelhantes. Opcional."
-    }
+    },
+    "deleteTitle": "Remover variante UTM",
+    "deleteDescription": "Reveja a variante antes de a remover.",
+    "deleteConfirm": "Remover variante",
+    "deleteConsequence": "Esta variante é removida da lista guardada. Os URLs já partilhados continuam a redirecionar e as suas estatísticas permanecem disponíveis.",
+    "deleteCampaignConsequence": "Se esta era a última variante da ligação numa campanha, a ligação sai dessa campanha. As campanhas vazias são eliminadas.",
+    "removed": "Variante removida.",
+    "changed": "As variantes foram alteradas desde que abriu esta página. Volte à lista de variantes e reveja a versão atual.",
+    "defaultsHint": "Escolha uma campanha guardada para ver os seus valores predefinidos. Também pode escrever os seus próprios valores."
   },
   "qr": {
     "title": "Código QR",
@@ -171,6 +186,7 @@
     "url_required": "Indique o URL de destino.",
     "utm_empty": "Preencha pelo menos um campo.",
     "feature_required": "O seu plano não inclui isto.",
-    "limit_reached": "Já usou todos os {limit} links deste período."
+    "limit_reached": "Já usou todos os {limit} links deste período.",
+    "utm_limit": "Uma ligação pode ter até 50 variantes UTM guardadas. Remova uma variante antes de adicionar outra."
   }
 }

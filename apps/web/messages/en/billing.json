@@ -24,7 +24,8 @@
     "cancelled": "{plan} is set to end on {date}. This page catches up once Polar confirms, usually within seconds.",
     "resumed": "{plan} renews as usual again.",
     "legacy": "Plan changes and cancellation still happen on shortn.at while billing moves to the new dashboard.",
-    "legacyAction": "Manage plan on shortn.at"
+    "legacyAction": "Manage plan on shortn.at",
+    "comparePlans": "Compare plans"
   },
   "status": {
     "checkoutPending": "Payment received. Your new plan shows here within a few seconds, as soon as Polar confirms it.",
@@ -53,7 +54,7 @@
   },
   "compare": {
     "title": "Plans",
-    "description": "Prices in US dollars, billed monthly. Link and QR code limits reset every billing period.",
+    "description": "Monthly plans billed in US dollars. Euro amounts are estimates. Link and QR code limits reset every billing period.",
     "caption": "Plan comparison",
     "current": "Current",
     "upgrade": "Upgrade",
@@ -89,7 +90,9 @@
       "qrLogo": "Logo in QR codes",
       "api": "API access",
       "mcp": "MCP server"
-    }
+    },
+    "upgradeTo": "Upgrade to {plan}",
+    "switchTo": "Switch to {plan}"
   },
   "errors": {
     "alreadySubscribed": "This workspace already has a subscription. Refresh the page to see it.",
@@ -99,6 +102,62 @@
     "customPriced": "Your subscription has custom pricing. Contact us to change it.",
     "forbidden": "Only the workspace owner can manage billing.",
     "generic": "Something went wrong on our side. Try again.",
-    "network": "Couldn't reach Shortn. Check your connection and try again."
+    "network": "Couldn't reach Shortn. Check your connection and try again.",
+    "portal": "Couldn’t open billing. Try again."
+  },
+  "invoices": {
+    "title": "Invoices",
+    "description": "Payment history for this workspace. Update billing details and payment methods in the billing portal.",
+    "open": "Open billing portal",
+    "date": "Date",
+    "invoice": "Invoice",
+    "status": "Status",
+    "amount": "Amount",
+    "download": "Download",
+    "empty": "No payment records for this workspace yet.",
+    "unavailable": "Payment history is temporarily unavailable.",
+    "retry": "Try again",
+    "awaitingNumber": "Awaiting invoice number",
+    "notReady": "Not ready",
+    "downloadInvoice": "Download invoice {number}",
+    "downloadFailed": "Couldn’t download the invoice. Try again or open the billing portal.",
+    "refundedAmount": "{amount} refunded",
+    "statuses": {
+      "draft": "Draft",
+      "pending": "Pending",
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "partiallyRefunded": "Partially refunded",
+      "void": "Void",
+      "unknown": "Unknown"
+    }
+  },
+  "plansPage": {
+    "title": "Compare plans"
+  },
+  "confirm": {
+    "whatHappens": "What happens"
+  },
+  "change": {
+    "upgradeTitle": "Upgrade to {plan}",
+    "downgradeTitle": "Switch to {plan}",
+    "upgradeNow": "{plan} starts immediately after the billing provider confirms.",
+    "upgradeInvoice": "You are charged the prorated difference for this billing period.",
+    "downgradeLater": "You keep {current} until {date}, then switch to {plan}.",
+    "downgradeLimits": "The limits and features of {plan} apply when the change takes effect."
+  },
+  "cancelPage": {
+    "title": "Cancel plan",
+    "heading": "Cancel {plan}?",
+    "keepUntil": "You keep {plan} until {date}.",
+    "thenFree": "Then the workspace moves to Free, with {links} links and {qrCodes} QR codes per period.",
+    "undo": "You can keep {plan} by resuming before the period ends.",
+    "sectionTitle": "Cancellation",
+    "sectionDescription": "Cancel {plan} at the end of the current period on {date}."
+  },
+  "priceEstimate": "≈ {eur}/month, billed as {usd}/month",
+  "exchangeRate": {
+    "note": "EUR estimates use ECB reference rates from {date}. Checkout is billed in USD.",
+    "unavailable": "EUR estimates are temporarily unavailable. Checkout is billed in USD."
   }
 }

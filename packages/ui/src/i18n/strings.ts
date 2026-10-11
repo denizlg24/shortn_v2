@@ -1,8 +1,9 @@
-export type Locale = "en" | "pt";
+export type Locale = "en" | "pt" | "es";
 
 export const INTL_LOCALE: Record<Locale, string> = {
   en: "en-GB",
   pt: "pt-PT",
+  es: "es-ES",
 };
 
 export interface UIStrings {
@@ -172,4 +173,60 @@ export const pt: UIStrings = {
   keyboardShortcut: "Atalho de teclado",
 };
 
-export const UI_STRINGS: Record<Locale, UIStrings> = { en, pt };
+export const es: UIStrings = {
+  copyShortLink: "Copiar enlace corto",
+  copied: "Copiado",
+  copiedAnnouncement: (link) => `${link} copiado al portapapeles`,
+  copyFailed:
+    "No se pudo acceder al portapapeles. Selecciona el enlace y cópialo manualmente.",
+  close: "Cerrar",
+  retry: "Reintentar",
+  noResults: "Sin resultados",
+  search: "Buscar",
+  addFilter: "Filtrar",
+  removeFilter: (label) => `Eliminar filtro: ${label}`,
+  clearFilters: "Borrar filtros",
+  filterIs: "es",
+  filterIsAnyOf: "es uno de",
+  selectedCount: (count) =>
+    `${count} ${plural("es-ES", count, "seleccionado", "seleccionados")}`,
+  clearSelection: "Borrar selección",
+  selectAll: "Seleccionar todo",
+  selectRow: (label) => `Seleccionar ${label}`,
+  columns: "Columnas",
+  columnLink: "Enlace",
+  columnDestination: "Destino",
+  columnTags: "Etiquetas",
+  columnTrend: "30 días",
+  columnClicks: "Clics",
+  columnCreated: "Creado",
+  sortAscending: "Ordenar de forma ascendente",
+  sortDescending: "Ordenar de forma descendente",
+  moreTags: (count) => `+${count}`,
+  loadingLinks: "Cargando enlaces",
+  trendLabel: (total, peak) =>
+    `${total} clics en los últimos 30 días, máximo de ${peak} en un día`,
+  noClicksYet: "Sin clics en los últimos 30 días",
+  usageOf: (used, limit) => `${used} de ${limit}`,
+  usageRemaining: (remaining) => `quedan ${remaining}`,
+  usageOver: (over) => `${over} por encima del límite`,
+  nearLimit: "Cerca del límite",
+  overLimit: "Límite superado",
+  ageUnits: {
+    minute: "min",
+    hour: "h",
+    day: "d",
+    week: "sem",
+    month: "mes",
+    year: "a",
+    now: "ahora",
+    separator: " ",
+  },
+  deltaUp: (value) => `Subió ${value}`,
+  deltaDown: (value) => `Bajó ${value}`,
+  deltaFlat: "Sin cambios",
+  comparedToPrevious: "frente a los 30 días anteriores",
+  keyboardShortcut: "Atajo de teclado",
+};
+
+export const UI_STRINGS: Record<Locale, UIStrings> = { en, pt, es };

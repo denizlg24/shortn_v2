@@ -1,21 +1,5 @@
-import type { QrDesign } from "@shortn/core";
-import type {
-  CornerDotType,
-  CornerSquareType,
-  DotType,
-  ErrorCorrectionLevel,
-  Options,
-} from "qr-code-styling";
-import { cornerStyles, dotStyles, errorLevels } from "./qr-draft";
+import type { Options } from "qr-code-styling";
 import { parseColor } from "./qr-scan-check";
-
-const dotTypes: readonly DotType[] = dotStyles;
-const cornerSquareTypes: readonly CornerSquareType[] = cornerStyles;
-const cornerDotTypes: readonly CornerDotType[] = cornerStyles;
-const levels: readonly ErrorCorrectionLevel[] = errorLevels;
-
-const pick = <T extends string>(options: readonly T[], value?: string) =>
-  options.find((option) => option === value);
 
 const renderTimeoutMs = 10_000;
 const probeTimeoutMs = 8_000;
@@ -24,56 +8,6 @@ const probeTimeoutMs = 8_000;
 let styling: Promise<typeof import("qr-code-styling").default> | null = null;
 const loadStyling = () =>
   (styling ??= import("qr-code-styling").then((module) => module.default));
-
-/**
- * qr-code-styling options from a stored design, the way legacy renders it.
- * Values outside the library's unions fall back to its defaults.
- */
-export function stylingOptions(design: QrDesign, data: string): Options {
-  const dotType = pick(dotTypes, design.dotsOptions?.type);
-  const squareType = pick(cornerSquareTypes, design.cornersSquareOptions?.type);
-  const cornerDotType = pick(cornerDotTypes, design.cornersDotOptions?.type);
-  const level = pick(levels, design.qrOptions?.errorCorrectionLevel);
-  const image = design.imageOptions;
-  return {
-    type: "svg",
-    width: design.width ?? 300,
-    height: design.height ?? 300,
-    data: design.data || data,
-    ...(design.margin === undefined ? {} : { margin: design.margin }),
-    ...(design.image ? { image: design.image } : {}),
-    ...(level ? { qrOptions: { errorCorrectionLevel: level } } : {}),
-    imageOptions: {
-      ...(image?.crossOrigin ? { crossOrigin: image.crossOrigin } : {}),
-      ...(image?.margin === undefined ? {} : { margin: image.margin }),
-      ...(image?.imageSize === undefined ? {} : { imageSize: image.imageSize }),
-      ...(image?.hideBackgroundDots === undefined
-        ? {}
-        : { hideBackgroundDots: image.hideBackgroundDots }),
-    },
-    dotsOptions: {
-      ...(design.dotsOptions?.color ? { color: design.dotsOptions.color } : {}),
-      ...(dotType ? { type: dotType } : {}),
-    },
-    backgroundOptions: {
-      ...(design.backgroundOptions?.color
-        ? { color: design.backgroundOptions.color }
-        : {}),
-    },
-    cornersSquareOptions: {
-      ...(design.cornersSquareOptions?.color
-        ? { color: design.cornersSquareOptions.color }
-        : {}),
-      ...(squareType ? { type: squareType } : {}),
-    },
-    cornersDotOptions: {
-      ...(design.cornersDotOptions?.color
-        ? { color: design.cornersDotOptions.color }
-        : {}),
-      ...(cornerDotType ? { type: cornerDotType } : {}),
-    },
-  };
-}
 
 /** Same code at another pixel size; margins scale with it. */
 export function scaled(options: Options, size: number): Options {
@@ -100,6 +34,13 @@ const probes = new Map<string, Promise<boolean>>();
 // qr-code-styling never settles when a logo fails to load (it only listens
 // for `load`), so each logo is tried first the way the library loads it.
 function logoLoads(url: string): Promise<boolean> {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:")
+      return Promise.resolve(false);
+  } catch {
+    return Promise.resolve(false);
+  }
   let probe = probes.get(url);
   if (!probe) {
     probe = new Promise<boolean>((resolve) => {

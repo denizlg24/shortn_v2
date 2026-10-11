@@ -28,5 +28,24 @@
     "search": "Search or create a tag",
     "empty": "No tags yet. Type to create one.",
     "create": "Create “{tag}”"
+  },
+  "suggestions": {
+    "open": "Suggestions for {field}",
+    "search": "Search suggestions…",
+    "empty": "No matching suggestions."
+  },
+  "imageUpload": {
+    "choose": "Upload image",
+    "replace": "Replace image",
+    "remove": "Remove",
+    "uploading": "Uploading…",
+    "hint": "PNG, JPEG, WebP, GIF or SVG · up to 5 MB.",
+    "size": "Choose an image smaller than 5 MB.",
+    "type": "This image could not be read. Choose a PNG, JPEG, WebP, GIF or SVG.",
+    "forbidden": "You do not have permission to upload images here.",
+    "unauthenticated": "Sign in again to upload an image.",
+    "plan": "Your plan does not include QR logos.",
+    "unavailable": "Image uploads are not configured yet.",
+    "failed": "The image did not upload. Try again."
   }
 }

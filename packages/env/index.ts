@@ -137,15 +137,56 @@ export const polarEnvironment = value(
   "sandbox",
   "Polar API environment",
 );
+const objectStorage = {
+  S3_ENDPOINT: url(
+    "https://api.denizlg24.com/v2",
+    "Self-hosted path-style S3 gateway",
+  ),
+  S3_REGION: value(z.string().min(1), "eu-west-1", "S3 signing region"),
+  S3_BUCKET: value(
+    z.string().min(1),
+    "shortn-v2-staging",
+    "S3 bucket; use shortn-v2 in production",
+  ),
+  S3_ACCESS_KEY_ID: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project access key",
+  ),
+  S3_SECRET_ACCESS_KEY: value(
+    z.string().min(1),
+    "replace-me",
+    "S3 project secret key",
+  ),
+};
+
 export const webEnv = z
   .object({
     ...common,
+    S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional().meta(
+      objectStorage.S3_ENDPOINT.meta() ?? {},
+    ),
+    S3_REGION: objectStorage.S3_REGION.optional().meta(
+      objectStorage.S3_REGION.meta() ?? {},
+    ),
+    S3_BUCKET: objectStorage.S3_BUCKET.optional().meta(
+      objectStorage.S3_BUCKET.meta() ?? {},
+    ),
+    S3_ACCESS_KEY_ID: objectStorage.S3_ACCESS_KEY_ID.optional().meta(
+      objectStorage.S3_ACCESS_KEY_ID.meta() ?? {},
+    ),
+    S3_SECRET_ACCESS_KEY: objectStorage.S3_SECRET_ACCESS_KEY.optional().meta(
+      objectStorage.S3_SECRET_ACCESS_KEY.meta() ?? {},
+    ),
     BETTER_AUTH_SECRET: secret("Authentication secret"),
     BETTER_AUTH_URL: httpUrl(
       "http://localhost:3000",
       "Dashboard origin (app.shortn.at); auth cookies are host-only here",
     ),
-    ...oauth,
+    AUTH_GITHUB_ID: oauth.AUTH_GITHUB_ID.optional(),
+    AUTH_GITHUB_SECRET: oauth.AUTH_GITHUB_SECRET.optional(),
+    AUTH_GOOGLE_ID: oauth.AUTH_GOOGLE_ID.optional(),
+    AUTH_GOOGLE_SECRET: oauth.AUTH_GOOGLE_SECRET.optional(),
     POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
     POLAR_ENVIRONMENT: polarEnvironment,
     RESEND_API_KEY: mail.RESEND_API_KEY,
@@ -314,26 +355,7 @@ export const legacyInfraEnv = z.object({
   ),
   PICRON_USERNAME: value(z.string().min(1), "replace-me", "PiCron username"),
   PICRON_PASSWORD: value(z.string().min(1), "replace-me", "PiCron password"),
-  S3_ENDPOINT: url(
-    "https://api.denizlg24.com/v2",
-    "Self-hosted path-style S3 gateway",
-  ),
-  S3_REGION: value(z.string().min(1), "eu-west-1", "S3 signing region"),
-  S3_BUCKET: value(
-    z.string().min(1),
-    "shortn-v2-staging",
-    "S3 bucket; use shortn-v2 in production",
-  ),
-  S3_ACCESS_KEY_ID: value(
-    z.string().min(1),
-    "replace-me",
-    "S3 project access key",
-  ),
-  S3_SECRET_ACCESS_KEY: value(
-    z.string().min(1),
-    "replace-me",
-    "S3 project secret key",
-  ),
+  ...objectStorage,
   NEXT_PUBLIC_APP_URL: url(
     "http://localhost:3000",
     "Legacy app origin for public asset URLs",
@@ -344,7 +366,12 @@ export function parseEnv<S extends z.ZodType>(
   schema: S,
   source: Record<string, string | undefined>,
 ): z.output<S> {
-  const result = schema.safeParse(source);
+  // Empty entries in dotenv files mean "not configured". This also lets a
+  // dev launcher mask local files without enabling optional integrations.
+  const configured = Object.fromEntries(
+    Object.entries(source).filter(([, value]) => value !== ""),
+  );
+  const result = schema.safeParse(configured);
   if (result.success) return result.data;
   throw new Error(
     `Invalid environment:\n${result.error.issues.map((issue) => `  ${issue.path.join(".")}: ${issue.message}`).join("\n")}`,

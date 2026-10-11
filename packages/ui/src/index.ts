@@ -5,6 +5,7 @@ export {
   INTL_LOCALE,
   en as uiStringsEn,
   pt as uiStringsPt,
+  es as uiStringsEs,
   type Locale,
   type UIStrings,
 } from "./i18n/strings";

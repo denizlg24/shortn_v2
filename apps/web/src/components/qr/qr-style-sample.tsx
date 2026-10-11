@@ -3,7 +3,8 @@
 import { Skeleton } from "@shortn/ui";
 import { useEffect, useState } from "react";
 import type { CornerStyle, DotStyle } from "./qr-draft";
-import { renderQrUrl, stylingOptions } from "./qr-render";
+import { printedOptions } from "./qr-options";
+import { renderQrUrl } from "./qr-render";
 
 export type SamplePart = "dots" | "cornerSquare" | "cornerDot";
 
@@ -21,7 +22,7 @@ function sampleUrl(part: SamplePart, style: string) {
   let sample = samples.get(key);
   if (!sample) {
     sample = renderQrUrl(
-      stylingOptions(
+      printedOptions(
         {
           width: drawn,
           height: drawn,

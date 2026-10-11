@@ -25,7 +25,7 @@ Implements the owner's IA rules from 12 (superseded IA note, 2026-10-10): full p
 | --- | --- | --- |
 | `/links` | Links list | Filter bar: search, Tags (multi-select), Created (date range), Status (all / password-protected / flagged / disabled), Sort (newest, oldest, most clicks). Table: short link, destination, tags, clicks, created. Row → link overview. Bulk select → "Delete selected" → confirmation page. Primary: **New link**. |
 | `/links/new` | New link | Destination (required), custom key (plan-gated, with explanation), title, description, tags, password + hint (Pro). Create → `/links/{id}?created=1` (copy button prominent). |
-| `/links/{id}` | Link overview | Short link + copy, destination, status (safety, password), tags, created/creator, last 30 days chart + clicks/scans/visitors, top 5 countries and referrers with "See all" → analytics tab. |
+| `/links/{id}` | Link overview | Short link + copy/share, destination, status (safety, password), tags, created/creator, last 30 days chart + clicks/scans/visitors, top 5 countries and referrers with "See all" → analytics tab. |
 | `/links/{id}/analytics` | Link analytics | Same analytics page as `/analytics` scoped to this link. |
 | `/links/{id}/qr` | Link QR code | Attached QR code preview + download, or "Create a QR code for this link" → `/qr/new?link={id}`. |
 | `/links/{id}/utm` | UTM variants | Table of variants (source, medium, campaign, term, content) with the tagged URL + copy; **Add variant** → `/links/{id}/utm/new`; edit/remove per row. |
@@ -71,7 +71,7 @@ Implements the owner's IA rules from 12 (superseded IA note, 2026-10-10): full p
 | --- | --- | --- |
 | `/bio` | Bio pages list | Primary: **New bio page**. |
 | `/bio/new` | New bio page | Slug (with live availability), title, optional first link. |
-| `/bio/{id}` | Overview | Public URL + copy/open, live preview, link count. |
+| `/bio/{id}` | Overview | Public URL + copy/share/open, live preview, link count. |
 | `/bio/{id}/profile` | Profile | Title, description, avatar, avatar shape — with preview. |
 | `/bio/{id}/links` | Links | Ordered list, add from workspace links, reorder, per-link title/image — with preview. |
 | `/bio/{id}/socials` | Socials | Platform + URL list — with preview. |
@@ -86,7 +86,7 @@ Implements the owner's IA rules from 12 (superseded IA note, 2026-10-10): full p
 | `/settings/members` | Members and pending invites |
 | `/settings/members/invite` | Invite member (email, role, what the role can do) |
 | `/settings/members/{userId}` | Member: role change, remove |
-| `/settings/billing` | Plan, period, usage meters, invoices link |
+| `/settings/billing` | Plan, period, usage meters, paginated payment history, generated invoice downloads, billing portal |
 | `/settings/billing/plans` | Compare plans, upgrade / change / cancel |
 | `/settings/account` | Profile |
 | `/settings/account/email` | Change email |

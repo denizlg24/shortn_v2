@@ -14,7 +14,7 @@
 
 ## Principles
 
-1. **Polar is the system of record for money. Shortn is the system of record for entitlements.** We mirror Polar state locally via webhooks and _never_ call Polar on a read path.
+1. **Polar is the system of record for money. Shortn is the system of record for entitlements.** We mirror Polar state locally via webhooks; entitlement and usage reads never call Polar. Owner-only payment history and invoice downloads read Polar directly, since it is the source of truth for those money records (owner request, 2026-10-11).
 2. **Entitlements derive from product IDs and metadata, never names.** Each Polar product carries `metadata.shortn_plan = "pro"` / `metadata.shortn_addon = "custom_domains"`. The mapping lives in code (`packages/billing/catalog.ts`) and is cross-checked at boot against Polar.
 3. **One limits table**, in code, versioned. Grandfathered workspaces pin a catalog version.
 4. **No external scheduler.** Cancellation uses Polar's native `cancel_at_period_end`. **Downgrades use `proration_behavior: "next_period"`** on `PATCH /v1/subscriptions/{id}`. Polar queues it as a `pending_update` (with `applies_at`) and applies it at the start of the next billing period, with no proration ([Polar proration docs](https://polar.sh/docs/features/subscriptions/proration), [manage subscriptions](https://polar.sh/docs/features/subscriptions/manage)). The UI reads `pending_update` from the mirror. Constraints: a subscription scheduled to cancel must be uncanceled before a plan change, and custom-priced products can't be change targets. Both are handled in `billing.changePlan()`. Verified on the Polar sandbox in P4 before the switch.
@@ -112,7 +112,7 @@ Better-auth's Polar plugin is kept for **checkout and portal** only (`checkout()
 
 ## UI (detail in 12)
 
-- Settings → Billing: current plan, renewal date, usage meters with exact numbers, add-ons with quantity steppers, invoices (Polar portal link), and a plan comparison with real limits from the catalog.
+- Settings → Billing: current plan, renewal date, usage meters with exact numbers, add-ons with quantity steppers, paginated payment records and generated invoice downloads (Polar Orders API), plus the Polar portal for payment methods and billing details, and a plan comparison with real limits from the catalog.
 - Upgrade prompts are inline at the point of limit ("You've created 25 of 25 links this period"), never modal ambushes.
 
 ## Acceptance

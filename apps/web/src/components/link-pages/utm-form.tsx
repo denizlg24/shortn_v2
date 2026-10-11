@@ -1,8 +1,11 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useActionState, useId } from "react";
-import { FormActions, FormField, inputClass } from "../page/form";
+import type { CampaignView } from "@shortn/core";
+import { SuggestionInput } from "../page/suggestion-input";
+import { useId, useState } from "react";
+import { FormActions, FormField } from "../page/form";
+import { useFormSubmit } from "../editor/use-form-submit";
 import type { FormState } from "@/server/actions/link-pages";
 
 const fields = [
@@ -17,13 +20,12 @@ export type UtmValues = Record<(typeof fields)[number][0], string>;
 
 export function UtmForm({
   initial,
-  suggestions,
+  campaigns,
   action,
   cancelHref,
 }: {
   initial: UtmValues;
-  // Existing campaign titles, offered for the campaign field.
-  suggestions: string[];
+  campaigns: Pick<CampaignView, "title" | "utmDefaults">[];
   action: (state: FormState, form: FormData) => Promise<FormState>;
   cancelHref: string;
 }) {
@@ -31,16 +33,34 @@ export function UtmForm({
   const tErrors = useTranslations("linkPages.errors");
   const tLink = useTranslations("links.errors");
   const tPage = useTranslations("page");
-  const [state, formAction, pending] = useActionState(action, { error: null });
+  const { state, pending, onSubmit } = useFormSubmit(action);
   const id = useId();
+  const [values, setValues] = useState(initial);
+  const campaign = campaigns.find(
+    (item) => item.title.toLowerCase() === values.campaign.trim().toLowerCase(),
+  );
+  const defaults = {
+    source: campaign?.utmDefaults.sources ?? [],
+    medium: campaign?.utmDefaults.mediums ?? [],
+    term: campaign?.utmDefaults.terms ?? [],
+    content: campaign?.utmDefaults.contents ?? [],
+    campaign: campaigns.map((item) => item.title),
+  };
   const error =
-    state.error === "utm_empty"
-      ? tErrors("utm_empty")
-      : state.error
-        ? tLink("generic")
-        : null;
+    state.error === "utm_empty" ||
+    state.error === "utm_limit" ||
+    state.error === "feature_required"
+      ? tErrors(state.error)
+      : state.error === "conflict" || state.error === "not_found"
+        ? t("changed")
+        : state.error === "forbidden"
+          ? tLink("forbidden")
+          : state.error
+            ? tLink("generic")
+            : null;
   return (
-    <form action={formAction} noValidate className="flex flex-col gap-4">
+    <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
+      <p className="text-small text-fg-muted">{t("defaultsHint")}</p>
       {fields.map(([field, max]) => (
         <FormField
           key={field}
@@ -48,22 +68,21 @@ export function UtmForm({
           label={t(`fields.${field}`)}
           hint={t(`hints.${field}`)}
         >
-          <input
+          <SuggestionInput
+            label={t(`fields.${field}`)}
+            suggestions={defaults[field]}
+            value={values[field]}
+            onValueChange={(value) =>
+              setValues((current) => ({ ...current, [field]: value }))
+            }
             id={`${id}-${field}`}
             name={field}
-            defaultValue={initial[field]}
             maxLength={max}
-            list={field === "campaign" ? `${id}-campaigns` : undefined}
             aria-describedby={`${id}-${field}-hint`}
-            className={inputClass}
           />
         </FormField>
       ))}
-      <datalist id={`${id}-campaigns`}>
-        {suggestions.map((title) => (
-          <option key={title} value={title} />
-        ))}
-      </datalist>
+
       {error ? (
         <p role="alert" className="text-small text-danger">
           {error}

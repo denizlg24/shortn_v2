@@ -1,45 +1,42 @@
 "use client";
 
 import type { PlanId } from "@shortn/billing";
-import type { Dimension } from "@shortn/core";
 import {
   Button,
   cn,
   EmptyState,
-  FilterBar,
   formatDate,
   formatNumber,
   Skeleton,
   StatStrip,
   TimeSeriesChart,
-  type FilterField,
-  type FilterValue,
   type Stat,
 } from "@shortn/ui";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useId, useMemo, type ReactNode } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useId, useMemo, type ReactNode } from "react";
 import { useIntlLocale } from "@/lib/intl-locale";
 import type { AnalyticsResult } from "@/server/actions/analytics";
 import { GateNote, UpgradeLink } from "../plan-gate";
 import { PageHeader } from "../shell/page-header";
-import { BreakdownPanel } from "./breakdown-panel";
+import {
+  AnalyticsFilters,
+  shownFilters,
+  type LinkOption,
+} from "./analytics-filters";
+import { TopTable } from "./breakdown-table";
+import {
+  breakdownOrder,
+  breakdownSlugs,
+  filterFor,
+  isOpenBreakdown,
+  toggledFilter,
+  type BreakdownDimension,
+  type BreakdownSlug,
+} from "./breakdowns";
 import { ExportButton } from "./export-button";
 import { useValueLabel } from "./labels";
-import {
-  allowedIntervals,
-  filterDimensions,
-  intervals,
-  parseQuery,
-  queryParamNames,
-  spanDays,
-  toSearchParams,
-  type AnalyticsFilters,
-  type AnalyticsQuery,
-  type FilterDimension,
-} from "./query";
-import { RangePicker } from "./range-picker";
-import { Segmented } from "./segmented";
+import { parseQuery, queryString } from "./query";
 import { StatStripSkeleton } from "./skeleton";
 import {
   useAnalytics,
@@ -47,18 +44,17 @@ import {
   type AnalyticsScope,
 } from "./use-analytics";
 
-const linkDimension = ["link"] as const satisfies readonly Dimension[];
+export type { LinkOption } from "./analytics-filters";
 
-// A campaign scope is already filtered to its utm_campaign, and QR scans
-// arrive through the code's own URL, which carries no UTM tags.
-const hiddenDimensions: Record<
-  AnalyticsScope["type"],
-  readonly FilterDimension[]
-> = {
+const topRows = 10;
+
+// Tables a scope can't vary on: a link has one link, a QR code's URL has
+// no UTM tags, a campaign is a single utm_campaign.
+const hiddenTables: Record<AnalyticsScope["type"], readonly BreakdownSlug[]> = {
   workspace: [],
-  link: [],
-  campaign: ["utmCampaign"],
-  qr: ["utmSource", "utmMedium", "utmCampaign"],
+  link: ["links"],
+  qr: ["links", "utm-source", "utm-medium", "utm-campaign"],
+  campaign: ["utm-campaign"],
 };
 
 const delta = (current: number, previous: number) =>
@@ -72,52 +68,44 @@ export function AnalyticsView({
   breakdownGate,
   embedded = false,
   csvExport,
+  links,
 }: {
   workspace: string;
   scope: AnalyticsScope;
   /** The page title, or the section's accessible name when embedded. */
   title: ReactNode;
-  /** Rendered between the header and the numbers, e.g. the link's details. */
+  /** Rendered between the filters and the numbers, e.g. the link's details. */
   summary?: ReactNode;
   /** Plan that unlocks breakdowns and filters; null when the plan has them. */
   breakdownGate: PlanId | null;
-  /** Inside a page that owns the header (a tab): controls sit in a toolbar row. */
+  /** Inside a `Page` that owns the heading and the gutters. */
   embedded?: boolean;
-  /** Adds an export of the raw events for the selected range. */
+  /** Adds an export of the raw events for the selected range and filters. */
   csvExport?: { params: Record<string, string>; gate: PlanId | null };
+  /** The workspace's links for the Link filter (server-loaded). */
+  links?: LinkOption[];
 }) {
   const t = useTranslations("analytics");
   const tGate = useTranslations("gate");
   const intlLocale = useIntlLocale();
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const chartHeadingId = useId();
+  const gateHeadingId = useId();
 
   const query = useMemo(() => parseQuery(searchParams), [searchParams]);
-  const setQuery = useCallback(
-    (next: AnalyticsQuery) => {
-      const params = toSearchParams(next);
-      for (const [name, value] of new URLSearchParams(window.location.search))
-        if (!queryParamNames.has(name)) params.append(name, value);
-      const search = params.toString();
-      window.history.pushState(
-        null,
-        "",
-        search ? `${pathname}?${search}` : pathname,
-      );
-    },
-    [pathname],
-  );
-
+  const filterable = breakdownGate === null;
   const scopeType = scope.type;
   const scopeId = scope.type === "workspace" ? null : scope.id;
-  const dimensions = useMemo(
+
+  const slugs = useMemo(
     () =>
-      filterDimensions.filter(
-        (dimension) => !hiddenDimensions[scopeType].includes(dimension),
+      breakdownOrder.filter(
+        (slug) =>
+          !hiddenTables[scopeType].includes(slug) &&
+          (filterable || isOpenBreakdown(breakdownSlugs[slug])),
       ),
-    [scopeType],
+    [scopeType, filterable],
   );
   const request = useMemo<AnalyticsRequest>(
     () => ({
@@ -126,98 +114,48 @@ export function AnalyticsView({
           ? { type: "workspace" }
           : { type: scopeType, id: scopeId },
       query,
-      dimensions:
-        scopeType === "workspace"
-          ? [...dimensions, ...linkDimension]
-          : [...dimensions],
+      dimensions: slugs.map((slug) => breakdownSlugs[slug]),
+      limit: topRows,
+      options: filterable ? [...shownFilters(scopeType)] : [],
     }),
-    [scopeType, scopeId, dimensions, query],
+    [scopeType, scopeId, query, slugs, filterable],
   );
   const { status, data, retry } = useAnalytics(workspace, request);
   const valueLabel = useValueLabel(data?.linkLabels);
   const firstLoad = data === null && status === "loading";
-  const filterable = breakdownGate === null;
 
-  const setFilter = (dimension: Dimension, value: string | null) => {
-    const filters: AnalyticsFilters = { ...query.filters };
-    const key = filterDimensions.find((option) => option === dimension);
-    if (!key) return;
-    if (value === null || filters[key] === value) delete filters[key];
-    else filters[key] = value;
-    setQuery({ ...query, filters });
+  const rowHref = (dimension: BreakdownDimension) => (value: string) => {
+    const next = toggledFilter(query, dimension, value);
+    return next ? `${pathname}${queryString(next)}` : null;
   };
+  const seeAllHref = (slug: BreakdownSlug) =>
+    data
+      ? `/${workspace}/analytics/${slug}${queryString(query, data.scopeFilters)}`
+      : null;
 
-  const filterFields: FilterField[] = dimensions.map((dimension) => {
-    const values = (data?.breakdowns[dimension] ?? []).map((row) => row.value);
-    const active = query.filters[dimension];
-    if (active && !values.includes(active)) values.unshift(active);
-    return {
-      id: dimension,
-      label: t(`filters.${dimension}`),
-      options: values.map((value) => ({
-        value,
-        label: valueLabel(dimension, value),
-      })),
-    };
-  });
-  const filterValue: FilterValue = Object.fromEntries(
-    Object.entries(query.filters).map(([dimension, value]) => [
-      dimension,
-      [value],
-    ]),
-  );
+  const exportGated = csvExport?.gate ?? null;
+  const exportControl =
+    csvExport && (filterable || !exportGated) ? (
+      <ExportButton
+        workspace={workspace}
+        query={query}
+        params={csvExport.params}
+        gate={exportGated}
+      />
+    ) : null;
 
-  const days = spanDays(query.range, query.from, query.to);
-  const allowed = allowedIntervals(days);
-
-  const controls = (
+  const body = (
     <>
-      {filterable ? (
-        <FilterBar
-          fields={filterFields}
-          value={filterValue}
-          onValueChange={(next) => {
-            const filters: AnalyticsFilters = {};
-            for (const dimension of dimensions) {
-              const value = next[dimension]?.at(-1);
-              if (value) filters[dimension] = value;
-            }
-            setQuery({ ...query, filters });
-          }}
-          pickerPlaceholder={t("filterBy")}
-          className="max-md:order-last max-md:w-full"
-        />
-      ) : null}
-      <div className="ml-auto flex min-w-0 items-center gap-2 max-sm:ml-0 max-sm:w-full">
-        <RangePicker
-          query={query}
-          onChange={setQuery}
-          className="max-sm:min-w-0 max-sm:flex-1 max-sm:overflow-x-auto"
-        />
-        {csvExport ? (
-          <ExportButton
-            workspace={workspace}
-            query={query}
-            params={csvExport.params}
-            gate={csvExport.gate}
-          />
-        ) : null}
-      </div>
-    </>
-  );
-
-  return (
-    <>
-      {embedded ? (
-        <div className="flex flex-wrap items-center gap-3 gap-y-2 px-gutter pt-5">
-          <h2 className="sr-only">{title}</h2>
-          {controls}
-        </div>
-      ) : (
-        <PageHeader title={title} className="flex-wrap gap-y-2 py-2.5">
-          {controls}
-        </PageHeader>
-      )}
+      <AnalyticsFilters
+        workspace={workspace}
+        scope={scopeType}
+        query={query}
+        links={links}
+        options={data?.options ?? {}}
+        linkLabels={data?.linkLabels ?? {}}
+        filterable={filterable}
+        valueLabel={valueLabel}
+      />
       {summary}
       {status === "error" && data === null ? (
         <EmptyState
@@ -230,7 +168,7 @@ export function AnalyticsView({
         <div
           aria-busy={status === "loading" || undefined}
           className={cn(
-            "flex flex-col gap-8 px-gutter pt-6 pb-10 transition-opacity duration-(--motion-fast)",
+            "flex flex-col gap-8 transition-opacity duration-(--motion-fast)",
             status === "loading" && data !== null && "opacity-60",
           )}
         >
@@ -263,21 +201,19 @@ export function AnalyticsView({
                   uniques: t("stats.uniques"),
                   topCountry: t("stats.topCountry"),
                 },
-                topCountry: data.breakdowns.country?.[0]
-                  ? valueLabel("country", data.breakdowns.country[0].value)
+                topCountry: filterable
+                  ? data.breakdowns.country?.[0]
+                    ? valueLabel("country", data.breakdowns.country[0].value)
+                    : "—"
                   : null,
-                countryLocked:
-                  breakdownGate && data.gated.includes("country")
-                    ? t("lockedStat", {
-                        plan: tGate(`plans.${breakdownGate}`),
-                      })
-                    : null,
                 scansOnly: scopeType === "qr",
                 intlLocale,
               })}
             />
           ) : (
-            <StatStripSkeleton count={scopeType === "qr" ? 3 : 4} />
+            <StatStripSkeleton
+              count={(scopeType === "qr" ? 2 : 3) + (filterable ? 1 : 0)}
+            />
           )}
 
           <section aria-labelledby={chartHeadingId} className="min-w-0">
@@ -285,17 +221,7 @@ export function AnalyticsView({
               <h2 id={chartHeadingId} className="text-small font-medium">
                 {t("series")}
               </h2>
-              <Segmented
-                label={t("interval")}
-                options={intervals.map((interval) => ({
-                  value: interval,
-                  label: t(`intervals.${interval}`),
-                  disabled: !allowed.includes(interval),
-                  disabledReason: t("intervalUnavailable"),
-                }))}
-                value={query.interval}
-                onValueChange={(interval) => setQuery({ ...query, interval })}
-              />
+              {exportControl}
             </div>
             {firstLoad || !data ? (
               <Skeleton className="h-60 w-full rounded-control" />
@@ -316,42 +242,64 @@ export function AnalyticsView({
             )}
           </section>
 
-          <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
-            {scope.type === "workspace" ? (
-              <BreakdownPanel
-                dimension="link"
-                title={t("dimensions.link")}
-                rows={data?.breakdowns.link}
-                loading={firstLoad}
-                gate={null}
-                valueLabel={valueLabel}
-                onSelect={(id) =>
-                  router.push(`/${workspace}/links/${id}` as const)
-                }
-                className="border-t border-line pt-5 md:col-span-2"
-              />
-            ) : null}
-            {dimensions.map((dimension) => (
-              <BreakdownPanel
-                key={dimension}
-                dimension={dimension}
-                title={t(`dimensions.${dimension}`)}
-                rows={data?.breakdowns[dimension]}
-                loading={firstLoad}
-                gate={
-                  breakdownGate &&
-                  (data === null || data.gated.includes(dimension))
-                    ? breakdownGate
-                    : null
-                }
-                valueLabel={valueLabel}
-                onSelect={(value) => setFilter(dimension, value)}
-                className="border-t border-line pt-5"
-              />
-            ))}
-          </div>
+          {slugs.length ? (
+            <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
+              {slugs.map((slug) => {
+                const dimension = breakdownSlugs[slug];
+                const filter = filterFor(dimension);
+                return (
+                  <div
+                    key={slug}
+                    className={cn(slug === "links" && "md:col-span-2")}
+                  >
+                    <TopTable
+                      title={t(`breakdowns.${slug}.title`)}
+                      rows={data?.breakdowns[dimension]?.map((row) => ({
+                        ...row,
+                        label: valueLabel(dimension, row.value),
+                      }))}
+                      loading={firstLoad}
+                      seeAllHref={seeAllHref(slug)}
+                      rowHref={rowHref(dimension)}
+                      active={filter ? query.filters[filter] : undefined}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+
+          {breakdownGate ? (
+            <section
+              aria-labelledby={gateHeadingId}
+              className="border-t border-line pt-5"
+            >
+              <h2 id={gateHeadingId} className="mb-2 text-small font-medium">
+                {t("gated.title")}
+              </h2>
+              <GateNote>
+                {t(
+                  csvExport && exportGated ? "gated.withExport" : "gated.body",
+                  { plan: tGate(`plans.${breakdownGate}`) },
+                )}{" "}
+                <UpgradeLink />
+              </GateNote>
+            </section>
+          ) : null}
         </div>
       )}
+    </>
+  );
+
+  return embedded ? (
+    <div>
+      <h2 className="sr-only">{title}</h2>
+      {body}
+    </div>
+  ) : (
+    <>
+      <PageHeader title={title} />
+      <div className="px-gutter pt-6 pb-10">{body}</div>
     </>
   );
 }
@@ -361,13 +309,12 @@ function statsFor(
   {
     labels,
     topCountry,
-    countryLocked,
     scansOnly,
     intlLocale,
   }: {
     labels: Record<"clicks" | "scans" | "uniques" | "topCountry", string>;
+    /** Null when the plan has no country breakdown. */
     topCountry: string | null;
-    countryLocked: string | null;
     /** A QR scope counts scans only, so a clicks figure would always read 0. */
     scansOnly: boolean;
     intlLocale: string;
@@ -385,10 +332,8 @@ function statsFor(
     ...(scansOnly ? [] : [number("clicks")]),
     number("scans"),
     number("uniques"),
-    {
-      label: labels.topCountry,
-      value: topCountry ?? "—",
-      ...(countryLocked ? { detail: countryLocked } : {}),
-    },
+    ...(topCountry === null
+      ? []
+      : [{ label: labels.topCountry, value: topCountry }]),
   ];
 }

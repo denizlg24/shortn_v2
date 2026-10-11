@@ -1,45 +1,54 @@
-import { can } from "@shortn/core";
-import type { Metadata } from "next";
+import { can } from "@shortn/core/authz";
 import { getTranslations } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
-import { CampaignEdit } from "@/components/campaigns/campaign-edit";
-import { CampaignsGate } from "@/components/campaigns/campaigns-list";
-import { featureAccess } from "@/server/plan";
-import { requireWorkspace } from "@/server/workspace";
-import { loadCampaign } from "../load";
+import { redirect } from "next/navigation";
+import { CampaignForm } from "@/components/campaigns/campaign-form";
+import { CampaignsGate } from "@/components/campaigns/campaigns-gate";
+import { Page } from "@/components/page/page";
+import { updateCampaignPageAction } from "@/server/actions/campaign-pages";
+import {
+  campaignsAccess,
+  campaignTabs,
+  loadCampaign,
+} from "@/server/campaign-page";
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/[workspace]/campaigns/[id]/edit">): Promise<Metadata> {
-  const { workspace, id } = await params;
-  const [result, t] = await Promise.all([
-    loadCampaign(workspace, id),
-    getTranslations("campaigns.editPage"),
-  ]);
-  return {
-    title: result.ok
-      ? `${t("title")} · ${result.data.campaign.title}`
-      : t("title"),
-  };
+export async function generateMetadata() {
+  const t = await getTranslations("campaigns.tabs");
+  return { title: t("edit") };
 }
 
 export default async function EditCampaignPage({
   params,
 }: PageProps<"/[workspace]/campaigns/[id]/edit">) {
-  const { workspace: slug, id } = await params;
-  const [{ actor }, access] = await Promise.all([
-    requireWorkspace(slug),
-    featureAccess(slug, "campaigns"),
-  ]);
+  const { workspace, id } = await params;
+  const access = await campaignsAccess(workspace);
   if (!access.allowed) return <CampaignsGate plan={access.plan} />;
-  if (!can(actor, "resource.update")) redirect(`/${slug}/campaigns/${id}`);
-  const result = await loadCampaign(slug, id);
-  if (!result.ok) notFound();
+  const t = await getTranslations("campaigns");
+  const { ctx, campaign } = await loadCampaign(workspace, id);
+  const base = `/${workspace}/campaigns/${id}`;
+  if (!can(ctx.actor, "resource.update")) redirect(base);
   return (
-    <CampaignEdit
-      key={result.data.campaign.id}
-      workspace={slug}
-      campaign={result.data.campaign}
-    />
+    <Page
+      crumbs={[
+        { label: t("list.title"), href: `/${workspace}/campaigns` },
+        { label: campaign.title, href: base },
+        { label: t("tabs.edit") },
+      ]}
+      title={campaign.title}
+      description={t("form.editDescription")}
+      tabs={campaignTabs(workspace, id, true, (key) => t(`tabs.${key}`))}
+      tabsLabel={t("tabs.label")}
+      width="form"
+    >
+      <CampaignForm
+        mode="edit"
+        initial={{
+          title: campaign.title,
+          description: campaign.description ?? "",
+          utmDefaults: campaign.utmDefaults,
+        }}
+        action={updateCampaignPageAction.bind(null, workspace, id)}
+        cancelHref={base}
+      />
+    </Page>
   );
 }

@@ -13,7 +13,7 @@ import { isLegacyQrBacked, toCachedLink } from "../links/cached-link";
 import { createLink } from "../links/service";
 import type { ServiceContext } from "../workspaces/context";
 import { ensurePersonalWorkspace } from "../workspaces/service";
-import { createQr, deleteQrs, getQr, updateQr } from "./service";
+import { createQr, deleteQrs, getQr, pageQrs, updateQr } from "./service";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 const redisUrl = process.env.REDIS_TEST_URL;
@@ -62,6 +62,65 @@ const enabled = Boolean(mongoUrl && redisUrl);
       linkDomain: "shortn.at",
     };
   }
+
+  test("QR date ranges include the last instant of a day and exclude the next day", async () => {
+    const ctx = await context("pro");
+    const ids: string[] = [];
+    for (const date of [
+      "2026-10-01T00:00:00Z",
+      "2026-10-02T23:59:59.999Z",
+      "2026-10-03T00:00:00Z",
+    ]) {
+      const made = await createQr(ctx, { url: "https://example.org/dated" });
+      if (!made.ok) throw new Error(made.error);
+      ids.push(made.value.id);
+      await db
+        .collection(physicalNames.qr_codes)
+        .updateOne(
+          { _id: new ObjectId(made.value.id) },
+          { $set: { date: new Date(date) } },
+        );
+    }
+    const range = await pageQrs(ctx, {
+      createdAfter: new Date("2026-10-01T00:00:00Z"),
+      createdBefore: new Date("2026-10-03T00:00:00Z"),
+      page: 1,
+    });
+    expect(range.total).toBe(2);
+    expect(range.items.map((qr) => qr.id).sort()).toEqual(
+      ids.slice(0, 2).sort(),
+    );
+  });
+
+  test("QR tags match any selected tag within the workspace", async () => {
+    const ctx = await context("pro");
+    const other = await context("pro");
+    const ids: string[] = [];
+    for (const tags of [["Print"], ["Event"], ["Other"]]) {
+      const result = await createQr(ctx, {
+        url: "https://example.org/tags",
+        tags,
+      });
+      if (!result.ok) throw new Error(result.error);
+      ids.push(result.value.id);
+    }
+    expect(
+      (
+        await createQr(other, {
+          url: "https://example.org/foreign",
+          tags: ["Print"],
+        })
+      ).ok,
+    ).toBe(true);
+    const matches = await pageQrs(ctx, { tags: ["Print", "Event", "Print"] });
+    expect(matches.total).toBe(2);
+    expect(matches.items.map((item) => item.id).sort()).toEqual(
+      ids.slice(0, 2).sort(),
+    );
+    expect((await pageQrs(ctx, { tag: "Print" })).total).toBe(1);
+    expect((await pageQrs(ctx, { tags: ["Missing"] })).total).toBe(0);
+    expect((await pageQrs(ctx)).total).toBe(3);
+  });
 
   test("a QR code is a legacy pair: QR document plus hidden backing link", async () => {
     const ctx = await context();
@@ -255,6 +314,72 @@ const enabled = Boolean(mongoUrl && redisUrl);
       await db
         .collection(physicalNames.campaigns)
         .countDocuments({ title: "Solo" }),
+    ).toBe(0);
+  });
+
+  test("UTM confirmation rejects stale variants and enforces workspace permissions", async () => {
+    const ctx = await context("plus");
+    const made = await createLink(ctx, {
+      url: "https://example.org/confirmed-utm",
+    });
+    if (!made.ok) throw new Error(made.error);
+    const id = made.value.id;
+    const original = [
+      { source: "newsletter", campaign: "Confirmed" },
+      { source: "social", campaign: "Confirmed" },
+    ];
+    expect((await setLinkUtm(ctx, id, original)).ok).toBe(true);
+    const revised = [
+      { source: "partner", campaign: "Confirmed" },
+      original[1]!,
+    ];
+    expect((await setLinkUtm(ctx, id, revised, original)).ok).toBe(true);
+    expect(await setLinkUtm(ctx, id, [original[1]!], original)).toMatchObject({
+      error: "conflict",
+    });
+    const getStored = () =>
+      db.collection(physicalNames.links).findOne({ _id: new ObjectId(id) });
+    expect(
+      (await getStored())?.utmLinks.map(
+        (item: { source: string }) => item.source,
+      ),
+    ).toEqual(["partner", "social"]);
+    expect(
+      await setLinkUtm(
+        { ...ctx, actor: { ...ctx.actor, role: "viewer" } },
+        id,
+        [],
+        revised,
+      ),
+    ).toMatchObject({ error: "forbidden" });
+    const other = await context("plus");
+    expect(await setLinkUtm(other, id, [], revised)).toMatchObject({
+      error: "not_found",
+    });
+    const results = await Promise.all([
+      setLinkUtm(ctx, id, [revised[0]!], revised),
+      setLinkUtm(ctx, id, [revised[1]!], revised),
+    ]);
+    expect(results.filter((result) => result.ok)).toHaveLength(1);
+    expect(
+      results.filter((result) => !result.ok && result.error === "conflict"),
+    ).toHaveLength(1);
+    expect((await getStored())?.utmLinks).toHaveLength(1);
+    const stored = (await getStored())!.utmLinks[0];
+    expect(
+      (
+        await setLinkUtm(
+          ctx,
+          id,
+          [],
+          [{ source: stored.source, campaign: stored.campaign.title }],
+        )
+      ).ok,
+    ).toBe(true);
+    expect(
+      await db
+        .collection(physicalNames.campaigns)
+        .countDocuments({ title: "Confirmed" }),
     ).toBe(0);
   });
 

@@ -16,10 +16,16 @@ import {
   usernameMinLength,
 } from "@/components/auth/rules";
 import { useAuthForm } from "@/components/auth/use-auth-form";
-import { UserAvatar } from "@/components/shell/avatars";
+import { ImageUpload, useUploadStatus } from "@/components/page/image-upload";
 import { SaveRow } from "../save-row";
 import { SettingsSection } from "../section";
-import type { AccountUser } from "./account-panel";
+interface AccountUser {
+  name: string;
+  username: string;
+  image: string;
+  email: string;
+  emailVerified: boolean;
+}
 
 const isHttpUrl = (value: string) => {
   try {
@@ -35,6 +41,7 @@ export function ProfileForm({ user }: { user: AccountUser }) {
   const tAuth = useTranslations("auth");
   const router = useRouter();
   const [saved, setSaved] = useState(false);
+  const uploads = useUploadStatus();
   const initial = {
     name: user.name,
     username: user.username,
@@ -115,16 +122,20 @@ export function ProfileForm({ user }: { user: AccountUser }) {
     setSaved(false);
     form.setValue(field, value);
   };
-  const previewImage = isHttpUrl(form.values.image.trim())
-    ? form.values.image.trim()
-    : null;
 
   return (
     <SettingsSection
       title={t("account.profile.title")}
       description={t("account.profile.description")}
     >
-      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+      <form
+        noValidate
+        onSubmit={(event) => {
+          if (uploads.uploading) event.preventDefault();
+          else onSubmit(event);
+        }}
+        className="flex flex-col gap-4"
+      >
         <AuthField
           id={form.id("name")}
           label={tAuth("fields.name")}
@@ -168,30 +179,20 @@ export function ProfileForm({ user }: { user: AccountUser }) {
           hint={t("account.profile.imageHint")}
         >
           {(control) => (
-            <div className="flex items-center gap-3">
-              <UserAvatar
-                name={form.values.name || user.email}
-                image={previewImage}
-                key={previewImage ?? "none"}
-              />
-              <Input
-                {...form.field("image")}
-                {...control}
-                onChange={(event) => edit("image", event.target.value)}
-                type="url"
-                inputMode="url"
-                autoComplete="photo"
-                spellCheck={false}
-                placeholder="https://"
-                frameClassName="flex-1"
-              />
-            </div>
+            <ImageUpload
+              id={control.id}
+              label={t("account.profile.image")}
+              value={form.values.image}
+              purpose="avatar"
+              onChange={(url) => edit("image", url)}
+              onBusyChange={uploads.onBusyChange}
+            />
           )}
         </AuthField>
         {form.formError ? <FormAlert>{form.formError}</FormAlert> : null}
         <SaveRow
           saved={saved && !dirty}
-          pending={form.pending}
+          pending={form.pending || uploads.uploading}
           disabled={!dirty}
         />
       </form>

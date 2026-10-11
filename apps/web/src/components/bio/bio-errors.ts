@@ -1,39 +1,43 @@
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
-import type { ActionError, ActionFailure } from "../editor/action-error";
 
-export type BioField = "slug" | "form";
-
-/** Localized message for a failed bio action, on the field it concerns. */
-export function useBioError() {
-  const t = useTranslations("bio.errors");
+/** Localized message for an error code from the bio form actions. */
+export function useBioErrorMessage() {
+  const t = useTranslations("bio");
   return useCallback(
-    (failure: ActionFailure): ActionError<BioField> => {
-      switch (failure.error) {
-        case "slug_taken":
-          return { field: "slug", message: t("slugTaken") };
+    (code: string, detail?: Record<string, string | number | null>) => {
+      const position = Number(detail?.position ?? 0);
+      switch (code) {
+        case "slug_required":
         case "invalid_slug":
-          return { field: "slug", message: t("invalidSlug") };
+          return t("errors.invalidSlug");
+        case "slug_taken":
+          return t("errors.slugTaken");
         case "limit_reached":
-          return {
-            field: "form",
-            message: t("limitReached", {
-              limit: Number(failure.detail?.limit ?? 0),
-            }),
-            upgrade: true,
-          };
+          return t("errors.limitReached", {
+            limit: Number(detail?.limit ?? 0),
+          });
         case "link_not_found":
-          return { field: "form", message: t("linkNotFound") };
+          return t("errors.linkNotFound");
+        case "titleRequired":
+        case "avatarUrl":
+          return t(`profile.errors.${code}`);
+        case "image":
+          return t("links.errors.image", { position });
+        case "url":
+          return t("socials.errors.url", { position });
+        case "color":
+        case "background":
+        case "headerImage":
+          return t(`appearance.errors.${code}`);
         case "forbidden":
-          return { field: "form", message: t("forbidden") };
+          return t("errors.forbidden");
         case "not_found":
-          return { field: "form", message: t("notFound") };
+          return t("errors.notFound");
         case "invalid_input":
-          return { field: "form", message: t("invalidInput") };
-        case "network":
-          return { field: "form", message: t("network") };
+          return t("errors.invalidInput");
         default:
-          return { field: "form", message: t("generic") };
+          return t("errors.generic");
       }
     },
     [t],

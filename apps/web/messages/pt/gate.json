@@ -12,5 +12,6 @@
   "analyticsBreakdowns": "As análises detalhadas e os filtros estão incluídos a partir do plano {plan}.",
   "qrLogo": "Os logótipos estão incluídos a partir do plano {plan}.",
   "csvExport": "A exportação para CSV está incluída a partir do plano {plan}.",
-  "cta": "Ver planos"
+  "cta": "Ver planos",
+  "campaignExport": "A exportação de campanhas para CSV está incluída a partir do plano {plan}."
 }

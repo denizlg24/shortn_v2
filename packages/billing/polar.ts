@@ -1,7 +1,7 @@
 import { Polar } from "@polar-sh/sdk";
 import type { Subscription as PolarSubscription } from "@polar-sh/sdk/models/components/subscription.js";
 import { collection, type Documents } from "@shortn/db";
-import { ObjectId, type Db } from "mongodb";
+import { MongoServerError, ObjectId, type Db } from "mongodb";
 import {
   planForProduct,
   planRank,
@@ -154,21 +154,47 @@ export async function applyFetched(
   const $unset: Record<string, ""> = {};
   if (!next.scheduledChange) $unset.scheduledChange = "";
   if (!next.endsAt) $unset.endsAt = "";
-  const after = await mirrors.findOneAndUpdate(
-    { polarSubscriptionId: sub.id },
-    {
-      $set: { ...next, updatedAt: now },
-      $setOnInsert: { createdAt: now },
-      ...(Object.keys($unset).length ? { $unset } : {}),
-    },
-    { upsert: true, returnDocument: "after" },
-  );
-  if (!after) throw new Error("Mirror upsert returned nothing");
+  const insertedId = new ObjectId();
+  let previous: Mirror | null;
+  try {
+    previous = await mirrors.findOneAndUpdate(
+      {
+        polarSubscriptionId: sub.id,
+        // The read above is only a shortcut. Enforce ordering at the write
+        // too, since another webhook or reconciliation can finish first.
+        $or: [
+          { modifiedAt: { $lte: next.modifiedAt ?? sub.createdAt } },
+          { modifiedAt: { $exists: false } },
+        ],
+      },
+      {
+        $set: { ...next, updatedAt: now },
+        $setOnInsert: { _id: insertedId, createdAt: now },
+        ...(Object.keys($unset).length ? { $unset } : {}),
+      },
+      // Use the state this write actually replaced for transition notices.
+      // Concurrent duplicates may have both read the same `before` above.
+      { upsert: true, returnDocument: "before" },
+    );
+  } catch (error) {
+    // A newer mirror no longer matches the timestamp guard. The required
+    // unique subscription index prevents the attempted stale upsert.
+    if (error instanceof MongoServerError && error.code === 11000)
+      return { status: "stale" };
+    throw error;
+  }
+  const after: Mirror = {
+    ...(previous ?? { _id: insertedId, createdAt: now }),
+    ...next,
+    updatedAt: now,
+  };
+  if (!next.scheduledChange) delete after.scheduledChange;
+  if (!next.endsAt) delete after.endsAt;
   await collection(db, "workspaces").updateOne(
     { _id: workspaceId },
     { $set: { plan: await currentPlan(db, workspaceId), updatedAt: now } },
   );
-  return { status: "applied", before, after };
+  return { status: "applied", before: previous, after };
 }
 
 async function currentPlan(db: Db, workspaceId: ObjectId): Promise<PlanId> {

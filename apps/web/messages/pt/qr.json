@@ -1,107 +1,126 @@
 {
-  "title": "Códigos QR",
-  "search": "Pesquisar códigos QR",
-  "clearSearch": "Limpar pesquisa",
-  "create": "Criar código QR",
-  "createPage": {
-    "title": "Novo código QR",
-    "description": "Aponte-o para qualquer URL. A seguir escolhe cores, formas e um logótipo, e pode mudar o destino depois de imprimir.",
-    "url": "URL de destino",
-    "urlPlaceholder": "https://exemplo.pt/menu",
-    "titleLabel": "Título",
-    "titleHint": "Opcional. Ajuda a encontrar o código mais tarde.",
-    "tags": "Etiquetas",
-    "cancel": "Cancelar",
-    "submit": "Criar e personalizar"
-  },
-  "viewOnly": "Só leitura",
-  "viewerReason": "Os leitores não podem criar nem alterar códigos QR. Peça a um administrador do espaço de trabalho que altere a sua função.",
-  "retry": "Tentar novamente",
-  "copied": "{link} copiado",
-  "scans": "{count, plural, one {{formatted} leitura} other {{formatted} leituras}}",
-  "select": "Selecionar {title}",
-  "selectAll": "Selecionar todos",
-  "view": {
-    "label": "Disposição",
-    "grid": "Grelha",
-    "list": "Lista"
-  },
-  "actions": {
-    "label": "Ações para {title}",
-    "edit": "Editar design",
-    "copy": "Copiar link curto",
-    "scans": "Ver leituras",
-    "delete": "Eliminar"
-  },
-  "columns": {
-    "select": "Selecionar",
-    "code": "Código QR",
-    "link": "Link curto",
-    "destination": "Destino",
-    "scans": "Leituras",
+  "list": {
+    "title": "Códigos QR",
+    "count": "{count, plural, one {# código QR} other {# códigos QR}}",
+    "new": "Novo código QR",
+    "layout": "Disposição",
+    "layouts": {
+      "grid": "Grelha",
+      "list": "Lista"
+    },
+    "search": "Pesquisar",
+    "searchPlaceholder": "Título, destino ou código",
+    "tag": "Etiqueta",
+    "anyTag": "Qualquer etiqueta",
     "created": "Criado",
-    "actions": "Ações"
+    "anyTime": "Qualquer data",
+    "createdOptions": {
+      "7": "Últimos 7 dias",
+      "30": "Últimos 30 dias",
+      "90": "Últimos 90 dias",
+      "365": "Últimos 12 meses"
+    },
+    "columns": {
+      "select": "Selecionar",
+      "code": "Código QR",
+      "link": "Link curto",
+      "destination": "Destino",
+      "scans": "Leituras",
+      "created": "Criado"
+    },
+    "scans": "{count, plural, one {{formatted} leitura} other {{formatted} leituras}}",
+    "selectRow": "Selecionar {name}",
+    "deleteSelected": "Eliminar selecionados",
+    "empty": "Ainda não há códigos QR. Cada código tem o seu próprio link curto, por isso pode mudar o destino depois de o imprimir.",
+    "emptyFiltered": "Nenhum código QR corresponde a estes filtros.",
+    "deleted": "{count, plural, one {# código QR eliminado.} other {# códigos QR eliminados.}}"
   },
-  "bulk": {
-    "label": "Códigos QR selecionados",
-    "selected": "{count} selecionados",
-    "clear": "Limpar",
-    "delete": "Eliminar"
+  "tabs": {
+    "label": "Secções do código QR",
+    "overview": "Resumo",
+    "design": "Design",
+    "analytics": "Leituras",
+    "edit": "Detalhes"
   },
-  "delete": {
-    "title": "Eliminar {count, plural, one {# código QR} other {# códigos QR}}?",
-    "body": "As cópias impressas deixam de ser lidas, porque o link curto de cada código é eliminado com ele. Não é possível anular.",
-    "confirm": "Eliminar {count, plural, one {# código QR} other {# códigos QR}}",
-    "done": "{count, plural, one {# código QR eliminado} other {# códigos QR eliminados}}"
+  "overview": {
+    "created": "Código QR criado. Transfira-o abaixo ou ajuste primeiro o design.",
+    "saved": "Alterações guardadas.",
+    "copy": "Copiar link curto",
+    "copied": "Copiado",
+    "editDesign": "Editar design",
+    "download": "Transferir",
+    "downloadHint": "Exatamente como aparece, no tamanho que escolher. O SVG adapta-se a qualquer tamanho de impressão.",
+    "last30": "Últimos 30 dias",
+    "seeAll": "Ver todas as leituras",
+    "scans": "Leituras",
+    "visitors": "Visitantes",
+    "allTime": "Leituras desde sempre",
+    "lastScan": "Última leitura",
+    "never": "Nunca",
+    "details": "Detalhes",
+    "destination": "Destino",
+    "shortLink": "Link curto",
+    "code": "Código",
+    "attached": "Associado ao link",
+    "tags": "Etiquetas",
+    "createdAt": "Criado",
+    "none": "Nenhum",
+    "delete": "Eliminar código QR",
+    "deleteHint": "As cópias impressas deixam de funcionar."
   },
-  "empty": {
-    "firstTitle": "Ainda não há códigos QR",
-    "firstBody": "Crie um código para qualquer URL. Cada código tem o seu próprio link curto, por isso pode mudar o destino depois de o imprimir.",
-    "firstBodyViewer": "Os códigos QR criados neste espaço de trabalho aparecem aqui.",
-    "noMatch": "Nenhum código QR corresponde a “{query}”",
-    "noMatchBody": "Verifique a ortografia ou limpe a pesquisa.",
-    "clear": "Limpar pesquisa"
+  "form": {
+    "newTitle": "Novo código QR",
+    "newDescription": "Aponte-o para um URL ou para um dos seus links e depois crie o design. O destino pode mudar depois de imprimir.",
+    "editDescription": "Para onde o código leva e como está organizado. O padrão nunca muda, por isso as cópias impressas acompanham.",
+    "destinationSection": "Destino",
+    "url": "URL de destino",
+    "urlHint": "Para onde uma leitura leva as pessoas.",
+    "urlEditHint": "As cópias impressas seguem o novo destino na próxima leitura.",
+    "orLink": "Ou use um dos seus links:",
+    "pickLink": "Escolher um link",
+    "usingLink": "O código abre o link <key>{link}</key>.",
+    "opens": "Destino: {url}",
+    "attachHint": "Fica associado a esse link, por isso encontra-o no separador do código QR do link.",
+    "replacesCode": "Este link já tem um código QR; o novo passa a ser o seu código. O código antigo continua a funcionar.",
+    "useUrl": "Usar um URL",
+    "detailsSection": "Detalhes",
+    "title": "Título",
+    "titleHint": "Ajuda a encontrar o código mais tarde.",
+    "optional": "Opcional",
+    "tags": "Etiquetas",
+    "existingTags": "Etiquetas existentes",
+    "noTags": "Ainda não há etiquetas neste espaço de trabalho.",
+    "newTags": "Novas etiquetas",
+    "newTagsHint": "Separe com vírgulas.",
+    "applyToLink": "Atualizar também o link <key>{link}</key>",
+    "applyToLinkHint": "Copia um novo destino ou título para o link a que este código está associado.",
+    "previewHint": "A pré-visualização usa um link curto de exemplo; o seu código recebe o próprio quando o criar.",
+    "create": "Criar código QR",
+    "save": "Guardar detalhes",
+    "cancel": "Cancelar"
   },
-  "error": {
-    "title": "Não foi possível carregar os códigos QR",
-    "body": "Os seus códigos estão seguros; é um problema de ligação. Tente novamente daqui a pouco."
+  "design": {
+    "description": "Cores, formas e logótipo. O link dentro do código mantém-se.",
+    "save": "Guardar design",
+    "unsaved": "A pré-visualização inclui alterações por guardar.",
+    "printed": "É assim que o código é impresso hoje."
   },
-  "errors": {
-    "invalidUrl": "Introduza um URL completo, como https://exemplo.pt/pagina.",
-    "unsafeDestination": "Não é possível usar este destino. Aponta para um endereço privado ou inseguro.",
-    "logoGated": "O seu plano não inclui logótipos.",
-    "limitReached": "Já criou os {limit} códigos QR que o seu plano inclui este mês.",
-    "forbidden": "Não tem permissão para fazer isto neste espaço de trabalho.",
-    "notFound": "Este código QR já não existe. Pode ter sido eliminado.",
-    "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
-    "network": "Não foi possível contactar o Shortn. Verifique a sua ligação e tente novamente.",
-    "generic": "Algo correu mal do nosso lado. Tente novamente.",
-    "copyFailed": "Não foi possível copiar para a área de transferência.",
-    "urlRequired": "Introduza o URL que o código deve abrir.",
-    "logoUrl": "Introduza o URL completo do logótipo, a começar por https://.",
-    "color": "Cada cor precisa de um valor com até 32 caracteres, como #0f172b."
-  },
-  "editor": {
-    "title": "Editar design",
-    "save": "Guardar",
-    "saved": "Guardado",
-    "unsaved": "Alterações por guardar",
-    "legend": "Definições do código QR"
+  "deletePage": {
+    "title": "{count, plural, one {Eliminar código QR} other {Eliminar # códigos QR}}",
+    "titleSelected": "Eliminar os códigos QR selecionados",
+    "description": "Não é possível anular.",
+    "notAllowed": "Só pode eliminar códigos QR que criou; os restantes ficam de fora.",
+    "stopsScanning": "{count, plural, one {O código deixa de funcionar de imediato, porque o seu link curto é eliminado com ele.} other {Os códigos deixam de funcionar de imediato, porque os seus links curtos são eliminados com eles.}}",
+    "history": "O histórico de leituras é arquivado e deixa de aparecer.",
+    "attached": "Os links associados continuam a funcionar; apenas perdem o código QR.",
+    "permanent": "As cópias impressas não podem ser recuperadas.",
+    "confirm": "{count, plural, one {Eliminar código QR} other {Eliminar # códigos QR}}"
   },
   "preview": {
     "label": "Pré-visualização",
     "alt": "Código QR para {link}",
     "size": "{width} × {height} px",
-    "opens": "Abre {url}"
-  },
-  "content": {
-    "title": "Conteúdo",
-    "description": "Para onde o código leva. O padrão nunca muda, por isso as cópias impressas seguem um novo destino.",
-    "url": "URL de destino",
-    "applyToLink": "Atualizar também o link <key>{link}</key>",
-    "applyToLinkHint": "Copia um novo destino ou título para o link a que este código está associado.",
-    "titleLabel": "Título",
-    "tags": "Etiquetas"
+    "altNew": "Pré-visualização do novo código QR"
   },
   "colors": {
     "title": "Cores",
@@ -115,7 +134,8 @@
     "corners": "Cantos",
     "cornersSame": "Igual ao código",
     "cornersCustom": "Cor própria",
-    "cornerColor": "Cor dos cantos"
+    "cornerColor": "Cor dos cantos",
+    "gradients": "Este código usa gradientes de cor do editor anterior. Mantêm-se como impressos e têm prioridade sobre as cores abaixo."
   },
   "pattern": {
     "title": "Padrão",
@@ -142,8 +162,8 @@
   "logo": {
     "title": "Logótipo",
     "description": "Desenhado no centro do código.",
-    "url": "URL do logótipo",
-    "urlHint": "Um PNG, JPEG ou SVG num servidor que permita pedidos de outras origens (CORS).",
+    "url": "Logótipo",
+    "urlHint": "Carregue uma imagem e guarde o design para a utilizar.",
     "urlPlaceholder": "https://exemplo.pt/logotipo.png",
     "remove": "Remover",
     "size": "Tamanho do logótipo",
@@ -164,7 +184,6 @@
     "logoUnavailable": "O logótipo não carregou, por isso a pré-visualização não o mostra. Verifique o URL e se o servidor permite pedidos de outras origens."
   },
   "download": {
-    "label": "Transferir",
     "size": "Tamanho",
     "pixels": "{size} px",
     "formats": {
@@ -175,12 +194,17 @@
     "logoFailed": "Não foi possível carregar o logótipo, por isso a transferência ficaria sem ele.",
     "failed": "A transferência falhou. Tente novamente."
   },
-  "detail": {
-    "summary": "Detalhes do código QR",
-    "openDestination": "Abrir destino",
-    "created": "Criado",
-    "code": "Código",
-    "attached": "Associado a",
-    "tags": "Etiquetas"
+  "errors": {
+    "invalidUrl": "Introduza um URL completo, como https://exemplo.pt/pagina.",
+    "unsafeDestination": "Não é possível usar este destino. Aponta para um endereço privado ou inseguro.",
+    "logoGated": "O seu plano não inclui logótipos.",
+    "limitReached": "Já criou os {limit} códigos QR que o seu plano inclui este mês.",
+    "forbidden": "Não tem permissão para fazer isto neste espaço de trabalho.",
+    "notFound": "Este código QR já não existe. Pode ter sido eliminado.",
+    "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
+    "generic": "Algo correu mal do nosso lado. Tente novamente.",
+    "urlRequired": "Introduza o URL que o código deve abrir.",
+    "logoUrl": "Introduza o URL completo do logótipo, a começar por https://.",
+    "color": "Cada cor precisa de um valor com até 32 caracteres, como #0f172b."
   }
 }

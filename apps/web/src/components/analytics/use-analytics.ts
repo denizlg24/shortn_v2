@@ -15,6 +15,12 @@ export interface AnalyticsRequest {
   scope: AnalyticsScope;
   query: AnalyticsQuery;
   dimensions: Dimension[];
+  /** Rows per breakdown. */
+  limit?: number;
+  /** Dimensions whose values the filter bar lists. */
+  options?: Dimension[];
+  /** Skip the time series and the previous-period totals (breakdown pages). */
+  totalsOnly?: boolean;
 }
 
 export type AnalyticsStatus = "loading" | "ready" | "error";
@@ -46,6 +52,10 @@ export function useAnalytics(workspace: string, request: AnalyticsRequest) {
       interval: request.query.interval,
       filters,
       dimensions: request.dimensions,
+      ...(request.limit ? { limit: request.limit } : {}),
+      options: request.options ?? [],
+      series: !request.totalsOnly,
+      compare: !request.totalsOnly,
     }).then(
       (result) => {
         if (!live) return;

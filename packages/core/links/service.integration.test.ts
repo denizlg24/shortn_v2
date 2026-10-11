@@ -366,6 +366,21 @@ if (!enabled)
           })
         ).total,
       ).toBe(4);
+      const oldRange = await listLinks(ctx, {
+        page: 1,
+        createdAfter: new Date("2020-01-01T00:00:00Z"),
+        createdBefore: new Date("2020-01-02T00:00:00Z"),
+      });
+      expect(oldRange.links.map((link) => link.id)).toEqual([
+        made[4]?.id ?? "",
+      ]);
+      expect(
+        (
+          await listLinks(ctx, {
+            createdBefore: new Date("2020-01-01T00:00:00Z"),
+          })
+        ).links,
+      ).toEqual([]);
       const second = await listLinks(ctx, { page: 2, limit: 2 });
       expect([
         second.total,

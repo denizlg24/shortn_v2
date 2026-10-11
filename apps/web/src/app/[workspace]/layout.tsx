@@ -1,3 +1,10 @@
+import {
+  paidStatuses,
+  resolveEntitlements,
+  type PlanId,
+} from "@shortn/billing";
+import { collection } from "@shortn/db";
+import { db } from "@/server/db";
 import type { Workspace } from "@shortn/core";
 import { getTranslations } from "next-intl/server";
 import { unstable_rethrow } from "next/navigation";
@@ -6,12 +13,12 @@ import type { UsageItem, WorkspaceSummary } from "@/components/shell/types";
 import { billingOverview } from "@/server/plan";
 import { memberships, requireWorkspace } from "@/server/workspace";
 
-const summarize = (workspace: Workspace): WorkspaceSummary => ({
+const summarize = (workspace: Workspace, plan: PlanId): WorkspaceSummary => ({
   id: workspace._id.toHexString(),
   slug: workspace.slug,
   name: workspace.name,
   logo: workspace.logo ?? null,
-  plan: workspace.plan,
+  plan,
 });
 
 // The meter is secondary: a failed count leaves it out instead of failing
@@ -44,10 +51,30 @@ export default async function WorkspaceLayout({
     memberships(session.user.id),
     usageFor(slug),
   ]);
+  // Workspace.plan is a migration-era snapshot. Match billing and feature
+  // gates by resolving the subscription mirror, in one query for the switcher.
+  const subscriptions = await collection(await db(), "subscriptions")
+    .find({
+      workspaceId: { $in: list.map((item) => item.workspace._id) },
+      status: { $in: [...paidStatuses] },
+    })
+    .toArray();
+  const workspaces = list.map(({ workspace: item }) =>
+    summarize(
+      item,
+      resolveEntitlements(
+        subscriptions.filter((sub) => sub.workspaceId.equals(item._id)),
+      ).plan,
+    ),
+  );
+  const active = workspaces.find(
+    (item) => item.id === workspace._id.toHexString(),
+  );
+  if (!active) throw new Error("Active workspace is missing from memberships");
   return (
     <Shell
-      workspace={summarize(workspace)}
-      workspaces={list.map((membership) => summarize(membership.workspace))}
+      workspace={active}
+      workspaces={workspaces}
       user={{
         name: session.user.name || session.user.email,
         email: session.user.email,

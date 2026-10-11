@@ -161,7 +161,8 @@
     "malicious": "Destino inseguro",
     "blocked": "Bloqueado",
     "disabled": "Desactivado por seguridad",
-    "interstitial": "los visitantes ven primero una página de seguridad"
+    "interstitial": "los visitantes ven primero una página de seguridad",
+    "unknown": "Estado de seguridad no disponible"
   },
   "summary": {
     "label": "Detalles del enlace",

@@ -1,36 +1,60 @@
 {
-  "title": "Bio pages",
-  "create": "Create bio page",
-  "count": "{used} / {limit}",
-  "viewOnly": "View only",
-  "viewerReason": "Viewers can't create or change bio pages. Ask a workspace admin to change your role.",
-  "copyUrl": "Copy public URL",
-  "copied": "Copied the page URL",
-  "openPage": "Open public page",
-  "openPageNamed": "Open {slug} in a new tab",
-  "savedSection": "Saved {section}",
-  "empty": {
-    "title": "No bio pages yet",
-    "body": "A bio page gathers your links on one page at shortn.at/b/your-name.",
-    "bodyViewer": "Bio pages created in this workspace appear here."
+  "list": {
+    "title": "Bio pages",
+    "count": "{count, plural, one {# bio page} other {# bio pages}}",
+    "countOf": "{count, plural, one {# of {limit} bio pages} other {# of {limit} bio pages}}",
+    "new": "New bio page",
+    "deleted": "Bio page deleted.",
+    "empty": "No bio pages yet. A bio page gathers your links on one page at shortn.at/b/your-name.",
+    "columns": {
+      "page": "Page",
+      "url": "Public URL",
+      "links": "Links",
+      "updated": "Updated"
+    }
   },
-  "columns": {
-    "page": "Page",
-    "url": "Public URL",
+  "tabs": {
+    "label": "Bio page sections",
+    "overview": "Overview",
+    "profile": "Profile",
     "links": "Links",
+    "socials": "Socials",
+    "appearance": "Appearance"
+  },
+  "overview": {
+    "copy": "Copy URL",
+    "copied": "Copied",
+    "open": "Open page",
+    "created": "Bio page created. Add links, socials and colours in the tabs above.",
+    "saved": {
+      "profile": "Profile saved.",
+      "links": "Links saved.",
+      "socials": "Socials saved.",
+      "appearance": "Appearance saved."
+    },
+    "details": "Details",
+    "url": "Public URL",
+    "title": "Title",
+    "description": "Description",
+    "none": "None",
+    "links": "Links",
+    "linkCount": "{count, plural, =0 {No links} one {# link} other {# links}}",
+    "socials": "Socials",
+    "socialCount": "{count, plural, =0 {No socials} one {# social profile} other {# social profiles}}",
     "updated": "Updated",
-    "actions": "Actions"
+    "edit": "Edit",
+    "delete": "Delete bio page",
+    "deleteHint": "The public address stops working for visitors."
   },
-  "actions": {
-    "label": "Actions for {slug}",
-    "edit": "Edit page",
-    "delete": "Delete page"
+  "form": {
+    "cancel": "Cancel",
+    "optional": "Optional"
   },
-  "delete": {
-    "title": "Delete {slug}?",
-    "body": "{url} stops working for visitors right away. This can't be undone.",
-    "confirm": "Delete page",
-    "done": "Deleted {slug}"
+  "preview": {
+    "label": "Live preview",
+    "frame": "Page preview",
+    "live": "Visitors see this at {url}.",
+    "draft": "The preview shows your changes. Visitors see them once you save."
   },
   "new": {
     "title": "New bio page",
@@ -41,19 +65,16 @@
     "titleLabel": "Title",
     "titleHint": "Shown at the top of the page. Defaults to the address.",
     "submit": "Create page",
-    "cancel": "Cancel",
-    "atLimit": "You've used all {limit} bio pages your plan includes."
-  },
-  "mobileView": {
-    "label": "Show",
-    "edit": "Edit",
-    "preview": "Preview"
-  },
-  "preview": {
-    "label": "Live preview",
-    "frame": "Page preview",
-    "unsaved": "The preview includes unsaved changes. Visitors see each section once you save it.",
-    "live": "Visitors see this at {url}."
+    "atLimit": "You've used all {limit} bio pages your plan includes.",
+    "addressSection": "Address",
+    "available": "{url} is available.",
+    "checking": "Checking…",
+    "checkFailed": "Couldn't check the address. It's checked again when you create the page.",
+    "detailsSection": "Details",
+    "firstLink": "First link",
+    "pickLink": "Choose a link",
+    "removeLink": "Remove",
+    "firstLinkHint": "You can add more links, socials and colours once the page exists."
   },
   "profile": {
     "title": "Profile",
@@ -62,7 +83,7 @@
     "name": "Title",
     "bio": "Description",
     "bioHint": "Shown on one line under the title.",
-    "avatar": "Avatar URL",
+    "avatar": "Avatar",
     "avatarHint": "A square image works best.",
     "shape": "Avatar shape",
     "shapes": {
@@ -82,7 +103,7 @@
     "empty": "No links on the page yet.",
     "listLabel": "Links on the page",
     "titleLabel": "Button text for {key}",
-    "imageLabel": "Image URL for {key}",
+    "imageLabel": "Image for {key}",
     "imagePlaceholder": "Image URL (optional)",
     "moveUp": "Move {title} up",
     "moveDown": "Move {title} down",
@@ -158,7 +179,7 @@
       "left-aligned": "Left",
       "right-aligned": "Right"
     },
-    "headerImage": "Header image URL",
+    "headerImage": "Header image",
     "socialColor": "Social icons",
     "socialColors": {
       "original": "Brand colours",
@@ -171,6 +192,14 @@
       "headerImage": "Enter the header image's full URL, starting with https://."
     }
   },
+  "deletePage": {
+    "title": "Delete bio page",
+    "description": "This can't be undone.",
+    "stops": "{url} stops working for visitors right away.",
+    "links": "The links on the page keep working; only the page goes.",
+    "address": "The address becomes free for anyone to claim.",
+    "confirm": "Delete bio page"
+  },
   "errors": {
     "slugTaken": "That address is taken. Try another.",
     "invalidSlug": "Use 3 to 63 lowercase letters, numbers and hyphens, starting and ending with a letter or number.",
@@ -179,8 +208,6 @@
     "forbidden": "You don't have permission to do this in this workspace.",
     "notFound": "This bio page no longer exists. It may have been deleted.",
     "invalidInput": "Some fields are too long or not valid. Check them and try again.",
-    "network": "Couldn't reach Shortn. Check your connection and try again.",
-    "generic": "Something went wrong on our side. Try again.",
-    "copyFailed": "Couldn't copy to the clipboard."
+    "generic": "Something went wrong on our side. Try again."
   }
 }

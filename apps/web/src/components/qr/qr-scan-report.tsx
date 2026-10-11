@@ -1,19 +1,35 @@
 "use client";
 
-import { formatPercent } from "@shortn/ui";
+import { cn, formatPercent } from "@shortn/ui";
+import { CircleAlert, CircleCheck, Info, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId } from "react";
 import { useIntlLocale } from "@/lib/intl-locale";
-import { Notice, type NoticeTone } from "../settings/section";
 import type { ScanIssue } from "./qr-scan-check";
 
-/** The inline scan-contrast check under the preview (12 §QR codes). */
+type Tone = "success" | "warning" | "danger" | "neutral";
+
+const icons = {
+  success: CircleCheck,
+  warning: TriangleAlert,
+  danger: CircleAlert,
+  neutral: Info,
+} as const;
+
+const colors: Record<Tone, string> = {
+  success: "text-success",
+  warning: "text-warning",
+  danger: "text-danger",
+  neutral: "text-fg-subtle",
+};
+
+/** The scan check under the preview: contrast first, then the logo. */
 export function QrScanReport({ issues }: { issues: ScanIssue[] }) {
   const t = useTranslations("qr.check");
   const intlLocale = useIntlLocale();
   const headingId = useId();
 
-  const describe = (issue: ScanIssue): [NoticeTone, string] => {
+  const describe = (issue: ScanIssue): [Tone, string] => {
     switch (issue.kind) {
       case "contrast": {
         const value = formatPercent(issue.difference, intlLocale);
@@ -47,10 +63,15 @@ export function QrScanReport({ issues }: { issues: ScanIssue[] }) {
       </h2>
       <ul className="flex flex-col gap-2.5" aria-live="polite">
         {issues.map((issue) => {
-          const [tone, text] = describe(issue);
+          const [tone, message] = describe(issue);
+          const Icon = icons[tone];
           return (
-            <li key={issue.kind}>
-              <Notice tone={tone}>{text}</Notice>
+            <li key={issue.kind} className="flex items-start gap-2 text-small">
+              <Icon
+                aria-hidden
+                className={cn("mt-px size-4 shrink-0", colors[tone])}
+              />
+              <span className="min-w-0 text-pretty">{message}</span>
             </li>
           );
         })}

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { QrView } from "@shortn/core";
-import { designOf, draftOf, qrUpdate } from "./qr-draft";
+import { designChanges, designOf, draftOf, draftProblem } from "./qr-draft";
 
 const qr: QrView = {
   id: "q1",
@@ -29,57 +29,54 @@ const qr: QrView = {
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 
-describe("qrUpdate", () => {
+describe("designChanges", () => {
+  const initial = draftOf(qr.design);
+
   test("an untouched draft changes nothing", () => {
-    const initial = draftOf(qr);
-    expect(qrUpdate(qr, initial, initial)).toEqual({});
+    expect(designChanges(qr.design, initial, initial)).toEqual({});
   });
 
   test("sends only the option group that changed", () => {
-    const initial = draftOf(qr);
-    const update = qrUpdate(qr, initial, { ...initial, background: "#fafafa" });
-    expect(update).toEqual({
-      design: { backgroundOptions: { color: "#fafafa" } },
-    });
+    expect(
+      designChanges(qr.design, initial, { ...initial, background: "#fafafa" }),
+    ).toEqual({ backgroundOptions: { color: "#fafafa" } });
   });
 
   test("keeps the rest of a changed group", () => {
-    const initial = draftOf(qr);
-    const update = qrUpdate(qr, initial, { ...initial, dotStyle: "dots" });
-    expect(update.design?.dotsOptions).toEqual({
-      color: "#1e90ff",
-      type: "dots",
+    const changes = designChanges(qr.design, initial, {
+      ...initial,
+      dotStyle: "dots",
     });
-  });
-
-  test("applies to the attached link only with a content change", () => {
-    const initial = draftOf(qr);
-    expect(qrUpdate(qr, initial, { ...initial, applyToLink: true })).toEqual(
-      {},
-    );
-    expect(
-      qrUpdate(qr, initial, {
-        ...initial,
-        applyToLink: true,
-        url: "https://example.com/new",
-      }),
-    ).toEqual({ url: "https://example.com/new", applyToLink: true });
+    expect(changes.dotsOptions).toEqual({ color: "#1e90ff", type: "dots" });
   });
 
   test("a logo keeps the stored image options", () => {
-    const initial = draftOf(qr);
-    const update = qrUpdate(qr, initial, {
+    const changes = designChanges(qr.design, initial, {
       ...initial,
       logo: "https://example.com/logo.png",
     });
-    expect(update.design?.image).toBe("https://example.com/logo.png");
-    expect(update.design?.imageOptions).toBeUndefined();
+    expect(changes.image).toBe("https://example.com/logo.png");
+    expect(changes.imageOptions).toBeUndefined();
+  });
+});
+
+describe("draftProblem", () => {
+  test("refuses a logo that isn't a web URL", () => {
+    expect(draftProblem({ ...draftOf(qr.design), logo: "logo.png" })).toBe(
+      "logoUrl",
+    );
+  });
+
+  test("refuses an empty colour", () => {
+    expect(draftProblem({ ...draftOf(qr.design), foreground: " " })).toBe(
+      "color",
+    );
   });
 });
 
 describe("designOf", () => {
   test("renders a stored design as stored", () => {
-    const design = designOf(qr.design, draftOf(qr));
+    const design = designOf(qr.design, draftOf(qr.design));
     expect(design.margin).toBe(8);
     expect(design.dotsOptions).toEqual(qr.design.dotsOptions);
     expect(design.cornersSquareOptions).toEqual({});

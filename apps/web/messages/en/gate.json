@@ -12,5 +12,6 @@
   "analyticsBreakdowns": "Breakdowns and filters come with the {plan} plan and up.",
   "qrLogo": "Logos come with the {plan} plan and up.",
   "csvExport": "CSV export comes with the {plan} plan and up.",
-  "cta": "See plans"
+  "cta": "See plans",
+  "campaignExport": "Campaign CSV export comes with the {plan} plan and up."
 }

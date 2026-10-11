@@ -1,3 +1,5 @@
+import { UtmGate } from "@/components/link-pages/utm-gate";
+import { campaignsAccess } from "@/server/campaign-page";
 import { can } from "@shortn/core";
 import { buttonVariants } from "@shortn/ui";
 import { getTranslations } from "next-intl/server";
@@ -5,7 +7,6 @@ import Link from "next/link";
 import { CopyButton } from "@/components/page/copy-button";
 import { Notice } from "@/components/page/notice";
 import { Page } from "@/components/page/page";
-import { removeUtmVariantAction } from "@/server/actions/link-pages";
 import { linkTabs, loadLink } from "@/server/link-page";
 
 const fields = ["source", "medium", "campaign", "term", "content"] as const;
@@ -20,9 +21,12 @@ export default async function LinkUtmPage({
   searchParams,
 }: PageProps<"/[workspace]/links/[id]/utm">) {
   const { workspace, id } = await params;
-  const { saved } = await searchParams;
+  const { saved, removed } = await searchParams;
   const t = await getTranslations("linkPages");
   const { ctx, link } = await loadLink(workspace, id);
+  const access = await campaignsAccess(workspace);
+  if (!access.allowed)
+    return <UtmGate workspace={workspace} link={link} plan={access.plan} />;
   const base = `/${workspace}/links/${id}`;
   const editable = can(ctx.actor, "resource.update");
   const shortUrl = `https://${link.domain}/${link.key}`;
@@ -57,6 +61,7 @@ export default async function LinkUtmPage({
       tabsLabel={t("tabs.label")}
     >
       {saved ? <Notice tone="success">{t("utm.saved")}</Notice> : null}
+      {removed ? <Notice tone="success">{t("utm.removed")}</Notice> : null}
       {link.utm.length === 0 ? (
         <p className="py-10 text-center text-small text-fg-muted">
           {t("utm.empty")}
@@ -104,24 +109,15 @@ export default async function LinkUtmPage({
                           >
                             {t("utm.edit")}
                           </Link>
-                          <form
-                            action={removeUtmVariantAction.bind(
-                              null,
-                              workspace,
-                              id,
-                              index,
-                            )}
+                          <Link
+                            href={`${base}/utm/${index}/delete`}
+                            className={buttonVariants({
+                              variant: "dangerGhost",
+                              size: "md",
+                            })}
                           >
-                            <button
-                              type="submit"
-                              className={buttonVariants({
-                                variant: "dangerGhost",
-                                size: "md",
-                              })}
-                            >
-                              {t("utm.remove")}
-                            </button>
-                          </form>
+                            {t("utm.remove")}
+                          </Link>
                         </>
                       ) : null}
                     </div>

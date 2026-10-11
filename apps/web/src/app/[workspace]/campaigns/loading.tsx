@@ -1,5 +1,7 @@
-import { CampaignsListSkeleton } from "@/components/campaigns/campaign-skeleton";
-
 export default function CampaignsLoading() {
-  return <CampaignsListSkeleton />;
+  return (
+    <div className="px-gutter pt-20" aria-busy>
+      <div className="h-8 w-48 animate-pulse rounded-control bg-bg-muted" />
+    </div>
+  );
 }

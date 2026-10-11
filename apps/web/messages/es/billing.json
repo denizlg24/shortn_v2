@@ -24,7 +24,8 @@
     "cancelled": "{plan} terminará el {date}. Esta página se actualiza en cuanto Polar lo confirme, normalmente en segundos.",
     "resumed": "{plan} vuelve a renovarse con normalidad.",
     "legacy": "Los cambios de plan y la cancelación siguen haciéndose en shortn.at mientras la facturación pasa al nuevo panel.",
-    "legacyAction": "Gestionar el plan en shortn.at"
+    "legacyAction": "Gestionar el plan en shortn.at",
+    "comparePlans": "Comparar planes"
   },
   "status": {
     "checkoutPending": "Pago recibido. Tu nuevo plan aparecerá aquí en unos segundos, en cuanto Polar lo confirme.",
@@ -53,7 +54,7 @@
   },
   "compare": {
     "title": "Planes",
-    "description": "Precios en dólares estadounidenses, con cobro mensual. Los límites de enlaces y códigos QR se reinician en cada periodo de facturación.",
+    "description": "Planes mensuales facturados en dólares estadounidenses. Los importes en euros son estimaciones. Los límites de enlaces y códigos QR se restablecen cada periodo de facturación.",
     "caption": "Comparación de planes",
     "current": "Actual",
     "upgrade": "Mejorar",
@@ -89,7 +90,9 @@
       "qrLogo": "Logotipo en los códigos QR",
       "api": "Acceso a la API",
       "mcp": "Servidor MCP"
-    }
+    },
+    "upgradeTo": "Mejorar a {plan}",
+    "switchTo": "Cambiar a {plan}"
   },
   "errors": {
     "alreadySubscribed": "Este espacio de trabajo ya tiene una suscripción. Actualiza la página para verla.",
@@ -99,6 +102,62 @@
     "customPriced": "Tu suscripción tiene un precio personalizado. Contáctanos para cambiarla.",
     "forbidden": "Solo el propietario del espacio de trabajo puede gestionar la facturación.",
     "generic": "Algo salió mal por nuestra parte. Inténtalo de nuevo.",
-    "network": "No se pudo conectar con Shortn. Revisa tu conexión e inténtalo de nuevo."
+    "network": "No se pudo conectar con Shortn. Revisa tu conexión e inténtalo de nuevo.",
+    "portal": "No se pudo abrir la facturación. Inténtalo de nuevo."
+  },
+  "invoices": {
+    "title": "Facturas",
+    "description": "Historial de pagos de este espacio de trabajo. Actualiza los datos de facturación y los métodos de pago en el portal de facturación.",
+    "open": "Abrir portal de facturación",
+    "date": "Fecha",
+    "invoice": "Factura",
+    "status": "Estado",
+    "amount": "Importe",
+    "download": "Descargar",
+    "empty": "Todavía no hay pagos en este espacio de trabajo.",
+    "unavailable": "El historial de pagos no está disponible temporalmente.",
+    "retry": "Reintentar",
+    "awaitingNumber": "Esperando número de factura",
+    "notReady": "No disponible",
+    "downloadInvoice": "Descargar factura {number}",
+    "downloadFailed": "No se pudo descargar la factura. Inténtalo de nuevo o abre el portal de facturación.",
+    "refundedAmount": "{amount} reembolsados",
+    "statuses": {
+      "draft": "Borrador",
+      "pending": "Pendiente",
+      "paid": "Pagado",
+      "refunded": "Reembolsado",
+      "partiallyRefunded": "Parcialmente reembolsado",
+      "void": "Anulado",
+      "unknown": "Desconocido"
+    }
+  },
+  "plansPage": {
+    "title": "Comparar planes"
+  },
+  "confirm": {
+    "whatHappens": "Qué ocurre"
+  },
+  "change": {
+    "upgradeTitle": "Mejorar a {plan}",
+    "downgradeTitle": "Cambiar a {plan}",
+    "upgradeNow": "El plan {plan} comienza en cuanto el proveedor de pagos lo confirme.",
+    "upgradeInvoice": "Se cobrará la diferencia proporcional de este período de facturación.",
+    "downgradeLater": "Conservas {current} hasta {date} y después cambias a {plan}.",
+    "downgradeLimits": "Los límites y funciones de {plan} se aplican cuando el cambio entre en vigor."
+  },
+  "cancelPage": {
+    "title": "Cancelar plan",
+    "heading": "¿Cancelar {plan}?",
+    "keepUntil": "Conservas {plan} hasta {date}.",
+    "thenFree": "Después, el espacio de trabajo pasa a Free, con {links} enlaces y {qrCodes} códigos QR por período.",
+    "undo": "Puedes conservar {plan} reanudando la suscripción antes de que termine el período.",
+    "sectionTitle": "Cancelación",
+    "sectionDescription": "Cancela {plan} al final del período actual, el {date}."
+  },
+  "priceEstimate": "≈ {eur}/mes, facturados como {usd}/mes",
+  "exchangeRate": {
+    "note": "Las estimaciones en EUR usan los tipos de referencia del BCE del {date}. El pago se factura en USD.",
+    "unavailable": "Las estimaciones en EUR no están disponibles temporalmente. El pago se factura en USD."
   }
 }

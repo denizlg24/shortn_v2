@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { products, type SubscriptionLike } from "@shortn/billing";
+import { applyFetched, products, type SubscriptionLike } from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
 import { MongoClient, ObjectId, type Db } from "mongodb";
 import { processBillingEvents, type BillingDeps } from "./billing";
+import { noticesFor } from "./billing-notices";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 
@@ -13,6 +14,10 @@ const mongoUrl = process.env.MONGO_TEST_URL;
     client = await new MongoClient(mongoUrl ?? "").connect();
     db = client.db(
       `shortn_worker_billing_${crypto.randomUUID().replaceAll("-", "")}`,
+    );
+    await collection(db, "subscriptions").createIndex(
+      { polarSubscriptionId: 1 },
+      { unique: true },
     );
   });
   afterAll(async () => {
@@ -78,6 +83,103 @@ const mongoUrl = process.env.MONGO_TEST_URL;
       });
     return { userId, workspaceId: workspace.insertedId, state, deps, deliver };
   }
+
+  // Hold one subscription write after its preliminary read, letting a
+  // competing webhook finish first against the real Mongo collection.
+  function delayedWrite() {
+    const reached = Promise.withResolvers<void>();
+    const released = Promise.withResolvers<void>();
+    const gatedDb = new Proxy(db, {
+      get(target, key) {
+        if (key === "collection")
+          return (name: string) => {
+            const targetCollection = target.collection(name);
+            if (name !== physicalNames.subscriptions) return targetCollection;
+            return new Proxy(targetCollection, {
+              get(target, key) {
+                const value = Reflect.get(target, key);
+                if (key === "findOneAndUpdate")
+                  return async (...args: unknown[]) => {
+                    reached.resolve();
+                    await released.promise;
+                    return Reflect.apply(value, target, args);
+                  };
+                return typeof value === "function" ? value.bind(target) : value;
+              },
+            });
+          };
+        const value = Reflect.get(target, key);
+        return typeof value === "function" ? value.bind(target) : value;
+      },
+    });
+    return {
+      db: gatedDb,
+      reached: reached.promise,
+      release: () => released.resolve(),
+    };
+  }
+
+  test("a delayed older write cannot overwrite a newer cancellation", async () => {
+    const { workspaceId, state } = await setup();
+    await applyFetched(db, "sandbox", state.current);
+    const gate = delayedWrite();
+    const pending = applyFetched(gate.db, "sandbox", {
+      ...state.current,
+      modifiedAt: new Date("2026-10-02"),
+    });
+    await gate.reached;
+    try {
+      await applyFetched(db, "sandbox", {
+        ...state.current,
+        status: "canceled",
+        modifiedAt: new Date("2026-10-03"),
+      });
+    } finally {
+      gate.release();
+    }
+    expect(await pending).toEqual({ status: "stale" });
+    const mirror = await collection(db, "subscriptions").findOne({
+      polarSubscriptionId: state.current.id,
+    });
+    expect(mirror?.status).toBe("canceled");
+    expect(mirror?.modifiedAt).toEqual(new Date("2026-10-03"));
+    expect(
+      (await collection(db, "workspaces").findOne({ _id: workspaceId }))?.plan,
+    ).toBe("free");
+  });
+
+  test("concurrent duplicates report only one plan transition", async () => {
+    const { state } = await setup();
+    await applyFetched(db, "sandbox", state.current);
+    const next = {
+      ...state.current,
+      productId: products.sandbox.checkout.pro,
+      modifiedAt: new Date("2026-10-02"),
+    };
+    const gate = delayedWrite();
+    const pending = applyFetched(gate.db, "sandbox", next);
+    await gate.reached;
+    let first;
+    try {
+      first = await applyFetched(db, "sandbox", next);
+    } finally {
+      gate.release();
+    }
+    const second = await pending;
+    expect(first.status).toBe("applied");
+    expect(second.status).toBe("applied");
+    const notices = [first, second].flatMap((outcome) =>
+      outcome.status === "applied"
+        ? noticesFor(outcome.before, outcome.after)
+        : [],
+    );
+    expect(notices).toEqual([{ kind: "changed", plan: "pro" }]);
+    expect(
+      await collection(db, "subscriptions").countDocuments({
+        polarSubscriptionId: state.current.id,
+      }),
+    ).toBe(1);
+  });
 
   test("replays converge and an older refetch never overwrites a newer mirror", async () => {
     const { workspaceId, state, deps, deliver } = await setup();

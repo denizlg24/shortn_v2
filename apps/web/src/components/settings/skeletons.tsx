@@ -1,14 +1,21 @@
 import { Skeleton } from "@shortn/ui";
+import type { ReactNode } from "react";
+import { Page } from "@/components/page/page";
 
 // Shapes match the loaded pages so nothing jumps when they stream in (12:
 // skeletons, never spinners, on page loads).
 
-function HeadingSkeleton() {
+function SettingsSkeleton({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 pb-8">
-      <Skeleton className="h-6 w-32" />
-      <Skeleton className="h-4 w-72 max-w-full" />
-    </div>
+    <Page
+      crumbs={[{ label: <Skeleton className="h-4 w-36" /> }]}
+      title={<Skeleton className="h-6 w-32" />}
+      description={<Skeleton className="h-4 w-72 max-w-full" />}
+    >
+      <div aria-busy className="flex flex-col">
+        {children}
+      </div>
+    </Page>
   );
 }
 
@@ -23,12 +30,11 @@ function FieldSkeleton() {
 
 export function FormPageSkeleton({ sections = 3 }: { sections?: number }) {
   return (
-    <div aria-busy className="flex flex-col">
-      <HeadingSkeleton />
+    <SettingsSkeleton>
       {Array.from({ length: sections }, (_, index) => (
         <div
           key={index}
-          className="flex max-w-140 flex-col gap-5 border-t border-line py-8"
+          className="flex max-w-140 flex-col gap-5 border-b border-line py-6 first:pt-0 last:border-b-0"
         >
           <div className="flex flex-col gap-2">
             <Skeleton className="h-5 w-40" />
@@ -39,15 +45,14 @@ export function FormPageSkeleton({ sections = 3 }: { sections?: number }) {
           <Skeleton className="h-8 w-20 rounded-control" />
         </div>
       ))}
-    </div>
+    </SettingsSkeleton>
   );
 }
 
 export function MembersSkeleton() {
   return (
-    <div aria-busy className="flex flex-col">
-      <HeadingSkeleton />
-      <div className="flex max-w-140 flex-col gap-4 border-t border-line py-8">
+    <SettingsSkeleton>
+      <div className="flex max-w-140 flex-col gap-4 border-b border-line py-6 first:pt-0 last:border-b-0">
         <Skeleton className="h-5 w-32" />
         <div className="flex gap-2">
           <Skeleton className="h-8 flex-1 rounded-control" />
@@ -55,7 +60,7 @@ export function MembersSkeleton() {
           <Skeleton className="h-8 w-24 rounded-control" />
         </div>
       </div>
-      <div className="flex flex-col border-t border-line pt-8">
+      <div className="flex flex-col pt-6">
         <Skeleton className="mb-4 h-5 w-28" />
         {Array.from({ length: 4 }, (_, index) => (
           <div
@@ -71,20 +76,19 @@ export function MembersSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </SettingsSkeleton>
   );
 }
 
 export function BillingSkeleton() {
   return (
-    <div aria-busy className="flex flex-col">
-      <HeadingSkeleton />
-      <div className="flex flex-col gap-3 border-t border-line py-8">
+    <SettingsSkeleton>
+      <div className="flex flex-col gap-3 border-b border-line py-6 first:pt-0 last:border-b-0">
         <Skeleton className="h-5 w-24" />
         <Skeleton className="h-7 w-40" />
         <Skeleton className="h-4 w-48" />
       </div>
-      <div className="grid gap-6 border-t border-line py-8 sm:grid-cols-3">
+      <div className="grid gap-6 border-b border-line py-6 first:pt-0 last:border-b-0 sm:grid-cols-3">
         {Array.from({ length: 3 }, (_, index) => (
           <div key={index} className="flex flex-col gap-2">
             <Skeleton className="h-3 w-28" />
@@ -93,12 +97,12 @@ export function BillingSkeleton() {
           </div>
         ))}
       </div>
-      <div className="flex flex-col gap-2 border-t border-line pt-8">
+      <div className="flex flex-col gap-2 pt-6">
         <Skeleton className="mb-2 h-5 w-20" />
         {Array.from({ length: 6 }, (_, index) => (
           <Skeleton key={index} className="h-6 w-full" />
         ))}
       </div>
-    </div>
+    </SettingsSkeleton>
   );
 }

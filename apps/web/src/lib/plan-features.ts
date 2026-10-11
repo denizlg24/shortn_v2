@@ -10,7 +10,8 @@ export const gatedFeatures = [
 export type GatedFeature = (typeof gatedFeatures)[number];
 
 /** Features with an upgrade explanation in the `gate` catalog. */
-export type ExplainedFeature = GatedFeature | "qrLogo" | "csvExport";
+export type ExplainedFeature =
+  GatedFeature | "qrLogo" | "csvExport" | "campaignExport";
 
 export interface FeatureAccess {
   allowed: boolean;

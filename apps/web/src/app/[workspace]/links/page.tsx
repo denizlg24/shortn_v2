@@ -1,6 +1,5 @@
 import {
   can,
-  isCreatedWindow,
   isLinkSort,
   isLinkStatus,
   listLinks,
@@ -9,12 +8,14 @@ import {
 import { buttonVariants, cn } from "@shortn/ui";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
+import { BulkSelection } from "@/components/page/bulk-selection";
 import { Notice } from "@/components/page/notice";
 import { Page } from "@/components/page/page";
 import { LinksFilters } from "@/components/link-pages/links-filters";
 import { Pagination } from "@/components/page/pagination";
 import { serviceContext } from "@/server/context";
-import { daysAgo } from "@/server/time";
+import { createdBounds } from "@/components/page/created-range";
+import { requestTime } from "@/server/time";
 
 const pageSize = 25;
 
@@ -37,9 +38,18 @@ export default async function LinksPage({
   const ctx = await serviceContext(workspace);
 
   const search = one(query.q)?.slice(0, 200);
-  const tag = one(query.tag);
+  const selectedTags = (
+    Array.isArray(query.tag) ? query.tag : query.tag ? [query.tag] : []
+  )
+    .map((tag) => tag.slice(0, 48))
+    .slice(0, 50);
   const status = one(query.status);
-  const created = one(query.created);
+  const createdParams = new URLSearchParams();
+  for (const key of ["created", "from", "to"]) {
+    const value = one(query[key]);
+    if (value) createdParams.set(key, value);
+  }
+  const dateBounds = createdBounds(createdParams, requestTime());
   const sort = one(query.sort);
   const pageNumber = Math.max(1, Number(one(query.page)) || 1);
 
@@ -47,11 +57,9 @@ export default async function LinksPage({
     listTags(ctx),
     listLinks(ctx, {
       search,
-      tags: tag ? [tag] : undefined,
+      tags: selectedTags.length ? selectedTags : undefined,
       status: isLinkStatus(status) ? status : undefined,
-      createdAfter: isCreatedWindow(created)
-        ? daysAgo(Number(created))
-        : undefined,
+      ...dateBounds,
       sort: isLinkSort(sort) ? sort : "newest",
       page: pageNumber,
       limit: pageSize,
@@ -59,7 +67,14 @@ export default async function LinksPage({
   ]);
 
   const canCreate = can(ctx.actor, "resource.create");
-  const filtered = Boolean(search || tag || status || created);
+  const deletable = (link: (typeof result.links)[number]) =>
+    can(ctx.actor, "resource.delete", {
+      createdBy: link.createdBy ?? undefined,
+    });
+  const anyDeletable = result.links.some(deletable);
+  const filtered = Boolean(
+    search || selectedTags.length || status || Object.keys(dateBounds).length,
+  );
   const deleted = Number(one(query.deleted));
 
   return (
@@ -101,12 +116,16 @@ export default async function LinksPage({
           ) : null}
         </div>
       ) : (
-        <form method="get" action={`/${workspace}/links/delete`}>
+        <BulkSelection
+          key={JSON.stringify(query)}
+          action={`/${workspace}/links/delete`}
+          enabled={anyDeletable}
+        >
           <div className="overflow-x-auto">
             <table className="w-full text-small">
               <thead className="border-b border-line text-left text-meta text-fg-muted">
                 <tr>
-                  {canCreate ? (
+                  {anyDeletable ? (
                     <th scope="col" className="w-10 py-2 pr-2 font-medium">
                       <span className="sr-only">{t("columns.select")}</span>
                     </th>
@@ -140,15 +159,17 @@ export default async function LinksPage({
               <tbody className="divide-y divide-line">
                 {result.links.map((link) => (
                   <tr key={link.id} className="hover:bg-bg-subtle">
-                    {canCreate ? (
+                    {anyDeletable ? (
                       <td className="py-2.5 pr-2">
-                        <input
-                          type="checkbox"
-                          name="ids"
-                          value={link.id}
-                          aria-label={t("selectRow", { key: link.key })}
-                          className="size-4 accent-[var(--color-signal)]"
-                        />
+                        {deletable(link) ? (
+                          <input
+                            type="checkbox"
+                            name="ids"
+                            value={link.id}
+                            aria-label={t("selectRow", { key: link.key })}
+                            className="size-4 accent-[var(--color-signal)]"
+                          />
+                        ) : null}
                       </td>
                     ) : null}
                     <td className="py-2.5 pr-4">
@@ -195,24 +216,14 @@ export default async function LinksPage({
               </tbody>
             </table>
           </div>
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            {canCreate ? (
-              <button
-                type="submit"
-                className={buttonVariants({ variant: "secondary", size: "md" })}
-              >
-                {t("deleteSelected")}
-              </button>
-            ) : (
-              <span />
-            )}
+          <div className="mt-4 flex flex-wrap items-center justify-end gap-3">
             <Pagination
               page={result.page ?? 1}
               pages={result.pages ?? 1}
               params={query}
             />
           </div>
-        </form>
+        </BulkSelection>
       )}
     </Page>
   );

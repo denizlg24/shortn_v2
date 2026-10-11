@@ -36,8 +36,20 @@ const cell = (value: string | undefined) => {
   return `"${safe.replaceAll('"', '""')}"`;
 };
 
-// GET /api/export/{ws}?from&to[&link=id|&campaign=id] → CSV of raw events
-// in the plan's analytics window (csvExport feature).
+// Attribute filters the analytics filter bar puts in the URL.
+const filterParams = [
+  "country",
+  "device",
+  "browser",
+  "os",
+  "referrer",
+  "utmSource",
+  "utmMedium",
+  "utmCampaign",
+] as const;
+
+// GET /api/export/{ws}?from&to[&link=id|&campaign=id][&kind][&country…] →
+// CSV of raw events in the plan's analytics window (csvExport feature).
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ workspace: string }> },
@@ -61,16 +73,30 @@ export async function GET(
       { error: "feature_required", feature },
       { status: 403 },
     );
+  let campaignTitle: string | null = null;
+  if (campaignId) {
+    const members = await campaignLinks(ctx, campaignId);
+    if (!members) return Response.json({ error: "not_found" }, { status: 404 });
+    scope.linkIds = members.links.map((link) => link._id);
+    campaignTitle = members.campaign.title;
+  }
   if (linkId) {
     const link = await getLink(ctx, linkId);
     if (!link) return Response.json({ error: "not_found" }, { status: 404 });
-    scope.linkIds = [new ObjectId(link.id)];
-  } else if (campaignId) {
-    const members = await campaignLinks(ctx, campaignId);
-    if (!members) return Response.json({ error: "not_found" }, { status: 404 });
-    scope.linkIds = members.links.map((l) => l._id);
-    filters.utmCampaign = members.campaign.title;
+    const id = new ObjectId(link.id);
+    scope.linkIds = scope.linkIds
+      ? scope.linkIds.filter((member) => member.equals(id))
+      : [id];
   }
+  const kind = url.searchParams.get("kind");
+  if (kind === "click" || kind === "scan") scope.kind = kind;
+  if (hasFeature(entitlements, "analyticsBreakdowns"))
+    for (const name of filterParams) {
+      const value = url.searchParams.get(name)?.slice(0, 200);
+      if (value) filters[name] = value;
+    }
+  // Legacy counts a campaign's clicks by utm_campaign = its title.
+  if (campaignTitle !== null) filters.utmCampaign = campaignTitle;
   const range = clampRange({ from, to, timezone: "UTC" }, entitlements);
   const cursor = exportCursor(ctx.db, scope, range, filters);
   const encoder = new TextEncoder();

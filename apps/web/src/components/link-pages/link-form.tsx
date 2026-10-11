@@ -2,7 +2,9 @@
 
 import type { PlanId } from "@shortn/billing";
 import { useTranslations } from "next-intl";
-import { useActionState, useId, useState } from "react";
+import { useId, useState } from "react";
+import { useFormSubmit } from "../editor/use-form-submit";
+import { TagsField } from "../page/tags-field";
 import { Section } from "../page/page";
 import { FormActions, FormField, inputClass } from "../page/form";
 import { PlanGate } from "../plan-gate";
@@ -32,7 +34,7 @@ export function LinkForm({
   const t = useTranslations("linkPages.form");
   const tErrors = useTranslations("linkPages.errors");
   const tLinkErrors = useTranslations("links.errors");
-  const [state, formAction, pending] = useActionState(action, { error: null });
+  const { state, pending, onSubmit } = useFormSubmit(action);
   const [passwordMode, setPasswordMode] = useState<"keep" | "set" | "remove">(
     "keep",
   );
@@ -56,9 +58,13 @@ export function LinkForm({
       case "invalid_key":
         return tLinkErrors("invalidKey");
       case "key_reserved":
-        return tLinkErrors("keyReserved");
+        return tLinkErrors("keyReserved", {
+          key: String(state.detail?.key ?? ""),
+        });
       case "key_taken":
-        return tLinkErrors("keyTaken");
+        return tLinkErrors("keyTaken", {
+          key: String(state.detail?.key ?? ""),
+        });
       case "forbidden":
         return tLinkErrors("forbidden");
       case "not_found":
@@ -78,7 +84,7 @@ export function LinkForm({
         : undefined;
 
   return (
-    <form action={formAction} noValidate>
+    <form onSubmit={onSubmit} noValidate>
       <Section title={t("destinationSection")}>
         <FormField
           id={`${id}-url`}
@@ -166,46 +172,12 @@ export function LinkForm({
       </Section>
 
       <Section title={t("tagsSection")}>
-        <fieldset className="flex flex-col gap-4">
-          <legend className="sr-only">{t("tagsSection")}</legend>
-          {allTags.length ? (
-            <div>
-              <p className="mb-2 text-small font-medium">{t("existingTags")}</p>
-              <div className="flex flex-wrap gap-x-4 gap-y-2">
-                {allTags.map((tag) => (
-                  <label
-                    key={tag}
-                    className="flex items-center gap-2 text-small"
-                  >
-                    <input
-                      type="checkbox"
-                      name="tag"
-                      value={tag}
-                      defaultChecked={initial.tags.includes(tag)}
-                      className="size-4 accent-[var(--color-signal)]"
-                    />
-                    {tag}
-                  </label>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="text-small text-fg-muted">{t("noTags")}</p>
-          )}
-          <FormField
-            id={`${id}-newTags`}
-            label={t("newTags")}
-            optional={t("optional")}
-            hint={t("newTagsHint")}
-          >
-            <input
-              id={`${id}-newTags`}
-              name="newTags"
-              className={inputClass}
-              aria-describedby={`${id}-newTags-hint`}
-            />
-          </FormField>
-        </fieldset>
+        <TagsField
+          id={`${id}-tags`}
+          allTags={allTags}
+          selected={initial.tags}
+          label={t("tagsSection")}
+        />
       </Section>
 
       <Section title={t("passwordSection")}>

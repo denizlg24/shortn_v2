@@ -1,11 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
   allowedIntervals,
+  normalizeSearch,
   parseQuery,
   resolveRange,
   spanDays,
   toSearchParams,
-  withRange,
 } from "./query";
 
 const parse = (search: string) => parseQuery(new URLSearchParams(search));
@@ -42,6 +42,15 @@ describe("parseQuery", () => {
     });
   });
 
+  test("accepts a link id and a click or scan type", () => {
+    const link = "64b7f0c2a1b2c3d4e5f60718";
+    expect(parse(`link=${link}&kind=scan`).filters).toEqual({
+      link,
+      kind: "scan",
+    });
+    expect(parse("kind=views").filters).toEqual({});
+  });
+
   test("round-trips through search params", () => {
     for (const search of [
       "",
@@ -66,12 +75,6 @@ describe("ranges", () => {
     expect(allowedIntervals(7)).toEqual(["hour", "day"]);
     expect(allowedIntervals(30)).toEqual(["day", "week"]);
     expect(allowedIntervals(365)).toEqual(["day", "week", "month"]);
-  });
-
-  test("changing the range resets the interval to its default", () => {
-    const next = withRange(parse("range=7d&interval=hour"), "12m");
-    expect(next.interval).toBe("week");
-    expect(next.from).toBeNull();
   });
 
   test("presets start at a local midnight and end now", () => {
@@ -101,5 +104,46 @@ describe("ranges", () => {
         now,
       ).to,
     ).toEqual(now);
+  });
+});
+
+describe("normalizeSearch", () => {
+  const now = new Date(2026, 9, 10, 15, 30);
+  const normalize = (next: string, current = "") =>
+    normalizeSearch(
+      new URLSearchParams(next),
+      new URLSearchParams(current),
+      now,
+    ).toString();
+
+  test("picking Custom fills in the last 30 days", () => {
+    expect(normalize("range=custom&interval=day")).toBe(
+      "range=custom&from=2026-09-11&to=2026-10-10",
+    );
+  });
+
+  test("puts swapped dates in order", () => {
+    expect(
+      normalize(
+        "range=custom&from=2026-10-05&to=2026-10-01",
+        "range=custom&from=2026-09-01&to=2026-10-01",
+      ),
+    ).toBe("range=custom&from=2026-10-01&to=2026-10-05");
+  });
+
+  test("a new range gets its default interval; same range keeps the choice", () => {
+    expect(normalize("range=12m&interval=day")).toBe("range=12m");
+    expect(normalize("range=12m&interval=day", "range=12m")).toBe(
+      "range=12m&interval=day",
+    );
+  });
+
+  test("drops defaults and from/to outside custom, keeps foreign params", () => {
+    expect(
+      normalize(
+        "range=30d&from=2026-10-01&to=2026-10-02&country=PT&sort=name",
+        "range=30d",
+      ),
+    ).toBe("country=PT&sort=name");
   });
 });

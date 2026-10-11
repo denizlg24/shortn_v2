@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@shortn/ui";
-import { useRef, type KeyboardEvent, type ReactNode } from "react";
+import { useId, useRef, type KeyboardEvent, type ReactNode } from "react";
 
 export interface Option<T extends string> {
   value: T;
@@ -90,6 +90,42 @@ export function OptionGroup<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/** A labelled exclusive choice, laid out like the other form fields. */
+export function ChoiceField<T extends string>({
+  label,
+  hint,
+  options,
+  value,
+  onValueChange,
+  disabled,
+}: {
+  label: ReactNode;
+  hint?: ReactNode;
+  options: Option<T>[];
+  value: string | undefined;
+  onValueChange: (value: T) => void;
+  disabled?: boolean;
+}) {
+  const labelId = useId();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span id={labelId} className="text-small font-medium">
+        {label}
+      </span>
+      <OptionGroup
+        labelledBy={labelId}
+        options={options}
+        value={value}
+        onValueChange={onValueChange}
+        {...(disabled === undefined ? {} : { disabled })}
+      />
+      {hint ? (
+        <p className="text-small text-pretty text-fg-muted">{hint}</p>
+      ) : null}
     </div>
   );
 }

@@ -1,31 +1,33 @@
 import { useTranslations } from "next-intl";
 import { useCallback } from "react";
-import type { ActionError, ActionFailure } from "../editor/action-error";
 
-export type CampaignField = "title" | "form";
-
-/** Localized message for a failed campaign or UTM action. */
-export function useCampaignError() {
+/** Localized message for an error code from the campaign form actions. */
+export function useCampaignErrorMessage() {
   const t = useTranslations("campaigns.errors");
   return useCallback(
-    (failure: ActionFailure): ActionError<CampaignField> => {
-      switch (failure.error) {
-        case "title_taken":
-          return { field: "title", message: t("titleTaken") };
+    (code: string, detail?: Record<string, string | number | null>) => {
+      switch (code) {
+        case "title_required":
         case "invalid_title":
-          return { field: "title", message: t("titleRequired") };
+          return t("titleRequired");
+        case "title_taken":
+          return t("titleTaken");
+        case "link_required":
+          return t("linkRequired");
+        case "duplicate":
+          return t("duplicate");
+        case "full":
+          return t("full", { max: Number(detail?.max ?? 50) });
         case "feature_required":
-          return { field: "form", message: t("gated"), upgrade: true };
+          return t("gated");
         case "forbidden":
-          return { field: "form", message: t("forbidden") };
+          return t("forbidden");
         case "not_found":
-          return { field: "form", message: t("notFound") };
+          return t("notFound");
         case "invalid_input":
-          return { field: "form", message: t("invalidInput") };
-        case "network":
-          return { field: "form", message: t("network") };
+          return t("invalidInput");
         default:
-          return { field: "form", message: t("generic") };
+          return t("generic");
       }
     },
     [t],

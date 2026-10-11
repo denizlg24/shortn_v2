@@ -1,5 +1,7 @@
-import { QrDeskSkeleton } from "@/components/qr/qr-skeleton";
-
 export default function QrLoading() {
-  return <QrDeskSkeleton />;
+  return (
+    <div className="px-gutter pt-20" aria-busy>
+      <div className="h-8 w-48 animate-pulse rounded-control bg-bg-muted" />
+    </div>
+  );
 }

@@ -6,6 +6,7 @@ import {
   createPolar,
   loadEntitlements,
   paidStatuses,
+  paymentHistory,
   plans,
   portalUrl,
   setCancelAtPeriodEnd,
@@ -96,6 +97,53 @@ export async function billingOverviewAction(
 
 const paidPlan = z.enum(["basic", "plus", "pro"]);
 
+export async function paymentHistoryAction(workspace: string, page = 1) {
+  const ctx = await serviceContext(workspace);
+  if (!can(ctx.actor, "billing.manage"))
+    return { ok: false, error: "forbidden" } as const;
+  const subscriptions = await collection(ctx.db, "subscriptions")
+    .find({ workspaceId: ctx.workspace._id })
+    .toArray();
+  const safePage = Number.isSafeInteger(page) && page > 0 ? page : 1;
+  try {
+    const data = await paymentHistory(
+      polar(),
+      ctx.workspace.ownerUserId,
+      subscriptions.map((sub) => sub.polarSubscriptionId),
+      safePage,
+    );
+    return { ok: true, data } as const;
+  } catch {
+    return { ok: false, error: "generic" } as const;
+  }
+}
+
+export async function invoiceAction(
+  workspace: string,
+  orderId: string,
+): Promise<ActionResult<{ url: string }>> {
+  if (!z.uuid().safeParse(orderId).success) return invalidInput;
+  const ctx = await serviceContext(workspace);
+  if (!can(ctx.actor, "billing.manage"))
+    return { ok: false, error: "forbidden" };
+  try {
+    const client = polar();
+    const order = await client.orders.get({ id: orderId });
+    const subscription =
+      order.subscriptionId &&
+      (await collection(ctx.db, "subscriptions").findOne({
+        workspaceId: ctx.workspace._id,
+        polarSubscriptionId: order.subscriptionId,
+        polarCustomerId: order.customerId,
+      }));
+    if (!subscription || !order.isInvoiceGenerated)
+      return { ok: false, error: "not_found" };
+    return { ok: true, data: await client.orders.invoice({ id: orderId }) };
+  } catch {
+    return { ok: false, error: "generic" };
+  }
+}
+
 // The workspace owner is the Polar customer; metadata.workspaceId decides
 // which workspace the subscription funds (06 §Data).
 export async function checkoutAction(
@@ -113,15 +161,19 @@ export async function checkoutAction(
   if (paid) return { ok: false, error: "already_subscribed" };
   const session = await requireSession();
   const base = `${env().BETTER_AUTH_URL}/${ctx.workspace.slug}/settings/billing`;
-  const url = await checkoutUrl(polar(), env().POLAR_ENVIRONMENT, {
-    plan,
-    workspaceId: ctx.workspace._id,
-    customerExternalId: ctx.workspace.ownerUserId,
-    customerEmail: session.user.email,
-    successUrl: `${base}?checkout={CHECKOUT_ID}`,
-    returnUrl: base,
-  });
-  return { ok: true, data: { url } };
+  try {
+    const url = await checkoutUrl(polar(), env().POLAR_ENVIRONMENT, {
+      plan,
+      workspaceId: ctx.workspace._id,
+      customerExternalId: ctx.workspace.ownerUserId,
+      customerEmail: session.user.email,
+      successUrl: `${base}?checkout={CHECKOUT_ID}`,
+      returnUrl: base,
+    });
+    return { ok: true, data: { url } };
+  } catch {
+    return { ok: false, error: "generic" };
+  }
 }
 
 export async function portalAction(
@@ -130,12 +182,16 @@ export async function portalAction(
   const ctx = await serviceContext(workspace);
   if (!can(ctx.actor, "billing.manage"))
     return { ok: false, error: "forbidden" };
-  const url = await portalUrl(
-    polar(),
-    ctx.workspace.ownerUserId,
-    `${env().BETTER_AUTH_URL}/${ctx.workspace.slug}/settings/billing`,
-  );
-  return { ok: true, data: { url } };
+  try {
+    const url = await portalUrl(
+      polar(),
+      ctx.workspace.ownerUserId,
+      `${env().BETTER_AUTH_URL}/${ctx.workspace.slug}/settings/billing`,
+    );
+    return { ok: true, data: { url } };
+  } catch {
+    return { ok: false, error: "generic" };
+  }
 }
 
 async function currentMirror(workspace: string) {
@@ -163,15 +219,19 @@ export async function changePlanAction(
   if (!paidPlan.safeParse(target).success) return invalidInput;
   const found = await currentMirror(workspace);
   if ("error" in found) return { ok: false, error: found.error };
-  const result = await changePlan(
-    polar(),
-    env().POLAR_ENVIRONMENT,
-    found.mirror,
-    target,
-  );
-  return result.ok
-    ? { ok: true, data: { when: result.when } }
-    : { ok: false, error: result.error };
+  try {
+    const result = await changePlan(
+      polar(),
+      env().POLAR_ENVIRONMENT,
+      found.mirror,
+      target,
+    );
+    return result.ok
+      ? { ok: true, data: { when: result.when } }
+      : { ok: false, error: result.error };
+  } catch {
+    return { ok: false, error: "generic" };
+  }
 }
 
 export async function setCancelAction(
@@ -180,6 +240,10 @@ export async function setCancelAction(
 ): Promise<ActionResult<null>> {
   const found = await currentMirror(workspace);
   if ("error" in found) return { ok: false, error: found.error };
-  await setCancelAtPeriodEnd(polar(), found.mirror, cancel);
-  return { ok: true, data: null };
+  try {
+    await setCancelAtPeriodEnd(polar(), found.mirror, cancel);
+    return { ok: true, data: null };
+  } catch {
+    return { ok: false, error: "generic" };
+  }
 }

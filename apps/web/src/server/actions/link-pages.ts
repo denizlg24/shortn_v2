@@ -7,6 +7,7 @@ import {
   scanAndPersistLink,
   setLinkUtm,
   updateLink,
+  type UtmVariant,
 } from "@shortn/core";
 import { ObjectId } from "mongodb";
 import { redirect } from "next/navigation";
@@ -29,7 +30,7 @@ const text = (form: FormData, name: string) => {
   return typeof value === "string" ? value.trim() : "";
 };
 
-// Tags arrive as checked boxes (existing tags) plus a comma-separated field.
+// Tags arrive as repeated fields; older forms may also post comma-separated newTags.
 const tagsFrom = (form: FormData) =>
   [
     ...form
@@ -151,6 +152,7 @@ export async function saveUtmVariantAction(
   workspace: string,
   id: string,
   index: number | null,
+  expected: UtmVariant[] | null,
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
@@ -173,10 +175,24 @@ export async function saveUtmVariantAction(
     term: v.term ?? undefined,
     content: v.content ?? undefined,
   }));
-  if (index === null) current.push(variant);
-  else if (index >= 0 && index < current.length) current[index] = variant;
+  if (index === null) {
+    if (current.length >= 50) return { error: "utm_limit" };
+    current.push(variant);
+  } else if (index >= 0 && index < current.length) current[index] = variant;
   else return { error: "not_found" };
-  const result = await setLinkUtm(ctx, id, current.slice(0, 50));
+  const result = await setLinkUtm(
+    ctx,
+    id,
+    current,
+    expected ??
+      link.utm.map((v) => ({
+        source: v.source ?? undefined,
+        medium: v.medium ?? undefined,
+        campaign: v.campaign ?? undefined,
+        term: v.term ?? undefined,
+        content: v.content ?? undefined,
+      })),
+  );
   if (!result.ok) return { error: result.error, detail: result.detail };
   redirect(`/${workspace}/links/${id}/utm?saved=1`);
 }
@@ -185,19 +201,19 @@ export async function removeUtmVariantAction(
   workspace: string,
   id: string,
   index: number,
-) {
+  expected: UtmVariant[],
+  _state: FormState,
+): Promise<FormState> {
+  void _state;
+  if (!Number.isInteger(index) || index < 0 || !expected[index])
+    return { error: "not_found" };
   const ctx = await serviceContext(workspace);
-  const link = await getLink(ctx, id);
-  if (!link) return;
-  const remaining = link.utm
-    .filter((_, i) => i !== index)
-    .map((v) => ({
-      source: v.source ?? undefined,
-      medium: v.medium ?? undefined,
-      campaign: v.campaign ?? undefined,
-      term: v.term ?? undefined,
-      content: v.content ?? undefined,
-    }));
-  await setLinkUtm(ctx, id, remaining);
-  redirect(`/${workspace}/links/${id}/utm`);
+  const result = await setLinkUtm(
+    ctx,
+    id,
+    expected.filter((_, i) => i !== index),
+    expected,
+  );
+  if (!result.ok) return { error: result.error, detail: result.detail };
+  redirect(`/${workspace}/links/${id}/utm?removed=1`);
 }

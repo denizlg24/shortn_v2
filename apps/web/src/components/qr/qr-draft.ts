@@ -1,4 +1,4 @@
-import type { QrDesign, QrView } from "@shortn/core";
+import type { QrDesign } from "@shortn/core";
 
 // qr-code-styling's own values; legacy offered these six for every part and
 // "dot" is the library's circular corner.
@@ -40,11 +40,8 @@ export const libraryDefaults = {
   dotStyle: DotStyle;
 };
 
+/** The design fields the editor offers; everything else passes through. */
 export interface QrDraft {
-  url: string;
-  title: string;
-  tags: string[];
-  applyToLink: boolean;
   foreground: string;
   background: string;
   /** null draws that part of the corners in the code colour. */
@@ -60,13 +57,8 @@ export interface QrDraft {
   hideDotsBehindLogo: boolean;
 }
 
-export function draftOf(qr: QrView): QrDraft {
-  const { design } = qr;
+export function draftOf(design: QrDesign): QrDraft {
   return {
-    url: qr.url,
-    title: qr.title,
-    tags: qr.tags.map((tag) => tag.name),
-    applyToLink: false,
     foreground: design.dotsOptions?.color ?? libraryDefaults.foreground,
     background: design.backgroundOptions?.color ?? libraryDefaults.background,
     cornerSquareColor: design.cornersSquareOptions?.color ?? null,
@@ -143,34 +135,28 @@ export function designPatch(before: QrDesign, after: QrDesign): QrDesign {
   return patch;
 }
 
-const sameTags = (a: string[], b: string[]) =>
-  a.length === b.length && a.every((tag, at) => tag === b[at]);
+/** The option groups `draft` changes on `base`; empty when untouched. */
+export const designChanges = (
+  base: QrDesign,
+  initial: QrDraft,
+  draft: QrDraft,
+): QrDesign => designPatch(designOf(base, initial), designOf(base, draft));
 
-export interface QrUpdate {
-  url?: string;
-  title?: string;
-  tags?: string[];
-  design?: QrDesign;
-  applyToLink?: boolean;
-}
+const httpUrl = /^https?:\/\/\S+$/i;
 
-/** What `updateQrAction` needs to turn `qr` into `draft`; empty when clean. */
-export function qrUpdate(qr: QrView, initial: QrDraft, draft: QrDraft) {
-  const update: QrUpdate = {};
-  if (draft.url.trim() !== qr.url) update.url = draft.url.trim();
-  if (draft.title.trim() !== qr.title) update.title = draft.title.trim();
-  if (!sameTags(draft.tags, initial.tags)) update.tags = draft.tags;
-  const design = designPatch(
-    designOf(qr.design, initial),
-    designOf(qr.design, draft),
-  );
-  if (Object.keys(design).length) update.design = design;
-  if (
-    draft.applyToLink &&
-    (update.url !== undefined ||
-      update.title !== undefined ||
-      update.tags !== undefined)
-  )
-    update.applyToLink = true;
-  return update;
+export type DraftProblem = "logoUrl" | "color";
+
+/** What would make the server refuse the design, checked before saving. */
+export function draftProblem(draft: QrDraft): DraftProblem | null {
+  const logo = draft.logo.trim();
+  if (logo && !httpUrl.test(logo)) return "logoUrl";
+  const colors = [
+    draft.foreground,
+    draft.background,
+    draft.cornerSquareColor ?? "#000",
+    draft.cornerDotColor ?? "#000",
+  ];
+  if (colors.some((color) => !color.trim() || color.trim().length > 32))
+    return "color";
+  return null;
 }

@@ -1,49 +1,50 @@
-import { can } from "@shortn/core";
-import type { Metadata } from "next";
+import { listTags } from "@shortn/core";
+import { can } from "@shortn/core/authz";
 import { getTranslations } from "next-intl/server";
-import { notFound, redirect } from "next/navigation";
-import { QrEditor } from "@/components/qr/qr-editor";
-import { gateOf } from "@/lib/plan-features";
-import { listTagsAction } from "@/server/actions/links";
-import { featureAccess } from "@/server/plan";
-import { requireWorkspace } from "@/server/workspace";
-import { loadQr } from "../load";
+import { redirect } from "next/navigation";
+import { Page } from "@/components/page/page";
+import { QrDetailsForm } from "@/components/qr/qr-details-form";
+import { updateQrDetailsPageAction } from "@/server/actions/qr-pages";
+import { loadQr, qrName, qrTabs } from "@/server/qr-page";
 
-export async function generateMetadata({
-  params,
-}: PageProps<"/[workspace]/qr/[id]/edit">): Promise<Metadata> {
-  const { workspace, id } = await params;
-  const [result, t] = await Promise.all([
-    loadQr(workspace, id),
-    getTranslations("qr.editor"),
-  ]);
-  return {
-    title: result.ok
-      ? `${t("title")} · ${result.data.title || result.data.key}`
-      : t("title"),
-  };
+export async function generateMetadata() {
+  const t = await getTranslations("qr.tabs");
+  return { title: t("edit") };
 }
 
-export default async function QrEditPage({
+export default async function QrDetailsPage({
   params,
 }: PageProps<"/[workspace]/qr/[id]/edit">) {
-  const { workspace: slug, id } = await params;
-  const { actor } = await requireWorkspace(slug);
-  if (!can(actor, "resource.update")) redirect(`/${slug}/qr/${id}`);
-  const [result, tags, logo] = await Promise.all([
-    loadQr(slug, id),
-    listTagsAction(slug),
-    featureAccess(slug, "qrLogo"),
-  ]);
-  if (!result.ok) notFound();
+  const { workspace, id } = await params;
+  const t = await getTranslations("qr");
+  const { ctx, qr } = await loadQr(workspace, id);
+  const base = `/${workspace}/qr/${id}`;
+  if (!can(ctx.actor, "resource.update")) redirect(base);
+  const tags = await listTags(ctx);
   return (
-    <QrEditor
-      key={result.data.id}
-      workspace={slug}
-      qr={result.data}
-      tags={tags.map((tag) => tag.name)}
-      canEdit
-      logoGate={gateOf(logo)}
-    />
+    <Page
+      crumbs={[
+        { label: t("list.title"), href: `/${workspace}/qr` },
+        { label: qrName(qr), href: base },
+        { label: t("tabs.edit") },
+      ]}
+      title={qrName(qr)}
+      description={t("form.editDescription")}
+      tabs={qrTabs(workspace, id, true, (key) => t(`tabs.${key}`))}
+      tabsLabel={t("tabs.label")}
+      width="form"
+    >
+      <QrDetailsForm
+        initial={{
+          url: qr.url,
+          title: qr.title,
+          tags: qr.tags.map((tag) => tag.name),
+        }}
+        attachedLink={qr.attachedLinkKey}
+        allTags={tags.map((tag) => tag.name)}
+        action={updateQrDetailsPageAction.bind(null, workspace, id)}
+        cancelHref={base}
+      />
+    </Page>
   );
 }

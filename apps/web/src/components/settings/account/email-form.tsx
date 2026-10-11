@@ -15,9 +15,13 @@ import { strong } from "@/lib/rich-text";
 export function EmailForm({
   email,
   verified,
+  confirmation,
+  requestedEmail,
 }: {
   email: string;
   verified: boolean;
+  confirmation?: "approved" | "changed" | "expired" | "invalid" | undefined;
+  requestedEmail?: string | undefined;
 }) {
   const t = useTranslations("settings");
   const [requested, setRequested] = useState<string | null>(null);
@@ -32,6 +36,25 @@ export function EmailForm({
         { email, strong },
       )}
     >
+      {confirmation ? (
+        <Notice
+          tone={
+            confirmation === "expired" || confirmation === "invalid"
+              ? "warning"
+              : "success"
+          }
+          live="status"
+        >
+          {confirmation === "approved"
+            ? t.rich("account.email.approved", {
+                email: requestedEmail ?? "",
+                strong,
+              })
+            : confirmation === "changed"
+              ? t("account.email.changed")
+              : t(`account.email.errors.${confirmation}`)}
+        </Notice>
+      ) : null}
       <EmailChangeForm
         key={round}
         email={email}
@@ -43,11 +66,14 @@ export function EmailForm({
       />
       {requested ? (
         <Notice tone="success" live="status">
-          {t.rich("account.email.sent", {
-            current: email,
-            next: requested,
-            strong,
-          })}
+          {t.rich(
+            verified ? "account.email.sent" : "account.email.sentUnverified",
+            {
+              current: email,
+              next: requested,
+              strong,
+            },
+          )}
         </Notice>
       ) : null}
     </SettingsSection>
@@ -86,7 +112,7 @@ function EmailChangeForm({
     const newEmail = values.email.trim().toLowerCase();
     const { error } = await authClient.changeEmail({
       newEmail,
-      callbackURL: window.location.pathname,
+      callbackURL: `${window.location.pathname}?changeEmail=${encodeURIComponent(newEmail)}`,
     });
     if (!error) {
       onRequested(newEmail);

@@ -17,6 +17,10 @@ P4 (14) delivers `app.shortn.at` at parity with the legacy dashboard, the new bi
 
 ## Slices
 
+### Staging integration checkpoint — 2026-10-11
+
+The dashboard implementation is being integrated into `staging` so P5 development can branch from it. This is not P4 production acceptance: slice 4.9 remains open, including the complete page-map/parity audit, owner review, live OAuth and external email, Polar sandbox lifecycle/history/invoices, actual legacy-host handoff, legacy bio rendering, staging public-link checks, the seven-day P1 observation period and zero-drift billing reconciliation. Track local evidence in `audit/2026-10-11-p4-ux.md`; retain the 🟡 staging statuses until those checks pass. P5 development can proceed while these checks run, but production promotion and switches remain gated by 14.
+
 | Slice | Content                                                                                                                                                                                                                                                                   | Exit                                                                                                         |
 | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | 4.1   | `packages/auth`, `apps/web` scaffold (Next 16, standalone, Dockerfile), env schema, login/register/verify/reset/recover, workspace-gated shell, `/{ws}` routing, `packages/core` workspace context + `can()`                                                                   | Existing staging user logs in on `app-staging.shortn.at` with password and OAuth, lands in their workspace    |
@@ -41,21 +45,25 @@ P4 (14) delivers `app.shortn.at` at parity with the legacy dashboard, the new bi
 
 Status: ✅ built and tested · 🟡 built, not yet verified on staging · ⏳ pending · ↪ stays in legacy until a later phase (with reason).
 
+Updated 2026-10-11 from the local implementation checkpoint in `audit/2026-10-11-p4-ux.md`. A 🟡 row records local implementation/evidence, not completed staging acceptance. Live OAuth, external email, Polar lifecycle, legacy-host handoff and legacy bio rendering still require their explicit checks.
+
+Approximate EUR plan pricing from 06 is implemented locally with daily cached ECB rates, a dated source note and explicit USD billing amounts. Refresh failures retain the last-known rate; cold failures show USD only. Staging verification remains open.
+
 | Legacy feature                                                  | New home                                                                     | Status |
 | --------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------ |
-| Links CRUD, custom codes (Basic+), tags                          | `/{ws}/links` table, composer, sheet · `core/links`, `core/tags`             | ⏳     |
-| UTM variants, campaigns, UTM defaults                            | link sheet UTM editor, `/{ws}/campaigns` · `core/campaigns`                  | ⏳     |
-| Password links + hint (Pro)                                      | link sheet · `/authenticate/{key}` on web · `core/links/public`              | ⏳     |
-| Safety interstitial, blocked page, report                        | `/{locale}/safety/{key}` on web · `core/links/public`                        | ⏳     |
-| QR create/edit/customize/download                                | `/{ws}/qr` · `core/qr` (legacy option format kept)                           | ⏳     |
-| QR analytics                                                     | analytics scope `qr`                                                         | ⏳     |
-| Link analytics: time series, geo, devices, browsers, OS, referrers, UTM tables | `/{ws}/links/{id}`, `/{ws}/analytics` · `core/analytics/queries` | ⏳     |
-| Analytics CSV export                                             | export route on analytics (csvExport feature)                                | ⏳     |
-| Bio pages: create, customize, links, socials, header, fonts      | `/{ws}/bio` editor writing legacy fields; public render stays legacy `/b/`   | ⏳     |
-| Subscription: checkout, portal, success page                     | `/{ws}/settings/billing` · `billing/polar`                                   | ⏳     |
-| Upgrade, downgrade, cancel                                       | billing page, behind `BILLING_WRITES` (D8)                                   | ⏳     |
-| Subscription emails                                              | worker `billingMailer` in live mode                                          | ✅     |
-| Account: profile, email change, password, OAuth linking, sessions | `/{ws}/settings/account` via better-auth client                            | ⏳     |
+| Links CRUD, custom codes (Basic+), tags                          | `/{ws}/links` list, create/edit/confirmation pages · `core/links`, `core/tags`             | 🟡     |
+| UTM variants, campaigns, UTM defaults                            | `/{ws}/links/{id}/utm` pages, `/{ws}/campaigns` · `core/campaigns`                  | 🟡     |
+| Password links + hint (Pro)                                      | link create/edit pages · `/authenticate/{key}` on web · `core/links/public`              | 🟡     |
+| Safety interstitial, blocked page, report                        | `/safety/{key}` on web · `core/links/public`                        | 🟡     |
+| QR create/edit/customize/download                                | `/{ws}/qr` · `core/qr` (legacy option format kept)                           | 🟡     |
+| QR analytics                                                     | analytics scope `qr`                                                         | 🟡     |
+| Link analytics: time series, geo, devices, browsers, OS, referrers, UTM tables | `/{ws}/links/{id}`, `/{ws}/analytics` · `core/analytics/queries` | 🟡     |
+| Analytics CSV export                                             | export route on analytics (csvExport feature)                                | 🟡     |
+| Bio pages: create, customize, links, socials, header, fonts      | `/{ws}/bio` editor writing legacy fields; public render stays legacy `/b/`   | 🟡     |
+| Subscription: checkout, portal, success page                     | `/{ws}/settings/billing` · `billing/polar`                                   | 🟡     |
+| Upgrade, downgrade, cancel                                       | billing page, behind `BILLING_WRITES` (D8)                                   | 🟡     |
+| Subscription emails                                              | worker `billingMailer` in live mode                                          | 🟡     |
+| Account: profile, email change, password, OAuth linking, sessions | `/{ws}/settings/account` via better-auth client                            | 🟡     |
 | Account deletion                                                 | not in legacy (14's checklist listed it); 05's soft-delete flow follows P4    | ↪      |
 | Sign up, sign in (email or username), verify, recover, reset     | `(auth)` routes                                                              | ✅     |
 | Admin impersonation                                              | handoff carries `impersonatedBy`; banner in shell                            | 🟡     |
@@ -64,6 +72,12 @@ Status: ✅ built and tested · 🟡 built, not yet verified on staging · ⏳ p
 | Legal pages                                                      | ↪ legacy marketing (D7); app links to them                                   | ↪      |
 | `/qr/{code}` legacy URLs                                         | apps/redirect (P2)                                                           | ✅     |
 | `/b/{slug}` legacy URLs                                          | ↪ legacy until P5                                                            | ↪      |
+
+## Public bio design scope (clarified 2026-10-11)
+
+P4 replaces the dashboard bio editor and preserves legacy-compatible content. It does **not** replace the visitor-facing `/b/{slug}` renderer. P5 owns the public renderer and visual redesign described in 08, together with subdomains and custom domains. The old public layout is not the design target for the new renderer.
+
+P5's design acceptance must cover empty, short and long link lists, long titles, links with and without images, and desktop/mobile layouts. Validate representative pages with 20+ links as well as the small demos; a preset that only works with a few links is incomplete. The editor preview must use the same public renderer when it lands.
 
 ## Deployment wiring (staging first, then production)
 

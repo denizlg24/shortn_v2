@@ -1,7 +1,7 @@
 "use client";
 
-import { cn, Input } from "@shortn/ui";
-import type { FieldControlProps } from "../auth/auth-field";
+import { cn } from "@shortn/ui";
+import { inputClass } from "../page/form";
 
 const shortHex = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i;
 const longHex = /^#[0-9a-f]{6}/i;
@@ -21,52 +21,57 @@ function pickerValue(value: string, fallback: string): string {
  * the colour that applies when none is set.
  */
 export function ColorField({
-  control,
+  id,
   value,
   placeholder,
   pickerLabel,
+  describedBy,
+  invalid = false,
   disabled,
   onChange,
   className,
 }: {
-  control: FieldControlProps;
+  id: string;
   value: string;
   placeholder: string;
   /** Accessible name of the swatch, e.g. "Pick the background colour". */
   pickerLabel: string;
+  describedBy?: string | undefined;
+  invalid?: boolean;
   disabled?: boolean;
   onChange: (value: string) => void;
   className?: string;
 }) {
   const shown = value.trim() || placeholder;
   return (
-    <Input
-      {...control}
-      value={value}
-      placeholder={placeholder}
-      disabled={disabled}
-      maxLength={512}
-      spellCheck={false}
-      autoComplete="off"
-      autoCapitalize="none"
-      onChange={(event) => onChange(event.target.value)}
-      className="font-mono"
-      frameClassName={cn("pl-1.5", className)}
-      leading={
-        <span
-          className="relative size-5 overflow-hidden rounded-chip border border-line-strong"
-          style={{ background: shown }}
-        >
-          <input
-            type="color"
-            aria-label={pickerLabel}
-            disabled={disabled}
-            value={pickerValue(value.trim(), placeholder)}
-            onChange={(event) => onChange(event.target.value)}
-            className="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
-          />
-        </span>
-      }
-    />
+    <div className={cn("relative", className)}>
+      <span
+        className="absolute top-1/2 left-2 size-5 -translate-y-1/2 overflow-hidden rounded-chip border border-line-strong"
+        style={{ background: shown }}
+      >
+        <input
+          type="color"
+          aria-label={pickerLabel}
+          disabled={disabled}
+          value={pickerValue(value.trim(), placeholder)}
+          onChange={(event) => onChange(event.target.value)}
+          className="absolute inset-0 size-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
+        />
+      </span>
+      <input
+        id={id}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
+        maxLength={512}
+        spellCheck={false}
+        autoComplete="off"
+        autoCapitalize="none"
+        aria-invalid={invalid || undefined}
+        aria-describedby={describedBy}
+        onChange={(event) => onChange(event.target.value)}
+        className={cn(inputClass, "pl-9 font-mono")}
+      />
+    </div>
   );
 }

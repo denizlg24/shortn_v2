@@ -33,7 +33,7 @@ export function FormField({
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} className="text-small text-danger">
+        <p id={`${id}-error`} role="alert" className="text-small text-danger">
           {error}
         </p>
       ) : hint ? (
@@ -54,8 +54,8 @@ export function FormActions({
   tone = "primary",
 }: {
   submitLabel: string;
-  cancelHref: string;
-  cancelLabel: string;
+  cancelHref?: string;
+  cancelLabel?: string;
   pending?: boolean;
   tone?: "primary" | "danger";
 }) {
@@ -69,12 +69,14 @@ export function FormActions({
       >
         {submitLabel}
       </button>
-      <Link
-        href={cancelHref}
-        className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}
-      >
-        {cancelLabel}
-      </Link>
+      {cancelHref && cancelLabel ? (
+        <Link
+          href={cancelHref}
+          className={cn(buttonVariants({ variant: "ghost", size: "lg" }))}
+        >
+          {cancelLabel}
+        </Link>
+      ) : null}
     </div>
   );
 }

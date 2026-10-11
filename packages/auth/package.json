@@ -10,7 +10,7 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test --pass-with-no-tests"
   },
   "devDependencies": {
     "@shortn/config": "workspace:*"

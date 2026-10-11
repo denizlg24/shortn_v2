@@ -1,4 +1,9 @@
 import { describe, expect, test } from "bun:test";
+import {
+  parse,
+  TYPE,
+  type MessageFormatElement,
+} from "@formatjs/icu-messageformat-parser";
 import en from "../../messages/en/index";
 import es from "../../messages/es/index";
 import pt from "../../messages/pt/index";
@@ -11,10 +16,37 @@ function keyPaths(value: unknown, prefix = ""): string[] {
 }
 
 function placeholders(message: string): string[] {
-  return [...message.matchAll(/\{(\w+)/g)]
-    .map((match) => match[1] ?? "")
-    .sort();
+  const argumentsFound = new Set<string>();
+  const visit = (elements: MessageFormatElement[]) => {
+    for (const element of elements) {
+      if (element.type === TYPE.literal || element.type === TYPE.pound)
+        continue;
+      if (element.type === TYPE.tag) {
+        visit(element.children);
+        continue;
+      }
+      argumentsFound.add(element.value);
+      if (element.type === TYPE.plural || element.type === TYPE.select)
+        for (const option of Object.values(element.options))
+          visit(option.value);
+    }
+  };
+  visit(parse(message));
+  return [...argumentsFound].sort();
 }
+
+test("ICU arguments exclude translated plural text and include nested arguments", () => {
+  expect(
+    placeholders(
+      "{count, plural, =0 {No links} one {# link for {name}} other {# links for {name}}}",
+    ),
+  ).toEqual(["count", "name"]);
+  expect(
+    placeholders(
+      "<strong>{name}</strong> {count, plural, =0 {Sem ligações} other {# ligações}}",
+    ),
+  ).toEqual(["count", "name"]);
+});
 
 function messageAt(messages: unknown, path: string): string {
   let node: unknown = messages;

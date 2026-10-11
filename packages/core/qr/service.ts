@@ -393,6 +393,10 @@ export async function pageQrs(
   input: {
     search?: string | undefined;
     tag?: string | undefined;
+    tags?: string[] | undefined;
+    createdAfter?: Date | undefined;
+    /** Exclusive upper bound. */
+    createdBefore?: Date | undefined;
     page?: number | undefined;
     limit?: number | undefined;
   } = {},
@@ -400,6 +404,10 @@ export async function pageQrs(
   const limit = Math.min(Math.max(input.limit ?? 24, 1), 100);
   const page = Math.max(1, Math.floor(input.page ?? 1));
   const search = input.search?.trim();
+  const tags = [...new Set(input.tags ?? (input.tag ? [input.tag] : []))].slice(
+    0,
+    50,
+  );
   const pattern = search
     ? new RegExp(
         search.slice(0, 200).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
@@ -420,7 +428,9 @@ export async function pageQrs(
             },
           ]
         : []),
-      ...(input.tag ? [{ "tags.tagName": input.tag }] : []),
+      ...(tags.length ? [{ "tags.tagName": { $in: tags } }] : []),
+      ...(input.createdAfter ? [{ date: { $gte: input.createdAfter } }] : []),
+      ...(input.createdBefore ? [{ date: { $lt: input.createdBefore } }] : []),
     ],
   };
   const [total, docs] = await Promise.all([

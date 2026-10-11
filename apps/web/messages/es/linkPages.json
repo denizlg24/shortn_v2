@@ -83,7 +83,14 @@
     "protectedHint": "Protegido — pista: {hint}",
     "unprotected": "Sin protección",
     "safety": "Seguridad",
-    "delete": "Eliminar enlace"
+    "delete": "Eliminar enlace",
+    "activity": "Clics y escaneos",
+    "historyLimited": "Tu plan incluye historial desde {date}.",
+    "noActivity": "Sin clics ni escaneos en este período.",
+    "createdBy": "Creado por",
+    "unknownCreator": "Creador no disponible",
+    "disabledNotice": "Este enlace corto está desactivado y no redirige a los visitantes.",
+    "safetyPage": "Los visitantes ven una página de seguridad antes de continuar."
   },
   "form": {
     "newTitle": "Nuevo enlace",
@@ -158,7 +165,15 @@
       "campaign": "Agrupa el enlace en una campaña con el mismo nombre.",
       "term": "Palabra clave de búsqueda de pago. Opcional.",
       "content": "Distingue enlaces parecidos. Opcional."
-    }
+    },
+    "deleteTitle": "Eliminar variante UTM",
+    "deleteDescription": "Revisa la variante antes de eliminarla.",
+    "deleteConfirm": "Eliminar variante",
+    "deleteConsequence": "Esta variante se elimina de la lista guardada. Las URL ya compartidas siguen redirigiendo y sus estadísticas siguen disponibles.",
+    "deleteCampaignConsequence": "Si esta era la última variante del enlace en una campaña, el enlace sale de esa campaña. Las campañas vacías se eliminan.",
+    "removed": "Variante eliminada.",
+    "changed": "Las variantes han cambiado desde que abriste esta página. Vuelve a la lista de variantes y revisa la versión actual.",
+    "defaultsHint": "Elige una campaña guardada para ver sus valores predeterminados. También puedes escribir tus propios valores."
   },
   "qr": {
     "title": "Código QR",
@@ -171,6 +186,7 @@
     "url_required": "Indica la URL de destino.",
     "utm_empty": "Rellena al menos un campo.",
     "feature_required": "Tu plan no incluye esto.",
-    "limit_reached": "Has usado los {limit} enlaces de este periodo."
+    "limit_reached": "Has usado los {limit} enlaces de este periodo.",
+    "utm_limit": "Un enlace puede tener hasta 50 variantes UTM guardadas. Elimina una variante antes de añadir otra."
   }
 }

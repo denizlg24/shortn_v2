@@ -1,12 +1,7 @@
 {
+  "title": "Estadísticas",
+  "description": "Clics y escaneos de códigos QR en este espacio de trabajo. Todos los filtros quedan en la dirección, así que puedes compartir o guardar cada vista.",
   "range": "Intervalo de fechas",
-  "ranges": {
-    "7d": "7d",
-    "30d": "30d",
-    "90d": "90d",
-    "12m": "12m",
-    "custom": "Personalizado"
-  },
   "rangeLabels": {
     "7d": "Últimos 7 días",
     "30d": "Últimos 30 días",
@@ -16,37 +11,31 @@
   "customRange": "Intervalo personalizado",
   "from": "Desde",
   "to": "Hasta",
-  "apply": "Aplicar",
-  "invalidRange": "Elige una fecha de inicio igual o anterior a la fecha de fin.",
   "interval": "Intervalo",
   "intervals": {
-    "hour": "Hora",
-    "day": "Día",
-    "week": "Semana",
-    "month": "Mes"
+    "hour": "Por hora",
+    "day": "Por día",
+    "week": "Por semana",
+    "month": "Por mes"
   },
-  "intervalUnavailable": "No disponible para este intervalo de fechas",
-  "filterBy": "Filtrar por…",
   "filters": {
+    "link": "Enlace",
+    "kind": "Tipo",
     "country": "País",
-    "referrer": "Origen",
     "device": "Dispositivo",
     "browser": "Navegador",
     "os": "Sistema operativo",
+    "referrer": "Origen",
     "utmSource": "Fuente UTM",
     "utmMedium": "Medio UTM",
     "utmCampaign": "Campaña UTM"
   },
-  "dimensions": {
-    "country": "Países",
-    "referrer": "Orígenes",
-    "device": "Dispositivos",
-    "browser": "Navegadores",
-    "os": "Sistemas operativos",
-    "utmSource": "Fuentes UTM",
-    "utmMedium": "Medios UTM",
-    "utmCampaign": "Campañas UTM",
-    "link": "Enlaces principales"
+  "allLinks": "Todos los enlaces",
+  "any": "Cualquiera",
+  "kinds": {
+    "all": "Clics y escaneos",
+    "click": "Clics",
+    "scan": "Escaneos QR"
   },
   "stats": {
     "clicks": "Clics",
@@ -57,10 +46,77 @@
   "series": "Clics y escaneos",
   "noActivity": "Sin clics ni escaneos en este período.",
   "clamped": "Los datos anteriores al {date} quedan fuera del período de estadísticas de tu plan.",
-  "lockedStat": "Plan {plan} o superior",
   "empty": "Sin datos para este período.",
-  "showAll": "Mostrar todos ({count})",
-  "showFewer": "Mostrar menos",
+  "breakdowns": {
+    "links": {
+      "title": "Enlaces",
+      "column": "Enlace",
+      "description": "Clics y escaneos por enlace corto."
+    },
+    "countries": {
+      "title": "Países",
+      "column": "País",
+      "description": "Dónde estaban los visitantes cuando hicieron clic o escanearon."
+    },
+    "cities": {
+      "title": "Ciudades",
+      "column": "Ciudad",
+      "description": "La ciudad más cercana a la que pudimos asociar cada visita."
+    },
+    "referrers": {
+      "title": "Orígenes",
+      "column": "Origen",
+      "description": "El sitio del que vino cada visita. Directo significa sin sitio de origen, como una dirección escrita, una app o un escaneo QR."
+    },
+    "devices": {
+      "title": "Dispositivos",
+      "column": "Dispositivo",
+      "description": "Ordenador, móvil, tableta y otros tipos de dispositivo."
+    },
+    "browsers": {
+      "title": "Navegadores",
+      "column": "Navegador",
+      "description": "El navegador con el que se hizo cada visita."
+    },
+    "os": {
+      "title": "Sistemas operativos",
+      "column": "Sistema operativo",
+      "description": "El sistema operativo desde el que se hizo cada visita."
+    },
+    "utm-source": {
+      "title": "Fuentes UTM",
+      "column": "Fuente UTM",
+      "description": "La etiqueta utm_source de los enlaces etiquetados, como newsletter o facebook."
+    },
+    "utm-medium": {
+      "title": "Medios UTM",
+      "column": "Medio UTM",
+      "description": "La etiqueta utm_medium de los enlaces etiquetados, como email o cpc."
+    },
+    "utm-campaign": {
+      "title": "Campañas UTM",
+      "column": "Campaña UTM",
+      "description": "La etiqueta utm_campaign de los enlaces etiquetados."
+    }
+  },
+  "table": {
+    "seeAll": "Ver todo",
+    "seeAllLabel": "Ver todo: {title}",
+    "clicks": "Clics",
+    "scans": "Escaneos",
+    "total": "Clics y escaneos",
+    "share": "Porcentaje",
+    "value": "Valor",
+    "filterBy": "Filtrar por {value}",
+    "clearFilter": "Quitar este filtro",
+    "summary": "{count, plural, one {# fila} other {# filas}} · {total, plural, one {# clic o escaneo} other {# clics y escaneos}}",
+    "capped": "Se muestran las {count, number} filas principales."
+  },
+  "gated": {
+    "title": "Desgloses",
+    "body": "Países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, y los filtros por cada uno, están incluidos a partir del plan {plan}.",
+    "withExport": "Países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, los filtros por cada uno y la exportación a CSV están incluidos a partir del plan {plan}."
+  },
   "error": {
     "title": "No se pudieron cargar las estadísticas",
     "body": "Tus datos están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento.",
@@ -73,6 +129,7 @@
     "click": "Clic",
     "scan": "Escaneo QR",
     "deleted": "Enlace eliminado",
+    "selectedLink": "Enlace seleccionado",
     "devices": {
       "desktop": "Ordenador",
       "mobile": "Móvil",

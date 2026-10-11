@@ -27,6 +27,19 @@ const shapeClass: Record<AvatarShape, string> = {
   square: "rounded-none",
 };
 
+// Draft fields can contain partial URLs while typing. Load only complete
+// HTTP images rather than requesting relative paths from the dashboard.
+function imageUrl(value: string) {
+  try {
+    const url = new URL(value.trim());
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.href
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 const loadedFonts = new Set<string>();
 
 // Legacy loads the family by name from Google Fonts at weight 400 and lets
@@ -101,7 +114,7 @@ export function BioPreview({
   useGoogleFont(font);
   const background = appearance.background.trim() || legacyDefaults.background;
   const color = appearance.textColor.trim() || legacyDefaults.textColor;
-  const avatar = profile.avatarUrl.trim();
+  const avatar = imageUrl(profile.avatarUrl);
   const header = appearance.header;
   const align =
     header === "left-aligned"
@@ -120,7 +133,7 @@ export function BioPreview({
     background: appearance.primaryColor.trim() || legacyDefaults.primaryColor,
     color: appearance.buttonTextColor.trim() || legacyDefaults.buttonTextColor,
   };
-  const headerImage = appearance.headerBackgroundImage.trim();
+  const headerImage = imageUrl(appearance.headerBackgroundImage);
 
   return (
     <div
@@ -221,7 +234,7 @@ export function BioPreview({
       >
         {links.map((link) => {
           const title = link.title.trim() || link.key;
-          const image = link.image.trim();
+          const image = imageUrl(link.image);
           return square ? (
             <span
               key={link.linkId}

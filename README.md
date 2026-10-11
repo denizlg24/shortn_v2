@@ -1,10 +1,51 @@
 # Shortn
 
+## Local development
+
+Install dependencies with `bun install`, keep your credentials in the root `.env.staging`, and start Docker. Then run:
+
+```sh
+bun run dev
+```
+
+This starts the new web app at http://localhost:3000, redirects on port 3002, API on 3003, and worker on 3004. It loads `.env.staging` explicitly, maps the legacy `MONGODB_KEY` to the new database settings, and uses localhost for app/auth origins. Optional OAuth providers require valid credential pairs; unavailable providers are reported at startup.
+
+Missing Redis URLs use dedicated Docker services on ports 16380 (cache) and 16379 (durable). Missing MongoDB settings use a local replica set on port 27020. When all S3 settings are absent, the launcher starts local RustFS storage on port 19000 and creates the development bucket. Explicit remote connections, including the S3 settings in `.env.staging`, are preserved. Missing link and confirmation signing keys are derived for local development from `BETTER_AUTH_SECRET`. The launcher does not modify `.env.staging` or run database migrations.
+
+QR logos, account avatars and bio images upload directly from files. The server validates images (up to 5 MB), converts them to PNG and stores them in S3. Replacing or removing an image changes the saved reference; existing objects are retained.
+
+Use `bun run dev:check` to validate configuration without starting services. Override app ports with `DEV_WEB_PORT`, `DEV_REDIRECT_PORT`, `DEV_API_PORT`, and `DEV_WORKER_PORT`. Ctrl+C stops the app processes; Docker volumes persist. To stop the dev containers, run `docker compose -f docker-compose.dev.yml down`.
+
 **A modern URL shortener and link-in-bio platform built for businesses, creators, and brands.**
 
 Shortn is a comprehensive link management solution that goes beyond simple URL shortening. It provides powerful analytics, customizable QR codes, and beautiful link-in-bio pages—all in one platform. Currently serving [Vida Económica](https://vidaeconomica.pt), Portugal's leading economic magazine, Shortn has been trusted to deliver over 2.4 million clicks with enterprise-grade reliability.
 
 ---
+
+## Dashboard browser checks
+
+Build the web app and start the local dependencies, then run the authenticated browser suite:
+
+```sh
+bun run --cwd apps/web build
+docker compose -f docker-compose.dev.yml up -d --wait mongo redis-cache redis-durable storage
+docker compose -f docker-compose.dev.yml run --rm mongo-init
+bun run --cwd apps/web test:dashboard
+```
+
+Install Chromium with `bunx playwright-core install chromium`, or set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` to an existing Chromium executable. The suite starts its own production server on port 3200, seeds a temporary local database, signs in through the UI, checks dashboard routes in en/pt/es, and verifies creation, saves, copy/share, password changes, session revocation and membership changes against MongoDB. QR checks also save colours, patterns and error correction, exercise logo failures, and decode PNG/SVG/JPEG exports to verify their dimensions and short-link payloads. It deletes its database and stops its server afterward. It uses generated test credentials and does not load `.env.staging`.
+
+The suite also checks the handoff exchange with legacy-shaped tokens (expiry, replay and redirect protection), adding a password to an OAuth-only account, and impersonation banner, fixed one-hour expiry and sign-out. OAuth provider callbacks and the actual legacy-host round-trip still require staging verification.
+
+Email checks capture Resend payloads on a local HTTP receiver, follow generated approval/verification links, check expired/used links and session revocation, and sign in with the updated address. The suite sends no mail to external recipients. Each run uses a distinct test client IP to isolate authentication rate limits.
+
+Billing checks route provider requests to a local receiver and verify payment history, refunds/currency, retry recovery, invoice redirects/errors, workspace isolation, checkout/portal feedback and owner permissions. Run `bun run --cwd apps/web test:billing` to also exercise plan-change, cancellation and resume failures with billing writes enabled. The default suite verifies the legacy billing gate remains in place. Neither command contacts Polar or creates charges; live provider flows still need staging verification. Pass `--billing-only` for the focused billing checks, or `--mutations-only` to skip the locale route sweep while retaining browser mutations and cross-service checks.
+
+Uploads are tested against local S3-compatible storage on port 19000 using a temporary bucket. The suite checks actual image uploads, invalid files, access restrictions, saved references and QR exports with embedded logos, then deletes its bucket and objects. Analytics checks verify filtered totals and CSV campaign/link scope.
+
+Optional settings: `DASHBOARD_PORT`, `DASHBOARD_MONGO_URL`, `DASHBOARD_REDIS_CACHE_URL`, `DASHBOARD_REDIS_DURABLE_URL`, and `DASHBOARD_SCREENSHOT_DIR`. Database connections must use localhost. Defaults match `docker-compose.dev.yml`; Redis uses database 15.
+
+To include public password-link and safety/report flows against the real redirect service, run `bun run --cwd apps/web test:flows`. It uses the same isolated local database and generated shared secrets, with a redirect server on port 3202 (`DASHBOARD_REDIRECT_PORT` overrides it).
 
 ## 🎯 What is Shortn?
 

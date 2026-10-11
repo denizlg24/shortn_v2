@@ -151,7 +151,7 @@ async function keyAvailable(
 
 async function checkKey(ctx: ServiceContext, key: string, except?: ObjectId) {
   if (!keyPattern.test(key)) return fail("invalid_key");
-  if (isReservedKey(key)) return fail("key_reserved");
+  if (isReservedKey(key)) return fail("key_reserved", { key });
   if (!(await keyAvailable(ctx, key, except)))
     return fail("key_taken", { key });
   return ok(key);
@@ -519,6 +519,8 @@ export interface ListLinksInput {
   tags?: string[] | undefined;
   status?: LinkStatusFilter | undefined;
   createdAfter?: Date | undefined;
+  /** Exclusive upper bound. */
+  createdBefore?: Date | undefined;
   sort?: LinkSort | undefined;
   // 1-based page number; numbered pages for the explicit list (17).
   page?: number | undefined;
@@ -566,6 +568,7 @@ export async function listLinks(
   if (input.tags?.length) and.push({ "tags.tagName": { $in: input.tags } });
   if (input.status) and.push(statusFilter[input.status]);
   if (input.createdAfter) and.push({ date: { $gte: input.createdAfter } });
+  if (input.createdBefore) and.push({ date: { $lt: input.createdBefore } });
   if (input.page !== undefined) {
     const page = Math.max(1, Math.floor(input.page));
     const filter = { $and: and };

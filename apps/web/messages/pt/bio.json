@@ -1,36 +1,60 @@
 {
-  "title": "Páginas de bio",
-  "create": "Criar página de bio",
-  "count": "{used} / {limit}",
-  "viewOnly": "Só leitura",
-  "viewerReason": "Os leitores não podem criar nem alterar páginas de bio. Peça a um administrador do espaço de trabalho que altere a sua função.",
-  "copyUrl": "Copiar URL público",
-  "copied": "URL da página copiado",
-  "openPage": "Abrir página pública",
-  "openPageNamed": "Abrir {slug} num novo separador",
-  "savedSection": "{section} guardado",
-  "empty": {
-    "title": "Ainda não há páginas de bio",
-    "body": "Uma página de bio reúne os seus links numa só página em shortn.at/b/o-seu-nome.",
-    "bodyViewer": "As páginas de bio criadas neste espaço de trabalho aparecem aqui."
+  "list": {
+    "title": "Páginas de bio",
+    "count": "{count, plural, one {# página de bio} other {# páginas de bio}}",
+    "countOf": "{count, plural, one {# de {limit} páginas de bio} other {# de {limit} páginas de bio}}",
+    "new": "Nova página de bio",
+    "deleted": "Página de bio eliminada.",
+    "empty": "Ainda não há páginas de bio. Uma página de bio reúne os seus links numa só página em shortn.at/b/o-seu-nome.",
+    "columns": {
+      "page": "Página",
+      "url": "URL público",
+      "links": "Links",
+      "updated": "Atualizada"
+    }
   },
-  "columns": {
-    "page": "Página",
-    "url": "URL público",
+  "tabs": {
+    "label": "Secções da página de bio",
+    "overview": "Resumo",
+    "profile": "Perfil",
     "links": "Links",
+    "socials": "Redes sociais",
+    "appearance": "Aspeto"
+  },
+  "overview": {
+    "copy": "Copiar URL",
+    "copied": "Copiado",
+    "open": "Abrir página",
+    "created": "Página de bio criada. Adicione links, redes sociais e cores nos separadores acima.",
+    "saved": {
+      "profile": "Perfil guardado.",
+      "links": "Links guardados.",
+      "socials": "Redes sociais guardadas.",
+      "appearance": "Aspeto guardado."
+    },
+    "details": "Detalhes",
+    "url": "URL público",
+    "title": "Título",
+    "description": "Descrição",
+    "none": "Nenhuma",
+    "links": "Links",
+    "linkCount": "{count, plural, =0 {Sem links} one {# link} other {# links}}",
+    "socials": "Redes sociais",
+    "socialCount": "{count, plural, =0 {Sem redes sociais} one {# perfil social} other {# perfis sociais}}",
     "updated": "Atualizada",
-    "actions": "Ações"
+    "edit": "Editar",
+    "delete": "Eliminar página de bio",
+    "deleteHint": "O endereço público deixa de funcionar para os visitantes."
   },
-  "actions": {
-    "label": "Ações para {slug}",
-    "edit": "Editar página",
-    "delete": "Eliminar página"
+  "form": {
+    "cancel": "Cancelar",
+    "optional": "Opcional"
   },
-  "delete": {
-    "title": "Eliminar {slug}?",
-    "body": "{url} deixa de funcionar para os visitantes de imediato. Não é possível anular.",
-    "confirm": "Eliminar página",
-    "done": "{slug} eliminada"
+  "preview": {
+    "label": "Pré-visualização em direto",
+    "frame": "Pré-visualização da página",
+    "live": "Os visitantes veem isto em {url}.",
+    "draft": "A pré-visualização mostra as suas alterações. Os visitantes veem-nas depois de guardar."
   },
   "new": {
     "title": "Nova página de bio",
@@ -41,19 +65,16 @@
     "titleLabel": "Título",
     "titleHint": "Aparece no topo da página. Por omissão, é o endereço.",
     "submit": "Criar página",
-    "cancel": "Cancelar",
-    "atLimit": "Já usou as {limit} páginas de bio que o seu plano inclui."
-  },
-  "mobileView": {
-    "label": "Mostrar",
-    "edit": "Editar",
-    "preview": "Pré-visualizar"
-  },
-  "preview": {
-    "label": "Pré-visualização em direto",
-    "frame": "Pré-visualização da página",
-    "unsaved": "A pré-visualização inclui alterações por guardar. Os visitantes veem cada secção depois de a guardar.",
-    "live": "Os visitantes veem isto em {url}."
+    "atLimit": "Já usou as {limit} páginas de bio que o seu plano inclui.",
+    "addressSection": "Endereço",
+    "available": "{url} está disponível.",
+    "checking": "A verificar…",
+    "checkFailed": "Não foi possível verificar o endereço. Volta a ser verificado quando criar a página.",
+    "detailsSection": "Detalhes",
+    "firstLink": "Primeiro link",
+    "pickLink": "Escolher um link",
+    "removeLink": "Remover",
+    "firstLinkHint": "Pode adicionar mais links, redes sociais e cores depois de criar a página."
   },
   "profile": {
     "title": "Perfil",
@@ -62,7 +83,7 @@
     "name": "Título",
     "bio": "Descrição",
     "bioHint": "Aparece numa linha por baixo do título.",
-    "avatar": "URL do avatar",
+    "avatar": "Avatar",
     "avatarHint": "Uma imagem quadrada fica melhor.",
     "shape": "Forma do avatar",
     "shapes": {
@@ -82,7 +103,7 @@
     "empty": "Ainda não há links na página.",
     "listLabel": "Links na página",
     "titleLabel": "Texto do botão para {key}",
-    "imageLabel": "URL da imagem para {key}",
+    "imageLabel": "Imagem para {key}",
     "imagePlaceholder": "URL da imagem (opcional)",
     "moveUp": "Subir {title}",
     "moveDown": "Descer {title}",
@@ -158,7 +179,7 @@
       "left-aligned": "À esquerda",
       "right-aligned": "À direita"
     },
-    "headerImage": "URL da imagem do cabeçalho",
+    "headerImage": "Imagem do cabeçalho",
     "socialColor": "Ícones sociais",
     "socialColors": {
       "original": "Cores das marcas",
@@ -171,6 +192,14 @@
       "headerImage": "Introduza o URL completo da imagem do cabeçalho, a começar por https://."
     }
   },
+  "deletePage": {
+    "title": "Eliminar página de bio",
+    "description": "Não é possível anular.",
+    "stops": "{url} deixa de funcionar para os visitantes de imediato.",
+    "links": "Os links da página continuam a funcionar; só a página desaparece.",
+    "address": "O endereço fica livre para qualquer pessoa o usar.",
+    "confirm": "Eliminar página de bio"
+  },
   "errors": {
     "slugTaken": "Esse endereço já está ocupado. Experimente outro.",
     "invalidSlug": "Use de 3 a 63 letras minúsculas, números e hífenes, a começar e a acabar numa letra ou número.",
@@ -179,8 +208,6 @@
     "forbidden": "Não tem permissão para fazer isto neste espaço de trabalho.",
     "notFound": "Esta página de bio já não existe. Pode ter sido eliminada.",
     "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
-    "network": "Não foi possível contactar o Shortn. Verifique a sua ligação e tente novamente.",
-    "generic": "Algo correu mal do nosso lado. Tente novamente.",
-    "copyFailed": "Não foi possível copiar para a área de transferência."
+    "generic": "Algo correu mal do nosso lado. Tente novamente."
   }
 }

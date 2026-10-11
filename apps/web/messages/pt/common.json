@@ -28,5 +28,24 @@
     "search": "Pesquisar ou criar uma etiqueta",
     "empty": "Ainda não há etiquetas. Escreva para criar uma.",
     "create": "Criar “{tag}”"
+  },
+  "suggestions": {
+    "open": "Sugestões para {field}",
+    "search": "Pesquisar sugestões…",
+    "empty": "Nenhuma sugestão correspondente."
+  },
+  "imageUpload": {
+    "choose": "Carregar imagem",
+    "replace": "Substituir imagem",
+    "remove": "Remover",
+    "uploading": "A carregar…",
+    "hint": "PNG, JPEG, WebP, GIF ou SVG · até 5 MB.",
+    "size": "Escolha uma imagem com menos de 5 MB.",
+    "type": "Não foi possível ler esta imagem. Escolha um PNG, JPEG, WebP, GIF ou SVG.",
+    "forbidden": "Não tem permissão para carregar imagens aqui.",
+    "unauthenticated": "Inicie sessão novamente para carregar uma imagem.",
+    "plan": "O seu plano não inclui logótipos nos códigos QR.",
+    "unavailable": "O carregamento de imagens ainda não está configurado.",
+    "failed": "Não foi possível carregar a imagem. Tente novamente."
   }
 }

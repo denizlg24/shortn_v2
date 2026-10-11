@@ -161,7 +161,8 @@
     "malicious": "Unsafe destination",
     "blocked": "Blocked",
     "disabled": "Disabled for safety",
-    "interstitial": "visitors see a safety page first"
+    "interstitial": "visitors see a safety page first",
+    "unknown": "Safety status unavailable"
   },
   "summary": {
     "label": "Link details",

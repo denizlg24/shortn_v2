@@ -19,6 +19,8 @@ const color = z
   .max(32)
   .regex(/^(#[0-9a-fA-F]{3,8}|[a-z]+|rgba?\([\d\s.,%]+\))$/);
 const httpUrl = z.httpUrl().max(2048);
+// Uploaded assets also use localhost/IP origins during local development.
+const imageUrl = z.url({ protocol: /^https?$/ }).max(2048);
 const size = z.string().trim().max(16);
 
 export const bioThemeSchema = z.object({
@@ -37,7 +39,7 @@ export const bioThemeSchema = z.object({
   header: z
     .object({
       headerStyle: z.enum(["centered", "left-aligned", "right-aligned"]),
-      headerBackgroundImage: httpUrl.optional(),
+      headerBackgroundImage: imageUrl.optional(),
       headerBackgroundColor: color.optional(),
     })
     .optional(),
@@ -46,7 +48,7 @@ export const bioThemeSchema = z.object({
 export const bioPatchSchema = z.object({
   title: z.string().trim().max(120).optional(),
   description: z.string().trim().max(500).optional(),
-  avatarUrl: httpUrl.or(z.literal("")).optional(),
+  avatarUrl: imageUrl.or(z.literal("")).optional(),
   avatarShape: z.enum(["circle", "square", "rounded"]).optional(),
   theme: bioThemeSchema.optional(),
   socials: z
@@ -64,7 +66,7 @@ export const bioLinksSchema = z
     z.object({
       linkId: z.string(),
       title: z.string().trim().max(120).optional(),
-      image: httpUrl.optional(),
+      image: imageUrl.optional(),
     }),
   )
   .max(100);
@@ -207,6 +209,16 @@ async function checkSlug(ctx: ServiceContext, raw: string) {
   ]);
   if (page || alias) return fail("slug_taken");
   return ok(slug);
+}
+
+// Live availability for the slug field on /bio/new.
+export async function bioSlugStatus(
+  ctx: ServiceContext,
+  raw: string,
+): Promise<"available" | "invalid" | "taken"> {
+  const checked = await checkSlug(ctx, raw);
+  if (checked.ok) return "available";
+  return checked.error === "slug_taken" ? "taken" : "invalid";
 }
 
 export async function createBioPage(

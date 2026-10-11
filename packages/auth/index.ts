@@ -1,7 +1,7 @@
 import { polar, portal } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import { ensurePersonalWorkspace } from "@shortn/core";
-import { getMongoHandles, physicalNames, type MongoConfig } from "@shortn/db";
+import { getMongoHandles, type MongoConfig } from "@shortn/db";
 import { betterAuth, type BetterAuthPlugin } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { username } from "better-auth/plugins/username";
@@ -86,6 +86,10 @@ const nullableString = {
 } as const;
 
 export function createAuth(config: AuthConfig) {
+  // Database hooks receive the same endpoint context before/after mutations.
+  // Keep request-local state for verification links opened without a session.
+  const emailUpdates = new WeakSet<object>();
+  const createdSessions = new WeakMap<object, string>();
   const handles = () => getMongoHandles(config.mongo);
   const db = forwardTo(() => handles().db);
   const client = forwardTo(() => handles().client);
@@ -199,15 +203,36 @@ export function createAuth(config: AuthConfig) {
           },
         },
         update: {
+          async before(user, ctx) {
+            if (
+              ctx &&
+              (ctx.path === "/verify-email" || ctx.path === "/change-email") &&
+              typeof user.email === "string" &&
+              user.email !== ctx.context.session?.user.email
+            )
+              emailUpdates.add(ctx);
+            return { data: user };
+          },
           async after(user, ctx) {
             const previous = ctx?.context.session?.user;
-            if (!previous) return;
-            const emailChanged = user.email !== previous.email;
-            const nameChanged = user.name !== previous.name;
-            if (emailChanged)
-              await handles()
-                .db.collection(physicalNames.session)
-                .deleteMany({ userId: user.id });
+            const emailChanged = Boolean(ctx && emailUpdates.delete(ctx));
+            const nameChanged = Boolean(
+              previous && user.name !== previous.name,
+            );
+            if (emailChanged && ctx) {
+              const currentToken =
+                ctx.context.session?.session.token ?? createdSessions.get(ctx);
+              const sessions = await ctx.context.internalAdapter.listSessions(
+                user.id,
+              );
+              await Promise.all(
+                sessions
+                  .filter((session) => session.token !== currentToken)
+                  .map((session) =>
+                    ctx.context.internalAdapter.deleteSession(session.token),
+                  ),
+              );
+            }
             if (!emailChanged && !nameChanged) return;
             try {
               const customer = await polarClient.customers.getExternal({
@@ -227,7 +252,32 @@ export function createAuth(config: AuthConfig) {
         },
       },
       session: {
+        update: {
+          async before(session, ctx) {
+            const current = ctx?.context.session?.session;
+            // Better Auth refreshes short sessions using the normal lifetime.
+            // Impersonation must retain its original one-hour deadline instead.
+            if (current?.impersonatedBy && session.expiresAt) {
+              return {
+                data: {
+                  ...session,
+                  expiresAt: new Date(
+                    Math.min(
+                      new Date(session.expiresAt).getTime(),
+                      new Date(current.expiresAt).getTime(),
+                      new Date(current.createdAt).getTime() + 60 * 60 * 1000,
+                    ),
+                  ),
+                },
+              };
+            }
+            return { data: session };
+          },
+        },
         create: {
+          async after(session, ctx) {
+            if (ctx) createdSessions.set(ctx, session.token);
+          },
           async before(session, ctx) {
             const geo = ctx?.request ? requestGeo(ctx.request.headers) : {};
             return {

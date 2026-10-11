@@ -100,3 +100,15 @@ test("http(s) URLs may be localhost for local development", () => {
     webEnv.shape.BETTER_AUTH_URL.safeParse("ftp://example.com").success,
   ).toBe(false);
 });
+
+test("blank dotenv entries remain unconfigured", () => {
+  const schema = z.object({
+    OPTIONAL: z.string().optional(),
+    PORT: z.coerce.number().default(3000),
+    REQUIRED: z.string().min(1),
+  });
+  expect(
+    parseEnv(schema, { OPTIONAL: "", PORT: "", REQUIRED: "present" }),
+  ).toEqual({ PORT: 3000, REQUIRED: "present" });
+  expect(() => parseEnv(schema, { REQUIRED: "" })).toThrow("REQUIRED:");
+});
