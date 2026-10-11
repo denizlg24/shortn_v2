@@ -136,3 +136,43 @@ test("subscription ids come from subscription, order and customer-state events",
   ).toEqual(["a", "b"]);
   expect(ids({ type: "checkout.created", data: {} })).toEqual([]);
 });
+
+test("current Polar secrets accept spec signatures and reject tampering, wrong keys and expired timestamps", async () => {
+  const { verifyPolarWebhook } = await import("./polar-webhook");
+  const key = Buffer.alloc(32, 17);
+  const modernSecret = `whsec_${key.toString("base64")}`;
+  const body = JSON.stringify({
+    type: "order.paid",
+    timestamp: new Date().toISOString(),
+    data: {
+      ...orderFixture("sub_modern", "cus_modern", "owner"),
+      status: "paid",
+    },
+  });
+  const signed = (timestamp: number, signingKey = key) => ({
+    "webhook-id": "msg_modern",
+    "webhook-timestamp": String(timestamp),
+    "webhook-signature": `v1,${createHmac("sha256", signingKey).update(`msg_modern.${timestamp}.${body}`).digest("base64")}`,
+  });
+  const now = Math.floor(Date.now() / 1000);
+  const headers = signed(now);
+  expect(
+    subscriptionIdsOf(verifyPolarWebhook(body, headers, modernSecret)),
+  ).toEqual(["sub_modern"]);
+  for (const input of [
+    { body: body + " ", headers },
+    { body, headers: signed(now, Buffer.alloc(32, 18)) },
+    { body, headers: signed(now - 3600) },
+    { body, headers: signed(now + 3600) },
+    { body, headers: {} },
+  ]) {
+    expect(() =>
+      verifyPolarWebhook(input.body, input.headers, modernSecret),
+    ).toThrow();
+  }
+  // Existing endpoints retain literal-secret signatures, even with whsec_.
+  const legacyHeaders = signed(now, Buffer.from(modernSecret));
+  expect(
+    subscriptionIdsOf(verifyPolarWebhook(body, legacyHeaders, modernSecret)),
+  ).toEqual(["sub_modern"]);
+});

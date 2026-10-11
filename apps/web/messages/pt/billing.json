@@ -130,7 +130,10 @@
       "partiallyRefunded": "Parcialmente reembolsado",
       "void": "Anulado",
       "unknown": "Desconhecido"
-    }
+    },
+    "prepare": "Preparar fatura",
+    "prepareInvoice": "Preparar fatura {number}",
+    "generating": "A tua fatura está a ser preparada. Tenta novamente dentro de alguns segundos."
   },
   "plansPage": {
     "title": "Comparar planos"

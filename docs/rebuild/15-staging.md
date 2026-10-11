@@ -16,7 +16,7 @@ Decided 2026-10-09. "Forge" here is the self-hosted container platform at `forge
 | Hosts    | `staging.shortn.at` (root/redirects/marketing), `app.staging.shortn.at`, `api.staging.shortn.at`, `*.staging.shortn.at` bio handles (needs Advanced Certificate or a second-level wildcard cert at Cloudflare)                                                                                  |
 | Branch   | `staging` (auto-deploy)                                                                                                                                                                                                                                                                         |
 | Database | separate database **and** user, never the production database. Option A: database `shortn_staging` on the existing `rs0` with a user scoped to it (cheap; data is tiny). Option B: its own container. Restored from a production dump, refreshed weekly; PII (emails, IPs) scrubbed on restore. |
-| Redis    | `shortn-staging-cache` + `shortn-staging-durable` on the Forge host (13), wired as `REDIS_CACHE_URL`/`REDIS_DURABLE_URL`                                                                                                                                                                                                                                                               |
+| Redis    | `shortn-staging-cache` + `shortn-staging-durable` on the Forge host (13), wired as `REDIS_CACHE_URL`/`REDIS_DURABLE_URL`                                                                                                                                                                        |
 | Search   | Meilisearch with `staging_` index prefixes or its own instance                                                                                                                                                                                                                                  |
 | Billing  | Polar **sandbox** org and products                                                                                                                                                                                                                                                              |
 | OAuth    | separate GitHub OAuth app (single callback URL); Google: add staging redirect URIs to a separate client                                                                                                                                                                                         |
@@ -49,16 +49,24 @@ Decided 2026-10-09. "Forge" here is the self-hosted container platform at `forge
 
 Every deployable app is its own Docker image and Forge `dockerfile` target, to keep Forge resource usage predictable:
 
-| Target | rootDirectory | Dockerfile | Hosts (prod / staging) |
-|---|---|---|---|
-| legacy app | `legacy` | `legacy/Dockerfile` | `shortn.at` / `staging.shortn.at` |
-| web (dashboard, marketing, bio) | `apps/web` | `apps/web/Dockerfile` | `app.shortn.at` + `*.shortn.at` / `app-staging.shortn.at` |
-| redirect | `apps/redirect` | `apps/redirect/Dockerfile` | `shortn.at` (single-segment paths) / `staging.shortn.at` |
-| api | `apps/api` | `apps/api/Dockerfile` | `api.shortn.at` / `api-staging.shortn.at` |
-| worker | `apps/worker` | `apps/worker/Dockerfile` | none (no ingress) |
+| Target                          | rootDirectory   | Dockerfile                 | Hosts (prod / staging)                                    |
+| ------------------------------- | --------------- | -------------------------- | --------------------------------------------------------- |
+| legacy app                      | `legacy`        | `legacy/Dockerfile`        | `shortn.at` / `staging.shortn.at`                         |
+| web (dashboard, marketing, bio) | `apps/web`      | `apps/web/Dockerfile`      | `app.shortn.at` + `*.shortn.at` / `app-staging.shortn.at` |
+| redirect                        | `apps/redirect` | `apps/redirect/Dockerfile` | `shortn.at` (single-segment paths) / `staging.shortn.at`  |
+| api                             | `apps/api`      | `apps/api/Dockerfile`      | `api.shortn.at` / `api-staging.shortn.at`                 |
+| worker                          | `apps/worker`   | `apps/worker/Dockerfile`   | none (no ingress)                                         |
 
 Build context is always the repository root; build-time env arrives through Forge's `forge-env` build secret; runtime images are slim (`node:24-trixie-slim` for Next, `oven/bun` slim for Bun services). Redis (×2 per environment) runs as Forge-host units (`forge-redis@`, 13) and Meilisearch as a pi-cloud resource, not app images.
 
 ## Env file
 
 `.env.staging` at the repo root (gitignored) is the working copy for the staging target: URLs and staging-only secrets pre-generated, blanks for the values that need new accounts (staging DB user, OAuth apps, Polar sandbox, restricted Resend key). Applied to Forge with `forge_env_apply` once filled.
+
+## P4 acceptance wiring — 2026-10-11
+
+The `shortn-web-staging` and `shortn-api-staging` Forge targets are deployed with active TLS at `app-staging.shortn.at` and `api-staging.shortn.at`. The staging Worker has `WEB_ORIGIN` and `DASHBOARD_HANDOFF=1`; legacy has `NEW_APP_URL`, and redirect/web share the link-access and confirmation secrets. Staging billing writes target Polar sandbox; the worker remains in shadow mode.
+
+The API has its own Polar webhook endpoint and signing secret. In the gitignored `.env.staging`, `POLAR_WEBHOOK_SECRET` still belongs to legacy; `API_POLAR_WEBHOOK_SECRET` is the API override. Do not overwrite one target's secret with the other's. The current shared link secrets are also retained in that file. Forge stores the applied service configuration.
+
+OAuth placeholders are unset on the web target, with real OAuth setup deferred to production by the owner. The web mail allowlist is restricted to owned recipients; temporary acceptance aliases are removed after testing.
