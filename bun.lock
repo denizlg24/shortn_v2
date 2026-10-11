@@ -27,6 +27,7 @@
         "@shortn/env": "workspace:*",
         "hono": "4.13.13",
         "mongodb": "7.1.0",
+        "standardwebhooks": "1.1.1",
       },
       "devDependencies": {
         "@shortn/config": "workspace:*",

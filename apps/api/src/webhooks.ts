@@ -1,7 +1,5 @@
-import {
-  validateEvent,
-  WebhookVerificationError,
-} from "@polar-sh/sdk/webhooks";
+import { WebhookVerificationError } from "@polar-sh/sdk/webhooks";
+import { verifyPolarWebhook } from "./polar-webhook";
 import { collection } from "@shortn/db";
 import type { Db } from "mongodb";
 
@@ -55,7 +53,7 @@ export async function receivePolarWebhook(
 ): Promise<WebhookResult> {
   let event: VerifiedEvent;
   try {
-    event = (deps.verify ?? validateEvent)(
+    event = (deps.verify ?? verifyPolarWebhook)(
       input.body,
       input.headers,
       input.secret,
