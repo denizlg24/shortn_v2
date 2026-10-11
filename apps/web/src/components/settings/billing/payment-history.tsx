@@ -93,7 +93,10 @@ export async function PaymentHistory({
                     ) : null}
                   </td>
                   <td className="py-3 pl-3 text-right">
-                    {order.hasInvoice ? (
+                    {order.hasInvoice ||
+                    ["paid", "refunded", "partially_refunded"].includes(
+                      order.status,
+                    ) ? (
                       <form
                         action={invoicePageAction.bind(
                           null,
@@ -103,15 +106,24 @@ export async function PaymentHistory({
                       >
                         <button
                           type="submit"
-                          aria-label={t("invoices.downloadInvoice", {
-                            number: order.number ?? f.date(order.date),
-                          })}
+                          aria-label={t(
+                            order.hasInvoice
+                              ? "invoices.downloadInvoice"
+                              : "invoices.prepareInvoice",
+                            {
+                              number: order.number ?? f.date(order.date),
+                            },
+                          )}
                           className={buttonVariants({
                             variant: "secondary",
                             size: "sm",
                           })}
                         >
-                          {t("invoices.download")}
+                          {t(
+                            order.hasInvoice
+                              ? "invoices.download"
+                              : "invoices.prepare",
+                          )}
                         </button>
                       </form>
                     ) : (

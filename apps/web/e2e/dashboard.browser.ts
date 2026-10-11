@@ -144,6 +144,16 @@ const billingServer = createMailServer(async (request, response) => {
   });
   if (
     billingFixture.order &&
+    request.method === "POST" &&
+    request.url?.endsWith("/invoice")
+  ) {
+    billingFixture.order.is_invoice_generated = true;
+    response.writeHead(202, { "content-type": "application/json" });
+    response.end("null");
+    return;
+  }
+  if (
+    billingFixture.order &&
     request.method === "GET" &&
     request.url?.startsWith("/v1/orders")
   ) {

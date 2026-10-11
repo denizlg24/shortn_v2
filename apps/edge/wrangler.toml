@@ -28,3 +28,5 @@ routes = [{ pattern = "staging.shortn.at/*", zone_name = "denizlg24.com" }]
 [env.staging.vars]
 REDIRECT_ORIGIN = "https://shortn-redirect-staging.denizlg24.com"
 CANARY_PERCENT = "100"
+WEB_ORIGIN = "https://app-staging.shortn.at"
+DASHBOARD_HANDOFF = "1"

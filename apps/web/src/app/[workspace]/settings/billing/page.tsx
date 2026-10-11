@@ -10,6 +10,7 @@ import { CheckoutReturn } from "@/components/settings/billing/checkout-return";
 import { exchangeRate } from "@/server/exchange-rate";
 import { ExchangeRateNote } from "@/components/settings/billing/exchange-rate-note";
 import { UsageMeters } from "@/components/settings/billing/usage-meters";
+import { PaymentRetry } from "@/components/settings/billing/payment-retry";
 import { PaymentHistory } from "@/components/settings/billing/payment-history";
 import {
   portalPageAction,
@@ -116,6 +117,11 @@ export default async function BillingSettingsPage({
       {query.resumed ? (
         <Notice tone="success">
           {t("current.resumed", { plan: f.plan(plan) })}
+        </Notice>
+      ) : null}
+      {one(query.pending) === "invoice" ? (
+        <Notice>
+          {t("invoices.generating")} <PaymentRetry />
         </Notice>
       ) : null}
       {query.failed ? (
