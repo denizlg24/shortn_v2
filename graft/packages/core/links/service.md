@@ -1,0 +1,28 @@
+# packages/core/links/service.ts
+
+- Link · type · L24-L24 — type Link = Documents["links"];
+- LinkView · interface · L33-L55 — interface LinkView
+- toLinkView · function · L59-L103 — function toLinkView(link: Link, linkDomain: string): LinkView
+- text · function · L92-L93 — text = (value: unknown)
+- LinkError · type · L105-L114 — type LinkError = | "forbidden" | "invalid_url" | "unsafe_destination" | "invalid_key" | "key_reserved" | "key_taken" | "feature_required" | "limit_reached" | "not_found";
+- normalizeUrl · function · L116-L119 — function normalizeUrl(input: string): string
+- checkDestination · function · L121-L131 — function checkDestination(input: string)
+- keyAvailable · function · L133-L154 — async function keyAvailable( ctx: ServiceContext, key: string, except?: ObjectId, domain = ctx.linkDomain, )
+- checkKey · function · L156-L167 — async function checkKey( ctx: ServiceContext, key: string, except?: ObjectId, domain = ctx.linkDomain, )
+- freshKey · function · L169-L179 — async function freshKey(ctx: ServiceContext, domain = ctx.linkDomain)
+- featureGate · function · L181-L181 — featureGate = (feature: Feature)
+- derive · function · L185-L191 — function derive(legacy: Document)
+- withDerived · function · L193-L201 — function withDerived(legacy: Document)
+- CreateLinkInput · interface · L203-L212 — interface CreateLinkInput
+- createLink · function · L214-L316 — async function createLink( ctx: ServiceContext, input: CreateLinkInput, ): Promise<Result<LinkView, LinkError>>
+- UpdateLinkInput · interface · L318-L327 — interface UpdateLinkInput
+- findOwned · function · L329-L338 — async function findOwned( ctx: Pick<ServiceContext, "db" | "workspace">, id: string, )
+- getLink · function · L340-L346 — async function getLink( ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">, id: string, )
+- updateLink · function · L348-L460 — async function updateLink( ctx: ServiceContext, id: string, input: UpdateLinkInput, ): Promise<Result<LinkView, LinkError>>
+- renameLegacyClicks · function · L463-L476 — async function renameLegacyClicks( ctx: ServiceContext, from: string, to: string, )
+- deleteLinks · function · L478-L494 — async function deleteLinks( ctx: ServiceContext, ids: string[], ): Promise<Result<{ deleted: string[] }, LinkError>>
+- deleteOne · function · L499-L547 — async function deleteOne(ctx: ServiceContext, link: Link)
+- ListLinksInput · interface · L549-L562 — interface ListLinksInput
+- escapeRegex · function · L581-L582 — escapeRegex = (value: string)
+- listLinks · function · L585-L656 — async function listLinks( ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">, input: ListLinksInput = {}, )
+- scanAndPersistLink · function · L660-L705 — async function scanAndPersistLink( ctx: Pick<ServiceContext, "db" | "cache" | "linkDomain">, linkId: ObjectId, deps: ScanDeps = {}, )

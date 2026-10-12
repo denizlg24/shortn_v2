@@ -1,0 +1,25 @@
+# packages/auth/index.ts
+
+- AuthEmails · interface · L13-L35 — interface AuthEmails
+- KeyValueStore · interface · L37-L40 — interface KeyValueStore
+- AuthConfig · interface · L42-L56 — interface AuthConfig
+- randomSub · function · L58-L61 — randomSub = ()
+- forwardTo · function · L65-L73 — function forwardTo<T extends object>(resolve: () => T): T
+- get · method · L67-L71 — get(_target, property)
+- createAuth · function · L88-L400 — function createAuth(config: AuthConfig)
+- handles · function · L93-L93 — handles = ()
+- get · method · L130-L135 — async get(key: string)
+- set · method · L136-L138 — async set(key, value)
+- sendChangeEmailConfirmation · method · L146-L151 — async sendChangeEmailConfirmation({ user, newEmail, url }, request)
+- before · method · L181-L192 — async before(user)
+- after · method · L193-L203 — async after(user)
+- before · method · L206-L215 — async before(user, ctx)
+- after · method · L216-L251 — async after(user, ctx)
+- before · method · L256-L275 — async before(session, ctx)
+- after · method · L278-L280 — async after(session, ctx)
+- before · method · L281-L294 — async before(session, ctx)
+- sendResetPassword · method · L313-L318 — async sendResetPassword({ user, url }, request)
+- sendVerificationEmail · method · L323-L335 — async sendVerificationEmail({ user, url }, request)
+- afterEmailVerification · method · L336-L341 — async afterEmailVerification(user, request)
+- Auth · type · L402-L402 — type Auth = ReturnType<typeof createAuth>;
+- Session · type · L403-L403 — type Session = Auth["$Infer"]["Session"];

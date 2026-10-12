@@ -1,0 +1,25 @@
+# packages/billing/polar.ts
+
+- Mirror · type · L15-L15 — type Mirror = Documents["subscriptions"];
+- SubscriptionLike · type · L18-L38 — type SubscriptionLike = Pick< PolarSubscription, | "id" | "status" | "metadata" | "customerId" | "productId" | "currentPeriodStart" | "currentPeriodEnd" | "cancelAtPeriodEnd" | "createdAt" | "modifiedAt" | "endsAt" > & { customer: Pick<PolarSubscription["customer"], "externalId">; product: Pick<PolarSubscription["product"], "metadata" | "name">; pendingUpdate: Pick< NonNullable<PolarSubscription["pendingUpdate"]>, "productId" | "appliesAt" > | null; };
+- PolarConfig · interface · L40-L43 — interface PolarConfig
+- createPolar · function · L45-L46 — createPolar = (config: PolarConfig)
+- mirrorStatus · function · L57-L58 — mirrorStatus = (status: string): Mirror["status"]
+- metadataString · function · L60-L63 — metadataString = (metadata: Record<string, unknown>, key: string)
+- workspaceForSubscription · function · L67-L82 — async function workspaceForSubscription(db: Db, sub: SubscriptionLike)
+- toMirror · function · L84-L117 — function toMirror( sub: SubscriptionLike, server: PolarServer, workspaceId: ObjectId, ): Omit<Mirror, "_id"> | undefined
+- ApplyOutcome · type · L119-L121 — type ApplyOutcome = | { status: "applied"; before: Mirror | null; after: Mirror } | { status: "stale" | "unmapped_product" | "no_workspace" | "addon_applied" };
+- applySubscription · function · L126-L134 — async function applySubscription( db: Db, polar: Polar, server: PolarServer, subscriptionId: string, ): Promise<ApplyOutcome>
+- applyFetched · function · L136-L201 — async function applyFetched( db: Db, server: PolarServer, sub: SubscriptionLike, ): Promise<ApplyOutcome>
+- currentPlan · function · L203-L211 — async function currentPlan(db: Db, workspaceId: ObjectId): Promise<PlanId>
+- allSubscriptions · function · L213-L216 — async function* allSubscriptions(polar: Polar)
+- ReconcileReport · interface · L218-L223 — interface ReconcileReport
+- reconcile · function · L227-L261 — async function reconcile( db: Db, polar: Polar, server: PolarServer, ): Promise<ReconcileReport>
+- comparable · function · L263-L272 — comparable = (mirror: Mirror | null)
+- mirrorDiffers · function · L274-L275 — mirrorDiffers = (before: Mirror | null, after: Mirror)
+- CheckoutInput · interface · L277-L284 — interface CheckoutInput
+- checkoutUrl · function · L286-L300 — async function checkoutUrl( polar: Polar, server: PolarServer, input: CheckoutInput, )
+- portalUrl · function · L302-L312 — async function portalUrl( polar: Polar, customerExternalId: string, returnUrl: string, )
+- ChangeError · type · L314-L314 — type ChangeError = "not_found" | "same_plan" | "custom_priced";
+- changePlan · function · L319-L344 — async function changePlan( polar: Polar, server: PolarServer, mirror: Mirror, target: "basic" | "plus" | "pro", ): Promise< { ok: true; when: "now" | "next_period" } | { ok: false; error: ChangeError } >
+- setCancelAtPeriodEnd · function · L346-L355 — async function setCancelAtPeriodEnd( polar: Polar, mirror: Mirror, cancel: boolean, )

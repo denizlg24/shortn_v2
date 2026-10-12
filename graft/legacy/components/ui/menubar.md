@@ -1,0 +1,18 @@
+# legacy/components/ui/menubar.tsx
+
+- Menubar · function · L9-L23 — function Menubar({ className, ...props }: React.ComponentProps<typeof MenubarPrimitive.Root>)
+- MenubarMenu · function · L25-L29 — function MenubarMenu({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Menu>)
+- MenubarGroup · function · L31-L35 — function MenubarGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Group>)
+- MenubarPortal · function · L37-L41 — function MenubarPortal({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Portal>)
+- MenubarRadioGroup · function · L43-L49 — function MenubarRadioGroup({ ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioGroup>)
+- MenubarTrigger · function · L51-L65 — function MenubarTrigger({ className, ...props }: React.ComponentProps<typeof MenubarPrimitive.Trigger>)
+- MenubarContent · function · L67-L89 — function MenubarContent({ className, align = "start", alignOffset = -4, sideOffset = 8, ...props }: React.ComponentProps<typeof MenubarPrimitive.Content>)
+- MenubarItem · function · L91-L112 — function MenubarItem({ className, inset, variant = "default", ...props }: React.ComponentProps<typeof MenubarPrimitive.Item> & { inset?: boolean variant?: "default" | "destructive" })
+- MenubarCheckboxItem · function · L114-L138 — function MenubarCheckboxItem({ className, children, checked, ...props }: React.ComponentProps<typeof MenubarPrimitive.CheckboxItem>)
+- MenubarRadioItem · function · L140-L162 — function MenubarRadioItem({ className, children, ...props }: React.ComponentProps<typeof MenubarPrimitive.RadioItem>)
+- MenubarLabel · function · L164-L182 — function MenubarLabel({ className, inset, ...props }: React.ComponentProps<typeof MenubarPrimitive.Label> & { inset?: boolean })
+- MenubarSeparator · function · L184-L195 — function MenubarSeparator({ className, ...props }: React.ComponentProps<typeof MenubarPrimitive.Separator>)
+- MenubarShortcut · function · L197-L211 — function MenubarShortcut({ className, ...props }: React.ComponentProps<"span">)
+- MenubarSub · function · L213-L217 — function MenubarSub({ ...props }: React.ComponentProps<typeof MenubarPrimitive.Sub>)
+- MenubarSubTrigger · function · L219-L241 — function MenubarSubTrigger({ className, inset, children, ...props }: React.ComponentProps<typeof MenubarPrimitive.SubTrigger> & { inset?: boolean })
+- MenubarSubContent · function · L243-L257 — function MenubarSubContent({ className, ...props }: React.ComponentProps<typeof MenubarPrimitive.SubContent>)
