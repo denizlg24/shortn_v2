@@ -1,4 +1,5 @@
 import { parseRedirectPath } from "@shortn/core/routing";
+import { bioHandleFromHost } from "@shortn/core/bio-hosts";
 
 export interface Env {
   REDIRECT_ORIGIN: string;
@@ -7,6 +8,11 @@ export interface Env {
   // P4 column (14): unset keeps these paths on legacy, which is the rollback.
   WEB_ORIGIN?: string;
   DASHBOARD_HANDOFF?: string;
+  BIO_DELIVERY_ENABLED?: string;
+  BIO_SUBDOMAINS?: string;
+  BIO_LEGACY_REDIRECTS?: string;
+  BIO_INTERNAL_SECRET?: string;
+  PUBLIC_HOST?: string;
 }
 
 type Fetch = (request: Request) => Promise<Response>;
@@ -26,6 +32,7 @@ const forwardedHeaders = [
   "user-agent",
   "accept-language",
   "referer",
+  "content-type",
   "cookie",
 ];
 
@@ -50,9 +57,13 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
   const ray = request.headers.get("cf-ray");
   if (ray) headers.set("x-request-id", ray);
   if (env.EDGE_AUTH_SECRET) headers.set("x-edge-auth", env.EDGE_AUTH_SECRET);
+  headers.set("x-forwarded-host", source.host);
   return new Request(target.toString(), {
     method: request.method,
     headers,
+    ...(request.method !== "GET" && request.method !== "HEAD"
+      ? { body: request.body }
+      : {}),
     redirect: "manual",
   });
 }
@@ -78,6 +89,10 @@ export function toWebOrigin(
   target.pathname = source.pathname;
   target.search = source.search;
   const headers = new Headers(request.headers);
+  headers.delete("x-shortn-bio-handle");
+  headers.delete("x-shortn-bio-domain");
+  headers.delete("x-bio-auth");
+  headers.delete("x-shortn-public-bio");
   headers.set("x-forwarded-host", source.host);
   headers.delete("host");
   return new Request(target.toString(), {
@@ -100,6 +115,65 @@ export function createHandler(
   return async (request: Request, env: Env): Promise<Response> => {
     const method = request.method.toUpperCase();
     const url = new URL(request.url);
+    const publicHost = env.PUBLIC_HOST ?? "shortn.at";
+    const handle =
+      env.BIO_SUBDOMAINS === "1"
+        ? bioHandleFromHost(url.hostname, publicHost)
+        : null;
+    const customHost =
+      url.hostname !== publicHost && !url.hostname.endsWith(`.${publicHost}`);
+    if (
+      env.BIO_DELIVERY_ENABLED === "1" &&
+      env.WEB_ORIGIN &&
+      env.BIO_INTERNAL_SECRET
+    ) {
+      if (handle && (method === "GET" || method === "HEAD")) {
+        if (url.pathname === "/") {
+          const targetUrl = new URL(`/_bio/${handle}`, env.WEB_ORIGIN);
+          const target = new Request(
+            targetUrl.toString(),
+            toWebOrigin(request, env.WEB_ORIGIN, null),
+          );
+          for (const name of [
+            "rsc",
+            "next-router-state-tree",
+            "next-router-prefetch",
+            "next-url",
+          ])
+            target.headers.delete(name);
+          target.headers.set("x-shortn-bio-handle", handle);
+          target.headers.set("x-bio-auth", env.BIO_INTERNAL_SECRET);
+          target.headers.delete("cookie");
+          const response = await web(target);
+          const headers = new Headers(response.headers);
+          headers.delete("set-cookie");
+          // Scheduling is evaluated at origin, so the HTML TTL is deliberately short.
+          if (response.ok)
+            headers.set(
+              "cache-control",
+              "public, s-maxage=60, stale-while-revalidate=86400",
+            );
+          return new Response(response.body, {
+            status: response.status,
+            headers,
+          });
+        }
+        if (
+          url.pathname.startsWith("/_next/") ||
+          /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(url.pathname)
+        )
+          return web(toWebOrigin(request, env.WEB_ORIGIN, null));
+        return new Response("Not found", { status: 404 });
+      }
+      if (customHost) return upstream(toRedirectOrigin(request, env));
+      if (
+        /^\/b\/[^/]+\/?$/.test(url.pathname) &&
+        (method === "GET" || method === "HEAD")
+      )
+        return upstream(toRedirectOrigin(request, env));
+      if (url.pathname.startsWith("/_bio/"))
+        return web(toWebOrigin(request, env.WEB_ORIGIN, null));
+    }
     // Legacy mints a one-time token there and sends the user on to app.
     if (env.DASHBOARD_HANDOFF === "1" && dashboardPath.test(url.pathname))
       return Response.redirect(
@@ -150,8 +224,28 @@ export function createHandler(
 }
 
 const handler = createHandler(
+  (request) =>
+    new URL(request.url).pathname === "/" && request.method === "GET"
+      ? fetch(request, {
+          cf: {
+            cacheEverything: true,
+            cacheTtlByStatus: { "200-299": 60, "300-599": 0 },
+            cacheKey: `https://${request.headers.get("x-forwarded-host")}/`,
+          },
+        } as RequestInit)
+      : fetch(request),
   (request) => fetch(request),
-  (request) => fetch(request),
+  3000,
+  (request) =>
+    request.headers.has("x-shortn-bio-handle") && !request.headers.has("rsc")
+      ? fetch(request, {
+          cf: {
+            cacheEverything: true,
+            cacheTtlByStatus: { "200-299": 60, "300-599": 0 },
+            cacheKey: `https://${request.headers.get("x-forwarded-host")}/`,
+          },
+        } as RequestInit)
+      : fetch(request),
 );
 
 export default {

@@ -213,3 +213,30 @@ test("click queue spools while Redis fails and replays in order", async () => {
   expect(await Bun.file(path).exists()).toBe(false);
   await rm(path, { force: true });
 });
+
+test("bio attribution survives an intermediate gate and is cleared after the click", async () => {
+  const { app, enqueued } = setup();
+  const gated = await app.request(`/old?ref=bio:${id}&block=stable-block`);
+  const cookie = gated.headers.get("set-cookie")?.split(";")[0];
+  expect(cookie).toContain("shortn_bio_old=");
+  // A real safety/password return uses the same key; use a carried attribution cookie here.
+  const returned = await app.request("/abc", {
+    headers: { cookie: cookie!.replace("shortn_bio_old", "shortn_bio_abc") },
+  });
+  expect(enqueued[0]?.query).toMatchObject({
+    ref: `bio:${id}`,
+    block: "stable-block",
+  });
+  expect(returned.headers.get("set-cookie")).toContain("Max-Age=0");
+});
+
+test("resolver preserves an explicit local port for the database lookup", async () => {
+  let requested = "";
+  const store = { eval: async () => ["generation", null], del: async () => 0 };
+  const resolver = createResolver(store, async (domain) => {
+    requested = domain;
+    return { kind: "missing" };
+  });
+  await resolver.resolve("localhost:3102", "example");
+  expect(requested).toBe("localhost:3102");
+});

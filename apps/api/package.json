@@ -20,6 +20,11 @@
     "@shortn/env": "workspace:*",
     "hono": "4.13.13",
     "mongodb": "7.1.0",
-    "standardwebhooks": "1.1.1"
+    "standardwebhooks": "1.1.1",
+    "@shortn/core": "workspace:*",
+    "@shortn/redis": "workspace:*",
+    "ioredis": "6.0.0",
+    "isbot": "5.2.1",
+    "zod": "4.6.5"
   }
 }

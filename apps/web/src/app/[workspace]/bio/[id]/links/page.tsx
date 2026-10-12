@@ -20,6 +20,7 @@ export default async function BioLinksPage({
   const { ctx, bio } = await loadBio(workspace, id);
   const base = `/${workspace}/bio/${id}`;
   if (!can(ctx.actor, "resource.update")) redirect(base);
+  if (env().BIO_DELIVERY_ENABLED === "1") redirect(`${base}/editor`);
   return (
     <Page
       crumbs={[

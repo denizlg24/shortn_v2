@@ -58,7 +58,8 @@
     "createdAt": "Criada",
     "none": "Nenhum",
     "delete": "Eliminar campanha",
-    "deleteHint": "As variantes são removidas dos links; os links continuam a funcionar."
+    "deleteHint": "As variantes são removidas dos links; os links continuam a funcionar.",
+    "variantsSaved": "{count, plural, one {# variante guardada} other {# variantes guardadas}}. {skipped} variantes já guardadas ignoradas."
   },
   "form": {
     "newTitle": "Nova campanha",
@@ -101,7 +102,7 @@
     "remove": "Remover {value}"
   },
   "builder": {
-    "description": "Etiquete um link curto para um canal. O utm_campaign é sempre o título desta campanha.",
+    "description": "Aplique um canal às ligações curtas selecionadas. utm_campaign é sempre o título desta campanha.",
     "pickLink": "Escolha um link",
     "campaignLinks": "Nesta campanha",
     "notInCampaign": "Este link ainda não está na campanha. Guardar a variante adiciona-o; até lá, os cliques não contam aqui.",
@@ -123,16 +124,19 @@
     "pickLinkFirst": "Escolha um link para construir o URL.",
     "copy": "Copiar URL",
     "save": "Guardar como variante",
-    "saveHint": "Guardar mantém a variante no link: aparece na lista de UTM do link e a campanha conta os cliques.",
+    "saveHint": "Guardar adiciona os mesmos valores UTM a cada ligação selecionada e inclui os seus cliques nesta campanha.",
     "viewerReason": "Os leitores não podem alterar links.",
-    "linkSection": "Link",
-    "linkHint": "O link curto a etiquetar.",
+    "linkSection": "Ligações",
+    "linkHint": "Explore por etiquetas ou pesquise e escolha uma ou mais ligações curtas.",
     "noLink": "Ainda não escolheu um link.",
     "changeLink": "Escolher outro link",
     "paramsSection": "Parâmetros",
     "optional": "Opcional",
     "copied": "Copiado",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "selectedLinks": "{count} ligações selecionadas",
+    "previewMany": "Pré-visualização da primeira ligação. Estes valores UTM aplicam-se a todas as ligações selecionadas.",
+    "saveMany": "Guardar variantes em {count} ligações"
   },
   "deletePage": {
     "title": "Eliminar campanha",
@@ -153,6 +157,42 @@
     "generic": "Algo correu mal do nosso lado. Tente novamente.",
     "linkRequired": "Escolha um link para etiquetar.",
     "duplicate": "Esta variante já está guardada no link.",
-    "full": "Este link já tem {max} variantes."
+    "full": "Este link já tem {max} variantes.",
+    "partial": "Foram guardadas variantes em {count} ligações antes de as restantes falharem. Tente novamente para continuar; as variantes já guardadas são ignoradas."
+  },
+  "library": {
+    "browse": "Explorar ligações",
+    "title": "Escolher ligações da campanha",
+    "search": "Pesquisar ligações",
+    "tags": "Filtrar por etiquetas",
+    "anyTag": "Qualquer etiqueta",
+    "searchTags": "Pesquisar etiquetas",
+    "noTags": "Nenhuma etiqueta encontrada",
+    "tagCount": "{count} etiquetas",
+    "groupBy": "Agrupar resultados",
+    "byTag": "Por etiqueta",
+    "noGrouping": "Sem agrupamento",
+    "untagged": "Sem etiqueta",
+    "tagsFailed": "Não foi possível carregar as etiquetas.",
+    "retry": "Tentar novamente",
+    "removeTag": "Remover etiqueta {tag}",
+    "clearFilters": "Limpar filtros",
+    "loading": "A carregar…",
+    "results": "{count, plural, one {# ligação correspondente} other {# ligações correspondentes}}",
+    "selected": "{count} selecionadas",
+    "selectPage": "Selecionar esta página",
+    "selectResults": "Selecionar todos os resultados",
+    "clearSelection": "Limpar seleção",
+    "hint": "A seleção mantém-se entre páginas e filtros. Escolha até 500 ligações por gravação.",
+    "failed": "Não foi possível carregar as ligações. Tente novamente sem perder a seleção.",
+    "empty": "Nenhuma ligação correspondente. Altere os filtros ou a pesquisa.",
+    "selectGroup": "Selecionar grupo nesta página",
+    "link": "Ligação",
+    "selectLink": "Selecionar {title}",
+    "pages": "Páginas da biblioteca",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "use": "Usar {count} ligações selecionadas",
+    "cancel": "Cancelar seleção"
   }
 }

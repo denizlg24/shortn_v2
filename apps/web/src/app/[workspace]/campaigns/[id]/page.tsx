@@ -34,7 +34,7 @@ export default async function CampaignOverviewPage({
   searchParams,
 }: PageProps<"/[workspace]/campaigns/[id]">) {
   const { workspace, id } = await params;
-  const { created, saved, variant } = await searchParams;
+  const { created, saved, variant, variants, skipped } = await searchParams;
   const access = await campaignsAccess(workspace);
   if (!access.allowed) return <CampaignsGate plan={access.plan} />;
   const t = await getTranslations("campaigns");
@@ -95,6 +95,17 @@ export default async function CampaignOverviewPage({
     >
       {created ? <Notice tone="success">{t("overview.created")}</Notice> : null}
       {saved ? <Notice tone="success">{t("overview.saved")}</Notice> : null}
+      {typeof variants === "string" && /^\d{1,3}$/.test(variants) ? (
+        <Notice tone="success">
+          {t("overview.variantsSaved", {
+            count: Number(variants),
+            skipped:
+              typeof skipped === "string" && /^\d{1,3}$/.test(skipped)
+                ? Number(skipped)
+                : 0,
+          })}
+        </Notice>
+      ) : null}
       {savedOn ? (
         <Notice tone="success">
           {t("overview.variantSaved", {

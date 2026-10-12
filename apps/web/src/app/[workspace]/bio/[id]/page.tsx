@@ -1,4 +1,12 @@
 import { can } from "@shortn/core/authz";
+import {
+  ownedBioDocument,
+  publicBioFromDocument,
+  readBioDraft,
+} from "@shortn/core";
+import { BioRenderer } from "@/components/bio/public/bio-renderer";
+import { env } from "@/server/env";
+import "@/components/bio/public/fonts.css";
 import { buttonVariants } from "@shortn/ui";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
@@ -35,9 +43,27 @@ export default async function BioOverviewPage({
   const t = await getTranslations("bio");
   const format = await getFormatter();
   const { ctx, bio } = await loadBio(workspace, id);
+  const draft = await readBioDraft(ctx, id);
+  const document = await ownedBioDocument(ctx, id);
+  const modern =
+    env().BIO_DELIVERY_ENABLED === "1" && document && draft
+      ? await publicBioFromDocument(
+          ctx.db,
+          {
+            ...document,
+            publishedContent: document.publishedContent ?? draft.content,
+          },
+          env().PUBLIC_ORIGIN,
+          env().BIO_SUBDOMAINS === "1",
+        )
+      : null;
+  const modernProfile = modern?.content.blocks.find(
+    (block) => block.type === "profile",
+  );
+  const publicText = await getTranslations("bio.public");
   const base = `/${workspace}/bio/${id}`;
   const editable = can(ctx.actor, "resource.update");
-  const url = bioPublicUrl(bio.slug);
+  const url = modern?.canonical ?? bioPublicUrl(bio.slug);
   const shown = url.replace(/^https?:\/\//, "");
   const savedTab = savedTabs.find((tab) => tab === saved);
 
@@ -95,15 +121,31 @@ export default async function BioOverviewPage({
       ) : null}
       <BioSplit
         preview={
-          <BioPhone
-            drafts={{
-              profile: profileOf(bio),
-              links: linksOf(bio),
-              socials: socialsOf(bio),
-              appearance: appearanceOf(bio),
-            }}
-            caption={t("preview.live", { url: shown })}
-          />
+          modern ? (
+            <div className="mx-auto w-[360px] max-w-full overflow-hidden rounded-[24px] border border-line-strong">
+              <BioRenderer
+                content={modern.content}
+                links={modern.links}
+                preview
+                labels={{
+                  branding: publicText("branding"),
+                  loadEmbed: publicText.raw("loadEmbed"),
+                  embedConsent: publicText.raw("embedConsent"),
+                  unavailable: publicText("unavailable"),
+                }}
+              />
+            </div>
+          ) : (
+            <BioPhone
+              drafts={{
+                profile: profileOf(bio),
+                links: linksOf(bio),
+                socials: socialsOf(bio),
+                appearance: appearanceOf(bio),
+              }}
+              caption={t("preview.live", { url: shown })}
+            />
+          )
         }
       >
         <Section title={t("overview.details")}>
@@ -119,21 +161,59 @@ export default async function BioOverviewPage({
                 {shown}
               </a>,
             )}
-            {detail(t("overview.title"), bio.title || bio.slug, "profile")}
+            {editable ? (
+              <Link
+                href={`${base}/editor`}
+                className="block py-3 text-small text-signal underline"
+              >
+                {t("editor.titlePage")}
+              </Link>
+            ) : null}
+            {detail(
+              t("overview.title"),
+              (modernProfile?.type === "profile"
+                ? modernProfile.title
+                : bio.title) || bio.slug,
+              modern ? "editor" : "profile",
+            )}
             {detail(
               t("overview.description"),
-              bio.description || t("overview.none"),
-              "profile",
+              (modernProfile?.type === "profile"
+                ? modernProfile.description
+                : bio.description) || t("overview.none"),
+              modern ? "editor" : "profile",
             )}
             {detail(
               t("overview.links"),
-              t("overview.linkCount", { count: bio.links.length }),
-              "links",
+              t("overview.linkCount", {
+                count: modern
+                  ? modern.content.blocks.reduce(
+                      (n, block) =>
+                        n +
+                        (block.type === "links"
+                          ? block.items.length
+                          : block.type === "link"
+                            ? 1
+                            : 0),
+                      0,
+                    )
+                  : bio.links.length,
+              }),
+              modern ? "editor" : "links",
             )}
             {detail(
               t("overview.socials"),
-              t("overview.socialCount", { count: bio.socials.length }),
-              "socials",
+              t("overview.socialCount", {
+                count: modern
+                  ? modern.content.blocks.reduce(
+                      (count, block) =>
+                        count +
+                        (block.type === "socials" ? block.items.length : 0),
+                      0,
+                    )
+                  : bio.socials.length,
+              }),
+              modern ? "editor" : "socials",
             )}
             {detail(
               t("overview.updated"),

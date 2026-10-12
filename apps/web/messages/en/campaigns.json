@@ -58,7 +58,8 @@
     "createdAt": "Created",
     "none": "None",
     "delete": "Delete campaign",
-    "deleteHint": "Its variants are removed from the links; the links keep working."
+    "deleteHint": "Its variants are removed from the links; the links keep working.",
+    "variantsSaved": "{count, plural, one {# variant saved} other {# variants saved}}. {skipped} already saved variants skipped."
   },
   "form": {
     "newTitle": "New campaign",
@@ -101,7 +102,7 @@
     "remove": "Remove {value}"
   },
   "builder": {
-    "description": "Tag a short link for one channel. utm_campaign is always this campaign's title.",
+    "description": "Tag selected short links for one channel. utm_campaign is always this campaign's title.",
     "pickLink": "Choose a link",
     "campaignLinks": "In this campaign",
     "notInCampaign": "This link isn't in the campaign yet. Saving the variant adds it; until then its clicks don't count here.",
@@ -123,16 +124,19 @@
     "pickLinkFirst": "Choose a link to build its URL.",
     "copy": "Copy URL",
     "save": "Save as variant",
-    "saveHint": "Saving keeps the variant on the link: it shows in the link's UTM list and the campaign counts its clicks.",
+    "saveHint": "Saving adds the same UTM values to each selected link and includes its clicks in this campaign.",
     "viewerReason": "Viewers can't change links.",
-    "linkSection": "Link",
-    "linkHint": "The short link to tag.",
+    "linkSection": "Links",
+    "linkHint": "Browse by tags or search, then choose one or more short links to tag.",
     "noLink": "No link chosen yet.",
     "changeLink": "Choose another link",
     "paramsSection": "Parameters",
     "optional": "Optional",
     "copied": "Copied",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "selectedLinks": "{count} links selected",
+    "previewMany": "Preview for the first selected link. These UTM values apply to every selected link.",
+    "saveMany": "Save variants on {count} links"
   },
   "deletePage": {
     "title": "Delete campaign",
@@ -153,6 +157,42 @@
     "generic": "Something went wrong on our side. Try again.",
     "linkRequired": "Choose a link to tag.",
     "duplicate": "This variant is already saved on the link.",
-    "full": "This link already has {max} variants."
+    "full": "This link already has {max} variants.",
+    "partial": "Saved variants on {count} links before the remaining saves failed. Retry to continue; already saved variants are skipped."
+  },
+  "library": {
+    "browse": "Browse links",
+    "title": "Choose campaign links",
+    "search": "Search links",
+    "tags": "Filter by tags",
+    "anyTag": "Any tag",
+    "searchTags": "Search tags",
+    "noTags": "No tags found",
+    "tagCount": "{count} tags",
+    "groupBy": "Group results",
+    "byTag": "By tag",
+    "noGrouping": "No grouping",
+    "untagged": "Untagged",
+    "tagsFailed": "Could not load tags.",
+    "retry": "Retry",
+    "removeTag": "Remove tag {tag}",
+    "clearFilters": "Clear filters",
+    "loading": "Loading…",
+    "results": "{count, plural, one {# matching link} other {# matching links}}",
+    "selected": "{count} selected",
+    "selectPage": "Select this page",
+    "selectResults": "Select all results",
+    "clearSelection": "Clear selection",
+    "hint": "Selections stay across pages and filters. Choose up to 500 links per save.",
+    "failed": "Could not load links. Retry without losing your selection.",
+    "empty": "No matching links. Change your filters or search.",
+    "selectGroup": "Select group on this page",
+    "link": "Link",
+    "selectLink": "Select {title}",
+    "pages": "Library pages",
+    "previous": "Previous",
+    "next": "Next",
+    "use": "Use {count} selected links",
+    "cancel": "Cancel selection"
   }
 }

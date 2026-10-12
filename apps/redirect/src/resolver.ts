@@ -22,13 +22,21 @@ export type LinkLoader = (domain: string, key: string) => Promise<CachedLink>;
 
 // Legacy fields are authoritative during coexistence: urlCode first (legacy's
 // own lookup), then the derived {domain,key}, then renamed-key aliases.
-export function mongoLinkLoader(db: Db): LinkLoader {
+export function mongoLinkLoader(db: Db, rootDomain = "shortn.at"): LinkLoader {
   const links = db.collection<LegacyLinkFields>(physicalNames.links);
   const qrCodes = db.collection<LegacyQrFields>(physicalNames.qr_codes);
   return async (domain, key) => {
     metrics.inc("resolve_mongo_total");
     const link =
-      (await links.findOne({ urlCode: key }, { projection: linkProjection })) ??
+      (domain === rootDomain
+        ? await links.findOne(
+            {
+              urlCode: key,
+              $or: [{ domain: rootDomain }, { domain: { $exists: false } }],
+            },
+            { projection: linkProjection },
+          )
+        : null) ??
       (await links.findOne({ domain, key }, { projection: linkProjection }));
     if (link) {
       const qr = isLegacyQrBacked(link)
@@ -109,7 +117,12 @@ export function createResolver(
         return hit;
       }
       const value = await redis.get(cacheKey, cacheTtlSeconds, () =>
-        load(normalizeDomain(domain), key),
+        load(
+          new URL(`http://${domain}`).port
+            ? `${normalizeDomain(domain)}:${new URL(`http://${domain}`).port}`
+            : normalizeDomain(domain),
+          key,
+        ),
       );
       memory.set(cacheKey, value);
       return value;

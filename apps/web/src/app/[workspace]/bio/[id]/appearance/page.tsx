@@ -1,3 +1,4 @@
+import { env } from "@/server/env";
 import { can } from "@shortn/core/authz";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
@@ -19,6 +20,7 @@ export default async function BioAppearancePage({
   const { ctx, bio } = await loadBio(workspace, id);
   const base = `/${workspace}/bio/${id}`;
   if (!can(ctx.actor, "resource.update")) redirect(base);
+  if (env().BIO_DELIVERY_ENABLED === "1") redirect(`${base}/editor`);
   return (
     <Page
       crumbs={[

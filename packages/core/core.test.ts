@@ -297,3 +297,31 @@ test("enrichment hashes IPs, truncates prefixes and extracts UTM and referrer do
   expect(ipPrefix("2001:db8:abcd:12::1")).toBe("2001:db8:abcd::/48");
   expect(ipPrefix(undefined)).toBe("");
 });
+
+test("custom domain access tokens are bound to both hostname and key", async () => {
+  const token = await new SignJWT({ urlCode: "go.example.com:abc" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("5m")
+    .sign(secrets.legacy);
+  const cached = link({ passwordProtected: true });
+  expect(
+    (
+      await decide(
+        input(cached, { tokenKey: "go.example.com:abc", accessCookie: token }),
+      )
+    ).location,
+  ).toBe("https://example.com/x");
+  expect(
+    (
+      await decide(
+        input(cached, {
+          tokenKey: "other.example.com:abc",
+          accessCookie: token,
+        }),
+      )
+    ).location,
+  ).toBe(`${origin}/authenticate/abc`);
+  expect((await decide(input(cached, { accessCookie: token }))).location).toBe(
+    `${origin}/authenticate/abc`,
+  );
+});

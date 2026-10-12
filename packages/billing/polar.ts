@@ -10,6 +10,7 @@ import {
   type PolarServer,
 } from "./catalog";
 import { paidStatuses } from "./entitlements";
+import { mirrorDomainAddon } from "./domain-addon";
 
 type Mirror = Documents["subscriptions"];
 
@@ -117,7 +118,7 @@ export function toMirror(
 
 export type ApplyOutcome =
   | { status: "applied"; before: Mirror | null; after: Mirror }
-  | { status: "stale" | "unmapped_product" | "no_workspace" };
+  | { status: "stale" | "unmapped_product" | "no_workspace" | "addon_applied" };
 
 // Refetch-and-upsert (06 §Webhook 4): the payload only says *which*
 // subscription changed; Polar's current state is applied if it's newer than
@@ -142,6 +143,8 @@ export async function applyFetched(
   const workspaceId =
     before?.workspaceId ?? (await workspaceForSubscription(db, sub));
   if (!workspaceId) return { status: "no_workspace" };
+  if (await mirrorDomainAddon(db, sub, workspaceId))
+    return { status: "addon_applied" };
   const next = toMirror(sub, server, workspaceId);
   if (!next) return { status: "unmapped_product" };
   if (
@@ -239,7 +242,8 @@ export async function reconcile(
   for await (const sub of allSubscriptions(polar)) {
     if (
       !managed.has(sub.productId) &&
-      !metadataString(sub.product.metadata, "shortn_plan")
+      !metadataString(sub.product.metadata, "shortn_plan") &&
+      sub.product.metadata.shortn_addon !== "custom_domains"
     )
       continue;
     report.checked++;

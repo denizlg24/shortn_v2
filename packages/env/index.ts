@@ -60,6 +60,33 @@ const redis = {
     "No-eviction streams and queues instance",
   ),
 };
+const bioRules =
+  (app: "web" | "redirect" | "api" | "worker") =>
+  (env: Record<string, unknown>, ctx: z.RefinementCtx) => {
+    const required: string[] = [];
+    if (env.BIO_DELIVERY_ENABLED === "1") {
+      if (app === "api")
+        required.push(
+          "REDIS_CACHE_URL",
+          "REDIS_DURABLE_URL",
+          "IP_HASH_SECRET",
+          "PUBLIC_ORIGIN",
+        );
+      else required.push("BIO_INTERNAL_SECRET");
+      if (app === "web") required.push("BIO_API_ORIGIN");
+      if (app === "redirect" || app === "worker")
+        required.push("BIO_WEB_ORIGIN");
+    }
+    if (env.DOMAIN_WRITES === "1" && app === "worker")
+      required.push("CLOUDFLARE_ZONE_ID", "CLOUDFLARE_API_TOKEN");
+    for (const key of required)
+      if (!env[key])
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message: `Required for enabled P5 ${app} features`,
+        });
+  };
 const productionRules = (
   env: Record<string, unknown>,
   ctx: z.RefinementCtx,
@@ -98,6 +125,62 @@ const common = {
   ),
   ...mongo,
   ...redis,
+};
+const bio = {
+  MAIL_ALLOWLIST: value(
+    z.string().optional(),
+    "@denizlg24.com",
+    "Staging recipient allowlist; required operationally before domain notifications are enabled",
+  ),
+  BIO_SUBDOMAINS: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Enable production bio wildcard hosts; staging uses internal paths",
+  ),
+  BIO_LEGACY_REDIRECTS: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Enable /b/ 301 redirects only after slug parity acceptance",
+  ),
+  BIO_DELIVERY_ENABLED: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Serve new bio renderer; /b remains legacy when disabled",
+  ),
+  DOMAIN_WRITES: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Enable paid hostname provisioning after operator review",
+  ),
+  CLOUDFLARE_ZONE_ID: value(
+    z.string().min(1).optional(),
+    "",
+    "Cloudflare SaaS zone ID",
+  ),
+  CLOUDFLARE_API_TOKEN: secret(
+    "Cloudflare SaaS hostname and cache purge token",
+  ).optional(),
+  DOMAIN_CNAME_TARGET: value(
+    z.string().default("cname.shortn.at"),
+    "cname.shortn.at",
+    "Configured Cloudflare for SaaS CNAME target",
+  ),
+  POLAR_DOMAIN_PRODUCT_ID: value(
+    z.uuid().optional(),
+    "",
+    "Domain add-on product in the configured Polar environment; metadata shortn_addon=custom_domains",
+  ),
+  BIO_API_ORIGIN: httpUrl(
+    "http://localhost:3003",
+    "Public API origin for bio view beacons",
+  ).optional(),
+  BIO_WEB_ORIGIN: httpUrl(
+    "http://localhost:3000",
+    "Web origin used by redirect and worker for bio proxy/invalidation",
+  ).optional(),
+  BIO_INTERNAL_SECRET: secret(
+    "Authenticated bio proxy and invalidation requests",
+  ).optional(),
 };
 const billing = {
   POLAR_ACCESS_TOKEN: secret("Polar API token"),
@@ -166,6 +249,7 @@ const objectStorage = {
 export const webEnv = z
   .object({
     ...common,
+    ...bio,
     S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional().meta(
       objectStorage.S3_ENDPOINT.meta() ?? {},
     ),
@@ -242,10 +326,12 @@ export const webEnv = z
       "Web port",
     ),
   })
-  .superRefine(productionRules);
+  .superRefine(productionRules)
+  .superRefine(bioRules("web"));
 export const redirectEnv = z
   .object({
     ...common,
+    ...bio,
     // Optional until the new web app mints link-access cookies (02 M9).
     LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET.optional(),
     CONFIRMATION_TOKEN_SECRET: mail.CONFIRMATION_TOKEN_SECRET.optional(),
@@ -278,7 +364,8 @@ export const redirectEnv = z
       "Redirect port",
     ),
   })
-  .superRefine(productionRules);
+  .superRefine(productionRules)
+  .superRefine(bioRules("redirect"));
 export const billingMode = value(
   z.enum(["shadow", "live"]).default("shadow"),
   "shadow",
@@ -288,6 +375,14 @@ export const apiEnv = z
   .object({
     NODE_ENV: common.NODE_ENV,
     ...mongo,
+    REDIS_CACHE_URL: redis.REDIS_CACHE_URL.optional(),
+    REDIS_DURABLE_URL: redis.REDIS_DURABLE_URL.optional(),
+    ...bio,
+    IP_HASH_SECRET: secret("Bio view rate-limit IP HMAC secret").optional(),
+    PUBLIC_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Public root origin for bio view CORS",
+    ).optional(),
     POLAR_ACCESS_TOKEN: billing.POLAR_ACCESS_TOKEN,
     POLAR_WEBHOOK_SECRET: billing.POLAR_WEBHOOK_SECRET,
     POLAR_ENVIRONMENT: polarEnvironment,
@@ -297,7 +392,8 @@ export const apiEnv = z
       "API port",
     ),
   })
-  .superRefine(productionRules);
+  .superRefine(productionRules)
+  .superRefine(bioRules("api"));
 const liveBillingNeedsMail = (
   env: Record<string, unknown>,
   ctx: z.RefinementCtx,
@@ -314,6 +410,11 @@ const liveBillingNeedsMail = (
 export const workerEnv = z
   .object({
     ...common,
+    ...bio,
+    PUBLIC_ORIGIN: httpUrl(
+      "http://localhost:3001",
+      "Public root origin for bio cache purge",
+    ).optional(),
     IP_HASH_SECRET: secret("Click IP HMAC secret"),
     LINK_DOMAIN: redirectEnv.shape.LINK_DOMAIN,
     PORT: value(
@@ -346,7 +447,8 @@ export const workerEnv = z
     ),
   })
   .superRefine(productionRules)
-  .superRefine(liveBillingNeedsMail);
+  .superRefine(liveBillingNeedsMail)
+  .superRefine(bioRules("worker"));
 
 // Legacy infrastructure variables also belong in the generated root example.
 // The legacy app validates its complete runtime environment in utils/env.ts.

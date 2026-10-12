@@ -13,12 +13,32 @@
     "test:controls": "bun e2e/controls.browser.ts",
     "test:dashboard": "bun --no-env-file e2e/dashboard.browser.ts",
     "test:flows": "bun --no-env-file e2e/dashboard.browser.ts --public-links",
-    "test:billing": "bun --no-env-file e2e/dashboard.browser.ts --billing-writes"
+    "test:billing": "bun --no-env-file e2e/dashboard.browser.ts --billing-writes",
+    "test:bio": "bun --no-env-file e2e/bio.browser.ts",
+    "dev:p5": "bun --no-env-file scripts/p5-dev.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1148.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/lato": "^5.3.0",
+    "@fontsource/lora": "^5.3.0",
+    "@fontsource/merriweather": "^5.3.0",
+    "@fontsource/montserrat": "^5.3.0",
+    "@fontsource/nunito": "^5.3.0",
+    "@fontsource/open-sans": "^5.3.0",
+    "@fontsource/oswald": "^5.3.0",
+    "@fontsource/playfair-display": "^5.3.0",
+    "@fontsource/poppins": "^5.3.0",
+    "@fontsource/raleway": "^5.3.0",
+    "@fontsource/roboto": "^5.3.0",
+    "@fontsource/source-serif-4": "^5.3.1",
+    "@fontsource/space-grotesk": "^5.3.0",
     "@shortn/auth": "workspace:*",
     "@shortn/billing": "workspace:*",
     "@shortn/core": "workspace:*",
@@ -35,6 +55,7 @@
     "next": "16.3.8",
     "next-intl": "4.14.9",
     "qr-code-styling": "1.9.2",
+    "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "server-only": "0.0.1",
@@ -51,6 +72,7 @@
     "eslint-plugin-react-hooks": "7.0.1",
     "jsqr": "1.4.0",
     "playwright-core": "1.64.0",
-    "tailwindcss": "4.3.3"
+    "tailwindcss": "4.3.3",
+    "@types/qrcode": "^1.5.6"
   }
 }

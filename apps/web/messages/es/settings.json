@@ -12,7 +12,8 @@
     "email": "Correo electrónico",
     "password": "Contraseña",
     "signIn": "Métodos de inicio de sesión",
-    "sessions": "Sesiones"
+    "sessions": "Sesiones",
+    "domains": "Dominios"
   },
   "common": {
     "save": "Guardar",
@@ -334,5 +335,37 @@
       "content": "Tus enlaces y demás contenido permanecen en el espacio de trabajo.",
       "again": "Un propietario o administrador deberá invitarte para volver."
     }
+  },
+  "domains": {
+    "title": "Dominios",
+    "hint": "Conecta un dominio con el complemento de dominio personalizado. Cada complemento incluye un dominio.",
+    "hostname": "Nombre del dominio",
+    "kind": "Usar para",
+    "bioPage": "Página bio",
+    "add": "Añadir dominio",
+    "addon": "Comprar complemento de dominio",
+    "disabled": "La configuración de dominios aún no está activa.",
+    "dns": "Instrucciones DNS",
+    "dnsHint": "Crea este registro CNAME en tu proveedor DNS. Para un dominio raíz, usa CNAME flattening.",
+    "name": "Nombre",
+    "value": "Valor",
+    "status": "Estado",
+    "remove": "Eliminar dominio",
+    "removeHint": "Los enlaces siguen disponibles para recuperar después de la eliminación.",
+    "retry": "Reintentar verificación",
+    "recover": "Mover enlaces a Shortn",
+    "empty": "No hay dominios conectados.",
+    "saved": "Solicitud de dominio guardada.",
+    "failed": "No se pudo completar la solicitud. Revisa el dominio, los permisos y el límite del complemento.",
+    "conflicts": "Algunas claves ya están en uso en Shortn. Esos enlaces permanecen en el dominio anterior para recuperarlos.",
+    "pending": "DNS o certificado pendiente",
+    "active": "Activo",
+    "error": "Verificación fallida",
+    "removed": "Eliminado",
+    "assignLink": "Mover enlace a este dominio",
+    "assignHint": "La dirección anterior deja de funcionar. La clave y las estadísticas se conservan.",
+    "createLink": "Crear un enlace",
+    "destination": "URL de destino",
+    "key": "Clave (opcional)"
   }
 }

@@ -134,14 +134,18 @@ async function keyAvailable(
   ctx: ServiceContext,
   key: string,
   except?: ObjectId,
+  domain = ctx.linkDomain,
 ) {
   const clash = await collection(ctx.db, "links").findOne(
     {
       ...(except ? { _id: { $ne: except } } : {}),
       $or: [
-        { urlCode: key },
-        { domain: ctx.linkDomain, key },
-        { domain: ctx.linkDomain, previousKeys: key },
+        ...(domain === ctx.linkDomain
+          ? [{ urlCode: key, domain: { $exists: false } }]
+          : []),
+        { domain, urlCode: key },
+        { domain, key },
+        { domain, previousKeys: key },
       ],
     },
     { projection: { _id: 1 } },
@@ -149,18 +153,27 @@ async function keyAvailable(
   return !clash;
 }
 
-async function checkKey(ctx: ServiceContext, key: string, except?: ObjectId) {
+async function checkKey(
+  ctx: ServiceContext,
+  key: string,
+  except?: ObjectId,
+  domain = ctx.linkDomain,
+) {
   if (!keyPattern.test(key)) return fail("invalid_key");
   if (isReservedKey(key)) return fail("key_reserved", { key });
-  if (!(await keyAvailable(ctx, key, except)))
+  if (!(await keyAvailable(ctx, key, except, domain)))
     return fail("key_taken", { key });
   return ok(key);
 }
 
-async function freshKey(ctx: ServiceContext) {
+async function freshKey(ctx: ServiceContext, domain = ctx.linkDomain) {
   for (let attempt = 0; attempt < 8; attempt++) {
     const key = generateKey();
-    if (!isReservedKey(key) && (await keyAvailable(ctx, key))) return key;
+    if (
+      !isReservedKey(key) &&
+      (await keyAvailable(ctx, key, undefined, domain))
+    )
+      return key;
   }
   throw new Error("Could not generate a free link key");
 }
@@ -188,6 +201,7 @@ function withDerived(legacy: Document) {
 }
 
 export interface CreateLinkInput {
+  domain?: string | undefined;
   url: string;
   key?: string | undefined;
   title?: string | undefined;
@@ -202,6 +216,17 @@ export async function createLink(
   input: CreateLinkInput,
 ): Promise<Result<LinkView, LinkError>> {
   if (!can(ctx.actor, "resource.create")) return fail("forbidden");
+  const domain = input.domain ?? ctx.linkDomain;
+  if (domain !== ctx.linkDomain) {
+    const { activeDomain } = await import("../domains/service");
+    const custom = await activeDomain(ctx.db, domain);
+    if (
+      !custom ||
+      String(custom.workspaceId) !== String(ctx.workspace._id) ||
+      custom.kind === "bio"
+    )
+      return fail("forbidden");
+  }
   const destination = checkDestination(input.url);
   if (!destination.ok) return destination;
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
@@ -210,10 +235,10 @@ export async function createLink(
   if (input.key?.trim()) {
     if (!hasFeature(entitlements, "customKeys"))
       return featureGate("customKeys");
-    const checked = await checkKey(ctx, input.key.trim());
+    const checked = await checkKey(ctx, input.key.trim(), undefined, domain);
     if (!checked.ok) return checked;
     key = checked.value;
-  } else key = await freshKey(ctx);
+  } else key = await freshKey(ctx, domain);
 
   if (input.password && !hasFeature(entitlements, "passwords"))
     return featureGate("passwords");
@@ -225,6 +250,7 @@ export async function createLink(
   const legacy: Document = {
     _id: new ObjectId(),
     ...(sub ? { sub } : {}),
+    domain,
     urlCode: key,
     customCode: Boolean(input.key?.trim()),
     longUrl: url,
@@ -283,7 +309,7 @@ export async function createLink(
       return fail("limit_reached", { limit, used: usage.links - 1 });
     }
   }
-  await invalidateLinks(ctx.cache, ctx.linkDomain, [key]);
+  await invalidateLinks(ctx.cache, domain, [key]);
   const created = await links.findOne({ _id: doc._id });
   if (!created) throw new Error("Created link vanished");
   return ok(toLinkView(created, ctx.linkDomain));
@@ -350,7 +376,12 @@ export async function updateLink(
   ) {
     if (!hasFeature(entitlements, "customKeys"))
       return featureGate("customKeys");
-    const checked = await checkKey(ctx, input.key.trim(), link._id);
+    const checked = await checkKey(
+      ctx,
+      input.key.trim(),
+      link._id,
+      link.domain ?? ctx.linkDomain,
+    );
     if (!checked.ok) return checked;
     newKey = checked.value;
     legacy.urlCode = newKey;
@@ -416,10 +447,11 @@ export async function updateLink(
       return fail("key_taken", { key: newKey ?? null });
     throw error;
   }
-  if (newKey && oldKey) await renameLegacyClicks(ctx, oldKey, newKey);
+  if (newKey && oldKey && (!link.domain || link.domain === ctx.linkDomain))
+    await renameLegacyClicks(ctx, oldKey, newKey);
   await invalidateLinks(
     ctx.cache,
-    ctx.linkDomain,
+    link.domain ?? ctx.linkDomain,
     [oldKey, newKey].filter((k): k is string => Boolean(k)),
   );
   const updated = await collection(ctx.db, "links").findOne({ _id: link._id });
@@ -526,6 +558,7 @@ export interface ListLinksInput {
   page?: number | undefined;
   cursor?: string | undefined;
   limit?: number | undefined;
+  includeHidden?: boolean | undefined;
 }
 
 const statusFilter: Record<LinkStatusFilter, Filter<Link>> = {
@@ -557,6 +590,7 @@ export async function listLinks(
   const and: Filter<Link>[] = [
     ownedBy<Link>(ctx.workspace),
     { isQrCode: { $ne: true } },
+    ...(!input.includeHidden ? [{ hidden: { $ne: true } }] : []),
   ];
   const search = input.search?.trim();
   if (search) {

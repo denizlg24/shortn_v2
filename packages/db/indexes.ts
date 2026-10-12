@@ -16,6 +16,36 @@ const partial = (field: string) => ({
   partialFilterExpression: { [field]: { $type: "string" } },
 });
 export const desiredIndexes: Record<string, IndexDescription[]> = {
+  [physicalNames.bio_page_versions]: [
+    { name: "bio_version", key: { bioPageId: 1, revision: 1 }, unique: true },
+  ],
+  [physicalNames.bio_delivery_jobs]: [
+    { name: "bio_delivery_page", key: { bioPageId: 1 }, unique: true },
+    { name: "bio_delivery_due", key: { nextAttemptAt: 1 } },
+  ],
+  [physicalNames.bio_views]: [
+    { name: "bio_view_sid", key: { sid: 1 }, unique: true },
+    {
+      name: "bio_view_page_time",
+      key: { workspaceId: 1, bioPageId: 1, ts: -1 },
+    },
+    {
+      name: "bio_view_retention",
+      key: { ts: 1 },
+      expireAfterSeconds: 400 * 86400,
+    },
+  ],
+  [physicalNames.domain_addons]: [
+    {
+      name: "domain_addon_subscription",
+      key: { polarSubscriptionId: 1 },
+      unique: true,
+    },
+    { name: "domain_addon_workspace", key: { workspaceId: 1, status: 1 } },
+  ],
+  [physicalNames.domain_notifications]: [
+    { name: "domain_notification", key: { domainId: 1 }, unique: true },
+  ],
   [physicalNames.links]: [
     {
       name: "v2_domain_key",
@@ -128,6 +158,13 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.domains]: [
     { name: "v2_hostname", key: { hostname: 1 }, unique: true },
+    {
+      name: "domain_addon_slot",
+      key: { addonSubscriptionId: 1 },
+      unique: true,
+      ...partial("addonSubscriptionId"),
+    },
+    { name: "domain_poll_due", key: { nextAttemptAt: 1 } },
   ],
   [physicalNames.subscriptions]: [
     {

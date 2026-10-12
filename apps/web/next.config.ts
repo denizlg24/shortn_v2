@@ -36,6 +36,15 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        source: "/_bio/:path*",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: `default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com ${process.env.WEB_ASSET_ORIGIN ?? ""}; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""} ${process.env.WEB_ASSET_ORIGIN ?? ""}; connect-src 'self' ${process.env.BIO_API_ORIGIN ?? ""}; frame-src https://www.youtube-nocookie.com https://open.spotify.com https://player.vimeo.com https://w.soundcloud.com https://embed.music.apple.com; form-action 'none'`,
+          },
+        ],
+      },
+      {
         source: "/_next/static/:path*",
         headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
       },

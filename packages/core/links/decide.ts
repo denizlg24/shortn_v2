@@ -6,6 +6,7 @@ import type { TokenSecrets } from "./tokens";
 export interface DecisionInput {
   link: CachedLink;
   key: string;
+  tokenKey?: string | undefined;
   origin: string;
   locale: Locale;
   confirmationToken?: string | undefined;
@@ -60,7 +61,7 @@ export async function decide(input: DecisionInput): Promise<Decision> {
     const confirmed = input.confirmationToken
       ? await verifyConfirmationToken(
           input.confirmationToken,
-          key,
+          input.tokenKey ?? key,
           input.secrets,
         )
       : false;
@@ -70,7 +71,13 @@ export async function decide(input: DecisionInput): Promise<Decision> {
     const authenticate = `${origin}/authenticate/${encodeURIComponent(key)}`;
     if (!input.accessCookie)
       return { type: "redirect", status: 302, location: authenticate };
-    if (!(await verifyLinkAccessCookie(input.accessCookie, key, input.secrets)))
+    if (
+      !(await verifyLinkAccessCookie(
+        input.accessCookie,
+        input.tokenKey ?? key,
+        input.secrets,
+      ))
+    )
       return {
         type: "redirect",
         status: 302,

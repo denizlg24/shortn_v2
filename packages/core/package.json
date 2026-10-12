@@ -6,8 +6,12 @@
   "exports": {
     ".": "./index.ts",
     "./routing": "./routing.ts",
+    "./bio-content": "./bio/content.ts",
+    "./bio-hosts": "./bio/hosts.ts",
     "./authz": "./workspaces/authz.ts",
-    "./links-filters": "./links/filters.ts"
+    "./links-filters": "./links/filters.ts",
+    "./bio-views": "./bio/views.ts",
+    "./bio-urls": "./bio/urls.ts"
   },
   "scripts": {
     "lint": "eslint .",

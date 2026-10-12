@@ -2,6 +2,7 @@ import { render } from "@react-email/components";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { messages, type Locale } from "./messages";
+import { DomainReady, domainReadySubject } from "./templates/domain";
 import {
   BillingEmail,
   billingSubject,
@@ -40,23 +41,45 @@ export function recipientAllowed(allowlist: string | undefined, to: string) {
 
 export function createMailer(config: MailerConfig) {
   const resend = new Resend(config.apiKey);
-  async function send(to: string, subject: string, element: ReactElement) {
+  async function send(
+    to: string,
+    subject: string,
+    element: ReactElement,
+    idempotencyKey?: string,
+  ) {
     if (!recipientAllowed(config.allowlist, to)) {
       console.info("mail dropped by allowlist", { subject });
       return;
     }
     const html = await render(element);
     const text = await render(element, { plainText: true });
-    const { error } = await resend.emails.send({
-      from: config.from,
-      to,
-      subject,
-      html,
-      text,
-    });
+    const { error } = await resend.emails.send(
+      {
+        from: config.from,
+        to,
+        subject,
+        html,
+        text,
+      },
+      idempotencyKey ? { idempotencyKey } : undefined,
+    );
     if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
   }
   return {
+    domainReady(input: {
+      to: string;
+      locale: Locale;
+      hostname: string;
+      url: string;
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        domainReadySubject(input.locale),
+        <DomainReady {...input} />,
+        input.idempotencyKey,
+      );
+    },
     verifyEmail(input: {
       to: string;
       locale: Locale;
