@@ -1,3 +1,5 @@
+import { publicRequestDomain } from "@/server/public-domain";
+import { env as publicEnv } from "@/server/env";
 import { keyPattern, publicLink, reportReasons } from "@shortn/core";
 import { buttonVariants, cn, Label, Textarea } from "@shortn/ui";
 import { ChevronRight } from "lucide-react";
@@ -57,7 +59,14 @@ export default async function SafetyPage({
     getFormatter({ locale }),
   ]);
   const home = { href: `https://shortn.at/${locale}`, label: t("goHome") };
-  const link = keyPattern.test(key) ? await publicLink(await db(), key) : null;
+  const link = keyPattern.test(key)
+    ? await publicLink(
+        await db(),
+        key,
+        await publicRequestDomain(),
+        publicEnv().LINK_DOMAIN,
+      )
+    : null;
   const report = isReportState(query.report) ? query.report : null;
   const encodedKey = encodeURIComponent(key);
 

@@ -58,7 +58,8 @@
     "createdAt": "Creada",
     "none": "Ninguno",
     "delete": "Eliminar campaña",
-    "deleteHint": "Sus variantes se quitan de los enlaces; los enlaces siguen funcionando."
+    "deleteHint": "Sus variantes se quitan de los enlaces; los enlaces siguen funcionando.",
+    "variantsSaved": "{count, plural, one {# variante guardada} other {# variantes guardadas}}. {skipped} variantes ya guardadas omitidas."
   },
   "form": {
     "newTitle": "Nueva campaña",
@@ -101,7 +102,7 @@
     "remove": "Quitar {value}"
   },
   "builder": {
-    "description": "Etiqueta un enlace corto para un canal. utm_campaign es siempre el título de esta campaña.",
+    "description": "Aplica un canal a los enlaces cortos seleccionados. utm_campaign siempre es el título de esta campaña.",
     "pickLink": "Elige un enlace",
     "campaignLinks": "En esta campaña",
     "notInCampaign": "Este enlace aún no está en la campaña. Guardar la variante lo añade; hasta entonces sus clics no cuentan aquí.",
@@ -123,16 +124,19 @@
     "pickLinkFirst": "Elige un enlace para crear su URL.",
     "copy": "Copiar URL",
     "save": "Guardar como variante",
-    "saveHint": "Al guardar, la variante se queda en el enlace: aparece en su lista de UTM y la campaña cuenta sus clics.",
+    "saveHint": "Guardar añade los mismos valores UTM a cada enlace seleccionado e incluye sus clics en esta campaña.",
     "viewerReason": "Los lectores no pueden cambiar enlaces.",
-    "linkSection": "Enlace",
-    "linkHint": "El enlace corto que vas a etiquetar.",
+    "linkSection": "Enlaces",
+    "linkHint": "Explora por etiquetas o busca y elige uno o varios enlaces cortos.",
     "noLink": "Aún no has elegido un enlace.",
     "changeLink": "Elegir otro enlace",
     "paramsSection": "Parámetros",
     "optional": "Opcional",
     "copied": "Copiado",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "selectedLinks": "{count} enlaces seleccionados",
+    "previewMany": "Vista previa del primer enlace. Estos valores UTM se aplican a todos los enlaces seleccionados.",
+    "saveMany": "Guardar variantes en {count} enlaces"
   },
   "deletePage": {
     "title": "Eliminar campaña",
@@ -153,6 +157,42 @@
     "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
     "linkRequired": "Elige un enlace para etiquetar.",
     "duplicate": "Esta variante ya está guardada en el enlace.",
-    "full": "Este enlace ya tiene {max} variantes."
+    "full": "Este enlace ya tiene {max} variantes.",
+    "partial": "Se guardaron variantes en {count} enlaces antes de que fallaran los demás. Reintenta para continuar; se omiten las variantes ya guardadas."
+  },
+  "library": {
+    "browse": "Explorar enlaces",
+    "title": "Elegir enlaces de la campaña",
+    "search": "Buscar enlaces",
+    "tags": "Filtrar por etiquetas",
+    "anyTag": "Cualquier etiqueta",
+    "searchTags": "Buscar etiquetas",
+    "noTags": "No se encontraron etiquetas",
+    "tagCount": "{count} etiquetas",
+    "groupBy": "Agrupar resultados",
+    "byTag": "Por etiqueta",
+    "noGrouping": "Sin agrupación",
+    "untagged": "Sin etiqueta",
+    "tagsFailed": "No se pudieron cargar las etiquetas.",
+    "retry": "Reintentar",
+    "removeTag": "Quitar etiqueta {tag}",
+    "clearFilters": "Borrar filtros",
+    "loading": "Cargando…",
+    "results": "{count, plural, one {# enlace coincidente} other {# enlaces coincidentes}}",
+    "selected": "{count} seleccionados",
+    "selectPage": "Seleccionar esta página",
+    "selectResults": "Seleccionar todos los resultados",
+    "clearSelection": "Borrar selección",
+    "hint": "La selección se mantiene entre páginas y filtros. Elige hasta 500 enlaces por guardado.",
+    "failed": "No se pudieron cargar los enlaces. Reintenta sin perder la selección.",
+    "empty": "No hay enlaces coincidentes. Cambia los filtros o la búsqueda.",
+    "selectGroup": "Seleccionar grupo en esta página",
+    "link": "Enlace",
+    "selectLink": "Seleccionar {title}",
+    "pages": "Páginas de la biblioteca",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "use": "Usar {count} enlaces seleccionados",
+    "cancel": "Cancelar selección"
   }
 }

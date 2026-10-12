@@ -1,3 +1,4 @@
+import { publicRequestDomain } from "@/server/public-domain";
 import {
   keyPattern,
   reportLink,
@@ -37,7 +38,13 @@ export async function POST(
   if (!isReason(reason)) return back("invalid");
   const { cache } = await redis();
   const result = await reportLink(
-    { db: await db(), counters: cache, cache, linkDomain: env().LINK_DOMAIN },
+    {
+      db: await db(),
+      counters: cache,
+      cache,
+      linkDomain: await publicRequestDomain(),
+      rootDomain: env().LINK_DOMAIN,
+    },
     {
       key,
       reason,

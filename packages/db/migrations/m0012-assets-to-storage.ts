@@ -178,12 +178,13 @@ export const assetsToStorage: Migration = {
       filter: { handle: { $type: "string" } },
       operations: (docs) =>
         docs.flatMap((doc): AnyBulkWriteOperation<Document>[] => {
-          if (!bioSources(doc).length) return [];
+          if (doc.publicationManaged === true || !bioSources(doc).length)
+            return [];
           const built = buildBio(doc, assets);
           return [
             {
               updateOne: {
-                filter: { _id: doc._id },
+                filter: { _id: doc._id, publicationManaged: { $ne: true } },
                 update: {
                   $set: {
                     blocks: built.blocks,

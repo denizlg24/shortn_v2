@@ -1,3 +1,4 @@
+import { publicRequestDomain } from "@/server/public-domain";
 import { accessCookieName, keyPattern, verifyLinkPassword } from "@shortn/core";
 import { db } from "@/server/db";
 import { env } from "@/server/env";
@@ -29,8 +30,14 @@ export async function POST(
       db: await db(),
       counters: (await redis()).cache,
       linkAccessSecret: env().LINK_ACCESS_SECRET,
+      rootDomain: env().LINK_DOMAIN,
     },
-    { key, password, ipHash: await visitorIpHash() },
+    {
+      key,
+      password,
+      domain: await publicRequestDomain(),
+      ipHash: await visitorIpHash(),
+    },
   );
   if (!result.ok) return back(result.error);
   const secure = env().NODE_ENV === "production" ? "; Secure" : "";

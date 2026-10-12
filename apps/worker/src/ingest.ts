@@ -7,6 +7,8 @@ import type { Redis } from "ioredis";
 import { ObjectId } from "mongodb";
 import type { AnyBulkWriteOperation, Db, Document } from "mongodb";
 
+import { ingestBioViews } from "./bio-views";
+
 export const ingestGroup = "ingest";
 
 export type StreamEntry = [id: string, fields: string[]];
@@ -148,6 +150,14 @@ export async function writeBatch(
           domain: message.domain,
           key: message.key,
           ...(link?.urlCode ? { legacyCode: link.urlCode } : {}),
+          ...(message.query?.ref?.match(/^bio:[a-f\d]{24}$/i)
+            ? {
+                bioPageId: new ObjectId(message.query.ref.slice(4)),
+                ...(message.query.block
+                  ? { bioBlockId: message.query.block.slice(0, 100) }
+                  : {}),
+              }
+            : {}),
         },
         sid,
         bot: false,
@@ -264,7 +274,9 @@ export function createIngest(options: {
 
   const handle = async (entries: StreamEntry[], redelivered: boolean) => {
     if (!entries.length) return;
-    const { decoded, rejected } = decodeEntries(entries);
+    const { decoded, rejected } = decodeEntries(
+      await ingestBioViews(db, entries),
+    );
     if (rejected.length) {
       await db
         .collection(physicalNames.click_rejects)

@@ -19,5 +19,8 @@ export * from "./qr/service";
 export * from "./analytics/queries";
 export * from "./workspaces/members";
 export * from "./bio/service";
+export * from "./bio/publishing";
+export * from "./bio/analytics";
+export * from "./domains/service";
 export * from "./links/public";
 export * from "./links/filters";

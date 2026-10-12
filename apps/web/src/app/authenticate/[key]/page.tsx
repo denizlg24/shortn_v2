@@ -1,3 +1,5 @@
+import { publicRequestDomain } from "@/server/public-domain";
+import { env as publicEnv } from "@/server/env";
 import { keyPattern, publicLink } from "@shortn/core";
 import { buttonVariants, cn, Label } from "@shortn/ui";
 import { CircleAlert } from "lucide-react";
@@ -41,7 +43,14 @@ export default async function AuthenticatePage({
     getTranslations("common"),
   ]);
   const home = { href: `https://shortn.at/${locale}`, label: t("goHome") };
-  const link = keyPattern.test(key) ? await publicLink(await db(), key) : null;
+  const link = keyPattern.test(key)
+    ? await publicLink(
+        await db(),
+        key,
+        await publicRequestDomain(),
+        publicEnv().LINK_DOMAIN,
+      )
+    : null;
 
   const content = (() => {
     if (!link || error === "not_found")

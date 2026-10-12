@@ -1,7 +1,7 @@
 // The settings sub-nav (17 §Settings): workspace pages, then the signed-in
 // person's own pages. Each entry is a page; sub-pages highlight their entry.
 export const settingsGroups = [
-  { id: "workspace", items: ["general", "members", "billing"] },
+  { id: "workspace", items: ["general", "members", "billing", "domains"] },
   {
     id: "account",
     items: ["profile", "email", "password", "signIn", "sessions"],
@@ -14,6 +14,7 @@ const paths: Record<SettingsItem, string> = {
   general: "",
   members: "/members",
   billing: "/billing",
+  domains: "/domains",
   profile: "/account",
   email: "/account/email",
   password: "/account/password",
@@ -35,6 +36,7 @@ export function settingsItemFromPath(pathname: string): SettingsItem {
   const [, , , section, page] = pathname.split("/");
   if (section === "members") return "members";
   if (section === "billing") return "billing";
+  if (section === "domains") return "domains";
   if (section === "account") return (page && accountPages[page]) || "profile";
   return "general";
 }

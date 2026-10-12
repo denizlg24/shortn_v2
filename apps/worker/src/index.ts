@@ -2,6 +2,9 @@ import { closeMongoClient, getMongoClient } from "@shortn/db";
 import { productionMigrations } from "@shortn/db/migrations";
 import { parseEnv, workerEnv } from "@shortn/env";
 import { createPolar } from "@shortn/billing";
+import { cloudflareDomains, pollDomains } from "@shortn/core";
+import { deliverBioInvalidations } from "./bio-delivery";
+import { sendDomainNotifications } from "./domain-notifications";
 import { createRedisClients } from "@shortn/redis";
 import { hostname } from "node:os";
 import { createIngest } from "./ingest";
@@ -53,7 +56,11 @@ const polar = env.POLAR_ACCESS_TOKEN
     })
   : undefined;
 const mailer = env.RESEND_API_KEY
-  ? createMailer({ apiKey: env.RESEND_API_KEY, from: env.MAIL_FROM })
+  ? createMailer({
+      apiKey: env.RESEND_API_KEY,
+      from: env.MAIL_FROM,
+      allowlist: env.MAIL_ALLOWLIST,
+    })
   : undefined;
 const billing = polar && {
   db,
@@ -67,6 +74,56 @@ const billing = polar && {
 };
 
 const timers = [
+  ...(env.DOMAIN_WRITES === "1" && mailer && env.APP_URL
+    ? [
+        every(
+          60000,
+          "domain-notifications",
+          () => sendDomainNotifications(db, mailer, env.APP_URL!),
+          log,
+        ),
+      ]
+    : []),
+  ...(env.DOMAIN_WRITES === "1" &&
+  env.CLOUDFLARE_ZONE_ID &&
+  env.CLOUDFLARE_API_TOKEN
+    ? [
+        every(
+          60000,
+          "domain-provisioning",
+          () =>
+            pollDomains(
+              db,
+              cloudflareDomains(
+                env.CLOUDFLARE_ZONE_ID!,
+                env.CLOUDFLARE_API_TOKEN!,
+              ),
+            ),
+          log,
+        ),
+      ]
+    : []),
+  ...(env.BIO_DELIVERY_ENABLED === "1" &&
+  env.BIO_WEB_ORIGIN &&
+  env.BIO_INTERNAL_SECRET &&
+  env.PUBLIC_ORIGIN
+    ? [
+        every(
+          5000,
+          "bio-invalidation",
+          () =>
+            deliverBioInvalidations(db, {
+              webOrigin: env.BIO_WEB_ORIGIN!,
+              secret: env.BIO_INTERNAL_SECRET!,
+              rootOrigin: env.PUBLIC_ORIGIN!,
+              subdomains: env.BIO_SUBDOMAINS === "1",
+              zoneId: env.CLOUDFLARE_ZONE_ID,
+              token: env.CLOUDFLARE_API_TOKEN,
+            }),
+          log,
+        ),
+      ]
+    : []),
   ...(billing
     ? [
         every(

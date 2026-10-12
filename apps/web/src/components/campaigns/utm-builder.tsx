@@ -4,7 +4,7 @@ import type { CampaignView, LinkView } from "@shortn/core";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import type { FormState } from "@/server/actions/link-pages";
-import { LinkPicker } from "../editor/link-picker";
+import { CampaignLinkSelector } from "./campaign-link-selector";
 import { useFormSubmit } from "../editor/use-form-submit";
 import { CopyButton } from "../page/copy-button";
 import { FormActions, FormField } from "../page/form";
@@ -29,7 +29,7 @@ const suggestionsFor: Record<BuilderField, keyof CampaignView["utmDefaults"]> =
     content: "contents",
   };
 
-/** /campaigns/{id}/builder: tag one link for one channel, copy or save it. */
+/** /campaigns/{id}/builder: apply one channel to selected workspace links. */
 export function UtmBuilder({
   workspace,
   campaign,
@@ -51,18 +51,29 @@ export function UtmBuilder({
   const t = useTranslations("campaigns.builder");
   const message = useCampaignErrorMessage();
   const id = useId();
-  const [link, setLink] = useState(initialLink);
+  const [targets, setTargets] = useState<LinkView[]>(
+    initialLink ? [initialLink] : [],
+  );
+  const link = targets[0] ?? null;
+  const [choosing, setChoosing] = useState(false);
   const [values, setValues] = useState(emptyBuilder);
   const [attempted, setAttempted] = useState(false);
 
   const url = link ? taggedUrl(link, campaign.title, values) : null;
-  const duplicate = link ? hasVariant(link, campaign.title, values) : false;
-  const full = link ? link.utm.length >= maxVariants : false;
+  const duplicate =
+    targets.length === 1 && link
+      ? hasVariant(link, campaign.title, values)
+      : false;
+  const full = targets.some(
+    (target) =>
+      target.utm.length >= maxVariants &&
+      !hasVariant(target, campaign.title, values),
+  );
   const inCampaign = link ? links.some((item) => item.id === link.id) : false;
 
   const { state, pending, onSubmit } = useFormSubmit(action, () => {
     setAttempted(true);
-    return Boolean(link) && !duplicate && !full;
+    return !choosing && Boolean(link) && !duplicate && !full;
   });
 
   const blocked = !link
@@ -90,37 +101,42 @@ export function UtmBuilder({
         <div className="flex flex-col gap-3">
           {link ? (
             <>
-              <input type="hidden" name="link" value={link.id} />
-              <p className="text-small">
+              {targets.map((target) => (
+                <input
+                  key={target.id}
+                  type="hidden"
+                  name="link"
+                  value={target.id}
+                />
+              ))}
+              {targets.length > 1 ? (
+                <p className="text-small font-medium">
+                  {t("selectedLinks", { count: targets.length })}
+                </p>
+              ) : null}
+              <p className="text-small break-all">
                 <span className="font-mono">
                   <span className="text-fg-muted">{link.domain}/</span>
                   <span className="font-medium">{link.key}</span>
                 </span>
                 <span className="text-fg-muted"> → {link.url}</span>
               </p>
-              {inCampaign ? null : (
+              {inCampaign || targets.length > 1 ? null : (
                 <p className="text-small text-fg-muted">{t("notInCampaign")}</p>
               )}
             </>
           ) : (
             <p className="text-small text-fg-muted">{t("noLink")}</p>
           )}
-          <LinkPicker
+          <CampaignLinkSelector
             workspace={workspace}
-            suggestions={links}
-            suggestionsLabel={t("campaignLinks")}
-            onSelect={(next) => {
+            selected={targets}
+            onOpenChange={setChoosing}
+            disabled={pending}
+            onChange={(next) => {
               setAttempted(false);
-              setLink(next);
+              setTargets(next);
             }}
-            trigger={
-              <button
-                type="button"
-                className="h-8 self-start rounded-control border border-line-strong bg-field px-3 text-small font-medium hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-signal"
-              >
-                {link ? t("changeLink") : t("pickLink")}
-              </button>
-            }
           />
         </div>
       </Section>
@@ -164,6 +180,9 @@ export function UtmBuilder({
 
       <Section title={t("result")} description={t("saveHint")}>
         <div className="flex flex-col gap-3">
+          {targets.length > 1 ? (
+            <p className="text-small text-fg-muted">{t("previewMany")}</p>
+          ) : null}
           <output
             htmlFor={builderFields.map((field) => `${id}-${field}`).join(" ")}
             aria-live="polite"
@@ -191,12 +210,18 @@ export function UtmBuilder({
         </p>
       ) : null}
       {canSave ? (
-        <FormActions
-          submitLabel={t("save")}
-          cancelHref={cancelHref}
-          cancelLabel={t("cancel")}
-          pending={pending}
-        />
+        <fieldset disabled={choosing}>
+          <FormActions
+            submitLabel={
+              targets.length > 1
+                ? t("saveMany", { count: targets.length })
+                : t("save")
+            }
+            cancelHref={cancelHref}
+            cancelLabel={t("cancel")}
+            pending={pending}
+          />
+        </fieldset>
       ) : (
         <p className="mt-8 border-t border-line pt-5 text-small text-fg-muted">
           {t("viewerReason")}

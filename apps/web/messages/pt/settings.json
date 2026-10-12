@@ -12,7 +12,8 @@
     "email": "Email",
     "password": "Palavra-passe",
     "signIn": "Métodos de início de sessão",
-    "sessions": "Sessões"
+    "sessions": "Sessões",
+    "domains": "Domínios"
   },
   "common": {
     "save": "Guardar",
@@ -334,5 +335,37 @@
       "content": "As suas ligações e outros conteúdos permanecem no espaço de trabalho.",
       "again": "Um proprietário ou administrador terá de o convidar para voltar."
     }
+  },
+  "domains": {
+    "title": "Domínios",
+    "hint": "Ligue um domínio com o extra de domínio personalizado. Cada extra inclui um domínio.",
+    "hostname": "Nome do domínio",
+    "kind": "Usar para",
+    "bioPage": "Página bio",
+    "add": "Adicionar domínio",
+    "addon": "Comprar extra de domínio",
+    "disabled": "A configuração de domínios ainda não está ativa.",
+    "dns": "Instruções DNS",
+    "dnsHint": "Crie este registo CNAME no seu fornecedor DNS. Para um domínio raiz, use CNAME flattening.",
+    "name": "Nome",
+    "value": "Valor",
+    "status": "Estado",
+    "remove": "Remover domínio",
+    "removeHint": "Os links continuam disponíveis para recuperar após a remoção.",
+    "retry": "Repetir verificação",
+    "recover": "Mover links para Shortn",
+    "empty": "Nenhum domínio ligado.",
+    "saved": "Pedido de domínio guardado.",
+    "failed": "Não foi possível concluir o pedido. Verifique o domínio, a permissão e o limite do extra.",
+    "conflicts": "Algumas chaves já estão em uso no Shortn. Esses links permanecem no domínio anterior para recuperação.",
+    "pending": "DNS ou certificado pendente",
+    "active": "Ativo",
+    "error": "Verificação falhou",
+    "removed": "Removido",
+    "assignLink": "Mover link para este domínio",
+    "assignHint": "O endereço anterior deixa de funcionar. A chave e as estatísticas ficam com o link.",
+    "createLink": "Criar um link",
+    "destination": "URL de destino",
+    "key": "Chave (opcional)"
   }
 }

@@ -19,14 +19,31 @@ export interface PublicLink {
   createdAt: string;
   creatorName: string | null;
 }
+export function publicLinkQuery(
+  key: string,
+  domain = "shortn.at",
+  rootDomain = "shortn.at",
+) {
+  return domain === rootDomain
+    ? {
+        $or: [
+          { urlCode: key, domain: { $exists: false } },
+          { urlCode: key, domain: rootDomain },
+          { key, domain: rootDomain },
+        ],
+      }
+    : { domain, key, domainInactive: { $ne: true } };
+}
 
 export async function publicLink(
   db: Db,
   key: string,
+  domain = "shortn.at",
+  rootDomain = "shortn.at",
 ): Promise<PublicLink | null> {
   const doc = await db
     .collection(physicalNames.links)
-    .findOne({ urlCode: key });
+    .findOne(publicLinkQuery(key, domain, rootDomain));
   if (!doc || typeof doc.longUrl !== "string") return null;
   let destinationHost = doc.longUrl;
   try {
@@ -84,20 +101,28 @@ export type PasswordResult =
 // 03: 5 attempts per minute per IP+key, 50 per hour per key. Successful
 // attempts clear the IP counter, like legacy's resetRateLimit.
 export async function verifyLinkPassword(
-  deps: { db: Db; counters: CounterStore; linkAccessSecret: string },
-  input: { key: string; password: string; ipHash: string },
+  deps: {
+    db: Db;
+    counters: CounterStore;
+    linkAccessSecret: string;
+    rootDomain?: string;
+  },
+  input: { key: string; password: string; ipHash: string; domain?: string },
 ): Promise<PasswordResult> {
   const doc = await deps.db
     .collection(physicalNames.links)
-    .findOne(
-      { urlCode: input.key },
-      { projection: { passwordProtected: 1, passwordHash: 1 } },
-    );
+    .findOne(publicLinkQuery(input.key, input.domain, deps.rootDomain), {
+      projection: { passwordProtected: 1, passwordHash: 1 },
+    });
   if (!doc) return { ok: false, error: "not_found" };
   if (!doc.passwordProtected || typeof doc.passwordHash !== "string")
     return { ok: false, error: "not_protected" };
-  const ipKey = `pwd:ip:${input.ipHash}:${input.key}`;
-  const linkKey = `pwd:link:${input.key}`;
+  const scope =
+    input.domain && input.domain !== (deps.rootDomain ?? "shortn.at")
+      ? `${input.domain}:${input.key}`
+      : input.key;
+  const ipKey = `pwd:ip:${input.ipHash}:${scope}`;
+  const linkKey = `pwd:link:${scope}`;
   const [perIp, perLink] = await Promise.all([
     bump(deps.counters, ipKey, 60),
     bump(deps.counters, linkKey, 3600),
@@ -106,7 +131,7 @@ export async function verifyLinkPassword(
   if (!(await bcrypt.compare(input.password, doc.passwordHash)))
     return { ok: false, error: "wrong_password" };
   await deps.counters.del(ipKey);
-  const token = await new SignJWT({ urlCode: input.key })
+  const token = await new SignJWT({ urlCode: scope })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("24h")
@@ -141,6 +166,7 @@ export async function reportLink(
     counters: CounterStore;
     cache: InvalidationStore;
     linkDomain: string;
+    rootDomain?: string;
   },
   input: {
     key: string;
@@ -152,18 +178,18 @@ export async function reportLink(
   const day = new Date().toISOString().slice(0, 10);
   const links = deps.db.collection(physicalNames.links);
   const doc = await links.findOne(
-    { urlCode: input.key },
+    publicLinkQuery(input.key, deps.linkDomain, deps.rootDomain),
     { projection: { _id: 1 } },
   );
   if (!doc) return { ok: false, error: "not_found" };
   const reports = deps.db.collection(physicalNames.link_reports);
-  if (
-    await reports.findOne({ urlCode: input.key, reporterIpHash: input.ipHash })
-  )
+  if (await reports.findOne({ linkId: doc._id, reporterIpHash: input.ipHash }))
     return { ok: true };
   if ((await bump(deps.counters, `report:${input.ipHash}:${day}`, 86_400)) > 5)
     return { ok: false, error: "rate_limited" };
   await reports.insertOne({
+    linkId: doc._id,
+    domain: deps.linkDomain,
     urlCode: input.key,
     reason: input.reason,
     ...(input.details?.trim()

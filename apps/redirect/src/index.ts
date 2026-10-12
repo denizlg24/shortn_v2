@@ -14,7 +14,7 @@ const db = await getDb({
   maxPoolSize: env.MONGODB_POOL_SIZE,
 });
 const { cache, durable } = await createRedisClients(env);
-const resolver = createResolver(cache, mongoLinkLoader(db));
+const resolver = createResolver(cache, mongoLinkLoader(db, env.LINK_DOMAIN));
 metrics.gauge("l1_entries", () => resolver.memory.size);
 
 const subscriber = cache.duplicate({ enableOfflineQueue: true });
@@ -62,6 +62,14 @@ const app = createApp({
   },
   origin: new URL(env.PUBLIC_ORIGIN).origin,
   linkDomain: env.LINK_DOMAIN,
+  db,
+  bio: {
+    enabled: env.BIO_DELIVERY_ENABLED === "1",
+    subdomains: env.BIO_SUBDOMAINS === "1",
+    redirects: env.BIO_LEGACY_REDIRECTS === "1",
+    webOrigin: env.BIO_WEB_ORIGIN,
+    secret: env.BIO_INTERNAL_SECRET,
+  },
   edgeAuthSecret: env.EDGE_AUTH_SECRET,
   log: (message, error) => console.error(message, error),
 });

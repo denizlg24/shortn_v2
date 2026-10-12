@@ -16,6 +16,8 @@ export function useCampaignErrorMessage() {
           return t("linkRequired");
         case "duplicate":
           return t("duplicate");
+        case "partial":
+          return t("partial", { count: Number(detail?.count ?? 0) });
         case "full":
           return t("full", { max: Number(detail?.max ?? 50) });
         case "feature_required":

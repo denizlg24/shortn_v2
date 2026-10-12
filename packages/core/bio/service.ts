@@ -8,6 +8,8 @@ import { can } from "../workspaces/authz";
 import { legacySubOf, nowOf, type ServiceContext } from "../workspaces/context";
 import { ownedBy, parseObjectId } from "../workspaces/service";
 
+import { validBioHandle } from "./hosts";
+
 type BioPage = Documents["bio_pages"];
 type Link = Documents["links"];
 
@@ -230,6 +232,8 @@ export async function createBioPage(
   },
 ): Promise<Result<BioSummary, BioError>> {
   if (!can(ctx.actor, "resource.create")) return fail("forbidden");
+  if (!validBioHandle(input.slug.trim().toLowerCase()))
+    return fail("invalid_slug");
   const checked = await checkSlug(ctx, input.slug);
   if (!checked.ok) return checked;
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
@@ -247,6 +251,9 @@ export async function createBioPage(
     _id: new ObjectId(),
     ...(sub ? { userId: sub } : {}),
     slug: checked.value,
+    handle: checked.value,
+    published: false,
+    publicationManaged: true,
     title: input.title?.trim() || checked.value,
     avatarShape: "circle",
     theme: { buttonStyle: "rounded" },

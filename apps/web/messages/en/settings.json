@@ -12,7 +12,8 @@
     "email": "Email",
     "password": "Password",
     "signIn": "Sign-in methods",
-    "sessions": "Sessions"
+    "sessions": "Sessions",
+    "domains": "Domains"
   },
   "common": {
     "save": "Save",
@@ -334,5 +335,37 @@
       "content": "Your links and other content stay in the workspace.",
       "again": "An owner or admin must invite you to rejoin."
     }
+  },
+  "domains": {
+    "title": "Domains",
+    "hint": "Connect a domain with the custom-domain add-on. Each add-on includes one domain.",
+    "hostname": "Hostname",
+    "kind": "Use for",
+    "bioPage": "Bio page",
+    "add": "Add domain",
+    "addon": "Buy domain add-on",
+    "disabled": "Domain provisioning is not enabled yet.",
+    "dns": "DNS instructions",
+    "dnsHint": "Create this CNAME record at your DNS provider. For an apex domain, use CNAME flattening.",
+    "name": "Name",
+    "value": "Value",
+    "status": "Status",
+    "remove": "Remove domain",
+    "removeHint": "Links remain available to recover after removal.",
+    "retry": "Retry verification",
+    "recover": "Move links to Shortn",
+    "empty": "No domains connected.",
+    "saved": "Domain request saved.",
+    "failed": "Could not complete this request. Check your domain, permission and add-on allowance.",
+    "conflicts": "Some keys are already in use on Shortn. Those links remain on the old domain for recovery.",
+    "pending": "Pending DNS or certificate",
+    "active": "Active",
+    "error": "Verification failed",
+    "removed": "Removed",
+    "assignLink": "Move link to this domain",
+    "assignHint": "The previous address stops working. The key and analytics stay with the link.",
+    "createLink": "Create a link",
+    "destination": "Destination URL",
+    "key": "Key (optional)"
   }
 }

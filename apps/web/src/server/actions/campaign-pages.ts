@@ -1,6 +1,7 @@
 "use server";
 
 import {
+  can,
   createCampaign,
   deleteCampaign,
   getCampaign,
@@ -97,8 +98,12 @@ export async function saveVariantPageAction(
   _state: FormState,
   form: FormData,
 ): Promise<FormState> {
-  const [linkId] = objectIds([text(form, "link")]);
-  if (!linkId) return failed("link_required");
+  const requested = form.getAll("link");
+  if (!requested.length) return failed("link_required");
+  if (requested.length > 500) return failed("invalid_input");
+  const linkIds = objectIds(requested);
+  if (linkIds.length !== requested.length) return failed("invalid_input");
+  const uniqueIds = [...new Set(linkIds)];
   const values: BuilderValues = {
     source: text(form, "source").slice(0, 100),
     medium: text(form, "medium").slice(0, 100),
@@ -106,19 +111,46 @@ export async function saveVariantPageAction(
     content: text(form, "content").slice(0, 100),
   };
   const ctx = await serviceContext(workspace);
-  const [campaign, link] = await Promise.all([
-    getCampaign(ctx, id),
-    getLink(ctx, linkId),
-  ]);
-  if (!campaign || !link) return failed("not_found");
-  if (hasVariant(link, campaign.title, values)) return failed("duplicate");
-  if (link.utm.length >= maxVariants)
-    return failed("full", { max: maxVariants });
-  const result = await setLinkUtm(
-    ctx,
-    link.id,
-    withVariant(link, campaign.title, values),
+  if (!can(ctx.actor, "resource.update")) return failed("forbidden");
+  const campaign = await getCampaign(ctx, id);
+  if (!campaign) return failed("not_found");
+  const links = [];
+  // Validate every owned target before making the first change.
+  for (let at = 0; at < uniqueIds.length; at += 20) {
+    const batch = await Promise.all(
+      uniqueIds.slice(at, at + 20).map((linkId) => getLink(ctx, linkId)),
+    );
+    if (batch.some((link) => !link)) return failed("not_found");
+    for (const link of batch) if (link) links.push(link);
+  }
+  const additions = links.filter(
+    (link) => !hasVariant(link, campaign.title, values),
   );
-  if (!result.ok) return failed(result.error, result.detail);
-  redirect(`/${workspace}/campaigns/${id}?variant=${link.id}`);
+  if (uniqueIds.length === 1 && !additions.length) return failed("duplicate");
+  if (additions.some((link) => link.utm.length >= maxVariants))
+    return failed("full", { max: maxVariants });
+  let saved = 0;
+  for (const link of additions) {
+    try {
+      const variants = withVariant(link, campaign.title, values);
+      const result = await setLinkUtm(
+        ctx,
+        link.id,
+        variants,
+        variants.slice(0, -1),
+      );
+      if (!result.ok)
+        return saved
+          ? failed("partial", { count: saved })
+          : failed(result.error, result.detail);
+      saved++;
+    } catch {
+      return saved ? failed("partial", { count: saved }) : failed("generic");
+    }
+  }
+  if (uniqueIds.length === 1)
+    redirect(`/${workspace}/campaigns/${id}?variant=${uniqueIds[0]}`);
+  redirect(
+    `/${workspace}/campaigns/${id}?variants=${saved}&skipped=${links.length - additions.length}`,
+  );
 }
