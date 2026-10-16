@@ -459,7 +459,10 @@ const quiet = () => {};
         (await db.collection("biopages").listIndexes().toArray()).find(
           (index) => index.name === "v2_bio_handle",
         )?.partialFilterExpression,
-      ).toEqual(desiredIndexes.biopages?.[0]?.partialFilterExpression);
+      ).toEqual(
+        desiredIndexes.biopages?.find((index) => index.name === "v2_bio_handle")
+          ?.partialFilterExpression,
+      );
       const images = await db
         .listCollections({ name: "urlv3" }, { nameOnly: false })
         .next();

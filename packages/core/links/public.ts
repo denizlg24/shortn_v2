@@ -1,8 +1,13 @@
-import { physicalNames } from "@shortn/db";
+import { collection, physicalNames } from "@shortn/db";
 import { invalidateLinks, type InvalidationStore } from "@shortn/redis";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
-import type { Db } from "mongodb";
+import type { Db, Document } from "mongodb";
+import {
+  withMutation,
+  recordWebhookEvent,
+  linkEventData,
+} from "../webhooks/events";
 
 // Public pages a visitor reaches from the redirect: the password prompt, the
 // safety interstitial and the report form (14: these move to web in P4).
@@ -24,15 +29,17 @@ export function publicLinkQuery(
   domain = "shortn.at",
   rootDomain = "shortn.at",
 ) {
-  return domain === rootDomain
-    ? {
-        $or: [
-          { urlCode: key, domain: { $exists: false } },
-          { urlCode: key, domain: rootDomain },
-          { key, domain: rootDomain },
-        ],
-      }
-    : { domain, key, domainInactive: { $ne: true } };
+  const lookup =
+    domain === rootDomain
+      ? {
+          $or: [
+            { urlCode: key, domain: { $exists: false } },
+            { urlCode: key, domain: rootDomain },
+            { key, domain: rootDomain },
+          ],
+        }
+      : { domain, key, domainInactive: { $ne: true } };
+  return { $and: [lookup, { deletedAt: { $exists: false } }] };
 }
 
 export async function publicLink(
@@ -187,39 +194,89 @@ export async function reportLink(
     return { ok: true };
   if ((await bump(deps.counters, `report:${input.ipHash}:${day}`, 86_400)) > 5)
     return { ok: false, error: "rate_limited" };
-  await reports.insertOne({
-    linkId: doc._id,
-    domain: deps.linkDomain,
-    urlCode: input.key,
-    reason: input.reason,
-    ...(input.details?.trim()
-      ? { details: input.details.trim().slice(0, 1000) }
-      : {}),
-    reporterIpHash: input.ipHash,
-    status: "open",
-    createdAt: new Date(),
-  });
-  const updated = await links.findOneAndUpdate(
-    { _id: doc._id },
-    { $inc: { reportCount: 1, "safety.reportCount": 1 } },
-    { returnDocument: "after" },
-  );
-  if (updated && updated.reportCount >= 3 && !updated.disabled)
-    await links.updateOne(
-      { _id: doc._id },
-      {
-        $set: {
-          disabled: true,
-          flagged: true,
-          safetyStatus: "blocked",
-          disabledReason: "auto:report-threshold",
-          "safety.disabled": true,
-          "safety.flagged": true,
-          "safety.status": "blocked",
-          "safety.disabledReason": "auto:report-threshold",
-        },
-      },
+  const updated = await withMutation(deps.db, async (session) => {
+    const current = await collection(deps.db, "links").findOne(
+      { _id: doc._id, deletedAt: { $exists: false } },
+      { session },
     );
-  await invalidateLinks(deps.cache, deps.linkDomain, [input.key]);
+    if (!current) return null;
+    if (
+      await reports.findOne(
+        { linkId: current._id, reporterIpHash: input.ipHash },
+        { session },
+      )
+    )
+      return current;
+    const now = new Date();
+    await reports.insertOne(
+      {
+        linkId: current._id,
+        ...(current.workspaceId ? { workspaceId: current.workspaceId } : {}),
+        domain: deps.linkDomain,
+        urlCode: input.key,
+        reason: input.reason,
+        ...(input.details?.trim()
+          ? { details: input.details.trim().slice(0, 1000) }
+          : {}),
+        reporterIpHash: input.ipHash,
+        status: "open",
+        createdAt: now,
+      },
+      { session },
+    );
+    const count = Number(current.reportCount ?? 0) + 1;
+    const blocking = count >= 3 && !current.disabled;
+    const mutation: Document = {
+      $inc: { reportCount: 1, "safety.reportCount": 1 },
+      ...(blocking
+        ? {
+            $set: {
+              disabled: true,
+              flagged: true,
+              safetyStatus: "blocked",
+              disabledReason: "auto:report-threshold",
+              "safety.disabled": true,
+              "safety.flagged": true,
+              "safety.status": "blocked",
+              "safety.disabledReason": "auto:report-threshold",
+              updatedAt: now,
+            },
+          }
+        : {}),
+    };
+    const saved = await collection(deps.db, "links").findOneAndUpdate(
+      { _id: current._id },
+      mutation,
+      { session, returnDocument: "after" },
+    );
+    if (saved && blocking) {
+      const workspaceId =
+        current.workspaceId ??
+        (current.sub
+          ? (
+              await collection(deps.db, "workspaces").findOne(
+                { personal: true, legacySub: current.sub },
+                { session, projection: { _id: 1 } },
+              )
+            )?._id
+          : undefined);
+      if (workspaceId)
+        await recordWebhookEvent(
+          deps.db,
+          workspaceId,
+          "link.updated",
+          linkEventData(saved, deps.linkDomain),
+          session,
+          now,
+        );
+    }
+    return saved;
+  });
+  if (!updated) return { ok: false, error: "not_found" };
+  await invalidateLinks(deps.cache, updated.domain ?? deps.linkDomain, [
+    input.key,
+    updated.key ?? updated.urlCode ?? "",
+    ...(updated.previousKeys ?? []),
+  ]);
   return { ok: true };
 }

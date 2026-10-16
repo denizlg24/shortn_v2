@@ -21,6 +21,17 @@ try {
     `${routeDir}/page.tsx`,
     'export { default } from "../../../e2e/fixtures/controls";\n',
   );
+  // Next can discover the new directory before its page is written. Wait for
+  // that temporary route before collecting browser errors from the controls.
+  const fixtureUrl = new URL(route, base.origin);
+  const fixtureDeadline = Date.now() + 30_000;
+  while (!(await fetch(fixtureUrl)).ok) {
+    assert(
+      Date.now() < fixtureDeadline,
+      "Controls fixture did not become ready",
+    );
+    await Bun.sleep(250);
+  }
   browser = await chromium.launch({
     headless: true,
     ...(process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE

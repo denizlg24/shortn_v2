@@ -26,6 +26,10 @@ import {
 } from "@polar-sh/better-auth";
 import { polarClient } from "./polar";
 import { impersonationHandoff } from "./impersonation-handoff";
+import { ssoSessionActive } from "@shortn/db";
+import { legacyPasswordGate } from "@shortn/auth/legacy-password-gate";
+import { ObjectId } from "mongodb";
+import { APIError } from "better-auth/api";
 
 const generateRandomString = () => {
   const array = new Uint8Array(10);
@@ -79,8 +83,11 @@ const db = forwardTo(() => liveMongo().db);
 const options = {
   onAPIError: {
     throw: false,
-    onError(error, ctx) {
-      console.error("Auth Error: ", error, " with context: ", ctx);
+    onError(error) {
+      console.error(
+        "Auth error",
+        error instanceof APIError ? error.status : "AUTH_REQUEST_FAILED",
+      );
     },
     errorURL: "/auth/error",
   },
@@ -351,7 +358,7 @@ const options = {
         });
       }
     },
-    onEmailVerification: async (user) => {
+    afterEmailVerification: async (user) => {
       await sendEmail({
         from: "no-reply@shortn.at",
         to: user.email,
@@ -372,9 +379,7 @@ const options = {
         return {
           name: profile.name || profile.login,
           email: profile.email,
-          username:
-            profile.login ||
-            profile.email.substring(0, profile.email.indexOf("@")),
+          username: profile.login || profile.email?.split("@")[0],
           image: profile.avatar_url,
           emailVerified: true,
           sub: `github|${profile.id}`,
@@ -390,8 +395,8 @@ const options = {
           name:
             [profile.given_name, profile.family_name].join(" ").trim() ||
             profile.name ||
-            profile.email.substring(0, profile.email.indexOf("@")),
-          username: profile.email.substring(0, profile.email.indexOf("@")),
+            profile.email?.split("@")[0],
+          username: profile.email?.split("@")[0],
           email: profile.email,
           image: profile.picture,
           emailVerified: profile.email_verified,
@@ -401,6 +406,24 @@ const options = {
     },
   },
   plugins: [
+    legacyPasswordGate(
+      async (userId) =>
+        Boolean(
+          (await db.collection("user").findOne({ _id: new ObjectId(userId) }))
+            ?.twoFactorEnabled,
+        ),
+      async (id, userId) =>
+        /^[a-f\d]{24}$/i.test(id) &&
+        Boolean(
+          await db
+            .collection("passkey")
+            .findOne({
+              _id: new ObjectId(id),
+              userId: { $in: [userId, new ObjectId(userId)] },
+            }),
+        ),
+      (session, userId) => ssoSessionActive(db, session, userId),
+    ),
     username({
       maxUsernameLength: 100,
       minUsernameLength: 8,

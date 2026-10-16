@@ -1,3 +1,4 @@
+import { LinkHealthSection } from "@/components/link-pages/health";
 import { can } from "@shortn/core";
 import { minimumPlanFor } from "@shortn/billing";
 import { physicalNames } from "@shortn/db";
@@ -28,7 +29,7 @@ export default async function LinkOverviewPage({
   searchParams,
 }: PageProps<"/[workspace]/links/[id]">) {
   const { workspace, id } = await params;
-  const { created, saved } = await searchParams;
+  const { created, saved, copied } = await searchParams;
   const t = await getTranslations("linkPages");
   const safetyText = await getTranslations("links.safety");
   const format = await getFormatter();
@@ -102,7 +103,13 @@ export default async function LinkOverviewPage({
         { label: `${link.domain}/${link.key}` },
       ]}
       title={`${link.domain}/${link.key}`}
-      description={link.title || undefined}
+      description={
+        link.title ? (
+          <span className="line-clamp-2" title={link.title}>
+            {link.title}
+          </span>
+        ) : undefined
+      }
       actions={
         <>
           <CopyButton
@@ -124,11 +131,26 @@ export default async function LinkOverviewPage({
       tabs={linkTabs(workspace, id, (key) => t(`tabs.${key}`))}
       tabsLabel={t("tabs.label")}
     >
-      {created ? <Notice tone="success">{t("overview.created")}</Notice> : null}
+      {created ? (
+        <Notice tone="success">
+          {copied === "1"
+            ? (await getTranslations("linkCreation"))("copied")
+            : copied === "0"
+              ? (await getTranslations("linkCreation"))("copyDenied")
+              : t("overview.created")}
+        </Notice>
+      ) : null}
       {saved ? <Notice tone="success">{t("overview.saved")}</Notice> : null}
       {link.safety.disabled || safetyStatus === "blocked" ? (
         <Notice tone="warning">{t("overview.disabledNotice")}</Notice>
       ) : null}
+
+      <LinkHealthSection
+        health={link.health}
+        editHref={
+          can(ctx.actor, "resource.update") ? `${base}/edit` : undefined
+        }
+      />
 
       <Section
         title={t("overview.last30")}

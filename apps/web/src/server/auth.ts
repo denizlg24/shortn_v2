@@ -1,5 +1,6 @@
 import "server-only";
 import { createAuth, type Auth } from "@shortn/auth";
+import { consumeAuthRateLimit } from "@shortn/auth/rate-limit";
 import { nextCookies } from "better-auth/next-js";
 import { headers } from "next/headers";
 import { cache } from "react";
@@ -23,12 +24,43 @@ export function auth(): Auth {
   instance = createAuth({
     baseURL: e.BETTER_AUTH_URL,
     secret: e.BETTER_AUTH_SECRET,
+    trustedOrigins: [
+      new URL(e.BETTER_AUTH_URL).origin,
+      ...e.SSO_TRUSTED_ORIGINS.split(",")
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => {
+          const origin = new URL(value);
+          if (
+            origin.origin !== value ||
+            origin.username ||
+            origin.password ||
+            (origin.protocol !== "https:" &&
+              !(
+                e.NODE_ENV !== "production" &&
+                origin.protocol === "http:" &&
+                ["localhost", "127.0.0.1"].includes(origin.hostname)
+              ))
+          )
+            throw Error(
+              "SSO_TRUSTED_ORIGINS must contain exact secure origins",
+            );
+          return origin.origin;
+        }),
+    ],
     production: e.NODE_ENV === "production",
     mongo: mongoConfig(),
+    ...(e.MCP_OAUTH_ENABLED === "1" && e.MCP_PUBLIC_ORIGIN
+      ? {
+          mcp: {
+            resource: new URL("/mcp", e.MCP_PUBLIC_ORIGIN).href,
+            rolloutPercent: e.PLATFORM_MCP_ROLLOUT,
+          },
+        }
+      : {}),
     redis: {
-      get: async (key) => (await redis()).cache.get(key),
-      set: async (key, value, ttl) =>
-        (await redis()).cache.set(key, value, "EX", ttl),
+      consume: async (key, rule) =>
+        consumeAuthRateLimit((await redis()).cache, key, rule),
     },
     github:
       e.AUTH_GITHUB_ID && e.AUTH_GITHUB_SECRET

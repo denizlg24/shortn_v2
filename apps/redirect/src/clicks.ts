@@ -1,10 +1,15 @@
 import { clickMessageSchema, encodeClickMessage } from "@shortn/core";
 import type { ClickMessage } from "@shortn/core";
-import { keys } from "@shortn/redis";
+import { keys, countedClickScript, hotClickCountKey } from "@shortn/redis";
 import { appendFile, rename, unlink } from "node:fs/promises";
 import { metrics } from "./metrics";
 
 export interface StreamWriter {
+  eval?(
+    script: string,
+    count: number,
+    ...args: (string | number)[]
+  ): Promise<unknown>;
   xadd(key: string, id: string, ...fields: string[]): Promise<string | null>;
 }
 
@@ -23,7 +28,18 @@ export function createClickQueue(
   metrics.gauge("click_spool_size", () => spooled.length);
 
   const write = async (message: ClickMessage) => {
-    await stream.xadd(keys.clicksStream, "*", ...encodeClickMessage(message));
+    if (message.counterBase !== undefined && !message.bot) {
+      if (!stream.eval) throw new Error("Counted clicks require Redis eval");
+      await stream.eval(
+        countedClickScript,
+        2,
+        keys.clicksStream,
+        hotClickCountKey(message.linkId),
+        message.counterBase,
+        ...encodeClickMessage(message),
+      );
+    } else
+      await stream.xadd(keys.clicksStream, "*", ...encodeClickMessage(message));
   };
 
   const spool = async (message: ClickMessage) => {

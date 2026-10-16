@@ -120,7 +120,8 @@
     "label": "Pré-visualização",
     "alt": "Código QR para {link}",
     "size": "{width} × {height} px",
-    "altNew": "Pré-visualização do novo código QR"
+    "altNew": "Pré-visualização do novo código QR",
+    "unavailable": "Pré-visualização indisponível"
   },
   "colors": {
     "title": "Cores",
@@ -205,6 +206,24 @@
     "generic": "Algo correu mal do nosso lado. Tente novamente.",
     "urlRequired": "Introduza o URL que o código deve abrir.",
     "logoUrl": "Introduza o URL completo do logótipo, a começar por https://.",
-    "color": "Cada cor precisa de um valor com até 32 caracteres, como #0f172b."
+    "color": "Cada cor precisa de um valor com até 32 caracteres, como #0f172b.",
+    "caption": "Use até 64 caracteres imprimíveis na legenda. Alguns símbolos não são suportados; remova-os ou escolha outra legenda."
+  },
+  "treatment": {
+    "title": "Forma e legenda",
+    "description": "As molduras e legendas ficam fora do espaço livre em redor do código. A forma circular mantém a matriz QR quadrada dentro de um círculo.",
+    "shape": "Forma",
+    "shapes": {
+      "square": "Quadrado",
+      "circle": "Círculo"
+    },
+    "frame": "Moldura",
+    "frames": {
+      "none": "Nenhuma",
+      "outline": "Contorno",
+      "solid": "Sólida"
+    },
+    "caption": "Legenda",
+    "captionHint": "Opcional, até 64 caracteres. A legenda aparece na pré-visualização e nos ficheiros descarregados. A cor da legenda adapta-se para facilitar a leitura."
   }
 }

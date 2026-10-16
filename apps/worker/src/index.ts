@@ -1,9 +1,25 @@
+import { createWorkspaceExportWorker } from "./workspace-exports";
+import { createAnalyticsExportWorker } from "./analytics-exports";
+import { createLinkExportWorker } from "./link-exports";
+import { createImportWorker } from "./imports";
+import { createHealthWorker } from "./link-health";
+import { createLinkMetadataWorker } from "./link-metadata";
+import { createQrExportWorker } from "./qr-exports";
+import { createObjectStore } from "@shortn/storage";
 import { closeMongoClient, getMongoClient } from "@shortn/db";
 import { productionMigrations } from "@shortn/db/migrations";
 import { parseEnv, workerEnv } from "@shortn/env";
 import { createPolar } from "@shortn/billing";
-import { cloudflareDomains, pollDomains } from "@shortn/core";
+import {
+  cloudflareDomains,
+  pollDomains,
+  purgeExpiredLinks,
+} from "@shortn/core";
+import { createRuleScheduleWorker } from "./rule-schedules";
+import { createSafetyWorker } from "./safety-scans";
+import { createWebhookWorker } from "./outgoing-webhooks";
 import { deliverBioInvalidations } from "./bio-delivery";
+import { sendWebhookNotifications } from "./webhook-notifications";
 import { sendDomainNotifications } from "./domain-notifications";
 import { createRedisClients } from "@shortn/redis";
 import { hostname } from "node:os";
@@ -35,6 +51,10 @@ const streamConnection = durable.duplicate();
 await streamConnection.connect();
 
 const ingest = createIngest({
+  webhooks: {
+    enabled: env.PLATFORM_WEBHOOKS_ENABLED === "1",
+    rolloutPercent: env.PLATFORM_WEBHOOKS_ROLLOUT,
+  },
   stream: streamConnection,
   db,
   ipSecret: env.IP_HASH_SECRET,
@@ -73,7 +93,164 @@ const billing = polar && {
     : {}),
 };
 
+const outgoingWebhooks =
+  env.PLATFORM_WEBHOOKS_ENABLED === "1"
+    ? createWebhookWorker({
+        db,
+        durable,
+        config: {
+          enabled: true,
+          secretKey: env.WEBHOOK_SECRET_KEY!,
+          rolloutPercent: env.PLATFORM_WEBHOOKS_ROLLOUT,
+        },
+        log,
+      })
+    : undefined;
+
+const safetyScans = createSafetyWorker({
+  db,
+  cache,
+  durable,
+  linkDomain: env.LINK_DOMAIN,
+  provider: { webRiskApiKey: env.WEB_RISK_API_KEY },
+  log,
+});
+
+const ruleSchedules = createRuleScheduleWorker({
+  db,
+  cache,
+  durable,
+  linkDomain: env.LINK_DOMAIN,
+  log,
+});
+
+const linkHealth = createHealthWorker({ db, durable, log });
+const linkMetadata = await createLinkMetadataWorker(db);
+const qrExports =
+  env.QR_EXPORTS_ENABLED === "1"
+    ? createQrExportWorker({
+        db,
+        durable,
+        log,
+        linkDomain: env.LINK_DOMAIN,
+        logoOrigins: [env.APP_URL!, env.PUBLIC_ORIGIN]
+          .filter((value): value is string => Boolean(value))
+          .map((value) => new URL(value).origin),
+        store: createObjectStore({
+          S3_ENDPOINT: env.S3_ENDPOINT!,
+          S3_REGION: env.S3_REGION!,
+          S3_BUCKET: env.S3_BUCKET!,
+          S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+          S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+        }),
+      })
+    : undefined;
+
+const imports =
+  env.IMPORTS_ENABLED === "1"
+    ? createImportWorker({
+        db,
+        cache,
+        durable,
+        log,
+        linkDomain: env.LINK_DOMAIN,
+        store: createObjectStore({
+          S3_ENDPOINT: env.S3_ENDPOINT!,
+          S3_REGION: env.S3_REGION!,
+          S3_BUCKET: env.S3_BUCKET!,
+          S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+          S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+        }),
+      })
+    : undefined;
+
+const linkExports =
+  env.EXPORTS_ENABLED === "1"
+    ? createLinkExportWorker({
+        db,
+        cache,
+        durable,
+        log,
+        linkDomain: env.LINK_DOMAIN,
+        store: createObjectStore({
+          S3_ENDPOINT: env.S3_ENDPOINT!,
+          S3_REGION: env.S3_REGION!,
+          S3_BUCKET: env.S3_BUCKET!,
+          S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+          S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+        }),
+      })
+    : undefined;
+
+const analyticsExports =
+  env.EXPORTS_ENABLED === "1"
+    ? createAnalyticsExportWorker({
+        db,
+        cache,
+        durable,
+        log,
+        linkDomain: env.LINK_DOMAIN,
+        store: createObjectStore({
+          S3_ENDPOINT: env.S3_ENDPOINT!,
+          S3_REGION: env.S3_REGION!,
+          S3_BUCKET: env.S3_BUCKET!,
+          S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+          S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+        }),
+      })
+    : undefined;
+
+const workspaceExports =
+  env.EXPORTS_ENABLED === "1"
+    ? createWorkspaceExportWorker({
+        db,
+        cache,
+        durable,
+        log,
+        linkDomain: env.LINK_DOMAIN,
+        appUrl: env.APP_URL!,
+        ...(mailer ? { mailer } : {}),
+        store: createObjectStore({
+          S3_ENDPOINT: env.S3_ENDPOINT!,
+          S3_REGION: env.S3_REGION!,
+          S3_BUCKET: env.S3_BUCKET!,
+          S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+          S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+        }),
+      })
+    : undefined;
+
 const timers = [
+  every(1000, "link-metadata", () => linkMetadata.pump(), log),
+  ...(workspaceExports
+    ? [every(1000, "workspace-exports", () => workspaceExports.pump(), log)]
+    : []),
+  ...(analyticsExports
+    ? [every(1000, "analytics-exports", () => analyticsExports.pump(), log)]
+    : []),
+  ...(linkExports
+    ? [every(1000, "link-exports", () => linkExports.pump(), log)]
+    : []),
+  ...(imports ? [every(1000, "imports", () => imports.pump(), log)] : []),
+  ...(qrExports
+    ? [every(1000, "qr-exports", () => qrExports.pump(), log)]
+    : []),
+  every(5000, "link-health", () => linkHealth.pump(), log),
+  every(1000, "rule-schedules", () => ruleSchedules.pump(), log),
+  every(5000, "safety-scans", () => safetyScans.pump(), log),
+  ...(outgoingWebhooks && mailer && env.APP_URL
+    ? [
+        every(
+          60000,
+          "webhook-notifications",
+          () => sendWebhookNotifications(db, mailer, env.APP_URL!),
+          log,
+        ),
+      ]
+    : []),
+  ...(outgoingWebhooks
+    ? [every(1000, "outgoing-webhooks", () => outgoingWebhooks.pump(), log)]
+    : []),
   ...(env.DOMAIN_WRITES === "1" && mailer && env.APP_URL
     ? [
         every(
@@ -140,6 +317,12 @@ const timers = [
         ),
       ]
     : []),
+  every(
+    60_000,
+    "link-trash",
+    () => purgeExpiredLinks({ db, cache, linkDomain: env.LINK_DOMAIN }),
+    log,
+  ),
   every(60_000, "trim", () => trimStream(durable), log),
   every(5 * 60_000, "rollups", () => refreshRecentRollups(db), log),
   every(5 * 60_000, "event-workspaces", () => fillEventWorkspaces(db), log),
@@ -189,6 +372,16 @@ async function shutdown() {
   for (const timer of timers) clearInterval(timer);
   ingest.stop();
   await invalidator.stop();
+  await outgoingWebhooks?.close();
+  await safetyScans.close();
+  await linkHealth.close();
+  await linkMetadata.close();
+  await qrExports?.close();
+  await imports?.close();
+  await linkExports?.close();
+  await analyticsExports?.close();
+  await workspaceExports?.close();
+  await ruleSchedules.close();
   // The current batch finishes and is acknowledged before exit.
   await Promise.race([Promise.allSettled(running), Bun.sleep(10_000)]);
   await server.stop();

@@ -126,6 +126,90 @@ function summary(page: BioPage): BioSummary {
   };
 }
 
+const bioPageCursorInput = z.object({
+  cursor: z
+    .string()
+    .regex(/^[a-f\d]{24}$/i)
+    .optional(),
+  limit: z.number().int().min(1).max(200).default(50),
+  search: z.string().max(200).optional(),
+});
+export async function cursorBioPages(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  input: z.input<typeof bioPageCursorInput> = {},
+) {
+  const parsed = bioPageCursorInput.safeParse(input);
+  if (!parsed.success) return fail("invalid_input");
+  const { cursor, limit, search } = parsed.data;
+  const and: Document[] = [ownedBy<BioPage>(ctx.workspace, "userId")];
+  if (cursor) and.push({ _id: { $lt: new ObjectId(cursor) } });
+  if (search) {
+    const literal = {
+      $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      $options: "i",
+    };
+    and.push({
+      $or: [{ title: literal }, { slug: literal }, { handle: literal }],
+    });
+  }
+  // Keep drafts, publication snapshots and complete link arrays out of list reads.
+  const rows = await collection(ctx.db, "bio_pages")
+    .find<BioPage & { linkCount: number }>(
+      { $and: and },
+      {
+        projection: {
+          slug: 1,
+          handle: 1,
+          title: 1,
+          avatarUrl: 1,
+          updatedAt: 1,
+          createdAt: 1,
+          createdBy: 1,
+          linkCount: {
+            $cond: [
+              { $isArray: "$draft.blocks" },
+              {
+                $reduce: {
+                  input: "$draft.blocks",
+                  initialValue: 0,
+                  in: {
+                    $add: [
+                      "$$value",
+                      {
+                        $switch: {
+                          branches: [
+                            {
+                              case: { $eq: ["$$this.type", "links"] },
+                              then: {
+                                $size: { $ifNull: ["$$this.items", []] },
+                              },
+                            },
+                            { case: { $eq: ["$$this.type", "link"] }, then: 1 },
+                          ],
+                          default: 0,
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+              { $size: { $ifNull: ["$links", []] } },
+            ],
+          },
+        },
+      },
+    )
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .toArray();
+  return ok({
+    items: rows
+      .slice(0, limit)
+      .map((page) => ({ ...summary(page), linkCount: page.linkCount })),
+    nextCursor: rows.length > limit ? rows[limit - 1]!._id.toHexString() : null,
+  });
+}
+
 export async function listBioPages(
   ctx: Pick<ServiceContext, "db" | "workspace">,
 ) {
@@ -156,7 +240,12 @@ export async function getBioPage(
   const linkIds = (page.links ?? []).map((item) => item.link);
   const links = await collection(ctx.db, "links")
     .find(
-      { _id: { $in: linkIds } },
+      {
+        $and: [
+          { _id: { $in: linkIds }, deletedAt: { $exists: false } },
+          ownedBy<Link>(ctx.workspace),
+        ],
+      },
       { projection: { urlCode: 1, key: 1, longUrl: 1, title: 1 } },
     )
     .toArray();
@@ -223,6 +312,17 @@ export async function bioSlugStatus(
   return checked.error === "slug_taken" ? "taken" : "invalid";
 }
 
+export const createBioPageInput = z
+  .object({
+    slug: z.string().min(1).max(63),
+    title: z.string().trim().max(120).optional(),
+    linkId: z
+      .string()
+      .regex(/^[a-f\d]{24}$/i)
+      .optional(),
+  })
+  .strict();
+
 export async function createBioPage(
   ctx: ServiceContext,
   input: {
@@ -232,6 +332,9 @@ export async function createBioPage(
   },
 ): Promise<Result<BioSummary, BioError>> {
   if (!can(ctx.actor, "resource.create")) return fail("forbidden");
+  const parsed = createBioPageInput.safeParse(input);
+  if (!parsed.success) return fail("invalid_input");
+  input = parsed.data;
   if (!validBioHandle(input.slug.trim().toLowerCase()))
     return fail("invalid_slug");
   const checked = await checkSlug(ctx, input.slug);
@@ -245,6 +348,7 @@ export async function createBioPage(
     if (used >= limit) return fail("limit_reached", { limit, used });
   }
   const firstLink = input.linkId ? await ownedLink(ctx, input.linkId) : null;
+  if (input.linkId && !firstLink) return fail("link_not_found");
   const now = nowOf(ctx);
   const sub = legacySubOf(ctx);
   const doc: Document = {
@@ -285,7 +389,10 @@ async function ownedLink(ctx: ServiceContext, id: string) {
   const _id = parseObjectId(id);
   if (!_id) return null;
   return collection(ctx.db, "links").findOne({
-    $and: [{ _id }, ownedBy<Link>(ctx.workspace)],
+    $and: [
+      { _id, deletedAt: { $exists: false } },
+      ownedBy<Link>(ctx.workspace),
+    ],
   });
 }
 
@@ -335,7 +442,12 @@ export async function setBioLinks(
   if (ids.length !== parsed.data.length) return fail("link_not_found");
   const owned = await collection(ctx.db, "links")
     .find(
-      { $and: [{ _id: { $in: ids } }, ownedBy<Link>(ctx.workspace)] },
+      {
+        $and: [
+          { _id: { $in: ids }, deletedAt: { $exists: false } },
+          ownedBy<Link>(ctx.workspace),
+        ],
+      },
       { projection: { _id: 1 } },
     )
     .toArray();

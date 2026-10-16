@@ -128,12 +128,12 @@
   "delete": {
     "title": "Eliminar enlace",
     "titleMany": "Eliminar {count, plural, one {# enlace} other {# enlaces}}",
-    "description": "No se puede deshacer.",
+    "description": "Las URL cortas dejan de funcionar al instante. Puedes restaurar estos enlaces desde la Papelera durante 30 días.",
     "consequences": [
       "El enlace corto deja de redirigir al instante; las copias impresas dejan de funcionar.",
-      "Su historial de clics se archiva y deja de mostrarse.",
-      "Se quita de campañas y páginas bio; las campañas que queden vacías se eliminan.",
-      "Un código QR asociado se mantiene, pero deja de apuntar a este enlace."
+      "Sus claves quedan reservadas durante 30 días.",
+      "Se mantienen las referencias en campañas y páginas bio para restaurarlas; el enlace se oculta en las páginas bio públicas.",
+      "Después de 30 días, el enlace se elimina permanentemente. Se conservan las estadísticas agregadas."
     ],
     "confirm": "Eliminar",
     "confirmMany": "Eliminar {count, plural, one {# enlace} other {# enlaces}}",
@@ -188,5 +188,46 @@
     "feature_required": "Tu plan no incluye esto.",
     "limit_reached": "Has usado los {limit} enlaces de este periodo.",
     "utm_limit": "Un enlace puede tener hasta 50 variantes UTM guardadas. Elimina una variante antes de añadir otra."
+  },
+  "trash": {
+    "title": "Papelera",
+    "sections": "Vistas de enlaces",
+    "description": "Los enlaces eliminados dejan de redirigir de inmediato. Restáuralos en un plazo de 30 días para conservar sus claves, ajustes y referencias en campañas y páginas bio. La selección se mantiene entre páginas y filtros en esta pestaña.",
+    "empty": "La papelera está vacía.",
+    "restore": "Restaurar seleccionados",
+    "restoring": "Restaurando…",
+    "selection": "{count} seleccionados · hasta {limit}",
+    "limit": "Selecciona hasta {limit} enlaces por operación.",
+    "failed": "No se pudieron restaurar los enlaces. Comprueba tus permisos e inténtalo de nuevo.",
+    "partial": "{count, plural, one {No se pudo restaurar # enlace seleccionado.} other {No se pudieron restaurar # enlaces seleccionados.}} Es posible que hayan caducado o que tus permisos hayan cambiado. Borra la selección para continuar.",
+    "restored": "{count, plural, one {# enlace restaurado.} other {# enlaces restaurados.}}",
+    "restoreUntil": "Restaurar hasta",
+    "until": "Restaurar hasta el {date}",
+    "expired": "Caducado",
+    "group": "Agrupar esta página",
+    "ungrouped": "Sin agrupación",
+    "byTag": "Por primera etiqueta",
+    "untagged": "Sin etiqueta"
+  },
+  "health": {
+    "title": "Estado del destino",
+    "flag": "Error en el destino",
+    "flagFor": "Ver el estado del destino de {key}",
+    "description": "Las comprobaciones semanales son informativas. La configuración de redirección sigue vigente.",
+    "edit": "Editar enlace",
+    "repeatedErrors": "Algunos destinos devolvieron errores en varias comprobaciones.",
+    "pending": "Pendiente de la primera comprobación.",
+    "partial": "Los primeros resultados están disponibles.",
+    "noErrors": "Las últimas comprobaciones no devolvieron errores.",
+    "resultsAvailable": "Los resultados de los destinos están disponibles.",
+    "results": "{count, plural, one {Ver # resultado de destino} other {Ver # resultados de destinos}}",
+    "checked": "Comprobado el {date}",
+    "since": "Errores observados desde el {date}",
+    "response": "HTTP {code}",
+    "responded": "Respondió",
+    "httpError": "Error HTTP {code}",
+    "blocked": "No se pudo comprobar la dirección",
+    "unreachable": "No se pudo acceder al destino",
+    "streak": "{count, plural, one {# comprobación devolvió un error} other {# comprobaciones consecutivas devolvieron errores}}"
   }
 }

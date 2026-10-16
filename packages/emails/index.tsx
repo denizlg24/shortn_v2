@@ -1,7 +1,12 @@
 import { render } from "@react-email/components";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
+import {
+  WorkspaceExportReady,
+  workspaceExportSubject,
+} from "./templates/workspace-export";
 import { messages, type Locale } from "./messages";
+import { WebhookDisabled, webhookDisabledSubject } from "./templates/webhook";
 import { DomainReady, domainReadySubject } from "./templates/domain";
 import {
   BillingEmail,
@@ -66,6 +71,34 @@ export function createMailer(config: MailerConfig) {
     if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
   }
   return {
+    workspaceExportReady(input: {
+      to: string;
+      locale: Locale;
+      workspace: string;
+      url: string;
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        workspaceExportSubject(input.locale),
+        <WorkspaceExportReady {...input} />,
+        input.idempotencyKey,
+      );
+    },
+    webhookDisabled(input: {
+      to: string;
+      locale: Locale;
+      name: string;
+      url: string;
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        webhookDisabledSubject(input.locale),
+        <WebhookDisabled {...input} />,
+        input.idempotencyKey,
+      );
+    },
     domainReady(input: {
       to: string;
       locale: Locale;

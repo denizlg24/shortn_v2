@@ -1,13 +1,17 @@
 import { polar, portal } from "@polar-sh/better-auth";
 import { Polar } from "@polar-sh/sdk";
 import { ensurePersonalWorkspace } from "@shortn/core";
-import { getMongoHandles, type MongoConfig } from "@shortn/db";
+import { getMongoHandles, physicalNames, type MongoConfig } from "@shortn/db";
 import { betterAuth, type BetterAuthPlugin } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { username } from "better-auth/plugins/username";
-import { z } from "zod";
+import { twoFactor } from "better-auth/plugins/two-factor";
+import { twoFactorPolicy } from "./two-factor";
+import { enterpriseSsoPlugins } from "./enterprise-sso";
+import { passkeyPlugins } from "./passkeys";
 import { requestGeo } from "./geo";
 import { handoff } from "./handoff";
+import { mcpOAuthPlugins } from "./mcp-oauth";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -35,8 +39,13 @@ export interface AuthEmails {
 }
 
 export interface KeyValueStore {
-  get(key: string): Promise<string | null>;
-  set(key: string, value: string, ttlSeconds: number): Promise<unknown>;
+  consume(
+    key: string,
+    rule: { window: number; max: number },
+  ): Promise<{
+    allowed: boolean;
+    retryAfter: number | null;
+  }>;
 }
 
 export interface AuthConfig {
@@ -53,6 +62,7 @@ export interface AuthConfig {
   trustedOrigins?: string[];
   emails: AuthEmails;
   plugins?: BetterAuthPlugin[];
+  mcp?: { resource: string; rolloutPercent?: number };
 }
 
 const randomSub = () => {
@@ -72,12 +82,6 @@ function forwardTo<T extends object>(resolve: () => T): T {
   });
 }
 
-const rateLimitEntry = z.object({
-  key: z.string(),
-  count: z.number(),
-  lastRequest: z.number(),
-});
-
 const nullableString = {
   type: "string",
   defaultValue: null,
@@ -89,6 +93,7 @@ export function createAuth(config: AuthConfig) {
   // Database hooks receive the same endpoint context before/after mutations.
   // Keep request-local state for verification links opened without a session.
   const emailUpdates = new WeakSet<object>();
+  const securityUpdates = new WeakSet<object>();
   const createdSessions = new WeakMap<object, string>();
   const handles = () => getMongoHandles(config.mongo);
   const db = forwardTo(() => handles().db);
@@ -98,6 +103,39 @@ export function createAuth(config: AuthConfig) {
     server: config.polar.server,
   });
   const redis = config.redis;
+  const billingPlugin = polar({
+    client: polarClient,
+    createCustomerOnSignUp: true,
+    use: [portal()],
+  });
+  const initBilling = billingPlugin.init;
+  const customerPlugin = {
+    ...billingPlugin,
+    init() {
+      const initialized = initBilling();
+      const updateCustomer =
+        initialized.options.databaseHooks.user.update.after;
+      return {
+        ...initialized,
+        options: {
+          ...initialized.options,
+          databaseHooks: {
+            ...initialized.options.databaseHooks,
+            user: {
+              ...initialized.options.databaseHooks.user,
+              update: {
+                // Account-security changes do not alter Polar customer identity.
+                after: async (...args: Parameters<typeof updateCustomer>) => {
+                  if (args[1]?.path?.startsWith("/two-factor/")) return;
+                  await updateCustomer(...args);
+                },
+              },
+            },
+          },
+        },
+      };
+    },
+  };
 
   return betterAuth({
     baseURL: config.baseURL,
@@ -107,6 +145,17 @@ export function createAuth(config: AuthConfig) {
     advanced: {
       cookiePrefix: "shortn_auth_",
       useSecureCookies: config.production,
+      // SAML returns by cross-site POST. Configure this before Better Auth
+      // constructs its cookie helpers; a plugin init override is too late.
+      ...(config.production
+        ? {
+            cookies: {
+              relay_state: {
+                attributes: { sameSite: "none" as const, secure: true },
+              },
+            },
+          }
+        : {}),
       ipAddress: { ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"] },
     },
     rateLimit: {
@@ -123,20 +172,20 @@ export function createAuth(config: AuthConfig) {
         "/verify-email": { window: 300, max: 10 },
         "/change-email": { window: 3600, max: 3 },
         "/change-password": { window: 900, max: 5 },
+        ...(config.mcp
+          ? {
+              "/oauth2/register": { window: 3600, max: 10 },
+              "/oauth2/authorize": { window: 60, max: 60 },
+              "/oauth2/continue": { window: 60, max: 60 },
+              "/oauth2/consent": { window: 60, max: 60 },
+              "/oauth2/token": { window: 60, max: 60 },
+              "/mcp/select-workspace": { window: 60, max: 60 },
+            }
+          : {}),
       },
       ...(redis
         ? {
-            customStorage: {
-              async get(key: string) {
-                const value = await redis.get(`auth-rl:${key}`);
-                if (!value) return undefined;
-                const parsed = rateLimitEntry.safeParse(JSON.parse(value));
-                return parsed.success ? parsed.data : undefined;
-              },
-              async set(key, value) {
-                await redis.set(`auth-rl:${key}`, JSON.stringify(value), 3600);
-              },
-            },
+            customStorage: redis,
           }
         : {}),
     },
@@ -206,6 +255,13 @@ export function createAuth(config: AuthConfig) {
           async before(user, ctx) {
             if (
               ctx &&
+              typeof user.twoFactorEnabled === "boolean" &&
+              user.twoFactorEnabled !==
+                Boolean(ctx.context.session?.user.twoFactorEnabled)
+            )
+              securityUpdates.add(ctx);
+            if (
+              ctx &&
               (ctx.path === "/verify-email" || ctx.path === "/change-email") &&
               typeof user.email === "string" &&
               user.email !== ctx.context.session?.user.email
@@ -214,6 +270,22 @@ export function createAuth(config: AuthConfig) {
             return { data: user };
           },
           async after(user, ctx) {
+            if (ctx && securityUpdates.delete(ctx)) {
+              const sessions = await ctx.context.internalAdapter.listSessions(
+                user.id,
+              );
+              await Promise.all(
+                sessions.map((session) =>
+                  ctx.context.internalAdapter.deleteSession(session.token),
+                ),
+              );
+              await handles()
+                .db.collection(physicalNames.handoff_tokens)
+                .deleteMany({ userId: user.id });
+              await handles()
+                .db.collection(physicalNames.verification)
+                .deleteMany({ value: user.id, identifier: /^trust-device-/ });
+            }
             const previous = ctx?.context.session?.user;
             const emailChanged = Boolean(ctx && emailUpdates.delete(ctx));
             const nameChanged = Boolean(
@@ -279,6 +351,20 @@ export function createAuth(config: AuthConfig) {
             if (ctx) createdSessions.set(ctx, session.token);
           },
           async before(session, ctx) {
+            if (ctx?.path === "/passkey/verify-authentication") {
+              const credentialId: unknown = ctx.body?.response?.id;
+              const key =
+                typeof credentialId === "string"
+                  ? await handles()
+                      .db.collection(physicalNames.passkeys)
+                      .findOne(
+                        { credentialID: credentialId },
+                        { projection: { _id: 1 } },
+                      )
+                  : null;
+              if (!key) return false;
+              session = { ...session, passkeyId: String(key._id) };
+            }
             const geo = ctx?.request ? requestGeo(ctx.request.headers) : {};
             return {
               data: {
@@ -296,8 +382,11 @@ export function createAuth(config: AuthConfig) {
       },
     },
     session: {
+      storeSessionInDatabase: true,
       additionalFields: {
         impersonatedBy: nullableString,
+        passkeyId: nullableString,
+        mcpWorkspaceId: nullableString,
         geo_city: nullableString,
         geo_country: nullableString,
         geo_country_region: nullableString,
@@ -349,9 +438,7 @@ export function createAuth(config: AuthConfig) {
               mapProfileToUser: (profile) => ({
                 name: profile.name || profile.login,
                 email: profile.email,
-                username:
-                  profile.login ||
-                  profile.email.slice(0, profile.email.indexOf("@")),
+                username: profile.login || profile.email?.split("@")[0],
                 image: profile.avatar_url,
                 emailVerified: true,
                 sub: `github|${profile.id}`,
@@ -369,8 +456,8 @@ export function createAuth(config: AuthConfig) {
                 name:
                   [profile.given_name, profile.family_name].join(" ").trim() ||
                   profile.name ||
-                  profile.email.slice(0, profile.email.indexOf("@")),
-                username: profile.email.slice(0, profile.email.indexOf("@")),
+                  (profile.email.split("@")[0] ?? profile.email),
+                username: profile.email.split("@")[0] ?? profile.email,
                 email: profile.email,
                 image: profile.picture,
                 emailVerified: profile.email_verified,
@@ -381,6 +468,28 @@ export function createAuth(config: AuthConfig) {
         : {}),
     },
     plugins: [
+      ...enterpriseSsoPlugins({
+        db: () => handles().db,
+        secret: config.secret,
+        production: config.production,
+        socialProviders: [
+          ...(config.github ? ["github"] : []),
+          ...(config.google ? ["google"] : []),
+        ],
+      }),
+      ...passkeyPlugins({
+        db: () => handles().db,
+        baseURL: config.baseURL,
+        socialProviders: [
+          ...(config.github ? ["github"] : []),
+          ...(config.google ? ["google"] : []),
+        ],
+      }),
+      twoFactor({
+        issuer: "Shortn",
+        schema: { twoFactor: { modelName: physicalNames.two_factor } },
+      }),
+      twoFactorPolicy(() => handles().db),
       username({
         maxUsernameLength: 100,
         minUsernameLength: 3,
@@ -389,11 +498,14 @@ export function createAuth(config: AuthConfig) {
           /^[a-zA-Z0-9 _.-]+$/.test(value) && value.trim().length >= 3,
       }),
       handoff({ db: () => handles().db }),
-      polar({
-        client: polarClient,
-        createCustomerOnSignUp: true,
-        use: [portal()],
-      }),
+      customerPlugin,
+      ...(config.mcp
+        ? mcpOAuthPlugins({
+            ...config.mcp,
+            issuer: new URL("/api/auth", config.baseURL).href,
+            db: () => handles().db,
+          })
+        : []),
       ...(config.plugins ?? []),
     ],
   });
@@ -403,3 +515,4 @@ export type Auth = ReturnType<typeof createAuth>;
 export type Session = Auth["$Infer"]["Session"];
 export { requestGeo } from "./geo";
 export { hashHandoffToken, safeNext } from "./handoff";
+export { mcpOAuthRequest } from "./oauth-request";

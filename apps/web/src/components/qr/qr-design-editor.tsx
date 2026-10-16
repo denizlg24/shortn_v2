@@ -2,7 +2,7 @@
 
 import type { PlanId } from "@shortn/billing";
 import type { QrDesign } from "@shortn/core";
-import { cn } from "@shortn/ui";
+import { cn, Input } from "@shortn/ui";
 import { useTranslations } from "next-intl";
 import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
 import { ColorField } from "../editor/color-field";
@@ -168,8 +168,16 @@ export function QrDesignPreview({
           {t("preview.size", { width, height })}
         </figcaption>
       </figure>
-      {caption}
-      <QrScanReport issues={state.issues} />
+      {state.problem === "caption" ? (
+        <p role="alert" className="text-center text-small text-danger">
+          {t("errors.caption")}
+        </p>
+      ) : (
+        <>
+          {caption}
+          <QrScanReport issues={state.issues} />
+        </>
+      )}
     </aside>
   );
 }
@@ -190,11 +198,20 @@ export function QrDesignSections({
   const { draft, edit } = state;
   return (
     <>
+      <TreatmentSection
+        draft={draft}
+        edit={edit}
+        error={state.problem === "caption" ? error?.message : undefined}
+      />
       <ColorsSection
         draft={draft}
         edit={edit}
         gradients={state.gradients}
-        error={error?.field === "design" ? error.message : undefined}
+        error={
+          error?.field === "design" && state.problem !== "caption"
+            ? error.message
+            : undefined
+        }
       />
       <PatternSection draft={draft} edit={edit} />
       <Section
@@ -222,6 +239,58 @@ export function QrDesignSections({
         error={error?.field === "logo" ? error.message : undefined}
       />
     </>
+  );
+}
+
+function TreatmentSection({
+  draft,
+  edit,
+  error,
+}: {
+  draft: QrDraft;
+  edit: QrEdit;
+  error: string | undefined;
+}) {
+  const t = useTranslations("qr.treatment");
+  const id = useId();
+  return (
+    <Section title={t("title")} description={t("description")}>
+      <div className="flex flex-col gap-5">
+        <ChoiceField
+          label={t("shape")}
+          value={draft.shape}
+          onValueChange={(shape) => edit({ shape })}
+          options={(["square", "circle"] as const).map((value) => ({
+            value,
+            label: t(`shapes.${value}`),
+          }))}
+        />
+        <ChoiceField
+          label={t("frame")}
+          value={draft.frame}
+          onValueChange={(frame) => edit({ frame })}
+          options={(["none", "outline", "solid"] as const).map((value) => ({
+            value,
+            label: t(`frames.${value}`),
+          }))}
+        />
+        <FormField
+          id={id}
+          label={t("caption")}
+          hint={t("captionHint")}
+          error={error}
+        >
+          <Input
+            id={id}
+            name="qr-caption"
+            value={draft.caption}
+            maxLength={64}
+            onChange={(event) => edit({ caption: event.target.value })}
+            aria-invalid={Boolean(error) || undefined}
+          />
+        </FormField>
+      </div>
+    </Section>
   );
 }
 

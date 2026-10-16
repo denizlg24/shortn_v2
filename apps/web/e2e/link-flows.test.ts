@@ -46,7 +46,7 @@ if (!enabled)
         workspace,
         actor: { userId, role: "owner" },
         cache: redis,
-        linkDomain: "shortn.at",
+        linkDomain: process.env.E2E_LINK_DOMAIN ?? "shortn.at",
       };
     });
     afterAll(async () => {

@@ -47,19 +47,54 @@ const legacy = {
     .optional(),
 };
 const rules = z.object({
+  activeFrom: z.date().optional(),
+  expiredUrl: z.httpUrl().optional(),
+  forwardQuery: z.boolean().optional(),
+  utm: utm.optional(),
+  permanent: z.boolean().optional(),
   expiresAt: z.date().optional(),
   startsAt: z.date().optional(),
   maxClicks: count.optional(),
+  device: z
+    .array(
+      z.object({
+        os: z.enum(["ios", "android", "windows", "macos"]).optional(),
+        device: z.enum(["mobile", "tablet", "desktop"]).optional(),
+        url: z.httpUrl(),
+      }),
+    )
+    .optional(),
   geo: z
-    .array(z.object({ countries: z.array(text), destination: z.httpUrl() }))
+    .array(
+      z.union([
+        z.object({ country: text, url: z.httpUrl() }),
+        z.object({ countries: z.array(text), destination: z.httpUrl() }),
+      ]),
+    )
     .optional(),
   devices: z
     .array(z.object({ device: text, destination: z.httpUrl() }))
     .optional(),
   rotation: z
     .array(
-      z.object({ destination: z.httpUrl(), weight: z.number().positive() }),
+      z.union([
+        z.object({ url: z.httpUrl(), weight: z.number().positive() }),
+        z.object({ destination: z.httpUrl(), weight: z.number().positive() }),
+      ]),
     )
+    .optional(),
+  deepLink: z
+    .object({
+      ios: text.optional(),
+      android: text.optional(),
+      fallback: z.enum(["web", "store"]),
+      store: z
+        .object({
+          ios: z.httpUrl().optional(),
+          android: z.httpUrl().optional(),
+        })
+        .optional(),
+    })
     .optional(),
   deepLinks: z.record(text, z.httpUrl()).optional(),
 });
@@ -88,6 +123,60 @@ export const linkSchema = z.looseObject({
       interstitial: z.boolean(),
     })
     .optional(),
+  health: z
+    .object({
+      generation: text,
+      signature: text,
+      iteration: count,
+      targets: z.array(text).max(36),
+      remaining: z.array(text).max(36),
+      nextAt: z.date(),
+      attempts: count,
+      token: text.optional(),
+      leaseUntil: z.date().optional(),
+      completedAt: z.date().optional(),
+      lastError: text.optional(),
+      checks: z
+        .array(
+          z.object({
+            url: text,
+            status: z.enum(["ok", "http_error", "unreachable", "blocked"]),
+            httpStatus: count.optional(),
+            checkedAt: z.date(),
+            streak: count,
+            failingSince: z.date().optional(),
+            error: text.optional(),
+          }),
+        )
+        .max(36),
+    })
+    .optional(),
+  safetyScan: z
+    .object({
+      generation: text,
+      dueAt: z.date(),
+      attempts: count,
+      token: text.optional(),
+      leaseUntil: z.date().optional(),
+      completedAt: z.date().optional(),
+      lastError: text.optional(),
+    })
+    .optional(),
+  ruleSchedule: z
+    .object({
+      queued: z.boolean().optional(),
+      generation: text,
+      remaining: z.array(z.date()),
+      attempts: count,
+      nextAt: z.date().optional(),
+      publishedAt: z.date().optional(),
+      token: text.optional(),
+      leaseUntil: z.date().optional(),
+      retryAt: z.date().optional(),
+      completedAt: z.date().optional(),
+      lastError: text.optional(),
+    })
+    .optional(),
   rules: rules.optional(),
   og: z
     .object({
@@ -110,6 +199,7 @@ export const linkSchema = z.looseObject({
   createdBy: text.optional(),
   archivedAt: z.date().optional(),
   deletedAt: z.date().optional(),
+  purgingAt: z.date().optional(),
   isQrCode: z.boolean().optional(),
   qrCodeId: text.optional(),
   passwordProtected: z.boolean().optional(),
@@ -146,6 +236,7 @@ export const qrCodeSchema = z.looseObject({
 });
 export const workspaceRoles = ["owner", "admin", "member", "viewer"] as const;
 export const workspaceSchema = z.object({
+  importQuotaCoordinated: z.boolean().optional(),
   ...base,
   slug: text.min(1),
   name: text.min(1),
@@ -156,6 +247,16 @@ export const workspaceSchema = z.object({
   addOns: z.array(text),
   defaultDomain: text,
   legacySub: text.optional(),
+  platformFeatures: z
+    .object({
+      api: z.boolean().optional(),
+      mcp: z.boolean().optional(),
+      webhooks: z.boolean().optional(),
+      bulk: z.boolean().optional(),
+      linkRules: z.boolean().optional(),
+      advancedAuth: z.boolean().optional(),
+    })
+    .optional(),
 });
 export const workspaceMemberSchema = z.object({
   ...base,
@@ -184,6 +285,7 @@ export const clickEventSchema = z.object({
     linkId: objectId.nullable(),
     qrId: objectId.optional(),
     kind: z.enum(["click", "scan"]),
+    branch: text.optional(),
     domain: text,
     key: text,
     legacyCode: text.optional(),
@@ -217,6 +319,7 @@ export const clickRollupSchema = z.object({
   clicks: count,
   scans: count,
   byCountry: breakdown,
+  byBranch: breakdown.optional(),
   byDevice: breakdown,
   byBrowser: breakdown,
   byOs: breakdown,
@@ -373,6 +476,7 @@ export const apiKeySchema = z.object({
   hashedKey: text,
   prefix: text,
   scopes: z.array(text),
+  ipAllowlist: z.array(z.string()).optional(),
   createdBy: text,
   lastUsedAt: z.date().optional(),
   expiresAt: z.date().optional(),
@@ -425,6 +529,69 @@ export const schemas = {
   billing_events: billingEventSchema,
   usage_periods: usagePeriodSchema,
   api_keys: apiKeySchema,
+  audit_log: z.object({
+    ...base,
+    workspaceId: objectId,
+    actor: text,
+    userId: text,
+    credentialId: text,
+    tool: text,
+    status: z.enum(["started", "succeeded", "failed"]),
+    completedAt: z.date().optional(),
+    errorCode: text.optional(),
+  }),
+  webhook_clicks: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    sid: text,
+    type: z.enum(["link.clicked", "qr.scanned"]),
+    receivedAt: z.date(),
+    data: z.unknown(),
+    completedAt: z.date().optional(),
+    expiresAt: z.date().optional(),
+  }),
+  webhook_events: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    event: z.unknown(),
+    completedAt: z.date().optional(),
+    expiresAt: z.date().optional(),
+  }),
+  webhook_endpoints: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    name: text,
+    url: z.httpUrl(),
+    events: z.array(text),
+    enabled: z.boolean(),
+    secret: text,
+    createdBy: text,
+  }),
+  webhook_deliveries: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    webhookId: objectId,
+    event: z.unknown(),
+    status: text,
+    attempts: count,
+    nextAttemptAt: z.date(),
+    retryUntil: z.date(),
+    expiresAt: z.date(),
+  }),
+  webhook_attempts: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    webhookId: objectId,
+    deliveryId: objectId,
+    attempt: count,
+    status: count,
+    expiresAt: z.date(),
+  }),
+  webhook_notifications: z.looseObject({
+    ...base,
+    workspaceId: objectId,
+    webhookId: objectId,
+  }),
 };
 export type Documents = {
   [K in keyof typeof schemas]: z.infer<(typeof schemas)[K]>;

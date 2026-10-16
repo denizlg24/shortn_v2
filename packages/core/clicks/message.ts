@@ -14,6 +14,18 @@ export const clickMessageSchema = z.object({
   domain: z.string(),
   key: z.string(),
   bot: z.boolean(),
+  counterBase: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+  branch: z
+    .string()
+    .regex(
+      /^(?:destination|deep:(?:ios|android)|(?:device|geo|rotation):\d{1,2})$/,
+    )
+    .optional(),
   ip: z.string().max(45).optional(),
   ua: z.string().max(2000).optional(),
   referrer: z.string().max(4000).optional(),

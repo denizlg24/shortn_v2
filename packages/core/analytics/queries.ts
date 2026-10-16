@@ -3,6 +3,7 @@ import { collection, physicalNames } from "@shortn/db";
 import { ObjectId, type Db, type Document } from "mongodb";
 
 export const dimensions = {
+  branch: "$m.branch",
   country: "$country",
   city: "$city",
   continent: "$continent",
@@ -66,6 +67,13 @@ function match(
   }
   return query;
 }
+
+/** Shared event predicate for bounded, worker-owned export cursors. */
+export const analyticsExportMatch = (
+  scope: AnalyticsScope,
+  range: Range,
+  filters: Filters,
+) => match(scope, range, filters);
 
 // Clamps the start to the plan's analytics window (06); data older than the
 // window is kept, only hidden.

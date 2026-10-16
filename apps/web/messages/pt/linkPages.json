@@ -128,12 +128,12 @@
   "delete": {
     "title": "Eliminar link",
     "titleMany": "Eliminar {count, plural, one {# link} other {# links}}",
-    "description": "Não é possível anular.",
+    "description": "Os URLs curtos deixam de funcionar de imediato. Pode restaurar estes links do Lixo durante 30 dias.",
     "consequences": [
       "O link curto deixa de redirecionar de imediato; cópias impressas deixam de funcionar.",
-      "O histórico de cliques é arquivado e deixa de aparecer.",
-      "É removido de campanhas e páginas bio; campanhas que fiquem vazias são eliminadas.",
-      "Um código QR associado mantém-se, mas deixa de apontar para este link."
+      "As chaves ficam reservadas durante 30 dias.",
+      "As referências em campanhas e páginas bio são mantidas para restauro; o link fica oculto nas páginas bio públicas.",
+      "Após 30 dias, o link é eliminado permanentemente. As estatísticas agregadas são mantidas."
     ],
     "confirm": "Eliminar",
     "confirmMany": "Eliminar {count, plural, one {# link} other {# links}}",
@@ -188,5 +188,46 @@
     "feature_required": "O seu plano não inclui isto.",
     "limit_reached": "Já usou todos os {limit} links deste período.",
     "utm_limit": "Uma ligação pode ter até 50 variantes UTM guardadas. Remova uma variante antes de adicionar outra."
+  },
+  "trash": {
+    "title": "Lixo",
+    "sections": "Vistas de links",
+    "description": "Os links eliminados deixam de redirecionar imediatamente. Restaure-os dentro de 30 dias para manter as chaves, definições e referências em campanhas e páginas bio. A seleção mantém-se entre páginas e filtros neste separador.",
+    "empty": "O lixo está vazio.",
+    "restore": "Restaurar selecionados",
+    "restoring": "A restaurar…",
+    "selection": "{count} selecionados · até {limit}",
+    "limit": "Selecione até {limit} links por operação.",
+    "failed": "Não foi possível restaurar os links. Verifique as suas permissões e tente novamente.",
+    "partial": "{count, plural, one {Não foi possível restaurar # link selecionado.} other {Não foi possível restaurar # links selecionados.}} Podem ter expirado ou as suas permissões podem ter mudado. Limpe a seleção para continuar.",
+    "restored": "{count, plural, one {# link restaurado.} other {# links restaurados.}}",
+    "restoreUntil": "Restaurar até",
+    "until": "Restaurar até {date}",
+    "expired": "Expirado",
+    "group": "Agrupar esta página",
+    "ungrouped": "Sem agrupamento",
+    "byTag": "Por primeira etiqueta",
+    "untagged": "Sem etiqueta"
+  },
+  "health": {
+    "title": "Estado do destino",
+    "flag": "Erro no destino",
+    "flagFor": "Ver o estado do destino de {key}",
+    "description": "As verificações semanais são informativas. As definições de redirecionamento mantêm-se.",
+    "edit": "Editar link",
+    "repeatedErrors": "Alguns destinos devolveram erros em verificações repetidas.",
+    "pending": "A aguardar a primeira verificação.",
+    "partial": "Os primeiros resultados estão disponíveis.",
+    "noErrors": "As últimas verificações não devolveram erros.",
+    "resultsAvailable": "Os resultados dos destinos estão disponíveis.",
+    "results": "{count, plural, one {Ver # resultado de destino} other {Ver # resultados de destinos}}",
+    "checked": "Verificado em {date}",
+    "since": "Erros observados desde {date}",
+    "response": "HTTP {code}",
+    "responded": "Respondeu",
+    "httpError": "Erro HTTP {code}",
+    "blocked": "Não foi possível verificar o endereço",
+    "unreachable": "Não foi possível aceder ao destino",
+    "streak": "{count, plural, one {# verificação devolveu um erro} other {# verificações consecutivas devolveram erros}}"
   }
 }

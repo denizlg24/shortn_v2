@@ -4,6 +4,7 @@ import {
   createLink,
   deleteLinks,
   getLink,
+  ruleDestinations,
   scanAndPersistLink,
   setLinkUtm,
   updateLink,
@@ -15,12 +16,14 @@ import { after } from "next/server";
 import { z } from "zod";
 import { serviceContext } from "../context";
 import { env } from "../env";
+import { parseLinkAdvancedInput } from "../link-advanced-input";
 
 // Form actions behind the full-page link flows (17): they read FormData,
 // return field errors to the form, and navigate on success.
 
 export interface FormState {
   error: string | null;
+  created?: { id: string; url: string; path: string };
   field?: string | undefined;
   detail?: Record<string, string | number | null> | undefined;
 }
@@ -70,6 +73,8 @@ export async function createLinkPageAction(
 ): Promise<FormState> {
   const url = text(form, "url");
   if (!url) return { error: "url_required", field: "url" };
+  const advanced = parseLinkAdvancedInput(form);
+  if (advanced.error) return { error: advanced.error, field: advanced.field };
   const ctx = await serviceContext(workspace);
   const result = await createLink(ctx, {
     url: url.slice(0, 2048),
@@ -79,6 +84,8 @@ export async function createLinkPageAction(
     tags: tagsFrom(form),
     password: text(form, "password").slice(0, 128) || undefined,
     passwordHint: text(form, "passwordHint").slice(0, 100) || undefined,
+    ...(advanced.value.rules ? { rules: advanced.value.rules } : {}),
+    ...(advanced.value.og ? { og: advanced.value.og } : {}),
   });
   if (!result.ok)
     return {
@@ -87,7 +94,14 @@ export async function createLinkPageAction(
       detail: result.detail,
     };
   scanLater(workspace, result.value.id);
-  redirect(`/${workspace}/links/${result.value.id}?created=1`);
+  return {
+    error: null,
+    created: {
+      id: result.value.id,
+      url: `https://${result.value.domain}/${encodeURIComponent(result.value.key)}`,
+      path: `/${workspace}/links/${result.value.id}`,
+    },
+  };
 }
 
 export async function updateLinkPageAction(
@@ -98,11 +112,14 @@ export async function updateLinkPageAction(
 ): Promise<FormState> {
   const url = text(form, "url");
   if (!url) return { error: "url_required", field: "url" };
+  const advanced = parseLinkAdvancedInput(form);
+  if (advanced.error) return { error: advanced.error, field: advanced.field };
   const ctx = await serviceContext(workspace);
   const before = await getLink(ctx, id);
   if (!before) return { error: "not_found" };
   const passwordMode = text(form, "passwordMode");
   const result = await updateLink(ctx, id, {
+    ...advanced.value,
     url: url.slice(0, 2048),
     key: text(form, "key").slice(0, 64) || undefined,
     title: text(form, "title").slice(0, 200),
@@ -125,7 +142,13 @@ export async function updateLinkPageAction(
       field: fieldOf[result.error],
       detail: result.detail,
     };
-  if (result.value.url !== before.url) scanLater(workspace, id);
+  if (
+    result.value.url !== before.url ||
+    (advanced.value.rules !== undefined &&
+      JSON.stringify(ruleDestinations(advanced.value.rules)) !==
+        JSON.stringify(ruleDestinations(before.rules)))
+  )
+    scanLater(workspace, id);
   redirect(`/${workspace}/links/${id}?saved=1`);
 }
 

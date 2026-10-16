@@ -28,7 +28,8 @@
     "referrer": "Referrer",
     "utmSource": "UTM source",
     "utmMedium": "UTM medium",
-    "utmCampaign": "UTM campaign"
+    "utmCampaign": "UTM campaign",
+    "branch": "Routing branch"
   },
   "allLinks": "All links",
   "any": "Any",
@@ -97,6 +98,11 @@
       "title": "UTM campaigns",
       "column": "UTM campaign",
       "description": "The utm_campaign tag of tagged links."
+    },
+    "branches": {
+      "title": "Routing branches",
+      "column": "Routing branch",
+      "description": "Visits by the rule that selected their destination. Targets are numbered in each link’s rule order at visit time. Filter to one link to compare its targets; changes to rule order can combine different destinations in historical counts."
     }
   },
   "table": {
@@ -114,8 +120,8 @@
   },
   "gated": {
     "title": "Breakdowns",
-    "body": "Countries, cities, referrers, devices, browsers, operating systems and UTM tags, and filtering by them, come with the {plan} plan and up.",
-    "withExport": "Countries, cities, referrers, devices, browsers, operating systems and UTM tags, filtering by them and CSV export come with the {plan} plan and up."
+    "body": "Routing branches, countries, cities, referrers, devices, browsers, operating systems and UTM tags, and filtering by them, come with the {plan} plan and up.",
+    "withExport": "Routing branches, countries, cities, referrers, devices, browsers, operating systems and UTM tags, filtering by them and CSV export come with the {plan} plan and up."
   },
   "error": {
     "title": "Analytics didn't load",
@@ -139,6 +145,15 @@
       "wearable": "Wearable",
       "xr": "XR headset",
       "embedded": "Embedded"
+    },
+    "branches": {
+      "unrecorded": "Not recorded",
+      "destination": "Default destination",
+      "ios": "iOS app",
+      "android": "Android app",
+      "rotation": "Rotation target {target}",
+      "device": "Device target {target}",
+      "geo": "Country target {target}"
     }
   },
   "export": {

@@ -6,7 +6,13 @@ import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { FilterBar, FilterCombobox, FilterSearch } from "../page/filters";
 
-export function QrFilters({ tags }: { tags: string[] }) {
+export function QrFilters({
+  tags,
+  preserve = {},
+}: {
+  tags: string[];
+  preserve?: Record<string, string>;
+}) {
   const t = useTranslations("qr.list");
   const dateText = useTranslations("page.created");
   const params = useSearchParams();
@@ -24,9 +30,15 @@ export function QrFilters({ tags }: { tags: string[] }) {
   return (
     <FilterBar
       applied={applied}
-      clearParams={params.get("view") === "list" ? { view: "list" } : undefined}
+      clearParams={{
+        ...preserve,
+        ...(params.get("view") === "list" ? { view: "list" } : {}),
+      }}
       normalize={(next, current) => normalizeCreated(next, current, new Date())}
     >
+      {Object.entries(preserve).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       {params.get("view") === "list" ? (
         <input type="hidden" name="view" value="list" />
       ) : null}

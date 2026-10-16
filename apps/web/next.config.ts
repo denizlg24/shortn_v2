@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
 const config: NextConfig = {
+  // Parallel local sandboxes must not share Next's dev lock or output.
+  distDir:
+    process.env.NODE_ENV === "development" && process.env.SHORTN_NEXT_DIST_DIR
+      ? process.env.SHORTN_NEXT_DIST_DIR
+      : ".next",
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   transpilePackages: [

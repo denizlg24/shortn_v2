@@ -2,6 +2,7 @@
 
 import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
+import { withLegacyCreation } from "@/lib/import-quota";
 import UrlV3, { TUrl } from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
 import { UAParser } from "ua-parser-js";
@@ -167,20 +168,37 @@ export async function createShortn({
       passwordHash = await bcrypt.hash(password, 10);
     }
 
-    const newUrl = await UrlV3.create({
+    const created = await withLegacyCreation(
       sub,
-      urlCode,
-      customCode: customCode ? true : false,
-      longUrl,
-      title: resolvedTitle,
-      tags: finalTags,
-      qrCodeId,
-      passwordProtected: !!password,
-      passwordHash,
-      passwordHint: passwordHint || undefined,
-      safetyStatus: "pending",
-      requiresInterstitial: INTERSTITIAL_PLANS.includes(plan),
-    });
+      "links",
+      async (writeSession) => {
+        const [newUrl] = await UrlV3.create(
+          [
+            {
+              sub,
+              urlCode,
+              customCode: customCode ? true : false,
+              longUrl,
+              title: resolvedTitle,
+              tags: finalTags,
+              qrCodeId,
+              passwordProtected: !!password,
+              passwordHash,
+              passwordHint: passwordHint || undefined,
+              safetyStatus: "pending",
+              requiresInterstitial: INTERSTITIAL_PLANS.includes(plan),
+            },
+          ],
+          { session: writeSession },
+        );
+        if (!newUrl)
+          throw new Error("Legacy link creation returned no document");
+        return newUrl;
+      },
+    );
+    if (!created.ok)
+      return { success: false, message: "plan-limit", quota: created.detail };
+    const newUrl = created.value;
     await invalidateLinkCache([newUrl.urlCode]);
 
     after(async () => {

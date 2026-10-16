@@ -38,6 +38,7 @@ export default async function NewLinkPage({
     >
       <LinkForm
         mode="create"
+        workspace={workspace}
         domain={env().LINK_DOMAIN}
         initial={{
           ...emptyLinkValues,

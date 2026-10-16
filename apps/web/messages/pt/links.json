@@ -41,8 +41,8 @@
   "delete": {
     "title": "Eliminar {count, plural, one {# link} other {# links}}?",
     "noneTitle": "Não pode eliminar estes links",
-    "body": "Os links curtos deixam de funcionar de imediato. Esta ação não pode ser anulada.",
-    "partial": "Pode eliminar {deletable} dos {count} links selecionados, porque os membros só podem eliminar os links que criaram. Os links curtos deixam de funcionar de imediato. Esta ação não pode ser anulada.",
+    "body": "Os URLs curtos deixam de funcionar de imediato. Pode restaurá-los do Lixo durante 30 dias.",
+    "partial": "Pode eliminar {deletable} dos {count} links selecionados, porque os membros só podem eliminar os links que criaram. Os URLs curtos deixam de funcionar de imediato; pode restaurá-los do Lixo durante 30 dias.",
     "none": "Os membros só podem eliminar os links que criaram. Peça a um administrador do espaço de trabalho que os elimine.",
     "cancel": "Cancelar",
     "confirm": "Eliminar {count, plural, one {# link} other {# links}}",

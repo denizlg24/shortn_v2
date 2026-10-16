@@ -62,23 +62,21 @@ const secret = "link-access-test-secret-0123456789abcdef";
 
   test("three distinct reporters disable the link; a repeat reporter counts once", async () => {
     const key = `r${crypto.randomUUID().slice(0, 6)}`;
-    await db
-      .collection(physicalNames.links)
-      .insertOne({
-        urlCode: key,
-        longUrl: "https://b.com",
-        reportCount: 0,
-        disabled: false,
-      });
+    await db.collection(physicalNames.links).insertOne({
+      urlCode: key,
+      longUrl: "https://b.com",
+      reportCount: 0,
+      disabled: false,
+    });
     const deps = { db, counters: redis, cache: redis, linkDomain: "shortn.at" };
-    await reportLink(deps, { key, reason: "spam", ipHash: "a" });
-    await reportLink(deps, { key, reason: "spam", ipHash: "a" });
-    await reportLink(deps, { key, reason: "phishing", ipHash: "b" });
+    await reportLink(deps, { key, reason: "spam", ipHash: `${key}-a` });
+    await reportLink(deps, { key, reason: "spam", ipHash: `${key}-a` });
+    await reportLink(deps, { key, reason: "phishing", ipHash: `${key}-b` });
     expect(
       (await db.collection(physicalNames.links).findOne({ urlCode: key }))
         ?.disabled,
     ).toBe(false);
-    await reportLink(deps, { key, reason: "malware", ipHash: "c" });
+    await reportLink(deps, { key, reason: "malware", ipHash: `${key}-c` });
     const doc = await db
       .collection(physicalNames.links)
       .findOne({ urlCode: key });

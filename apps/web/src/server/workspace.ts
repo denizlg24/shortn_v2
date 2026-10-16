@@ -7,6 +7,8 @@ import {
 import { physicalNames } from "@shortn/db";
 import { ObjectId } from "mongodb";
 import { notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { workspaceExportReturnPath } from "@/lib/workspace-export";
 import { cache } from "react";
 import { getSession } from "./auth";
 import { db } from "./db";
@@ -15,7 +17,12 @@ export type SessionData = NonNullable<Awaited<ReturnType<typeof getSession>>>;
 
 export const requireSession = cache(async (): Promise<SessionData> => {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) {
+    const next = workspaceExportReturnPath(
+      (await headers()).get("x-shortn-workspace-export-path"),
+    );
+    redirect(next ? `/login?next=${encodeURIComponent(next)}` : "/login");
+  }
   return session;
 });
 

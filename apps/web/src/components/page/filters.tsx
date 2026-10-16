@@ -270,17 +270,19 @@ export function FilterCombobox({
   options,
   allLabel,
   multiple = false,
+  onSearchChange,
 }: {
   label: string;
   name: string;
   options: { value: string; label: string }[];
   allLabel: string;
   multiple?: boolean;
+  onSearchChange?: ((query: string) => void) | undefined;
 }) {
   const params = useSearchParams();
   return (
     <FilterChoices
-      {...{ label, name, options, allLabel, multiple }}
+      {...{ label, name, options, allLabel, multiple, onSearchChange }}
       initial={params.getAll(name)}
     />
   );
@@ -293,6 +295,7 @@ function FilterChoices({
   allLabel,
   multiple,
   initial,
+  onSearchChange,
 }: {
   label: string;
   name: string;
@@ -300,6 +303,7 @@ function FilterChoices({
   allLabel: string;
   multiple: boolean;
   initial: string[];
+  onSearchChange?: ((query: string) => void) | undefined;
 }) {
   const t = useTranslations("page.filters");
   const apply = useContext(FilterContext);
@@ -326,6 +330,7 @@ function FilterChoices({
           ))}
           <Combobox
             id={id}
+            onSearchChange={onSearchChange}
             multiple={multiple}
             options={choices}
             value={values}

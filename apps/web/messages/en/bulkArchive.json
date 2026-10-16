@@ -1,0 +1,33 @@
+{
+  "selection": "{count, plural, one {# link selected across pages and filters.} other {# links selected across pages and filters.}}",
+  "review": "Review selected links",
+  "reviewHelp": "Browse the {count} selected links below. Filters only change this review; the operation applies to the full selection.",
+  "matching": "{count} of {total} selected links match this view.",
+  "untagged": "No tags",
+  "emptyReview": "No selected links match these filters.",
+  "back": "Back to links",
+  "cancel": "Cancel",
+  "entry": "Archive",
+  "title": "Archive selected links",
+  "unarchiveTitle": "Unarchive selected links",
+  "limits": "Up to 500 links per operation. Archived links keep redirecting.",
+  "operation": "Confirm operation",
+  "effect": "Move all {count} selected links out of the active library. Redirects, QR codes, analytics and campaign membership stay intact. There is no automatic deletion.",
+  "unarchiveEffect": "Return all {count} selected links to the active library. Their destinations and settings stay intact.",
+  "confirm": "Archive all {count} selected links.",
+  "unarchiveConfirm": "Unarchive all {count} selected links.",
+  "apply": "Archive links",
+  "unarchive": "Unarchive",
+  "success": "Archived {updated} of {selected} selected links. Already archived links were unchanged.",
+  "unarchiveSuccess": "Unarchived {updated} of {selected} selected links. Active links were unchanged.",
+  "viewArchived": "View archived links",
+  "libraryTitle": "Archived",
+  "libraryHelp": "Archived links keep redirecting and remain available in existing campaigns and bio pages. Unarchive them to return them to the active library.",
+  "emptyLibrary": "No archived links.",
+  "errors": {
+    "forbidden": "You do not have permission to edit these links. Ask a workspace admin.",
+    "not_found": "This selection has expired or contains links that are no longer available. Nothing changed. Return to Links and select them again.",
+    "invalid_input": "Select 1–500 links and confirm the operation.",
+    "failed": "The archive operation could not finish. Your selection is kept. Try again."
+  }
+}

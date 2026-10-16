@@ -71,6 +71,10 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
 // Public link pages that apps/web owns from P4: password prompt and safety
 // interstitial (the redirect sends visitors to exactly these paths).
 const webPaths = [
+  /^\/auth\/mcp\/(?:workspace|consent)\/?$/,
+  /^\/\.well-known\/oauth-authorization-server\/api\/auth\/?$/,
+  /^\/docs(?:\.md|\/.*)?\/?$/,
+  /^\/(?:llms(?:-full)?\.txt|openapi\.json|robots\.txt)\/?$/,
   /^\/authenticate\/[^/]+(?:\/verify)?\/?$/,
   /^\/(?:en|pt|es)\/safety\/[^/]+(?:\/report|\/token)?\/?$/,
 ];

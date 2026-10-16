@@ -2,60 +2,21 @@ import {
   cacheTtlSeconds,
   decodeCachedLink,
   encodeCachedLink,
-  isLegacyQrBacked,
-  linkProjection,
-  toCachedLink,
+  mongoLinkLoader as coreMongoLinkLoader,
 } from "@shortn/core";
-import type {
-  CachedLink,
-  LegacyLinkFields,
-  LegacyQrFields,
-} from "@shortn/core";
-import { physicalNames } from "@shortn/db";
+import type { CachedLink, LinkLoader } from "@shortn/core";
+export type { LinkLoader } from "@shortn/core";
 import { createCache, keys, normalizeDomain } from "@shortn/redis";
 import type { CacheStore, LinkInvalidation } from "@shortn/redis";
 import type { Db } from "mongodb";
 import { z } from "zod";
 import { metrics } from "./metrics";
 
-export type LinkLoader = (domain: string, key: string) => Promise<CachedLink>;
-
-// Legacy fields are authoritative during coexistence: urlCode first (legacy's
-// own lookup), then the derived {domain,key}, then renamed-key aliases.
+// Retain the redirect module's public API and its Mongo-load metric.
 export function mongoLinkLoader(db: Db, rootDomain = "shortn.at"): LinkLoader {
-  const links = db.collection<LegacyLinkFields>(physicalNames.links);
-  const qrCodes = db.collection<LegacyQrFields>(physicalNames.qr_codes);
-  return async (domain, key) => {
-    metrics.inc("resolve_mongo_total");
-    const link =
-      (domain === rootDomain
-        ? await links.findOne(
-            {
-              urlCode: key,
-              $or: [{ domain: rootDomain }, { domain: { $exists: false } }],
-            },
-            { projection: linkProjection },
-          )
-        : null) ??
-      (await links.findOne({ domain, key }, { projection: linkProjection }));
-    if (link) {
-      const qr = isLegacyQrBacked(link)
-        ? await qrCodes.findOne(
-            { urlId: link.urlCode ?? key },
-            { projection: { _id: 1, qrCodeId: 1 } },
-          )
-        : null;
-      return toCachedLink(link, key, qr);
-    }
-    const alias = await links.findOne(
-      { domain, previousKeys: key },
-      { projection: { _id: 1, urlCode: 1, key: 1 } },
-    );
-    const canonical = alias?.urlCode ?? alias?.key;
-    if (alias && canonical)
-      return { kind: "alias", id: alias._id.toHexString(), key: canonical };
-    return { kind: "missing" };
-  };
+  return coreMongoLinkLoader(db, rootDomain, () =>
+    metrics.inc("resolve_mongo_total"),
+  );
 }
 
 interface Entry {

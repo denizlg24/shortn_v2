@@ -1,0 +1,61 @@
+{
+  "workspace": {
+    "title": "Escolha um espaço de trabalho",
+    "label": "Espaço de trabalho",
+    "placeholder": "Selecione um espaço",
+    "description": "A aplicação terá acesso apenas ao espaço de trabalho que escolher.",
+    "empty": "Não existem espaços disponíveis para esta ligação. Cancele e contacte o administrador do seu espaço."
+  },
+  "consent": {
+    "title": "Ligar uma aplicação"
+  },
+  "invalid": {
+    "title": "Pedido de ligação indisponível",
+    "description": "Este pedido expirou ou é inválido. Volte à aplicação e inicie a ligação novamente."
+  },
+  "callback": "Endereço de regresso",
+  "permissions": "Permissões solicitadas",
+  "roleLimit": "A sua função atual no espaço limita o que esta aplicação pode fazer.",
+  "viewerLimit": "A sua função permite apenas consultar. As alterações pedidas pela aplicação serão recusadas.",
+  "sessionLimit": "O acesso termina ao desligar a aplicação ou terminar esta sessão.",
+  "continue": "Continuar",
+  "allow": "Permitir acesso",
+  "cancel": "Cancelar",
+  "change": "Alterar",
+  "roles": {
+    "owner": "Proprietário",
+    "admin": "Administrador",
+    "member": "Membro",
+    "viewer": "Leitor"
+  },
+  "errors": {
+    "invalid": "Este pedido já não é válido. Volte à aplicação e ligue novamente.",
+    "workspaceChanged": "A seleção do espaço foi alterada. Recarregue a página para a rever novamente.",
+    "unavailable": "Este espaço já não está disponível. Volte atrás e escolha outro.",
+    "failed": "Não foi possível concluir a ligação. Tente novamente."
+  },
+  "scopes": {
+    "links_read": "Consultar ligações",
+    "links_write": "Criar, editar e mover ligações para o lixo",
+    "analytics_read": "Consultar estatísticas",
+    "qr_read": "Consultar códigos QR",
+    "qr_write": "Gerir códigos QR",
+    "qr_all": "Gerir códigos QR",
+    "bio_read": "Consultar páginas bio",
+    "bio_write": "Gerir páginas bio",
+    "bio_all": "Gerir páginas bio",
+    "domains_read": "Consultar domínios",
+    "domains_write": "Gerir domínios",
+    "domains_all": "Gerir domínios",
+    "webhooks_read": "Consultar webhooks",
+    "webhooks_write": "Gerir webhooks",
+    "webhooks_all": "Gerir webhooks",
+    "tags_read": "Consultar etiquetas",
+    "tags_write": "Gerir etiquetas",
+    "campaigns_read": "Consultar campanhas",
+    "campaigns_write": "Gerir campanhas",
+    "workspace_read": "Consultar utilização do espaço",
+    "offline_access": "Renovar o acesso sem voltar a perguntar"
+  },
+  "fullAddress": "Ver endereço completo"
+}

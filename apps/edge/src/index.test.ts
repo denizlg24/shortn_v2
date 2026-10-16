@@ -154,9 +154,20 @@ test("with the P4 column, public link pages go to web and dashboards to the hand
   );
 });
 
-test("only the public link routes match the web paths", async () => {
+test("public link and documentation routes match the web paths", async () => {
   const { isWebPath } = await import("./index");
   for (const path of [
+    "/auth/mcp/workspace",
+    "/auth/mcp/consent",
+    "/.well-known/oauth-authorization-server/api/auth",
+    "/docs",
+    "/docs.md",
+    "/docs/api",
+    "/docs/webhooks.md",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
     "/authenticate/abc",
     "/authenticate/abc/verify",
     "/pt/safety/abc",
@@ -165,6 +176,10 @@ test("only the public link routes match the web paths", async () => {
   ])
     expect(isWebPath(path)).toBe(true);
   for (const path of [
+    "/auth/mcp/private",
+    "/.well-known/oauth-authorization-server/untrusted",
+    "/docs-private",
+    "/llms-other.txt",
     "/abc",
     "/authenticate",
     "/de/safety/abc",
@@ -195,4 +210,41 @@ test("a failing web origin falls back to legacy for the same request", async () 
   );
   expect(await response.text()).toBe("legacy");
   expect(legacyBody).toBe("password=x");
+});
+
+test("docs reach web even with short-link rollout disabled", async () => {
+  const seen: string[] = [];
+  const handler = createHandler(
+    async () => {
+      throw new Error("Docs reached redirect service");
+    },
+    async () => {
+      throw new Error("Docs reached legacy");
+    },
+    50,
+    async (request) => {
+      seen.push(request.url);
+      return new Response("docs");
+    },
+  );
+  for (const path of [
+    "/docs",
+    "/docs/api",
+    "/docs.md",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
+  ]) {
+    expect(
+      (
+        await handler(new Request(`https://shortn.at${path}`), {
+          ...env,
+          CANARY_PERCENT: "0",
+          WEB_ORIGIN: "https://app.shortn.at",
+        })
+      ).status,
+    ).toBe(200);
+    expect(seen.at(-1)).toBe(`https://app.shortn.at${path}`);
+  }
 });

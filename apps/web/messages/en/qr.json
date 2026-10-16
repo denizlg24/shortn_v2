@@ -120,7 +120,8 @@
     "label": "Preview",
     "alt": "QR code for {link}",
     "size": "{width} × {height} px",
-    "altNew": "Preview of the new QR code"
+    "altNew": "Preview of the new QR code",
+    "unavailable": "Preview unavailable"
   },
   "colors": {
     "title": "Colours",
@@ -205,6 +206,24 @@
     "generic": "Something went wrong on our side. Try again.",
     "urlRequired": "Enter the URL the code should open.",
     "logoUrl": "Enter the logo's full URL, starting with https://.",
-    "color": "Every colour needs a value of up to 32 characters, like #0f172b."
+    "color": "Every colour needs a value of up to 32 characters, like #0f172b.",
+    "caption": "Use up to 64 printable characters for the caption. Some symbols are not supported; remove them or use a different caption."
+  },
+  "treatment": {
+    "title": "Shape and caption",
+    "description": "Frames and captions stay outside the clear space around the code. Circle keeps the square QR matrix inside a circular badge.",
+    "shape": "Shape",
+    "shapes": {
+      "square": "Square",
+      "circle": "Circle"
+    },
+    "frame": "Frame",
+    "frames": {
+      "none": "None",
+      "outline": "Outline",
+      "solid": "Solid"
+    },
+    "caption": "Caption",
+    "captionHint": "Optional, up to 64 characters. Captions are included in previews and downloads. Caption colour adjusts for legibility."
   }
 }

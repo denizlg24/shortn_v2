@@ -15,14 +15,19 @@
     "@shortn/config": "workspace:*"
   },
   "dependencies": {
+    "@polar-sh/sdk": "0.49.0",
+    "@shortn/billing": "workspace:*",
     "@shortn/core": "workspace:*",
     "@shortn/db": "workspace:*",
+    "@shortn/emails": "workspace:*",
     "@shortn/env": "workspace:*",
     "@shortn/redis": "workspace:*",
+    "bullmq": "6.3.13",
     "ioredis": "6.0.0",
+    "ipaddr.js": "2.5.0",
     "mongodb": "7.1.0",
-    "@shortn/billing": "workspace:*",
-    "@polar-sh/sdk": "0.49.0",
-    "@shortn/emails": "workspace:*"
+    "@shortn/storage": "workspace:*",
+    "@shortn/qr-render": "workspace:*",
+    "fflate": "0.8.3"
   }
 }

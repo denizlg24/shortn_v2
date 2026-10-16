@@ -82,3 +82,27 @@ describe("designOf", () => {
     expect(design.cornersSquareOptions).toEqual({});
   });
 });
+
+test("treatment edits round trip, clear explicitly and reject unsupported captions", () => {
+  const base = {
+    ...qr.design,
+    shape: "circle" as const,
+    frameOptions: { style: "solid" as const, caption: "São João" },
+  };
+  const initial = draftOf(base);
+  expect(designChanges(base, initial, initial)).toEqual({});
+  const patch = designChanges(base, initial, {
+    ...initial,
+    shape: "square",
+    frame: "none",
+    caption: "",
+  });
+  expect(patch).toEqual({
+    shape: "square",
+    frameOptions: { style: "none", caption: "" },
+  });
+  expect(draftProblem({ ...initial, caption: "Unsupported 🎉" })).toBe(
+    "caption",
+  );
+  expect(draftProblem({ ...initial, caption: "¡Información!" })).toBeNull();
+});

@@ -2,8 +2,19 @@ import { getDb, closeMongoClient } from "@shortn/db";
 import { apiEnv, parseEnv } from "@shortn/env";
 import { createApp } from "./app";
 import { createRedisClients } from "@shortn/redis";
+import { createObjectStore } from "@shortn/storage";
 
 const env = parseEnv(apiEnv, process.env);
+const qrExports =
+  env.QR_EXPORTS_ENABLED === "1"
+    ? createObjectStore({
+        S3_ENDPOINT: env.S3_ENDPOINT!,
+        S3_REGION: env.S3_REGION!,
+        S3_BUCKET: env.S3_BUCKET!,
+        S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID!,
+        S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY!,
+      })
+    : undefined;
 const db = await getDb({
   url: env.MONGODB_URL,
   database: env.MONGODB_DB,
@@ -13,7 +24,9 @@ const log = (message: string, error?: unknown) =>
   error === undefined ? console.log(message) : console.error(message, error);
 
 const redis =
-  env.BIO_DELIVERY_ENABLED === "1"
+  env.BIO_DELIVERY_ENABLED === "1" ||
+  env.PLATFORM_API_ENABLED === "1" ||
+  env.PLATFORM_MCP_ENABLED === "1"
     ? await createRedisClients({
         NODE_ENV: env.NODE_ENV,
         REDIS_CACHE_URL: env.REDIS_CACHE_URL!,
@@ -21,7 +34,29 @@ const redis =
       })
     : undefined;
 const app = createApp({
-  ...(redis && env.IP_HASH_SECRET && env.PUBLIC_ORIGIN
+  ...(redis &&
+  env.PLATFORM_MCP_ENABLED === "1" &&
+  env.API_KEY_PEPPER &&
+  env.MCP_PUBLIC_ORIGIN
+    ? {
+        mcp: {
+          ...(qrExports ? { qrExports } : {}),
+          cache: redis.cache,
+          pepper: env.API_KEY_PEPPER,
+          linkDomain: env.LINK_DOMAIN,
+          origin: env.MCP_PUBLIC_ORIGIN,
+          rolloutPercent: env.PLATFORM_MCP_ROLLOUT,
+          ...(env.MCP_OAUTH_ENABLED === "1" && env.MCP_OAUTH_ISSUER
+            ? { oauth: { issuer: env.MCP_OAUTH_ISSUER } }
+            : {}),
+          clientIp: (request: Request) => server.requestIP(request)?.address,
+        },
+      }
+    : {}),
+  ...(redis &&
+  env.BIO_DELIVERY_ENABLED === "1" &&
+  env.IP_HASH_SECRET &&
+  env.PUBLIC_ORIGIN
     ? {
         bioViews: {
           durable: redis.durable,
@@ -29,6 +64,26 @@ const app = createApp({
           rootOrigin: env.PUBLIC_ORIGIN,
           webOrigin: env.BIO_WEB_ORIGIN,
           subdomains: env.BIO_SUBDOMAINS === "1",
+        },
+      }
+    : {}),
+  ...(redis && env.PLATFORM_API_ENABLED === "1" && env.API_KEY_PEPPER
+    ? {
+        rest: {
+          ...(qrExports ? { qrExports } : {}),
+          cache: redis.cache,
+          durable: redis.durable,
+          pepper: env.API_KEY_PEPPER,
+          linkDomain: env.LINK_DOMAIN,
+          rolloutPercent: env.PLATFORM_API_ROLLOUT,
+          domainWrites: env.DOMAIN_WRITES === "1",
+          webhooksEnabled: env.PLATFORM_WEBHOOKS_ENABLED === "1",
+          webhooksRolloutPercent: env.PLATFORM_WEBHOOKS_ROLLOUT,
+          ...(env.WEBHOOK_SECRET_KEY
+            ? { webhookSecretKey: env.WEBHOOK_SECRET_KEY }
+            : {}),
+          clientIp: (request: Request): string | undefined =>
+            server.requestIP(request)?.address,
         },
       }
     : {}),

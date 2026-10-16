@@ -9,6 +9,7 @@ import { CopyButton } from "@/components/page/copy-button";
 import { Notice } from "@/components/page/notice";
 import { Page, Section } from "@/components/page/page";
 import { QrDownloads } from "@/components/qr/qr-downloads";
+import { env } from "@/server/env";
 import { QrImage } from "@/components/qr/qr-image";
 import { printedOptions, printedSize } from "@/components/qr/qr-options";
 import { loadQr, qrName, qrTabs } from "@/server/qr-page";
@@ -128,7 +129,30 @@ export default async function QrOverviewPage({
             title={t("overview.download")}
             description={t("overview.downloadHint")}
           >
-            <QrDownloads options={options} name={qr.publicId || qr.key} />
+            {env().QR_EXPORTS_ENABLED === "1" ? (
+              <>
+                <Link
+                  href={`${base}/export`}
+                  className={buttonVariants({ variant: "primary", size: "md" })}
+                >
+                  {(await getTranslations("qrExports"))("singleTitle")}
+                </Link>
+                <details className="mt-4 text-small text-fg-muted">
+                  <summary className="w-fit cursor-pointer rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal">
+                    {(await getTranslations("qrExports"))("jpeg")}
+                  </summary>
+                  <div className="mt-3">
+                    <QrDownloads
+                      options={options}
+                      name={qr.publicId || qr.key}
+                      formats={["jpeg"]}
+                    />
+                  </div>
+                </details>
+              </>
+            ) : (
+              <QrDownloads options={options} name={qr.publicId || qr.key} />
+            )}
           </Section>
 
           <Section

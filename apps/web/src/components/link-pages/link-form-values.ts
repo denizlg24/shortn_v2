@@ -1,6 +1,8 @@
 // Plain data shared by server pages and the client form; it can't live in
 // the "use client" module, where exports become client references.
 export interface LinkFormValues {
+  rules?: import("@shortn/core").LinkRulesInput;
+  og?: import("@shortn/core").SocialPreview;
   url: string;
   key: string;
   title: string;

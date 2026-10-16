@@ -70,3 +70,60 @@ The `shortn-web-staging` and `shortn-api-staging` Forge targets are deployed wit
 The API has its own Polar webhook endpoint and signing secret. In the gitignored `.env.staging`, `POLAR_WEBHOOK_SECRET` still belongs to legacy; `API_POLAR_WEBHOOK_SECRET` is the API override. Do not overwrite one target's secret with the other's. The current shared link secrets are also retained in that file. Forge stores the applied service configuration.
 
 OAuth placeholders are unset on the web target, with real OAuth setup deferred to production by the owner. The web mail allowlist is restricted to owned recipients; temporary acceptance aliases are removed after testing.
+
+
+## P6 deployment readiness — 2026-10-16
+
+Authenticated read-only Forge inspection confirms the four staging targets are
+present and ready: `shortn-web-staging`, `shortn-api-staging`,
+`shortn-worker-staging` and `shortn-redirect-staging`. Every latest deployment
+still runs `c003f2ac493502ecea31113f2e05e21283f4d609` from `staging` (2026-10-12).
+The P6 feature branch has the same HEAD; its implementation is uncommitted in
+the local worktree. Those running services therefore cannot establish P6
+acceptance. Their target/deployment IDs and configuration-presence snapshot are
+recorded in `.impeccable/review/p6/staging-readiness.json`, without secret values.
+
+The targets auto-deploy from `staging`. Publishing/merging P6 and updating these
+shared services is a separate operator step requiring owner approval. No remote
+configuration, deployment, resource, domain or rollout was changed by this
+readiness inspection. Public web login, API health and OpenAPI probes returned
+HTTP 403 through Cloudflare from the current client; that establishes neither
+application failure nor P6 behavior. Use the approved staging access path for
+acceptance rather than weakening access controls.
+
+P6 master switches, cohort percentages and webhook recoverable-secret keys are
+not explicitly configured on the inspected web/API/worker targets. API also
+lacks explicit Redis/API-key/MCP and private-export storage configuration; worker
+lacks explicit private-export storage configuration. Web already has storage
+variable metadata. Presence alone does not prove bucket privacy, CORS,
+multipart/signing or lifecycle behavior. Worker MongoDB is resource-bound, so
+`hasValue: false` on its binding/template is not evidence of missing credentials.
+Preserve the existing auth/link/confirmation secrets and API-specific Polar
+webhook override during any update.
+
+Concrete deployment sequence after approval:
+
+1. Publish the reviewed P6 implementation/test/docs changes on `feat/p6-platform`,
+   excluding the local graph cache and pre-existing local ignore changes. Run the
+   configured CI gates and review a PR targeting `staging`.
+2. Merge to `staging`; watch all four Forge builds reach the exact merged SHA.
+   Keep P6 features disabled by default while verifying service health and the
+   new auth dependency against existing staging sessions.
+3. Deploy `shortn-edge-staging` with
+   `bun run --cwd apps/edge deploy:staging`. P6 adds root docs/llms/OpenAPI and MCP
+   consent/discovery routing; Forge container deployment does not publish this
+   separate Cloudflare Worker. Production Worker configuration stays untouched.
+4. Apply the additive indexes and dry-run any OAuth resource-registry migration
+   against the staging database before accepting new keys/providers/grants.
+5. Configure the intended staging issuer/resource origins, distinct API pepper
+   and shared webhook encryption key, private storage and restricted mail. Verify
+   the storage/mail gates before enabling their features. Configure exact trusted
+   enterprise IdP origins only for the agreed IdP test setup.
+6. Use a disposable staging workspace for the contract, native-client, import,
+   storage, mail and identity acceptance matrix in plan 19. Record actual
+   deployment SHAs, results and rollback evidence. Only then exercise the planned
+   per-feature 10% → 100% rollout; local fixture results do not satisfy it.
+
+The earlier request for a staging target is resolved by this inspection. A
+staging test workspace, access path, live IdP test setup and deployment approval
+remain to be supplied or established before their dependent operations.

@@ -4,6 +4,7 @@ import type { AnalyticsQuery, FilterDimension, QueryFilter } from "./query";
 // One full-table page per breakdown: /analytics/{slug} (17 §Analytics).
 export const breakdownSlugs = {
   links: "link",
+  branches: "branch",
   countries: "country",
   cities: "city",
   referrers: "referrer",
