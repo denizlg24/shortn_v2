@@ -16,6 +16,12 @@ export interface Env {
   API_PUBLIC_HOST?: string;
   API_EDGE_AUTH_SECRET?: string;
   WEB_EDGE_AUTH_SECRET?: string;
+  // PM cutover (20 M.9): "1" serves the root site from web; unset is the rollback.
+  MARKETING_ENABLED?: string;
+  // Workers rate limiting on anonymous marketing form posts (20 M.5).
+  FORM_RATE_LIMITER?: {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+  };
 }
 
 type Fetch = (request: Request) => Promise<Response>;
@@ -92,6 +98,14 @@ export const isWebPath = (pathname: string) =>
   webPaths.some((pattern) => pattern.test(pathname));
 
 const dashboardPath = /^\/(?:en|pt|es)\/dashboard(?:\/|$)/;
+
+const formPost = /^\/(?:en|pt|es)\/(?:demo|contact\/send)\/?$/;
+
+// The root site: home, /{locale}/… pages and their redirects, and the sitemap.
+export const isMarketingPath = (pathname: string) =>
+  pathname === "/" ||
+  pathname === "/sitemap.xml" ||
+  /^\/(?:en|pt|es)(?:\/.*)?$/.test(pathname);
 
 export function toWebOrigin(
   request: Request,
@@ -235,7 +249,25 @@ export function createHandler(
         ).toString(),
         302,
       );
-    if (env.WEB_ORIGIN && isWebPath(url.pathname)) {
+    if (
+      env.WEB_ORIGIN &&
+      (isWebPath(url.pathname) ||
+        (env.MARKETING_ENABLED === "1" && isMarketingPath(url.pathname)))
+    ) {
+      if (
+        method === "POST" &&
+        env.FORM_RATE_LIMITER &&
+        formPost.test(url.pathname)
+      ) {
+        const { success } = await env.FORM_RATE_LIMITER.limit({
+          key: request.headers.get("cf-connecting-ip") ?? "unknown",
+        });
+        if (!success)
+          return Response.json(
+            { error: "rateLimited" },
+            { status: 429, headers: { "Retry-After": "60" } },
+          );
+      }
       const body =
         method === "GET" || method === "HEAD"
           ? null

@@ -17,6 +17,8 @@ CANARY_PERCENT = "100"
 # P4 column (14, 16 §4.8), deliberately unset until its operator step:
 # WEB_ORIGIN = "https://app.shortn.at"   -> /authenticate/*, /{locale}/safety/* on apps/web
 # DASHBOARD_HANDOFF = "1"                -> /{locale}/dashboard* 302 to legacy /api/handoff
+# PM cutover (20 M.9), unset until production has P4-P6 at 100%:
+# MARKETING_ENABLED = "1"                -> /, /{locale}/*, /sitemap.xml on apps/web
 
 [env.staging]
 name = "shortn-edge-staging"
@@ -34,3 +36,11 @@ REDIRECT_ORIGIN = "https://shortn-redirect-staging.denizlg24.com"
 CANARY_PERCENT = "100"
 WEB_ORIGIN = "https://app-staging.shortn.at"
 DASHBOARD_HANDOFF = "1"
+MARKETING_ENABLED = "1"
+
+# Cloudflare-side limit on the demo shortener and contact posts, per visitor
+# address, in front of the app's own per-visitor and daily limits.
+[[env.staging.ratelimits]]
+name = "FORM_RATE_LIMITER"
+namespace_id = "2001"
+simple = { limit = 10, period = 60 }

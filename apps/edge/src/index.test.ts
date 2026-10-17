@@ -304,3 +304,124 @@ test("edge-proxied web pages receive a proven visitor address", async () => {
   expect(webSeen[1]?.headers.has("x-shortn-web-auth")).toBe(false);
   expect(webSeen[1]?.headers.has("x-shortn-client-ip")).toBe(false);
 });
+
+test("the root site moves to web only with MARKETING_ENABLED, and falls back on 5xx", async () => {
+  const p4: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    DASHBOARD_HANDOFF: "1",
+  };
+  const seen: string[] = [];
+  let webStatus = 200;
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      seen.push(new URL(request.url).pathname);
+      return new Response("web", { status: webStatus });
+    },
+  );
+  const paths = [
+    "/",
+    "/en",
+    "/pt/pricing",
+    "/es/help/articles/x",
+    "/sitemap.xml",
+  ];
+  for (const path of paths)
+    expect(
+      await (await handler(new Request(`https://shortn.at${path}`), p4)).text(),
+    ).toBe("legacy");
+  expect(seen).toHaveLength(0);
+
+  const marketing: Env = { ...p4, MARKETING_ENABLED: "1" };
+  for (const path of paths)
+    expect(
+      await (
+        await handler(new Request(`https://shortn.at${path}`), marketing)
+      ).text(),
+    ).toBe("web");
+  expect(seen).toEqual(paths);
+
+  const dashboard = await handler(
+    new Request("https://shortn.at/en/dashboard/links"),
+    marketing,
+  );
+  expect(dashboard.status).toBe(302);
+  expect(dashboard.headers.get("location")).toContain("/api/handoff");
+  expect(
+    await (
+      await handler(new Request("https://shortn.at/abc"), marketing)
+    ).status,
+  ).toBe(302);
+
+  webStatus = 503;
+  expect(
+    await (
+      await handler(new Request("https://shortn.at/en"), marketing)
+    ).text(),
+  ).toBe("legacy");
+});
+
+test("contact and demo posts keep their bodies on the way to web", async () => {
+  let body = "";
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      body = await request.text();
+      return new Response("ok");
+    },
+  );
+  await handler(
+    new Request("https://shortn.at/en/demo", {
+      method: "POST",
+      body: '{"url":"https://example.com"}',
+    }),
+    { ...env, WEB_ORIGIN: "https://app.shortn.at", MARKETING_ENABLED: "1" },
+  );
+  expect(body).toBe('{"url":"https://example.com"}');
+});
+
+test("the form rate limiter answers 429 before web sees the post", async () => {
+  let webCalls = 0;
+  let allowed = 2;
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async () => {
+      webCalls++;
+      return new Response("ok");
+    },
+  );
+  const limited: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    MARKETING_ENABLED: "1",
+    FORM_RATE_LIMITER: {
+      limit: async () => ({ success: allowed-- > 0 }),
+    },
+  };
+  const post = () =>
+    handler(
+      new Request("https://shortn.at/pt/contact/send", {
+        method: "POST",
+        headers: { "cf-connecting-ip": "203.0.113.5" },
+        body: "{}",
+      }),
+      limited,
+    );
+  expect((await post()).status).toBe(200);
+  expect((await post()).status).toBe(200);
+  const blocked = await post();
+  expect(blocked.status).toBe(429);
+  expect(await blocked.json()).toEqual({ error: "rateLimited" });
+  expect(webCalls).toBe(2);
+  expect(
+    (await handler(new Request("https://shortn.at/en/pricing"), limited))
+      .status,
+  ).toBe(200);
+});
