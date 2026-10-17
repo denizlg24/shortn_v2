@@ -261,6 +261,7 @@ export async function createQr(
   const backing: Document = {
     _id: new ObjectId(),
     ...(sub ? { sub } : {}),
+    domain: ctx.linkDomain,
     urlCode,
     customCode: false,
     longUrl: url,
