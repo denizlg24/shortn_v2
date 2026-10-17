@@ -105,6 +105,7 @@ const formPost = /^\/(?:en|pt|es)\/(?:demo|contact\/send)\/?$/;
 export const isMarketingPath = (pathname: string) =>
   pathname === "/" ||
   pathname === "/sitemap.xml" ||
+  pathname === "/favicon.ico" ||
   /^\/(?:en|pt|es)(?:\/.*)?$/.test(pathname);
 
 export function toWebOrigin(
