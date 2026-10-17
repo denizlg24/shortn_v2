@@ -53,6 +53,7 @@ export * from "./exports/links";
 export * from "./exports/jobs";
 
 export * from "./links/loader";
+export * from "./links/demo";
 
 export * from "./usage/quota-lock";
 export * from "./imports/legacy";

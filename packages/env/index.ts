@@ -460,6 +460,31 @@ export const webEnv = z
       "",
       "Google Web Risk key for link scans; without it scans are structural only",
     ),
+    MARKETING_DEMO_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Anonymous demo shortener on the marketing home page; needs Turnstile",
+    ),
+    MARKETING_DEMO_DAILY_CAP: value(
+      z.coerce.number().int().min(1).max(100000).default(300),
+      "300",
+      "Demo links created per UTC day across all visitors",
+    ),
+    TURNSTILE_SITE_KEY: value(
+      z.string().min(1).optional(),
+      "1x00000000000000000000AA",
+      "Cloudflare Turnstile site key for the demo shortener and contact form",
+    ),
+    TURNSTILE_SECRET_KEY: value(
+      z.string().min(1).optional(),
+      "1x0000000000000000000000000000000AA",
+      "Cloudflare Turnstile secret key",
+    ),
+    CONTACT_INBOX: value(
+      z.email().optional(),
+      "hello@shortn.at",
+      "Where contact-form messages are sent; unset stores them without notifying",
+    ),
     LINK_ACCESS_SECRET: security.LINK_ACCESS_SECRET,
     CONFIRMATION_TOKEN_SECRET: mail.CONFIRMATION_TOKEN_SECRET,
     IP_HASH_SECRET: secret(

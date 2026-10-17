@@ -87,6 +87,8 @@
       "submit": "Shorten",
       "submitting": "Shortening…",
       "resultLabel": "Your short link",
+      "example": "Example",
+      "destination": "Goes to",
       "copy": "Copy",
       "copied": "Copied",
       "open": "Open",
@@ -127,7 +129,7 @@
     },
     "manage": {
       "title": "Built for libraries of thousands of links",
-      "body": "Search, filter by tag and campaign, select across pages and change hundreds of links at once. Deleted links wait 30 days in the trash, and their keys are never handed to anyone else.",
+      "body": "Search, filter by tag and campaign, select across pages and change hundreds of links at once. Deleted links wait 30 days in the trash, and you can restore them with the same key until then.",
       "cta": "See all features"
     },
     "analytics": {
@@ -137,7 +139,8 @@
     "developers": {
       "title": "An API for your code, an MCP server for your agents",
       "body": "Create and manage links from your own systems with the REST API and webhooks, or let an AI assistant work through the MCP server with the permissions you grant.",
-      "cta": "Read the docs"
+      "cta": "Read the docs",
+      "codeLabel": "Create a link with the REST API"
     },
     "pricing": {
       "title": "Start free. Pay when you need more.",
@@ -167,7 +170,7 @@
         "deepLinks": "Open the app instead of the browser on phones",
         "passwords": "Password-protected links",
         "utm": "UTM parameters and query forwarding",
-        "trash": "A 30-day trash, and keys that are never reused"
+        "trash": "A 30-day trash that holds each key until it empties"
       }
     },
     "qr": {
@@ -321,7 +324,8 @@
       "title": "Compare plans",
       "feature": "Feature",
       "included": "Included",
-      "notIncluded": "Not included"
+      "notIncluded": "Not included",
+      "scrollHint": "Scroll sideways to compare all five plans."
     },
     "addon": {
       "title": "Custom-domain add-on",
@@ -362,7 +366,7 @@
       },
       "durable": {
         "title": "Links that last",
-        "body": "A printed QR code can stay on a shelf for years, so we never reuse a key and links keep working after you change plans."
+        "body": "A printed QR code can stay on a shelf for years, so links keep working when you change plans, and a deleted link keeps its key for 30 days in case you need it back."
       },
       "private": {
         "title": "Careful with visitor data",
@@ -414,7 +418,14 @@
   },
   "abuse": {
     "authoritative": "This policy is published in English. The English text is the version that applies.",
-    "report": "Report a link"
+    "report": "Report a link",
+    "reportForm": {
+      "body": "Paste the short link you want to report. You'll see where it goes and can tell us what's wrong with it.",
+      "label": "Short link",
+      "placeholder": "{domain}/abc123",
+      "submit": "Continue",
+      "invalid": "Enter a short link on {domain}, such as {domain}/abc123."
+    }
   },
   "legal": {
     "updated": "Last updated {date}",
@@ -426,5 +437,19 @@
     "body": "The address may be mistyped, or the page has moved.",
     "home": "Go to the home page",
     "shortLink": "Looking for a short link? Check the key after shortn.at/ for typos."
+  },
+  "shots": {
+    "links": "The links list with a tag filter applied and links selected across several pages",
+    "analytics": "Link analytics over 90 days, with clicks and scans by day and breakdowns by country and device",
+    "linkRules": "Editing a link's rules: a schedule, device targeting and traffic split between destinations",
+    "qrDesign": "Designing a QR code with a frame and caption, with print guidance beside the preview",
+    "bioEditor": "The bio page editor with a live preview of the published page",
+    "bioPhone": "A published bio page on a phone",
+    "campaign": "Campaign analytics with totals and results for each link",
+    "members": "Workspace members with owner, admin, member and viewer roles",
+    "webhooks": "A webhook with its recent deliveries and their response codes",
+    "imports": "Mapping CSV columns before importing links",
+    "safety": "The warning page visitors see before a suspicious destination",
+    "sample": "Screens from a sample workspace"
   }
 }

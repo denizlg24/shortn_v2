@@ -15,7 +15,8 @@
     "test:flows": "bun --no-env-file e2e/dashboard.browser.ts --public-links",
     "test:billing": "bun --no-env-file e2e/dashboard.browser.ts --billing-writes",
     "test:bio": "bun --no-env-file e2e/bio.browser.ts",
-    "dev:p5": "bun --no-env-file scripts/p5-dev.ts"
+    "dev:p5": "bun --no-env-file scripts/p5-dev.ts",
+    "shots:marketing": "bun --no-env-file scripts/marketing-shots.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1148.0",
@@ -24,6 +25,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@fontsource-variable/geist": "5.3.0",
     "@fontsource-variable/geist-mono": "5.3.0",
+    "@fontsource-variable/schibsted-grotesk": "^5.3.0",
     "@fontsource/dm-sans": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
     "@fontsource/lato": "^5.3.0",
@@ -43,9 +45,12 @@
     "@shortn/billing": "workspace:*",
     "@shortn/core": "workspace:*",
     "@shortn/db": "workspace:*",
+    "@shortn/docs": "workspace:*",
     "@shortn/emails": "workspace:*",
     "@shortn/env": "workspace:*",
+    "@shortn/qr-render": "workspace:*",
     "@shortn/redis": "workspace:*",
+    "@shortn/storage": "workspace:*",
     "@shortn/ui": "workspace:*",
     "@tanstack/react-query": "5.104.1",
     "better-auth": "1.7.10",
@@ -60,10 +65,7 @@
     "react-dom": "19.2.4",
     "server-only": "0.0.1",
     "sharp": "^0.35.5",
-    "zod": "4.6.5",
-    "@shortn/docs": "workspace:*",
-    "@shortn/storage": "workspace:*",
-    "@shortn/qr-render": "workspace:*"
+    "zod": "4.6.5"
   },
   "devDependencies": {
     "@formatjs/icu-messageformat-parser": "3.5.1",

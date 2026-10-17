@@ -87,6 +87,8 @@
       "submit": "Encurtar",
       "submitting": "A encurtar…",
       "resultLabel": "O seu link curto",
+      "example": "Exemplo",
+      "destination": "Destino",
       "copy": "Copiar",
       "copied": "Copiado",
       "open": "Abrir",
@@ -127,7 +129,7 @@
     },
     "manage": {
       "title": "Feito para bibliotecas com milhares de links",
-      "body": "Pesquise, filtre por etiqueta e campanha, selecione entre páginas e altere centenas de links de uma vez. Os links apagados ficam 30 dias no lixo e as suas chaves nunca passam para outra pessoa.",
+      "body": "Pesquise, filtre por etiqueta e campanha, selecione entre páginas e altere centenas de links de uma vez. Os links apagados ficam 30 dias no lixo e pode restaurá-los com a mesma chave até lá.",
       "cta": "Ver todas as funcionalidades"
     },
     "analytics": {
@@ -137,7 +139,8 @@
     "developers": {
       "title": "Uma API para o seu código, um servidor MCP para os seus agentes",
       "body": "Crie e gira links a partir dos seus sistemas com a API REST e os webhooks, ou deixe um assistente de IA trabalhar através do servidor MCP com as permissões que lhe der.",
-      "cta": "Ler a documentação"
+      "cta": "Ler a documentação",
+      "codeLabel": "Criar um link com a API REST"
     },
     "pricing": {
       "title": "Comece grátis. Pague quando precisar de mais.",
@@ -167,7 +170,7 @@
         "deepLinks": "Abertura na aplicação em vez do navegador, no telemóvel",
         "passwords": "Links protegidos por palavra-passe",
         "utm": "Parâmetros UTM e reencaminhamento de parâmetros",
-        "trash": "Lixo durante 30 dias e chaves que nunca são reutilizadas"
+        "trash": "Lixo durante 30 dias, que guarda cada chave até ser esvaziado"
       }
     },
     "qr": {
@@ -321,7 +324,8 @@
       "title": "Comparar planos",
       "feature": "Funcionalidade",
       "included": "Incluído",
-      "notIncluded": "Não incluído"
+      "notIncluded": "Não incluído",
+      "scrollHint": "Deslize para o lado para comparar os cinco planos."
     },
     "addon": {
       "title": "Extra de domínio personalizado",
@@ -362,7 +366,7 @@
       },
       "durable": {
         "title": "Links que duram",
-        "body": "Um código QR impresso pode ficar anos numa prateleira, por isso nunca reutilizamos uma chave e os links continuam a funcionar quando muda de plano."
+        "body": "Um código QR impresso pode ficar anos numa prateleira, por isso os links continuam a funcionar quando muda de plano e um link apagado guarda a sua chave durante 30 dias, caso precise dele de volta."
       },
       "private": {
         "title": "Cuidado com os dados dos visitantes",
@@ -414,7 +418,14 @@
   },
   "abuse": {
     "authoritative": "Esta política é publicada em inglês. O texto em inglês é a versão que se aplica.",
-    "report": "Denunciar um link"
+    "report": "Denunciar um link",
+    "reportForm": {
+      "body": "Cole o link curto que quer denunciar. Vai ver para onde aponta e pode dizer-nos o que está errado.",
+      "label": "Link curto",
+      "placeholder": "{domain}/abc123",
+      "submit": "Continuar",
+      "invalid": "Introduza um link curto em {domain}, por exemplo {domain}/abc123."
+    }
   },
   "legal": {
     "updated": "Última atualização: {date}",
@@ -426,5 +437,19 @@
     "body": "O endereço pode ter um erro, ou a página mudou de sítio.",
     "home": "Ir para a página inicial",
     "shortLink": "Procura um link curto? Verifique se a chave depois de shortn.at/ está bem escrita."
+  },
+  "shots": {
+    "links": "A lista de links com um filtro de etiqueta aplicado e links selecionados em várias páginas",
+    "analytics": "Estatísticas de um link em 90 dias, com cliques e leituras por dia e distribuição por país e dispositivo",
+    "linkRules": "Edição das regras de um link: agendamento, segmentação por dispositivo e divisão do tráfego entre destinos",
+    "qrDesign": "Design de um código QR com moldura e legenda, com orientações de impressão ao lado da pré-visualização",
+    "bioEditor": "O editor da página bio com pré-visualização da página publicada",
+    "bioPhone": "Uma página bio publicada num telemóvel",
+    "campaign": "Estatísticas de uma campanha com totais e resultados de cada link",
+    "members": "Membros do espaço de trabalho com as funções proprietário, administrador, membro e leitor",
+    "webhooks": "Um webhook com as entregas recentes e os respetivos códigos de resposta",
+    "imports": "Correspondência das colunas de um CSV antes de importar links",
+    "safety": "A página de aviso que os visitantes veem antes de um destino suspeito",
+    "sample": "Ecrãs de um espaço de trabalho de exemplo"
   }
 }
