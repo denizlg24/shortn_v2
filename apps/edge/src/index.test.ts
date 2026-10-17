@@ -273,3 +273,34 @@ test("the redirect origin receives the visitor address, never a client-supplied 
   );
   expect(seen.redirect[1]?.headers.has("x-shortn-client-ip")).toBe(false);
 });
+
+test("edge-proxied web pages receive a proven visitor address", async () => {
+  const webSeen: Request[] = [];
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      webSeen.push(request);
+      return new Response("ok");
+    },
+  );
+  const spoofed = {
+    "cf-connecting-ip": "203.0.113.7",
+    "x-shortn-client-ip": "192.0.2.99",
+    "x-shortn-web-auth": "forged",
+  };
+  const p4: Env = { ...env, WEB_ORIGIN: "https://app.shortn.at" };
+  await handler(
+    new Request("https://shortn.at/authenticate/abc", { headers: spoofed }),
+    { ...p4, WEB_EDGE_AUTH_SECRET: "web-edge-secret" },
+  );
+  expect(webSeen[0]?.headers.get("x-shortn-web-auth")).toBe("web-edge-secret");
+  expect(webSeen[0]?.headers.get("x-shortn-client-ip")).toBe("203.0.113.7");
+  await handler(
+    new Request("https://shortn.at/pt/safety/abc", { headers: spoofed }),
+    p4,
+  );
+  expect(webSeen[1]?.headers.has("x-shortn-web-auth")).toBe(false);
+  expect(webSeen[1]?.headers.has("x-shortn-client-ip")).toBe(false);
+});

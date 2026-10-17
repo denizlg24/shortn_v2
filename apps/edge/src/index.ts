@@ -15,6 +15,7 @@ export interface Env {
   PUBLIC_HOST?: string;
   API_PUBLIC_HOST?: string;
   API_EDGE_AUTH_SECRET?: string;
+  WEB_EDGE_AUTH_SECRET?: string;
 }
 
 type Fetch = (request: Request) => Promise<Response>;
@@ -96,6 +97,7 @@ export function toWebOrigin(
   request: Request,
   origin: string,
   body: ArrayBuffer | null,
+  edgeAuthSecret?: string,
 ): Request {
   const source = new URL(request.url);
   const target = new URL(origin);
@@ -106,6 +108,15 @@ export function toWebOrigin(
   headers.delete("x-shortn-bio-domain");
   headers.delete("x-bio-auth");
   headers.delete("x-shortn-public-bio");
+  headers.delete("x-shortn-web-auth");
+  headers.delete("x-shortn-client-ip");
+  const clientIp =
+    request.headers.get("cf-connecting-ipv6") ??
+    request.headers.get("cf-connecting-ip");
+  if (edgeAuthSecret && clientIp) {
+    headers.set("x-shortn-web-auth", edgeAuthSecret);
+    headers.set("x-shortn-client-ip", clientIp);
+  }
   headers.set("x-forwarded-host", source.host);
   headers.set("x-shortn-forwarded-host", source.host);
   headers.delete("host");
@@ -159,7 +170,12 @@ export function createHandler(
           const targetUrl = new URL(`/_bio/${handle}`, env.WEB_ORIGIN);
           const target = new Request(
             targetUrl.toString(),
-            toWebOrigin(request, env.WEB_ORIGIN, null),
+            toWebOrigin(
+              request,
+              env.WEB_ORIGIN,
+              null,
+              env.WEB_EDGE_AUTH_SECRET,
+            ),
           );
           for (const name of [
             "rsc",
@@ -189,7 +205,14 @@ export function createHandler(
           url.pathname.startsWith("/_next/") ||
           /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(url.pathname)
         )
-          return web(toWebOrigin(request, env.WEB_ORIGIN, null));
+          return web(
+            toWebOrigin(
+              request,
+              env.WEB_ORIGIN,
+              null,
+              env.WEB_EDGE_AUTH_SECRET,
+            ),
+          );
         return new Response("Not found", { status: 404 });
       }
       if (customHost) return upstream(toRedirectOrigin(request, env));
@@ -199,7 +222,9 @@ export function createHandler(
       )
         return upstream(toRedirectOrigin(request, env));
       if (url.pathname.startsWith("/_bio/"))
-        return web(toWebOrigin(request, env.WEB_ORIGIN, null));
+        return web(
+          toWebOrigin(request, env.WEB_ORIGIN, null, env.WEB_EDGE_AUTH_SECRET),
+        );
     }
     // Legacy mints a one-time token there and sends the user on to app.
     if (env.DASHBOARD_HANDOFF === "1" && dashboardPath.test(url.pathname))
@@ -216,7 +241,9 @@ export function createHandler(
           ? null
           : await request.arrayBuffer();
       try {
-        const response = await web(toWebOrigin(request, env.WEB_ORIGIN, body));
+        const response = await web(
+          toWebOrigin(request, env.WEB_ORIGIN, body, env.WEB_EDGE_AUTH_SECRET),
+        );
         if (response.status < 500) return response;
       } catch {
         /* Fall through to legacy, which still serves these pages. */
