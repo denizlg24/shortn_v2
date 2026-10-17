@@ -23,9 +23,13 @@ name = "shortn-edge-staging"
 # staging.shortn.at is a Cloudflare-for-SaaS custom hostname of denizlg24.com
 # (Forge). Its record in the shortn.at zone isn't proxied, so the request
 # never touches that zone's Worker routes; it lands on the provider zone.
-routes = [{ pattern = "staging.shortn.at/*", zone_name = "denizlg24.com" }]
+routes = [
+  { pattern = "staging.shortn.at/*", zone_name = "denizlg24.com" },
+  { pattern = "api-staging.shortn.at/*", zone_name = "denizlg24.com" },
+]
 
 [env.staging.vars]
+API_PUBLIC_HOST = "api-staging.shortn.at"
 REDIRECT_ORIGIN = "https://shortn-redirect-staging.denizlg24.com"
 CANARY_PERCENT = "100"
 WEB_ORIGIN = "https://app-staging.shortn.at"

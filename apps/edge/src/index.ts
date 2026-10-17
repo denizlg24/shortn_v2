@@ -13,6 +13,8 @@ export interface Env {
   BIO_LEGACY_REDIRECTS?: string;
   BIO_INTERNAL_SECRET?: string;
   PUBLIC_HOST?: string;
+  API_PUBLIC_HOST?: string;
+  API_EDGE_AUTH_SECRET?: string;
 }
 
 type Fetch = (request: Request) => Promise<Response>;
@@ -121,6 +123,19 @@ export function createHandler(
   return async (request: Request, env: Env): Promise<Response> => {
     const method = request.method.toUpperCase();
     const url = new URL(request.url);
+    if (env.API_PUBLIC_HOST && url.hostname === env.API_PUBLIC_HOST) {
+      if (!env.API_EDGE_AUTH_SECRET)
+        return new Response("API edge authentication unavailable", {
+          status: 503,
+        });
+      const headers = new Headers(request.headers);
+      headers.set("x-shortn-api-auth", env.API_EDGE_AUTH_SECRET);
+      headers.set(
+        "x-shortn-client-ip",
+        request.headers.get("cf-connecting-ip") ?? "",
+      );
+      return legacy(new Request(request, { headers }));
+    }
     const publicHost = env.PUBLIC_HOST ?? "shortn.at";
     const handle =
       env.BIO_SUBDOMAINS === "1"

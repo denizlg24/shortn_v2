@@ -3,6 +3,7 @@ import { apiEnv, parseEnv } from "@shortn/env";
 import { createApp } from "./app";
 import { createRedisClients } from "@shortn/redis";
 import { createObjectStore } from "@shortn/storage";
+import { clientIp } from "./client-ip";
 
 const env = parseEnv(apiEnv, process.env);
 const qrExports =
@@ -49,7 +50,12 @@ const app = createApp({
           ...(env.MCP_OAUTH_ENABLED === "1" && env.MCP_OAUTH_ISSUER
             ? { oauth: { issuer: env.MCP_OAUTH_ISSUER } }
             : {}),
-          clientIp: (request: Request) => server.requestIP(request)?.address,
+          clientIp: (request: Request) =>
+            clientIp(
+              request,
+              server.requestIP(request)?.address,
+              env.API_EDGE_AUTH_SECRET,
+            ),
         },
       }
     : {}),
@@ -83,7 +89,11 @@ const app = createApp({
             ? { webhookSecretKey: env.WEBHOOK_SECRET_KEY }
             : {}),
           clientIp: (request: Request): string | undefined =>
-            server.requestIP(request)?.address,
+            clientIp(
+              request,
+              server.requestIP(request)?.address,
+              env.API_EDGE_AUTH_SECRET,
+            ),
         },
       }
     : {}),
