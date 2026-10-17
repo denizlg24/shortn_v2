@@ -584,6 +584,9 @@ export const billingMode = value(
 );
 export const apiEnv = z
   .object({
+    API_EDGE_AUTH_SECRET: secret(
+      "Shared edge proof for client IP allowlists behind a reverse proxy; unset uses the socket peer",
+    ).optional(),
     EXPORTS_ENABLED: value(
       z.enum(["0", "1"]).default("0"),
       "0",
