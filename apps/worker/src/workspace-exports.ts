@@ -1,3 +1,4 @@
+import { blockingQueueRedis } from "./queue-redis";
 import {
   sendWorkspaceExportNotice,
   type WorkspaceExportNoticeDependencies,
@@ -220,7 +221,7 @@ export function createWorkspaceExportWorker(
 ) {
   const name = deps.queueName ?? "shortn-workspace-exports",
     producer = deps.durable.duplicate({ maxRetriesPerRequest: 1 }),
-    consumer = deps.durable.duplicate({ maxRetriesPerRequest: null });
+    consumer = blockingQueueRedis(deps.durable);
   const queue = new Queue(name, { connection: producer }),
     worker = new Worker<{ id: string; task?: "notify" }>(
       name,

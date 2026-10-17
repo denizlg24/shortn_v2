@@ -1,3 +1,4 @@
+import { blockingQueueRedis } from "./queue-redis";
 import { randomUUID, createHash } from "node:crypto";
 import { ObjectId, type ClientSession, type Db } from "mongodb";
 import { Queue, Worker } from "bullmq";
@@ -191,12 +192,10 @@ export async function runImport(
         sourceHash: hash,
         total: table.records.length,
         columns: table.columns,
-        preview: table.records
-          .slice(0, importLimits.preview)
-          .map((row) => ({
-            row: row.row,
-            cells: row.cells.map((cell) => cell.slice(0, 200)),
-          })),
+        preview: table.records.slice(0, importLimits.preview).map((row) => ({
+          row: row.row,
+          cells: row.cells.map((cell) => cell.slice(0, 200)),
+        })),
         mapping: detectImportMapping(table.columns),
       });
       for (
@@ -542,7 +541,7 @@ export function createImportWorker(
 ) {
   const name = deps.queueName ?? "shortn-imports",
     producer = deps.durable.duplicate({ maxRetriesPerRequest: 1 }),
-    consumer = deps.durable.duplicate({ maxRetriesPerRequest: null });
+    consumer = blockingQueueRedis(deps.durable);
   const queue = new Queue(name, { connection: producer }),
     worker = new Worker<{ id: string }>(
       name,
