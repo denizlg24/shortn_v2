@@ -384,6 +384,11 @@ export const webEnv = z
       "0",
       "Enable private CSV import dashboard flows; requires object storage and worker",
     ),
+    IMPORT_UPLOAD_PROXY_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Upload CSV through the authenticated app for storage gateways without browser CORS or conditional PUT",
+    ),
     QR_EXPORTS_ENABLED: value(
       z.enum(["0", "1"]).default("0"),
       "0",

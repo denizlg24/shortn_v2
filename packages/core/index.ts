@@ -47,6 +47,7 @@ export * from "./imports/quota";
 
 export * from "./imports/jobs";
 export * from "./imports/dashboard";
+export * from "./imports/upload";
 export * from "./exports/link-format";
 export * from "./exports/links";
 export * from "./exports/jobs";

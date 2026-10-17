@@ -16,6 +16,7 @@ import {
 } from "@shortn/core";
 import { serviceContext } from "../context";
 import { importStore } from "../imports";
+import { env } from "../env";
 
 const metadata = z
   .object({ bytes: z.number().int().positive(), kind: z.enum(["links", "qr"]) })
@@ -82,7 +83,13 @@ export async function prepareImportUploadAction(
   try {
     return await prepareImportUpload(
       ctx,
-      store.signImportUpload,
+      env().IMPORT_UPLOAD_PROXY_ENABLED === "1"
+        ? async (key) =>
+            `/api/imports/${encodeURIComponent(workspace)}/${key
+              .split("/")
+              .at(-1)!
+              .replace(/\.csv$/, "")}`
+        : store.signImportUpload,
       parsed.data.bytes,
       parsed.data.kind,
     );

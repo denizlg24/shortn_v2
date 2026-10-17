@@ -127,3 +127,12 @@ Concrete deployment sequence after approval:
 The earlier request for a staging target is resolved by this inspection. A
 staging test workspace, access path, live IdP test setup and deployment approval
 remain to be supplied or established before their dependent operations.
+
+
+### 2026-10-17 authorized staging deployment checkpoint
+
+P6 was published in PR #438 targeting `staging`. The existing production branch and deployments remain unchanged. CI passed all four jobs at `a5e0b2e`; the large campaign fixture and exhaustive QR rendering test now have explicit 30-second bounds instead of the default five seconds.
+
+The actual staging storage bucket passed authenticated reads, signed download privacy (200 signed / 403 unsigned) and a seven-MiB multipart round trip. Its gateway rejects browser CORS preflights and ignores conditional PUT. `IMPORT_UPLOAD_PROXY_ENABLED=1` provides a staging-only authenticated, same-origin CSV upload fallback: bodies are bounded to ten MiB, jobs are actor/workspace scoped, an atomic permanent claim prevents concurrent or later overwrites, and the worker checks the source hash before snapshotting. Failed/interrupted uploads require a fresh job. Direct presigned upload remains the default for compatible gateways.
+
+Staging-only API/MCP/webhook secrets and a 10% initial rollout were saved after environment-schema validation; imports, exports and QR exports are enabled. Runtime application and acceptance are still pending at this checkpoint. No production setting was changed.
