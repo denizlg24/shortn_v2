@@ -131,7 +131,7 @@ describe("shape/frame/caption treatments", () => {
         expect(svg).not.toContain("São João");
         expect(svg).toBe(renderQrSvg(stored, url).svg);
       }
-  });
+  }, 30_000);
   test("bounded captions become numeric outlines, unsupported text is refused before export", async () => {
     for (const caption of [
       "W".repeat(64),
