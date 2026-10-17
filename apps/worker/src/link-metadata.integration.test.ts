@@ -55,17 +55,15 @@ const mongo = process.env.MONGO_TEST_URL,
       };
       rateKeys.push(`links:metadata-rate:${workspace._id}:${userId}`);
       if (paid)
-        await db
-          .collection(physicalNames.subscriptions)
-          .insertOne({
-            workspaceId: workspace._id,
-            polarSubscriptionId: crypto.randomUUID(),
-            status: "active",
-            plan: "pro",
-            currentPeriodStart: new Date(Date.now() - 86400000),
-            currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
-            cancelAtPeriodEnd: false,
-          });
+        await db.collection(physicalNames.subscriptions).insertOne({
+          workspaceId: workspace._id,
+          polarSubscriptionId: crypto.randomUUID(),
+          status: "active",
+          plan: "pro",
+          currentPeriodStart: new Date(Date.now() - 86400000),
+          currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
+          cancelAtPeriodEnd: false,
+        });
       return ctx;
     }
     test("requests deduplicate per URL/actor/workspace, stay bounded and return only a safe title/key result", async () => {
@@ -301,13 +299,13 @@ const mongo = process.env.MONGO_TEST_URL,
         await db.collection(physicalNames.links).insertOne(link);
       expect(
         await suggestAvailableLinkKey(ctx, "https://example.com/launch"),
-      ).toMatch(/^launch-[a-zA-Z0-9]+$/);
+      ).toMatch(/^launch-[a-zA-Z0-9_-]{6}$/);
       expect(
         await suggestAvailableLinkKey(ctx, "https://example.com/alias"),
-      ).toMatch(/^alias-[a-zA-Z0-9]+$/);
+      ).toMatch(/^alias-[a-zA-Z0-9_-]{6}$/);
       expect(
         await suggestAvailableLinkKey(ctx, "https://example.com/trashed"),
-      ).toMatch(/^trashed-[a-zA-Z0-9]+$/);
+      ).toMatch(/^trashed-[a-zA-Z0-9_-]{6}$/);
       expect(
         await suggestAvailableLinkKey(ctx, "https://example.com/api"),
       ).not.toBe("api");
