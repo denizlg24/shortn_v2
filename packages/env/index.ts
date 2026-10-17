@@ -394,6 +394,9 @@ export const webEnv = z
       "0",
       "Enable private QR export dashboard flows; requires object storage and worker",
     ),
+    WEB_EDGE_AUTH_SECRET: secret(
+      "Shared edge proof for visitor addresses on edge-proxied public pages; unset uses CF-Connecting-IP",
+    ).optional(),
     ...common,
     ...platformApi,
     ...mcpOAuth,
