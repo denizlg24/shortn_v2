@@ -1,0 +1,430 @@
+{
+  "meta": {
+    "siteName": "Shortn",
+    "home": {
+      "title": "Shortn: short links, QR codes and bio pages",
+      "description": "Create short links, dynamic QR codes and link-in-bio pages, and count every click and scan in one dashboard. Free plan, no card required."
+    },
+    "features": {
+      "title": "Features",
+      "description": "Short links, dynamic QR codes for print, bio pages, campaigns, analytics, link safety and a public API with an MCP server."
+    },
+    "pricing": {
+      "title": "Pricing",
+      "description": "Free, Basic, Plus, Pro and Enterprise plans. Start free and upgrade when you need more links, seats or history."
+    },
+    "about": {
+      "title": "About",
+      "description": "Shortn is an independent link platform built in Portugal, used in production by Vida Económica since 2023."
+    },
+    "contact": {
+      "title": "Contact",
+      "description": "Questions about plans, Enterprise, invoices or your account. Send a message and we reply by email."
+    },
+    "abuse": {
+      "title": "Abuse policy",
+      "description": "How Shortn detects and handles harmful links, and how to report one."
+    },
+    "privacy": {
+      "title": "Privacy policy",
+      "description": "What Shortn collects, why, how long it is kept and how to exercise your rights."
+    },
+    "terms": {
+      "title": "Terms of service",
+      "description": "The terms that apply when you use Shortn."
+    },
+    "notFound": {
+      "title": "Page not found"
+    }
+  },
+  "nav": {
+    "label": "Main",
+    "home": "Shortn home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Docs",
+    "about": "About",
+    "contact": "Contact",
+    "signIn": "Sign in",
+    "getStarted": "Start for free",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to content"
+  },
+  "footer": {
+    "label": "Footer",
+    "tagline": "Short links, QR codes and bio pages for teams that publish in print and online.",
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "legal": "Legal",
+    "guides": "Guides",
+    "apiReference": "API reference",
+    "status": "Status",
+    "reportLink": "Report a link",
+    "abuse": "Abuse policy",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "copyright": "© {year} Shortn"
+  },
+  "locale": {
+    "label": "Language",
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "home": {
+    "hero": {
+      "title": "Every link you publish, in print and online",
+      "body": "Shortn makes short links, dynamic QR codes and link-in-bio pages, and counts every click and scan in one place.",
+      "primary": "Start for free",
+      "secondary": "See pricing",
+      "reassurance": "Free plan. No card required."
+    },
+    "demo": {
+      "label": "Paste a long link",
+      "placeholder": "https://example.com/a-very-long-address",
+      "submit": "Shorten",
+      "submitting": "Shortening…",
+      "resultLabel": "Your short link",
+      "copy": "Copy",
+      "copied": "Copied",
+      "open": "Open",
+      "qrAlt": "QR code for {url}",
+      "downloadQr": "Download QR code",
+      "expiry": "This demo link stops working in 24 hours. Create a free account to keep your links and see their clicks.",
+      "keep": "Create a free account",
+      "another": "Shorten another link",
+      "report": "Report this link",
+      "errors": {
+        "invalid": "Enter a full web address that starts with https:// or http://.",
+        "blocked": "We can't shorten this address because our safety check flagged it.",
+        "rateLimited": "You've made several demo links in a short time. Wait a few minutes, or create a free account.",
+        "capReached": "The demo has reached today's limit. Create a free account to keep shortening links.",
+        "challenge": "We couldn't confirm you're a person. Reload the page and try again.",
+        "unavailable": "The demo isn't working right now. Your free account works as usual."
+      }
+    },
+    "proof": {
+      "title": "Running Vida Económica's links since 2023",
+      "body": "The Portuguese business publisher uses Shortn for its website, its online bookshop and the QR codes in its printed agendas.",
+      "stats": {
+        "clicks": "clicks and scans counted",
+        "links": "short links created",
+        "qrCodes": "QR codes created",
+        "scans": "QR scans since {month}"
+      },
+      "source": "Vida Económica's workspace, measured {date}. Shared with their permission."
+    },
+    "print": {
+      "title": "Print a QR code once. Change where it goes any time.",
+      "body": "Every QR code points to a short link, so you can update the destination after the agenda, poster or packaging is printed. Scans and clicks are counted separately.",
+      "points": {
+        "formats": "Export SVG, PNG or PDF for print, with guidance on size and quiet zone.",
+        "style": "Add your colors, a frame, a caption or a logo.",
+        "bulk": "Download a whole selection of codes as one ZIP file."
+      }
+    },
+    "manage": {
+      "title": "Built for libraries of thousands of links",
+      "body": "Search, filter by tag and campaign, select across pages and change hundreds of links at once. Deleted links wait 30 days in the trash, and their keys are never handed to anyone else.",
+      "cta": "See all features"
+    },
+    "analytics": {
+      "title": "Know what each link did",
+      "body": "Clicks and scans by day, country, device, browser and referrer, for one link, a campaign or the whole workspace. Export the numbers as CSV whenever you need them."
+    },
+    "developers": {
+      "title": "An API for your code, an MCP server for your agents",
+      "body": "Create and manage links from your own systems with the REST API and webhooks, or let an AI assistant work through the MCP server with the permissions you grant.",
+      "cta": "Read the docs"
+    },
+    "pricing": {
+      "title": "Start free. Pay when you need more.",
+      "body": "The Free plan includes {links} links and {qrCodes} QR codes a month. Paid plans start at {price} a month.",
+      "cta": "Compare plans"
+    },
+    "cta": {
+      "title": "Make your first short link",
+      "body": "Takes less than a minute. Your links keep working if you change plans.",
+      "primary": "Start for free",
+      "secondary": "Talk to us"
+    }
+  },
+  "features": {
+    "title": "Everything Shortn does",
+    "intro": "Short links, QR codes, bio pages and campaigns share one library and one set of analytics.",
+    "toc": "On this page",
+    "links": {
+      "nav": "Short links",
+      "title": "Short links you can read out loud",
+      "body": "Choose your own key or take a random one. Edit the destination, title and tags later without changing the link.",
+      "points": {
+        "keys": "Custom keys, with suggestions from the page title",
+        "rules": "Expiry dates, schedules, click limits and a fallback address",
+        "targeting": "Send visitors to different destinations by device or country",
+        "rotation": "Split traffic between several destinations",
+        "deepLinks": "Open the app instead of the browser on phones",
+        "passwords": "Password-protected links",
+        "utm": "UTM parameters and query forwarding",
+        "trash": "A 30-day trash, and keys that are never reused"
+      }
+    },
+    "qr": {
+      "nav": "QR codes",
+      "title": "Dynamic QR codes made for print",
+      "body": "Every code points to a short link you can edit after printing. Shortn counts scans separately from clicks.",
+      "points": {
+        "formats": "SVG, PNG and PDF exports",
+        "print": "Print guidance for size, contrast and quiet zone",
+        "style": "Colors, frames, captions and logos",
+        "bulk": "ZIP export of any selection"
+      }
+    },
+    "bio": {
+      "nav": "Bio pages",
+      "title": "A link-in-bio page on your own address",
+      "body": "Put every link you share on one page at your handle, such as yourname.shortn.at, or on your own domain.",
+      "points": {
+        "blocks": "Links, text, images and embeds",
+        "themes": "Themes with contrast checked for readability",
+        "drafts": "Drafts, scheduled publishing and the last 20 versions",
+        "domains": "Your own domain with the custom-domain add-on"
+      }
+    },
+    "campaigns": {
+      "nav": "Campaigns",
+      "title": "Group links by campaign",
+      "body": "Put the links for a launch, an issue or an event in one campaign and read their results together.",
+      "points": {
+        "utm": "Shared UTM settings",
+        "results": "Campaign totals and per-link results",
+        "export": "Campaign export"
+      }
+    },
+    "analytics": {
+      "nav": "Analytics",
+      "title": "Clicks and scans, broken down",
+      "body": "See clicks and scans for a link, a campaign or the whole workspace, for any range your plan's history covers.",
+      "points": {
+        "breakdowns": "Country, city, device, browser, OS and referrer",
+        "scans": "QR scans counted apart from clicks",
+        "exports": "CSV exports of totals and raw events",
+        "privacy": "Visitor IP addresses are stored hashed, and raw addresses are deleted after 90 days"
+      }
+    },
+    "teams": {
+      "nav": "Teams",
+      "title": "Workspaces for the whole team",
+      "body": "Invite colleagues, give each one a role and keep separate workspaces for separate brands or clients.",
+      "points": {
+        "roles": "Owner, admin, member and viewer roles",
+        "security": "Two-factor authentication and passkeys",
+        "sso": "SAML and OIDC single sign-on on Enterprise",
+        "imports": "CSV import of up to 50,000 links, and full workspace export"
+      }
+    },
+    "developers": {
+      "nav": "API and MCP",
+      "title": "Built to be automated",
+      "body": "Everything you can do in the dashboard, your code can do through the API.",
+      "points": {
+        "api": "REST API with OpenAPI reference and scoped API keys",
+        "webhooks": "Signed webhooks for link, click, scan and publishing events",
+        "mcp": "MCP server for AI assistants, with OAuth consent per workspace",
+        "llms": "llms.txt so assistants can read the docs"
+      },
+      "cta": "Read the API docs"
+    },
+    "safety": {
+      "nav": "Link safety",
+      "title": "Safe for the people who click",
+      "body": "Shortn checks destinations for known threats, warns visitors before suspicious pages and lets anyone report a link.",
+      "points": {
+        "scanning": "Automatic checks of destinations against known threats",
+        "interstitial": "A warning page that shows the full destination",
+        "reports": "Anyone can report a link, and three reports switch it off until it is reviewed"
+      }
+    },
+    "cta": {
+      "title": "Try it with your own links",
+      "body": "Start on the Free plan. Upgrade when you need custom keys, campaigns or longer history.",
+      "primary": "Start for free",
+      "secondary": "Compare plans"
+    }
+  },
+  "pricing": {
+    "title": "Plans for one person or a whole newsroom",
+    "intro": "Start free. Upgrade, downgrade or cancel from your billing settings at any time.",
+    "currencyNote": "Prices are in US dollars and billed monthly. We show a euro estimate at the latest European Central Bank rate. Taxes may apply.",
+    "eurEstimate": "≈ {eur} a month",
+    "perMonth": "{price} / month",
+    "custom": "Custom pricing",
+    "recommended": "Recommended",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "summary": "For trying Shortn with a few links.",
+        "cta": "Start for free"
+      },
+      "basic": {
+        "name": "Basic",
+        "summary": "For one person who shares links every week.",
+        "cta": "Choose Basic"
+      },
+      "plus": {
+        "name": "Plus",
+        "summary": "For small teams that run campaigns.",
+        "cta": "Choose Plus"
+      },
+      "pro": {
+        "name": "Pro",
+        "summary": "For publishers and marketing teams with large libraries.",
+        "cta": "Choose Pro"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "summary": "For organizations that need single sign-on and no limits.",
+        "cta": "Contact us"
+      }
+    },
+    "limits": {
+      "links": "{count, plural, one {# link} other {# links}} a month",
+      "qrCodes": "{count, plural, one {# QR code} other {# QR codes}} a month",
+      "bioPages": "{count, plural, one {# bio page} other {# bio pages}}",
+      "seats": "{count, plural, one {# seat} other {# seats}}",
+      "workspaces": "{count, plural, one {# workspace} other {# workspaces}}",
+      "analyticsDays": "{count, plural, one {# day} other {# days}} of analytics history",
+      "apiPerMinute": "{count, plural, one {# API request} other {# API requests}} a minute",
+      "unlimitedLinks": "Unlimited links",
+      "unlimitedQrCodes": "Unlimited QR codes",
+      "unlimitedBioPages": "Unlimited bio pages",
+      "unlimitedSeats": "Unlimited seats",
+      "unlimitedWorkspaces": "Unlimited workspaces",
+      "unlimitedAnalytics": "All-time analytics history",
+      "unlimitedApi": "Custom API rate limits",
+      "noApi": "No API access"
+    },
+    "featureNames": {
+      "customKeys": "Custom keys",
+      "passwords": "Password-protected links",
+      "campaigns": "Campaigns",
+      "campaignExport": "Campaign export",
+      "analyticsBreakdowns": "Analytics breakdowns",
+      "csvExport": "CSV export",
+      "qrLogo": "Logo in QR codes",
+      "api": "REST API",
+      "mcp": "MCP server",
+      "sso": "Single sign-on (SAML, OIDC)"
+    },
+    "compare": {
+      "title": "Compare plans",
+      "feature": "Feature",
+      "included": "Included",
+      "notIncluded": "Not included"
+    },
+    "addon": {
+      "title": "Custom-domain add-on",
+      "body": "Serve short links and bio pages from your own domain. Each add-on covers one domain and is billed separately from your plan."
+    },
+    "faq": {
+      "title": "Questions",
+      "limits": {
+        "question": "What happens when I reach my monthly limit?",
+        "answer": "Your existing links keep working. You can create new links and QR codes again when your billing period resets, or upgrade straight away."
+      },
+      "downgrade": {
+        "question": "Do my links stop working if I downgrade or cancel?",
+        "answer": "No. Links and QR codes you already created keep redirecting on every plan."
+      },
+      "currency": {
+        "question": "Why are prices in US dollars?",
+        "answer": "Our payment provider bills in US dollars. Your bank converts the amount, so the euro figure we show is an estimate."
+      },
+      "invoices": {
+        "question": "Can I get an invoice with my company details?",
+        "answer": "Yes. Add your company name and tax ID at checkout, and your invoices will include them."
+      },
+      "enterprise": {
+        "question": "What does Enterprise include?",
+        "answer": "No limits on links, seats or workspaces, single sign-on, custom API limits and an agreed price. Contact us to set it up."
+      }
+    }
+  },
+  "about": {
+    "title": "An independent link platform, built in Portugal",
+    "intro": "Shortn started in 2023 to handle the links for Vida Económica, a Portuguese business publisher. It has run their web and print links ever since.",
+    "principles": {
+      "title": "How we build it",
+      "honest": {
+        "title": "Honest by default",
+        "body": "Prices are on the page, you can cancel from your billing settings, and there are no dark patterns in checkout."
+      },
+      "durable": {
+        "title": "Links that last",
+        "body": "A printed QR code can stay on a shelf for years, so we never reuse a key and links keep working after you change plans."
+      },
+      "private": {
+        "title": "Careful with visitor data",
+        "body": "We store visitor IP addresses hashed and delete the raw addresses after 90 days. We don't sell data."
+      },
+      "open": {
+        "title": "Open to your tools",
+        "body": "A public API, webhooks and an MCP server, documented in the open."
+      }
+    },
+    "languages": "Shortn is available in English, Portuguese and Spanish.",
+    "cta": "Talk to us"
+  },
+  "contact": {
+    "title": "Contact us",
+    "intro": "Ask about plans, Enterprise, invoices or your account. We reply by email.",
+    "abuse": "To report a harmful link, use the <link>report form</link> instead. It reaches the review queue directly.",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "company": "Company",
+      "optional": "Optional",
+      "topic": "Topic",
+      "topics": {
+        "sales": "Plans and Enterprise",
+        "billing": "Billing and invoices",
+        "account": "My account",
+        "other": "Something else"
+      },
+      "message": "Message",
+      "messageHint": "{count} of {max} characters",
+      "submit": "Send message",
+      "submitting": "Sending…",
+      "errors": {
+        "nameRequired": "Enter your name.",
+        "emailInvalid": "Enter an email address like name@example.com.",
+        "messageShort": "Write at least {min} characters so we can help.",
+        "messageLong": "Shorten your message to {max} characters or fewer.",
+        "challenge": "We couldn't confirm you're a person. Reload the page and try again.",
+        "rateLimited": "You've sent several messages in a short time. Wait a few minutes, then try again.",
+        "failed": "Your message wasn't sent. Try again, or email us at {email}."
+      },
+      "success": {
+        "title": "Message sent",
+        "body": "We've emailed a copy to {email}. Your reference is {reference}.",
+        "another": "Send another message"
+      }
+    }
+  },
+  "abuse": {
+    "authoritative": "This policy is published in English. The English text is the version that applies.",
+    "report": "Report a link"
+  },
+  "legal": {
+    "updated": "Last updated {date}",
+    "authoritative": "This document is published in English. The English text is the version that applies.",
+    "contents": "Contents"
+  },
+  "notFound": {
+    "title": "We couldn't find that page",
+    "body": "The address may be mistyped, or the page has moved.",
+    "home": "Go to the home page",
+    "shortLink": "Looking for a short link? Check the key after shortn.at/ for typos."
+  }
+}

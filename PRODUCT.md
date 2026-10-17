@@ -22,7 +22,7 @@ Create, manage and measure every link an organization shares, in print and digit
 
 ## Positioning
 
-- EU / Portuguese-first: EU-hosted, GDPR-clean analytics, native pt/es/en, priced in EUR.
+- EU / Portuguese-first: GDPR-clean analytics, native pt/es/en. Billed in USD with a euro estimate (checkout currency); hosting location is not yet documented, so it is not claimed.
 - All-in-one for print + digital: links, print QR, bio pages and campaigns share one data model and one analytics view.
 - Fast and honest: instant redirects, transparent link safety (scanning, interstitials, reports), no dark patterns in billing.
 - Developer- and AI-friendly: public API, API keys, webhooks, MCP server and llms.txt are first-class.
@@ -30,7 +30,7 @@ Create, manage and measure every link an organization shares, in print and digit
 ## Evidence
 
 - Serving Vida Económica in production.
-- 2.4M+ clicks delivered (per README; re-verify the figure from the database before publishing it).
+- 160,000+ clicks and scans counted for Vida Económica, 2,600+ links, 540 QR codes, 14,000+ QR scans since January 2026 (measured 2026-10-17; definitions in docs/rebuild/21-marketing-content.md §5). The older "2.4M+ clicks" figure was false.
 
 ## Brand commitments
 
