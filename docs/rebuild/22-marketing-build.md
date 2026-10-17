@@ -26,7 +26,8 @@ Production is untouched. Its cutover needs the P4–P6 production promotion
   `apps/web/.impeccable/surfaces/apps-web-src-app-5fmarketing-locale-page-tsx.md`.
   The run was unattended (owner goal 2026-10-17), so it adopted the dealt
   lead without a decision page.
-- Display face: **Schibsted Grotesk 800** (12 updated). Navy `.band` fields
+- Display face: **Schibsted Grotesk 800** (12 updated), served through
+  `next/font/local` (latin, variable) with a metric-matched fallback. Navy `.band` fields
   remap the tokens for the page head, proof and close bands. Reading bands are
   white or dark navy, separated by hairlines.
 - Signature interaction: the demo link object. The key writes itself in and
@@ -142,7 +143,29 @@ Staging only:
 Production `wrangler.toml` vars are unchanged; the flag is documented there
 as a comment.
 
-## 3. Production checklist (not done; owner authorization required)
+## 3. Gate evidence (staging, 2026-10-17)
+
+All runs below were made through the staging edge Worker
+(`https://staging.shortn.at`, Worker version `7bb3f709`) against web `0fa9fd4`.
+
+| Gate (20 §5) | Evidence |
+| --- | --- |
+| M.2 approved review artifacts | `.impeccable/review/pm-marketing/`: 15 captures, `finish-review.md` (two rounds), `seed.md`. `apps/web/DESIGN.md` and `.impeccable/design.json` written. 12 updated with the face |
+| M.3 crawl | `MARKETING_ORIGIN=https://staging.shortn.at bun --no-env-file apps/web/e2e/marketing.local.ts`: 173 checks pass. Every sitemap URL (24 pages + 36 guides + `/docs`) returns 200. Every page is self-canonical with reciprocal en/pt/es hreflang and `x-default`. `/` negotiates the locale. Unit tests in `lib/marketing/*.test.ts` |
+| M.4 Lighthouse mobile ≥ 95 | Median of 3 runs: home **0.95** (0.90/0.95/0.95), pricing **0.95** (0.96/0.94/0.95). Accessibility and SEO 1.00 on home, pricing, `/pt` and `/es/features`. Best practices 0.82 comes only from the challenge script Cloudflare injects into the zone (1.00 with `/cdn-cgi/challenge-platform` blocked). No overflow at 390 px on all 24 pages |
+| M.5 abuse controls | On staging: a bogus Turnstile token gets `403 challenge` from the real widget; a burst of 12 posts gets 10 × app response then `429` from the Workers rate limiter. Locally (`marketing.local.ts`): origin, invalid URL, unsafe destination, per-visitor limit, daily cap and stored shape. `demo.integration.test.ts`: untracked, click cap, 24 h expiry, key kept. Browser run with Cloudflare's test keys (swapped in for the run, then reverted): `staging.shortn.at/ALMzvmYH` was created and 302s to its destination |
+| M.6 help URLs | Every `/{l}/help/**` URL 301s in one hop to a guide that returns 200 (or to pricing for plans-pricing). `bun run check:llms` passes |
+| M.7 contact | `CT-20261017-KJDFW` was stored in `contacts`. The pt confirmation and the `[Contact · Billing and invoices]` notification were both delivered to `support@shortn.at`, the only non-`@denizlg24.com` address added to the staging `MAIL_ALLOWLIST` |
+| M.8 auth redirects | `/pt/reset?token=…` → app `/reset?token=…` (200); `/en/verify?token=…` → app `/verify` (200); `/es/verify/request-change?token=…` → app `verify-email` → `/verify?error=INVALID_TOKEN` (200); `/en/auth/error?error=…` → app `/login?error=…` (200). One 301 hop each |
+| M.9 staging cutover | `bun run --cwd apps/edge deploy:staging` with `MARKETING_ENABLED=1` and `FORM_RATE_LIMITER`. Rollback: unset the flag and redeploy. The 5xx fall-back to legacy is unit-tested |
+
+Staging configuration added on the web target:
+
+- `MARKETING_DEMO_ENABLED=1`, `MARKETING_DEMO_DAILY_CAP=100`;
+- Turnstile widget `shortn-staging-marketing` (sitekey `0x4AAAAAAFZPQ8qeBDTnFHP9`, domains staging and app-staging);
+- `CONTACT_INBOX=support@shortn.at`, with `support@shortn.at` added to `MAIL_ALLOWLIST`.
+
+## 4. Production checklist (not done; owner authorization required)
 
 1. Promote P4–P6 to production and reach 100% (21 §8).
 2. On the production web target:
