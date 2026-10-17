@@ -85,9 +85,14 @@ export function HeroStage({
   const inputId = useId();
   const errorId = useId();
   const challengeFailed = useCallback(() => setError("challenge"), []);
+  const [engaged, setEngaged] = useState(false);
   const turnstile = useTurnstile(
     widget,
-    { siteKey: demo?.siteKey ?? null, action: "demo", locale },
+    {
+      siteKey: engaged ? (demo?.siteKey ?? null) : null,
+      action: "demo",
+      locale,
+    },
     challengeFailed,
   );
 
@@ -100,13 +105,15 @@ export function HeroStage({
       input.current?.focus();
       return;
     }
-    const token = turnstile.token();
-    if (!token) {
-      setError("challenge");
-      return;
-    }
+    setEngaged(true);
     setPending(true);
     setError(null);
+    const token = await turnstile.token();
+    if (!token) {
+      setError("challenge");
+      setPending(false);
+      return;
+    }
     try {
       const response = await fetch(`/${locale}/demo`, {
         method: "POST",
@@ -172,6 +179,7 @@ export function HeroStage({
           ) : (
             <form
               onSubmit={submit}
+              onFocusCapture={() => setEngaged(true)}
               noValidate
               className="mt-9 flex max-w-[34rem] flex-col gap-3"
             >

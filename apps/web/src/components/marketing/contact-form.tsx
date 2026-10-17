@@ -47,9 +47,10 @@ export function ContactForm({
   const heading = useRef<HTMLHeadingElement>(null);
   const id = useId();
   const challengeFailed = useCallback(() => setFormError("challenge"), []);
+  const [engaged, setEngaged] = useState(false);
   const turnstile = useTurnstile(
     widget,
-    { siteKey, action: "contact", locale },
+    { siteKey: engaged ? siteKey : null, action: "contact", locale },
     challengeFailed,
   );
 
@@ -72,13 +73,15 @@ export function ContactForm({
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (pending || !validate()) return;
-    const token = turnstile.token();
-    if (!token) {
-      setFormError("challenge");
-      return;
-    }
+    setEngaged(true);
     setPending(true);
     setFormError(null);
+    const token = await turnstile.token();
+    if (!token) {
+      setFormError("challenge");
+      setPending(false);
+      return;
+    }
     try {
       const response = await fetch(`/${locale}/contact/send`, {
         method: "POST",
@@ -164,7 +167,12 @@ export function ContactForm({
   const length = values.message.trim().length;
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-5">
+    <form
+      onSubmit={submit}
+      onFocusCapture={() => setEngaged(true)}
+      noValidate
+      className="flex flex-col gap-5"
+    >
       <div className="grid gap-5 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`${id}-name`} className="text-small font-medium">

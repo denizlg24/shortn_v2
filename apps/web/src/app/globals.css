@@ -10,8 +10,7 @@ body {
 
 /* Marketing display scale (12: display sizes are marketing-only). */
 @theme inline {
-  --font-display:
-    "Schibsted Grotesk Variable", "Schibsted Grotesk", var(--font-ui);
+  --font-display: var(--font-display-face), var(--font-ui);
   --text-display: clamp(2.375rem, 1.55rem + 3.4vw, 4.5rem);
   --text-display--line-height: 1.02;
   --text-headline: clamp(1.875rem, 1.45rem + 1.7vw, 3rem);

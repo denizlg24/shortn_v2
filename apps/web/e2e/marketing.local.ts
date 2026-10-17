@@ -101,7 +101,7 @@ check(
 );
 check((await get("/en/no-such-page")).status === 404, "unknown pages are 404");
 check(
-  (await get("/_marketing/en")).status === 404,
+  (await fetch(new URL("/_marketing/en", origin))).status === 404,
   "internal paths are hidden",
 );
 const root = await get("/", { headers: { "accept-language": "pt-PT,pt" } });
