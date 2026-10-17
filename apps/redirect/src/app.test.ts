@@ -609,3 +609,18 @@ test("the original-host header grants no authority without edge authentication",
   ).toBe(302);
   expect(direct.resolved).toEqual(["shortn.at/abc"]);
 });
+
+test("click addresses come from the edge header only after edge authentication", async () => {
+  const proxied = {
+    "cf-connecting-ip": "2a06:98c0:3600::103",
+    "x-shortn-client-ip": "203.0.113.7",
+  };
+  const { app, enqueued } = setup({ edgeAuthSecret: "synthetic-edge-secret" });
+  await app.request("/abc", {
+    headers: { ...proxied, "x-edge-auth": "synthetic-edge-secret" },
+  });
+  expect(enqueued.at(-1)?.ip).toBe("203.0.113.7");
+  const direct = setup();
+  await direct.app.request("/abc", { headers: proxied });
+  expect(direct.enqueued.at(-1)?.ip).toBe("2a06:98c0:3600::103");
+});

@@ -251,6 +251,16 @@ test("click messages round-trip and request fields are bounded", () => {
   expect(
     requestClickFields(new Headers({ "cf-connecting-ip": "evil" })).ip,
   ).toBeUndefined();
+  const proxied = new Headers({
+    "cf-connecting-ip": "2a06:98c0:3600::103",
+    "x-shortn-client-ip": "203.0.113.7",
+  });
+  expect(requestClickFields(proxied, true).ip).toBe("203.0.113.7");
+  expect(requestClickFields(proxied).ip).toBe("2a06:98c0:3600::103");
+  expect(
+    requestClickFields(new Headers({ "cf-connecting-ip": "203.0.113.9" }), true)
+      .ip,
+  ).toBe("203.0.113.9");
   const query = new URLSearchParams(
     Array.from({ length: 60 }, (_, i): [string, string] => [
       `k${i}`,

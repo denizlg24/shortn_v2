@@ -111,13 +111,21 @@ type RequestField =
   | "requestId";
 
 // Cloudflare is the only ingress (tunnel → Caddy), so its headers are trusted.
+// Behind the edge Worker, CF-Connecting-IP is the Worker's egress address; the
+// edge's x-shortn-client-ip is honoured only once the caller proved edge auth.
 export function requestClickFields(
   headers: HeaderReader,
+  edgeAuthenticated = false,
 ): Partial<Record<RequestField, string>> {
   const entries: [RequestField, string | undefined][] = [
     [
       "ip",
-      normalizeIp(first(headers, "cf-connecting-ipv6", "cf-connecting-ip")),
+      normalizeIp(
+        (edgeAuthenticated
+          ? first(headers, "x-shortn-client-ip")
+          : undefined) ??
+          first(headers, "cf-connecting-ipv6", "cf-connecting-ip"),
+      ),
     ],
     ["ua", cut(first(headers, "user-agent"), 2000)],
     ["referrer", cut(first(headers, "referer"), 4000)],
