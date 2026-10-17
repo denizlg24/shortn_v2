@@ -1,3 +1,4 @@
+import { blockingQueueRedis } from "./queue-redis";
 import { flushWebhookClicks } from "./webhook-clicks";
 import { fanoutWebhookEvents } from "./webhook-events";
 import { Queue, Worker } from "bullmq";
@@ -192,7 +193,7 @@ export function createWebhookWorker(deps: {
   log: (message: string, error?: unknown) => void;
 }) {
   const name = deps.queueName ?? "shortn-webhooks";
-  const connection = deps.durable.duplicate({ maxRetriesPerRequest: null });
+  const connection = blockingQueueRedis(deps.durable);
   // Blocking consumers retry indefinitely; the producer must return queue errors
   // so the Mongo outbox can be retried and shutdown can finish.
   const producer = deps.durable.duplicate({ maxRetriesPerRequest: 1 });

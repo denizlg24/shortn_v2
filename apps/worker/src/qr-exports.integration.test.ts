@@ -276,13 +276,22 @@ const mongo = process.env.MONGO_TEST_URL,
       const { ctx, qr } = await fixture(),
         memory = store(),
         job = await requested(ctx, qr.id, "png");
+      const bounded = durable.duplicate({ commandTimeout: 1000 });
+      const errors: unknown[] = [];
       const worker = createQrExportWorker({
         ...dependencies(memory.value),
-        durable,
+        durable: bounded,
         queueName: `qr-export-test-${crypto.randomUUID()}`,
-        log: () => {},
+        log: (_message, error) => {
+          if (error) errors.push(error);
+        },
       });
       try {
+        // Production parents have a command timeout. Blocking consumers must
+        // survive an idle interval longer than that bound, then process work.
+        await worker.worker.waitUntilReady();
+        await Bun.sleep(1300);
+        expect(errors).toHaveLength(0);
         await worker.pump();
         const deadline = Date.now() + 15_000;
         while (
@@ -295,6 +304,7 @@ const mongo = process.env.MONGO_TEST_URL,
       } finally {
         await worker.queue.obliterate({ force: true });
         await worker.close();
+        bounded.disconnect();
       }
     }, 20_000);
   },

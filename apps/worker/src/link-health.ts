@@ -1,3 +1,4 @@
+import { blockingQueueRedis } from "./queue-redis";
 import { randomUUID } from "node:crypto";
 import { ObjectId, type Db, type Document } from "mongodb";
 import type { Redis } from "ioredis";
@@ -160,7 +161,7 @@ export function createHealthWorker(
   },
 ) {
   const name = deps.queueName ?? "shortn-link-health",
-    consumer = deps.durable.duplicate({ maxRetriesPerRequest: null }),
+    consumer = blockingQueueRedis(deps.durable),
     producer = deps.durable.duplicate({ maxRetriesPerRequest: 1 });
   const queue = new Queue(name, { connection: producer });
   const worker = new Worker<{

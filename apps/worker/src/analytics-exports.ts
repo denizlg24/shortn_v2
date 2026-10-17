@@ -1,3 +1,4 @@
+import { blockingQueueRedis } from "./queue-redis";
 import { randomUUID } from "node:crypto";
 import { ObjectId, type Db } from "mongodb";
 import { Queue, Worker } from "bullmq";
@@ -174,7 +175,7 @@ export function createAnalyticsExportWorker(
 ) {
   const name = deps.queueName ?? "shortn-analytics-exports",
     producer = deps.durable.duplicate({ maxRetriesPerRequest: 1 }),
-    consumer = deps.durable.duplicate({ maxRetriesPerRequest: null });
+    consumer = blockingQueueRedis(deps.durable);
   const queue = new Queue(name, { connection: producer }),
     worker = new Worker<{ id: string }>(
       name,
