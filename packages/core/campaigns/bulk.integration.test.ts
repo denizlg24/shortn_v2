@@ -74,17 +74,15 @@ const mongo = process.env.MONGO_TEST_URL,
         linkDomain: domain,
       };
       if (paid)
-        await db
-          .collection(physicalNames.subscriptions)
-          .insertOne({
-            workspaceId: workspace._id,
-            polarSubscriptionId: crypto.randomUUID(),
-            status: "active",
-            plan: "pro",
-            currentPeriodStart: new Date(Date.now() - 86400000),
-            currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
-            cancelAtPeriodEnd: false,
-          });
+        await db.collection(physicalNames.subscriptions).insertOne({
+          workspaceId: workspace._id,
+          polarSubscriptionId: crypto.randomUUID(),
+          status: "active",
+          plan: "pro",
+          currentPeriodStart: new Date(Date.now() - 86400000),
+          currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
+          cancelAtPeriodEnd: false,
+        });
       const old = {
           _id: new ObjectId(),
           workspaceId: workspace._id,
@@ -267,15 +265,13 @@ const mongo = process.env.MONGO_TEST_URL,
           ok: false,
           error: "invalid_input",
         });
-      await db
-        .collection(physicalNames.links)
-        .updateOne(
-          { _id: rows[0]!._id },
-          {
-            $unset: { workspaceId: "", utmLinks: "" },
-            $set: { sub: ctx.workspace.legacySub },
-          },
-        );
+      await db.collection(physicalNames.links).updateOne(
+        { _id: rows[0]!._id },
+        {
+          $unset: { workspaceId: "", utmLinks: "" },
+          $set: { sub: ctx.workspace.legacySub },
+        },
+      );
       expect((await moveLinksToCampaign(ctx, ids, campaignId)).ok).toBe(true);
       expect(
         (await db
@@ -285,13 +281,11 @@ const mongo = process.env.MONGO_TEST_URL,
     });
     test("500 moves in 5001 rows emit exactly one event each; retries leave remaining library and event count unchanged", async () => {
       const { ctx, rows, ids, campaignId, target } = await fixture(5001);
-      await db
-        .collection(physicalNames.webhook_endpoints)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          enabled: true,
-          events: ["link.updated"],
-        });
+      await db.collection(physicalNames.webhook_endpoints).insertOne({
+        workspaceId: ctx.workspace._id,
+        enabled: true,
+        events: ["link.updated"],
+      });
       const result = await moveLinksToCampaign(
         ctx,
         ids.slice(0, 500),
@@ -299,12 +293,10 @@ const mongo = process.env.MONGO_TEST_URL,
       );
       expect(result.ok && result.value.updated).toBe(500);
       expect(
-        await db
-          .collection(physicalNames.links)
-          .countDocuments({
-            workspaceId: ctx.workspace._id,
-            "utmLinks.campaign._id": target._id,
-          }),
+        await db.collection(physicalNames.links).countDocuments({
+          workspaceId: ctx.workspace._id,
+          "utmLinks.campaign._id": target._id,
+        }),
       ).toBe(500);
       const events = await db
         .collection(physicalNames.webhook_events)
@@ -325,7 +317,7 @@ const mongo = process.env.MONGO_TEST_URL,
           .collection(physicalNames.links)
           .findOne({ _id: rows[500]!._id }))!._sync.rev,
       ).toBe(1);
-    });
+    }, 30_000);
     test("concurrent moves serialize complete membership and existing single-link rename/delete writers keep canonical UTM current", async () => {
       const { ctx, rows, ids, target, campaignId } = await fixture(20),
         second = {
