@@ -37,11 +37,16 @@ function load(): Promise<TurnstileApi> {
 }
 
 export interface TurnstileHandle {
-  token: () => string | undefined;
+  /** Resolves once Cloudflare has issued a token, or undefined after 8 s. */
+  token: () => Promise<string | undefined>;
   reset: () => void;
 }
 
-/** Cloudflare Turnstile, shown only when Cloudflare needs an interaction. */
+/**
+ * Cloudflare Turnstile, shown only when Cloudflare needs an interaction.
+ * Pass a null site key until the visitor engages with the form, so the
+ * script never loads for visitors who only read the page.
+ */
 export function useTurnstile(
   element: RefObject<HTMLElement | null>,
   options: { siteKey: string | null; action: string; locale: string },
@@ -72,10 +77,16 @@ export function useTurnstile(
     };
   }, [element, siteKey, action, locale, onError]);
   return {
-    token: () =>
-      widget.current
-        ? window.turnstile?.getResponse(widget.current)
-        : undefined,
+    token: async () => {
+      for (let waited = 0; waited <= 8000; waited += 250) {
+        const value = widget.current
+          ? window.turnstile?.getResponse(widget.current)
+          : undefined;
+        if (value) return value;
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+      return undefined;
+    },
     reset: () => {
       if (widget.current) window.turnstile?.reset(widget.current);
     },
