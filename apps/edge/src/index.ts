@@ -58,6 +58,7 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
   if (ray) headers.set("x-request-id", ray);
   if (env.EDGE_AUTH_SECRET) headers.set("x-edge-auth", env.EDGE_AUTH_SECRET);
   headers.set("x-forwarded-host", source.host);
+  headers.set("x-shortn-forwarded-host", source.host);
   return new Request(target.toString(), {
     method: request.method,
     headers,
@@ -98,6 +99,7 @@ export function toWebOrigin(
   headers.delete("x-bio-auth");
   headers.delete("x-shortn-public-bio");
   headers.set("x-forwarded-host", source.host);
+  headers.set("x-shortn-forwarded-host", source.host);
   headers.delete("host");
   return new Request(target.toString(), {
     method: request.method,

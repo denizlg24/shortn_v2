@@ -141,6 +141,7 @@ test("with the P4 column, public link pages go to web and dashboards to the hand
   expect(post.status).toBe(303);
   expect(webSeen[0]?.url).toBe("https://app.shortn.at/authenticate/abc");
   expect(webSeen[0]?.headers.get("x-forwarded-host")).toBe("shortn.at");
+  expect(webSeen[0]?.headers.get("x-shortn-forwarded-host")).toBe("shortn.at");
   expect(await webSeen[0]?.text()).toBe("password=x");
   await handler(new Request("https://shortn.at/pt/safety/abc"), p4);
   expect(webSeen[1]?.url).toBe("https://app.shortn.at/pt/safety/abc");

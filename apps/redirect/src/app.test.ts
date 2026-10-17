@@ -575,3 +575,37 @@ test("social bots receive escaped OG HTML; humans/search bots redirect and all p
   }
   expect(messages.at(-1)!.bot).toBe(true);
 });
+
+test("authenticated original hosts survive a reverse proxy rewriting X-Forwarded-Host", async () => {
+  const { app, resolved } = setup({ edgeAuthSecret: "synthetic-edge-secret" });
+  const response = await app.request("/abc", {
+    headers: {
+      "x-edge-auth": "synthetic-edge-secret",
+      "x-forwarded-host": "shortn-redirect.denizlg24.com",
+      "x-shortn-forwarded-host": "shortn.at",
+    },
+  });
+  expect(response.status).toBe(302);
+  expect(resolved).toEqual(["shortn.at/abc"]);
+});
+
+test("the original-host header grants no authority without edge authentication", async () => {
+  const { app, resolved } = setup({ edgeAuthSecret: "synthetic-edge-secret" });
+  const response = await app.request("/abc", {
+    headers: {
+      "x-forwarded-host": "shortn.at",
+      "x-shortn-forwarded-host": "shortn.at",
+    },
+  });
+  expect(response.status).toBe(403);
+  expect(resolved).toEqual([]);
+  const direct = setup();
+  expect(
+    (
+      await direct.app.request("/abc", {
+        headers: { "x-shortn-forwarded-host": "evil.example" },
+      })
+    ).status,
+  ).toBe(302);
+  expect(direct.resolved).toEqual(["shortn.at/abc"]);
+});
