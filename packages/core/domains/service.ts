@@ -1,7 +1,12 @@
+import {
+  withMutation,
+  recordWebhookEvent,
+  linkEventData,
+} from "../webhooks/events";
 import { loadEntitlements, paidStatuses } from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
 import { invalidateLinks } from "@shortn/redis";
-import { ObjectId, type Db, type Document } from "mongodb";
+import { ObjectId, type Db, type Document, type ClientSession } from "mongodb";
 import { z } from "zod";
 import { fail, ok } from "../result";
 import { can } from "../workspaces/authz";
@@ -106,7 +111,7 @@ export async function domainAllowance(db: Db, workspaceId: ObjectId) {
     .toArray();
   return subscriptions.length;
 }
-const addDomainSchema = z.object({
+export const addDomainSchema = z.object({
   hostname: z.string().max(253),
   kind: z.enum(["links", "bio", "both"]),
   bioPageId: z
@@ -134,12 +139,10 @@ export async function addDomain(
     return fail("bio_not_found" as const);
   if (
     checked.data.bioPageId &&
-    (await ctx.db
-      .collection(physicalNames.domains)
-      .findOne({
-        bioPageId: new ObjectId(checked.data.bioPageId),
-        status: { $ne: "disabled" },
-      }))
+    (await ctx.db.collection(physicalNames.domains).findOne({
+      bioPageId: new ObjectId(checked.data.bioPageId),
+      status: { $ne: "disabled" },
+    }))
   )
     return fail("bio_domain_taken" as const);
   const allowance = await domainAllowance(ctx.db, ctx.workspace._id);
@@ -168,23 +171,21 @@ export async function addDomain(
   const now = nowOf(ctx);
   // Reserve before calling a paid provider. The polling job retries uncertain requests by hostname.
   try {
-    const result = await ctx.db
-      .collection(physicalNames.domains)
-      .insertOne({
-        ...checked.data,
-        hostname,
-        ...(checked.data.bioPageId
-          ? { bioPageId: new ObjectId(checked.data.bioPageId) }
-          : {}),
-        workspaceId: ctx.workspace._id,
-        addonSubscriptionId: slot.polarSubscriptionId,
-        status: "pending",
-        verification: { type: "cname" },
-        attempts: 0,
-        nextAttemptAt: now,
-        createdAt: now,
-        updatedAt: now,
-      });
+    const result = await ctx.db.collection(physicalNames.domains).insertOne({
+      ...checked.data,
+      hostname,
+      ...(checked.data.bioPageId
+        ? { bioPageId: new ObjectId(checked.data.bioPageId) }
+        : {}),
+      workspaceId: ctx.workspace._id,
+      addonSubscriptionId: slot.polarSubscriptionId,
+      status: "pending",
+      verification: { type: "cname" },
+      attempts: 0,
+      nextAttemptAt: now,
+      createdAt: now,
+      updatedAt: now,
+    });
     return ok({ id: String(result.insertedId) });
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === 11000)
@@ -200,16 +201,22 @@ export async function listDomains(
     .find({ workspaceId: ctx.workspace._id })
     .sort({ createdAt: -1 })
     .toArray();
-  return domains.map((d) => ({
+  return domains.map(domainView);
+}
+
+function domainView(d: Document) {
+  const verification = d.verification as
+    { type?: string; name?: string; value?: string } | undefined;
+  return {
     id: String(d._id),
     hostname: String(d.hostname),
     kind: String(d.kind),
     status: String(d.status),
     error: String(d.lastError ?? ""),
-    verification: d.verification as {
-      type: string;
-      name?: string;
-      value?: string;
+    verification: {
+      type: verification?.type ?? "cname",
+      ...(verification?.name ? { name: verification.name } : {}),
+      ...(verification?.value ? { value: verification.value } : {}),
     },
     validationRecords: (d.validationRecords ?? []) as {
       txt_name?: string;
@@ -217,44 +224,118 @@ export async function listDomains(
     }[],
     removing: d.removing === true,
     bioPageId: d.bioPageId ? String(d.bioPageId) : undefined,
-  }));
+    createdAt: d.createdAt instanceof Date ? d.createdAt.toISOString() : null,
+    updatedAt: d.updatedAt instanceof Date ? d.updatedAt.toISOString() : null,
+  };
 }
+
+export async function getDomain(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  id: string,
+) {
+  const _id = parseObjectId(id);
+  if (!_id) return null;
+  const domain = await ctx.db
+    .collection(physicalNames.domains)
+    .findOne({ _id, workspaceId: ctx.workspace._id });
+  return domain ? domainView(domain) : null;
+}
+
+const domainPageInput = z.object({
+  cursor: z
+    .string()
+    .regex(/^[a-f\d]{24}$/i)
+    .optional(),
+  limit: z.number().int().min(1).max(200).default(50),
+  search: z.string().max(253).optional(),
+});
+export async function cursorDomains(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  input: z.input<typeof domainPageInput> = {},
+) {
+  const parsed = domainPageInput.safeParse(input);
+  if (!parsed.success) return fail("invalid_input");
+  const { cursor, limit, search } = parsed.data;
+  const query: Document = { workspaceId: ctx.workspace._id };
+  if (cursor) query._id = { $lt: new ObjectId(cursor) };
+  if (search)
+    query.hostname = {
+      $regex: search.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+      $options: "i",
+    };
+  const rows = await ctx.db
+    .collection(physicalNames.domains)
+    .find(query)
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .toArray();
+  return ok({
+    items: rows.slice(0, limit).map(domainView),
+    nextCursor: rows.length > limit ? String(rows[limit - 1]!._id) : null,
+  });
+}
+
 export async function removeDomain(ctx: ServiceContext, id: string) {
   if (!can(ctx.actor, "billing.manage")) return fail("forbidden" as const);
   const _id = parseObjectId(id);
   if (!_id) return fail("not_found" as const);
-  const domain = await ctx.db
-    .collection(physicalNames.domains)
-    .findOne({ _id, workspaceId: ctx.workspace._id });
-  if (!domain) return fail("not_found" as const);
-  await ctx.db
-    .collection(physicalNames.domains)
-    .updateOne(
-      { _id, workspaceId: ctx.workspace._id },
-      {
-        $set: {
-          status: "disabled",
-          removing: true,
-          nextAttemptAt: nowOf(ctx),
-          attempts: 0,
+  const result = await withMutation(ctx.db, async (session) => {
+    const domain = await ctx.db
+      .collection(physicalNames.domains)
+      .findOneAndUpdate(
+        { _id, workspaceId: ctx.workspace._id },
+        {
+          $set: {
+            status: "disabled",
+            removing: true,
+            nextAttemptAt: nowOf(ctx),
+            attempts: 0,
+          },
+          $unset: { addonSubscriptionId: "" },
         },
-        $unset: { addonSubscriptionId: "" },
-      },
-    );
-  await collection(ctx.db, "links").updateMany(
-    { domain: domain.hostname, workspaceId: ctx.workspace._id },
-    { $set: { domainInactive: true } },
-  );
-  await ctx.db
-    .collection(physicalNames.bio_pages)
-    .updateMany(
-      { customDomain: domain.hostname, workspaceId: ctx.workspace._id },
-      { $unset: { customDomain: "" } },
-    );
-  if (domain.bioPageId)
+        { session, returnDocument: "after" },
+      );
+    if (!domain) return fail("not_found" as const);
+    const keys: string[] = [];
+    for await (const link of collection(ctx.db, "links")
+      .find(
+        {
+          domain: domain.hostname,
+          workspaceId: ctx.workspace._id,
+          domainInactive: { $ne: true },
+        },
+        { session },
+      )
+      .batchSize(100)) {
+      const updated = await collection(ctx.db, "links").findOneAndUpdate(
+        { _id: link._id },
+        { $set: { domainInactive: true, updatedAt: nowOf(ctx) } },
+        { session, returnDocument: "after" },
+      );
+      if (!updated) continue;
+      keys.push(
+        updated.key ?? updated.urlCode ?? "",
+        ...(updated.previousKeys ?? []),
+      );
+      await recordWebhookEvent(
+        ctx.db,
+        ctx.workspace._id,
+        "link.updated",
+        linkEventData(updated, ctx.linkDomain),
+        session,
+        nowOf(ctx),
+      );
+      await queueDomainLinkBios(ctx, updated._id, session);
+    }
     await ctx.db
-      .collection(bioOutboxCollection)
-      .updateOne(
+      .collection(physicalNames.bio_pages)
+      .updateMany(
+        { customDomain: domain.hostname, workspaceId: ctx.workspace._id },
+        { $unset: { customDomain: "" } },
+        { session },
+      );
+    if (domain.bioPageId)
+      await ctx.db.collection(bioOutboxCollection).updateOne(
         { bioPageId: domain.bioPageId },
         {
           $set: {
@@ -264,10 +345,16 @@ export async function removeDomain(ctx: ServiceContext, id: string) {
             attempts: 0,
           },
         },
-        { upsert: true },
+        { session, upsert: true },
       );
+    return ok({ hostname: String(domain.hostname), keys });
+  });
+  if (!result.ok) return result;
+  if (result.value.keys.length)
+    await invalidateLinks(ctx.cache, result.value.hostname, result.value.keys);
   return ok({ id });
 }
+
 export async function retryDomain(ctx: ServiceContext, id: string) {
   if (!can(ctx.actor, "billing.manage")) return fail("forbidden" as const);
   const _id = parseObjectId(id);
@@ -294,47 +381,95 @@ export async function moveDomainLinks(ctx: ServiceContext, id: string) {
     .collection(physicalNames.domains)
     .findOne({ _id, workspaceId: ctx.workspace._id });
   if (!domain) return fail("not_found" as const);
-  const links = await collection(ctx.db, "links")
-    .find({ domain: domain.hostname, workspaceId: ctx.workspace._id })
-    .toArray();
   const moved: string[] = [],
     conflicts: string[] = [];
-  for (const link of links) {
-    const key = link.key ?? link.urlCode ?? "";
-    if (
-      await collection(ctx.db, "links").findOne({
-        _id: { $ne: link._id },
-        $or: [
-          { domain: ctx.linkDomain, key },
-          { urlCode: key, domain: { $exists: false } },
-        ],
-      })
-    ) {
-      conflicts.push(key);
-      continue;
-    }
+  for await (const candidate of collection(ctx.db, "links")
+    .find({ domain: domain.hostname, workspaceId: ctx.workspace._id })
+    .batchSize(100)) {
     try {
-      await collection(ctx.db, "links").updateOne(
-        {
-          _id: link._id,
-          domain: domain.hostname,
-          workspaceId: ctx.workspace._id,
-        },
-        { $set: { domain: ctx.linkDomain, domainInactive: false } },
-      );
-      moved.push(key);
+      const result = await withMutation(ctx.db, async (session) => {
+        await collection(ctx.db, "workspaces").updateOne(
+          { _id: ctx.workspace._id },
+          { $inc: { linkMutationRevision: 1 } },
+          { session },
+        );
+        const link = await collection(ctx.db, "links").findOne(
+          {
+            _id: candidate._id,
+            domain: domain.hostname,
+            workspaceId: ctx.workspace._id,
+          },
+          { session },
+        );
+        if (!link) return null;
+        const key = link.key ?? link.urlCode ?? "",
+          keys = [...new Set([key, ...(link.previousKeys ?? [])])];
+        const collision = await collection(ctx.db, "links").findOne(
+          {
+            $and: [
+              { _id: { $ne: link._id } },
+              {
+                $or: [
+                  { domain: ctx.linkDomain },
+                  { domain: { $exists: false } },
+                ],
+              },
+              {
+                $or: [
+                  { key: { $in: keys } },
+                  { urlCode: { $in: keys } },
+                  { previousKeys: { $in: keys } },
+                ],
+              },
+            ],
+          },
+          { session, projection: { _id: 1 } },
+        );
+        if (collision) return { conflict: true, key, keys };
+        const updated = await collection(ctx.db, "links").findOneAndUpdate(
+          {
+            _id: link._id,
+            domain: domain.hostname,
+            workspaceId: ctx.workspace._id,
+          },
+          {
+            $set: {
+              domain: ctx.linkDomain,
+              domainInactive: false,
+              updatedAt: nowOf(ctx),
+            },
+          },
+          { session, returnDocument: "after" },
+        );
+        if (!updated) return null;
+        await recordWebhookEvent(
+          ctx.db,
+          ctx.workspace._id,
+          "link.updated",
+          linkEventData(updated, ctx.linkDomain),
+          session,
+          nowOf(ctx),
+        );
+        await queueDomainLinkBios(ctx, updated._id, session);
+        return { conflict: false, key, keys };
+      });
+      if (!result) continue;
+      if (result.conflict) {
+        conflicts.push(result.key);
+        continue;
+      }
+      moved.push(result.key);
+      await invalidateLinks(ctx.cache, ctx.linkDomain, result.keys);
+      await invalidateLinks(ctx.cache, String(domain.hostname), result.keys);
     } catch (error) {
       if (error instanceof Error && "code" in error && error.code === 11000)
-        conflicts.push(key);
+        conflicts.push(candidate.key ?? candidate.urlCode ?? "");
       else throw error;
     }
   }
-  if (moved.length) {
-    await invalidateLinks(ctx.cache, ctx.linkDomain, moved);
-    await invalidateLinks(ctx.cache, domain.hostname, moved);
-  }
   return ok({ moved, conflicts });
 }
+
 /** Leases make provisioning and teardown safe with several workers. */
 export const domainBackoff = (attempts: number) =>
   Math.min(3600000, 60000 * 2 ** Math.min(6, attempts));
@@ -384,13 +519,11 @@ export async function pollDomains(
       }
       if (
         (await domainAllowance(db, domain.workspaceId as ObjectId)) <= 0 ||
-        !(await db
-          .collection(domainAddonsCollection)
-          .findOne({
-            polarSubscriptionId: domain.addonSubscriptionId,
-            workspaceId: domain.workspaceId,
-            status: { $in: [...paidStatuses] },
-          }))
+        !(await db.collection(domainAddonsCollection).findOne({
+          polarSubscriptionId: domain.addonSubscriptionId,
+          workspaceId: domain.workspaceId,
+          status: { $in: [...paidStatuses] },
+        }))
       ) {
         await domains.updateOne(
           { _id: domain._id, lease },
@@ -414,61 +547,63 @@ export async function pollDomains(
         : expired || ["blocked", "deleted", "moved"].includes(remote.status)
           ? "failed"
           : "pending";
-      const applied = await domains.updateOne(
-        {
-          _id: domain._id,
-          lease,
-          removing: { $ne: true },
-          status: { $ne: "disabled" },
-        },
-        {
-          $set: {
-            cfCustomHostnameId: remote.id,
-            status,
-            hostnameStatus: remote.status,
-            sslStatus: remote.ssl.status,
-            verification: remote.ownership_verification ?? { type: "cname" },
-            validationRecords: remote.ssl.validation_records ?? [],
-            lastError:
-              remote.verification_errors?.join("; ") ??
-              (expired ? "verification_timeout" : ""),
-            attempts: Number(domain.attempts ?? 0) + 1,
-            updatedAt: now,
-            nextAttemptAt: new Date(
-              now.getTime() +
-                (active
-                  ? 3600000
-                  : domainBackoff(Number(domain.attempts ?? 0))),
-            ),
+      await withMutation(db, async (session) => {
+        const applied = await domains.updateOne(
+          {
+            _id: domain._id,
+            lease,
+            removing: { $ne: true },
+            status: { $ne: "disabled" },
           },
-          $unset: { leaseUntil: "", lease: "" },
-        },
-      );
-      if (!applied.matchedCount) continue;
-      if (status === "failed")
-        await domains.updateOne(
-          { _id: domain._id },
-          { $unset: { nextAttemptAt: "" } },
+          {
+            $set: {
+              cfCustomHostnameId: remote.id,
+              status,
+              hostnameStatus: remote.status,
+              sslStatus: remote.ssl.status,
+              verification: remote.ownership_verification ?? { type: "cname" },
+              validationRecords: remote.ssl.validation_records ?? [],
+              lastError:
+                remote.verification_errors?.join("; ") ??
+                (expired ? "verification_timeout" : ""),
+              attempts: Number(domain.attempts ?? 0) + 1,
+              updatedAt: now,
+              nextAttemptAt: new Date(
+                now.getTime() +
+                  (active
+                    ? 3600000
+                    : domainBackoff(Number(domain.attempts ?? 0))),
+              ),
+            },
+            $unset: { leaseUntil: "", lease: "" },
+          },
+          { session },
         );
-      if (active && domain.bioPageId && domain.status !== "active") {
-        await db
-          .collection(physicalNames.bio_pages)
-          .updateOne(
-            { _id: domain.bioPageId, workspaceId: domain.workspaceId },
-            { $set: { customDomain: domain.hostname } },
+        if (!applied.matchedCount) return;
+        if (status === "failed")
+          await domains.updateOne(
+            { _id: domain._id },
+            { $unset: { nextAttemptAt: "" } },
+            { session },
           );
-        await db
-          .collection(bioOutboxCollection)
-          .updateOne(
-            { bioPageId: domain.bioPageId },
-            { $set: { nextAttemptAt: now, attempts: 0 } },
-            { upsert: true },
-          );
-      }
-      if (active && domain.status !== "active")
-        await db
-          .collection(physicalNames.domain_notifications)
-          .updateOne(
+        if (active && domain.bioPageId && domain.status !== "active") {
+          await db
+            .collection(physicalNames.bio_pages)
+            .updateOne(
+              { _id: domain.bioPageId, workspaceId: domain.workspaceId },
+              { $set: { customDomain: domain.hostname } },
+              { session },
+            );
+          await db
+            .collection(bioOutboxCollection)
+            .updateOne(
+              { bioPageId: domain.bioPageId },
+              { $set: { nextAttemptAt: now, attempts: 0 } },
+              { upsert: true, session },
+            );
+        }
+        if (active && domain.status !== "active")
+          await db.collection(physicalNames.domain_notifications).updateOne(
             { domainId: domain._id },
             {
               $setOnInsert: {
@@ -477,8 +612,23 @@ export async function pollDomains(
                 createdAt: now,
               },
             },
-            { upsert: true },
+            { upsert: true, session },
           );
+        if (active && domain.status !== "active")
+          await recordWebhookEvent(
+            db,
+            domain.workspaceId as ObjectId,
+            "domain.verified",
+            {
+              id: domain._id.toHexString(),
+              hostname: String(domain.hostname),
+              kind: String(domain.kind),
+              status: "active",
+            },
+            session,
+            now,
+          );
+      });
     } catch (error) {
       const expired =
         now.getTime() - (domain.createdAt as Date).getTime() > 72 * 3600000;
@@ -513,24 +663,20 @@ export async function activeDomain(
   db: Db,
   hostname: string,
 ): Promise<Document | null> {
-  const domain = await db
-    .collection(physicalNames.domains)
-    .findOne({
-      hostname,
-      status: "active",
-      hostnameStatus: "active",
-      sslStatus: "active",
-      removing: { $ne: true },
-    });
+  const domain = await db.collection(physicalNames.domains).findOne({
+    hostname,
+    status: "active",
+    hostnameStatus: "active",
+    sslStatus: "active",
+    removing: { $ne: true },
+  });
   return domain &&
     (await domainAllowance(db, domain.workspaceId as ObjectId)) > 0 &&
-    (await db
-      .collection(domainAddonsCollection)
-      .findOne({
-        polarSubscriptionId: domain.addonSubscriptionId,
-        workspaceId: domain.workspaceId,
-        status: { $in: [...paidStatuses] },
-      }))
+    (await db.collection(domainAddonsCollection).findOne({
+      polarSubscriptionId: domain.addonSubscriptionId,
+      workspaceId: domain.workspaceId,
+      status: { $in: [...paidStatuses] },
+    }))
     ? domain
     : null;
 }
@@ -553,67 +699,131 @@ export async function assignDomainLink(
     !(await activeDomain(ctx.db, String(domain.hostname)))
   )
     return fail("domain_inactive" as const);
-  const link = await ctx.db
-    .collection(physicalNames.links)
-    .findOne({ _id: linkObjectId, workspaceId: ctx.workspace._id });
-  if (!link) return fail("not_found" as const);
-  const key = String(link.key ?? link.urlCode);
-  const collision = await ctx.db
-    .collection(physicalNames.links)
-    .findOne({
-      _id: { $ne: link._id },
-      domain: domain.hostname,
-      $or: [{ key }, { previousKeys: key }],
-    });
-  if (collision) return fail("key_taken" as const);
   try {
-    await ctx.db
-      .collection(physicalNames.links)
-      .updateOne(
-        { _id: link._id, workspaceId: ctx.workspace._id },
+    const result = await withMutation(ctx.db, async (session) => {
+      // Fence assignment against hostname removal and other assignments.
+      const currentDomain = await ctx.db
+        .collection(physicalNames.domains)
+        .findOneAndUpdate(
+          {
+            _id,
+            workspaceId: ctx.workspace._id,
+            kind: { $ne: "bio" },
+            status: "active",
+            hostnameStatus: "active",
+            sslStatus: "active",
+            removing: { $ne: true },
+          },
+          { $inc: { linkAssignmentRevision: 1 } },
+          { session, returnDocument: "after" },
+        );
+      if (
+        !currentDomain ||
+        !(await ctx.db.collection(domainAddonsCollection).findOne(
+          {
+            polarSubscriptionId: currentDomain.addonSubscriptionId,
+            workspaceId: ctx.workspace._id,
+            status: { $in: [...paidStatuses] },
+          },
+          { session },
+        ))
+      )
+        return fail("domain_inactive" as const);
+      const link = await collection(ctx.db, "links").findOne(
+        {
+          _id: linkObjectId,
+          workspaceId: ctx.workspace._id,
+          deletedAt: { $exists: false },
+        },
+        { session },
+      );
+      if (!link) return fail("not_found" as const);
+      const key = link.key ?? link.urlCode ?? "";
+      const keys = [...new Set([key, ...(link.previousKeys ?? [])])];
+      const hostname = String(currentDomain.hostname);
+      const oldDomain = link.domain ?? ctx.linkDomain;
+      if (link.domain === hostname && !link.domainInactive)
+        return ok({ key, hostname, oldDomain, keys });
+      const collision = await collection(ctx.db, "links").findOne(
+        {
+          _id: { $ne: link._id },
+          domain: hostname,
+          $or: [
+            { key: { $in: keys } },
+            { urlCode: { $in: keys } },
+            { previousKeys: { $in: keys } },
+          ],
+        },
+        { session, projection: { _id: 1 } },
+      );
+      if (collision) return fail("key_taken" as const);
+      const updated = await collection(ctx.db, "links").findOneAndUpdate(
+        {
+          _id: link._id,
+          workspaceId: ctx.workspace._id,
+          deletedAt: { $exists: false },
+        },
         {
           $set: {
-            domain: domain.hostname,
+            domain: hostname,
             domainInactive: false,
             updatedAt: nowOf(ctx),
           },
         },
+        { session, returnDocument: "after" },
       );
+      if (!updated) return fail("not_found" as const);
+      await recordWebhookEvent(
+        ctx.db,
+        ctx.workspace._id,
+        "link.updated",
+        linkEventData(updated, ctx.linkDomain),
+        session,
+        nowOf(ctx),
+      );
+      await queueDomainLinkBios(ctx, linkObjectId, session);
+      return ok({ key, hostname, oldDomain, keys });
+    });
+    if (!result.ok) return result;
+    await invalidateLinks(ctx.cache, result.value.oldDomain, result.value.keys);
+    await invalidateLinks(ctx.cache, result.value.hostname, result.value.keys);
+    return ok({ key: result.value.key, hostname: result.value.hostname });
   } catch (error) {
     if (error instanceof Error && "code" in error && error.code === 11000)
       return fail("key_taken" as const);
     throw error;
   }
-  await invalidateLinks(ctx.cache, String(link.domain ?? ctx.linkDomain), [
-    key,
-  ]);
-  await invalidateLinks(ctx.cache, String(domain.hostname), [key]);
-  for (const page of await ctx.db
+}
+
+async function queueDomainLinkBios(
+  ctx: ServiceContext,
+  linkId: ObjectId,
+  session: ClientSession,
+) {
+  const id = linkId.toHexString();
+  for await (const page of ctx.db
     .collection(physicalNames.bio_pages)
     .find(
       {
         workspaceId: ctx.workspace._id,
         $or: [
-          { "publishedContent.blocks.linkId": linkId },
-          { "publishedContent.blocks.items.linkId": linkId },
+          { "publishedContent.blocks.linkId": id },
+          { "publishedContent.blocks.items.linkId": id },
         ],
       },
-      { projection: { _id: 1 } },
+      { session, projection: { _id: 1 } },
     )
-    .toArray()) {
-    await ctx.db
-      .collection(bioOutboxCollection)
-      .updateOne(
-        { bioPageId: page._id },
-        {
-          $set: {
-            updatedAt: nowOf(ctx),
-            nextAttemptAt: nowOf(ctx),
-            attempts: 0,
-          },
+    .batchSize(100)) {
+    await ctx.db.collection(bioOutboxCollection).updateOne(
+      { bioPageId: page._id },
+      {
+        $set: {
+          updatedAt: nowOf(ctx),
+          nextAttemptAt: nowOf(ctx),
+          attempts: 0,
         },
-        { upsert: true },
-      );
+      },
+      { session, upsert: true },
+    );
   }
-  return ok({ key, hostname: String(domain.hostname) });
 }

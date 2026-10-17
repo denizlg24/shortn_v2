@@ -2,7 +2,10 @@
 
 import type { PlanId } from "@shortn/billing";
 import { useTranslations } from "next-intl";
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@shortn/ui";
+import { useLinkCreation } from "./use-link-creation";
 import { useFormSubmit } from "../editor/use-form-submit";
 import { TagsField } from "../page/tags-field";
 import { Section } from "../page/page";
@@ -10,6 +13,7 @@ import { FormActions, FormField, inputClass } from "../page/form";
 import { PlanGate } from "../plan-gate";
 import type { FormState } from "@/server/actions/link-pages";
 import type { LinkFormValues } from "./link-form-values";
+import { LinkAdvancedFields } from "./link-advanced-fields";
 
 // One form for /links/new and /links/{id}/edit: native fields posted to a
 // server action, which redirects on success (17).
@@ -21,6 +25,7 @@ export function LinkForm({
   gates,
   action,
   cancelHref,
+  workspace,
 }: {
   mode: "create" | "edit";
   domain: string;
@@ -30,11 +35,69 @@ export function LinkForm({
   gates: { customKeys: PlanId | null; passwords: PlanId | null };
   action: (state: FormState, form: FormData) => Promise<FormState>;
   cancelHref: string;
+  workspace?: string;
 }) {
   const t = useTranslations("linkPages.form");
+  const advanced = useTranslations("linkAdvanced");
+  const creation = useTranslations("linkCreation");
   const tErrors = useTranslations("linkPages.errors");
   const tLinkErrors = useTranslations("links.errors");
   const { state, pending, onSubmit } = useFormSubmit(action);
+  const router = useRouter(),
+    copiedResult = useRef(""),
+    mounted = useRef(true),
+    submitted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!pending && !state.created) submitted.current = false;
+  }, [pending, state]);
+  const [url, setUrl] = useState(initial.url),
+    [title, setTitle] = useState(initial.title),
+    [key, setKey] = useState(initial.key);
+  const [titleEdited, setTitleEdited] = useState(false),
+    [keyEdited, setKeyEdited] = useState(false);
+  const { lookup, retry } = useLinkCreation(
+    mode === "create" ? workspace : undefined,
+    url,
+  );
+  const shownTitle =
+    mode === "create" && !titleEdited ? (lookup.title ?? title) : title;
+  const shownKey =
+    mode === "create" && !keyEdited && !gates.customKeys
+      ? (lookup.key ?? key)
+      : key;
+  useEffect(() => {
+    const created = state.created;
+    if (!created || copiedResult.current === created.id) return;
+    copiedResult.current = created.id;
+    void (async () => {
+      let copied = false,
+        timeout: ReturnType<typeof setTimeout> | undefined;
+      try {
+        await Promise.race([
+          navigator.clipboard.writeText(created.url),
+          new Promise<never>((_, reject) => {
+            timeout = setTimeout(
+              () => reject(new Error("clipboard_timeout")),
+              1500,
+            );
+          }),
+        ]);
+        copied = true;
+      } catch {
+        /* The overview offers its existing copy button when automatic copy is denied. */
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (mounted.current)
+        router.push(`${created.path}?created=1&copied=${copied ? "1" : "0"}`);
+    })();
+  }, [state.created, router]);
   const [passwordMode, setPasswordMode] = useState<"keep" | "set" | "remove">(
     "keep",
   );
@@ -84,7 +147,17 @@ export function LinkForm({
         : undefined;
 
   return (
-    <form onSubmit={onSubmit} noValidate>
+    <form
+      onSubmit={(event) => {
+        if (submitted.current || pending || state.created)
+          event.preventDefault();
+        else {
+          submitted.current = true;
+          onSubmit(event);
+        }
+      }}
+      noValidate
+    >
       <Section title={t("destinationSection")}>
         <FormField
           id={`${id}-url`}
@@ -98,7 +171,8 @@ export function LinkForm({
             type="url"
             inputMode="url"
             required
-            defaultValue={initial.url}
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
             placeholder="https://"
             autoFocus={mode === "create"}
             aria-invalid={Boolean(fieldError("url"))}
@@ -106,6 +180,24 @@ export function LinkForm({
             className={inputClass}
           />
         </FormField>
+        {mode === "create" ? (
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <p role="status" className="text-meta text-fg-muted">
+              {creation(lookup.phase)}
+            </p>
+            {lookup.phase === "unavailable" ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={retry}
+                disabled={pending}
+              >
+                {creation("retry")}
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </Section>
 
       <Section title={t("keySection")}>
@@ -126,7 +218,11 @@ export function LinkForm({
               <input
                 id={`${id}-key`}
                 name="key"
-                defaultValue={initial.key}
+                value={shownKey}
+                onChange={(event) => {
+                  setKeyEdited(true);
+                  setKey(event.target.value);
+                }}
                 maxLength={64}
                 autoCapitalize="off"
                 spellCheck={false}
@@ -135,6 +231,19 @@ export function LinkForm({
                 className={`${inputClass} rounded-l-none`}
               />
             </div>
+            {mode === "create" && keyEdited && lookup.key ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setKey(lookup.key!);
+                  setKeyEdited(false);
+                }}
+              >
+                {creation("useKey")}
+              </Button>
+            ) : null}
           </FormField>
         )}
       </Section>
@@ -149,10 +258,27 @@ export function LinkForm({
             <input
               id={`${id}-title`}
               name="title"
-              defaultValue={initial.title}
+              value={shownTitle}
+              onChange={(event) => {
+                setTitleEdited(true);
+                setTitle(event.target.value);
+              }}
               maxLength={200}
               className={inputClass}
             />
+            {mode === "create" && titleEdited && lookup.title ? (
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setTitle(lookup.title!);
+                  setTitleEdited(false);
+                }}
+              >
+                {creation("useTitle")}
+              </Button>
+            ) : null}
           </FormField>
           <FormField
             id={`${id}-description`}
@@ -250,6 +376,17 @@ export function LinkForm({
         )}
       </Section>
 
+      <Section title={advanced("title")}>
+        <LinkAdvancedFields
+          {...(initial.rules ? { initial: initial.rules } : {})}
+          {...(initial.og ? { preview: initial.og } : {})}
+          pending={pending}
+          error={Boolean(
+            state.error && (state.field === "rules" || state.field === "og"),
+          )}
+        />
+      </Section>
+
       {formError ? (
         <p role="alert" className="mt-4 text-small text-danger">
           {formError}
@@ -259,7 +396,7 @@ export function LinkForm({
         submitLabel={mode === "create" ? t("create") : t("save")}
         cancelHref={cancelHref}
         cancelLabel={t("cancel")}
-        pending={pending}
+        pending={pending || Boolean(state.created)}
       />
     </form>
   );

@@ -11,7 +11,9 @@
     "./authz": "./workspaces/authz.ts",
     "./links-filters": "./links/filters.ts",
     "./bio-views": "./bio/views.ts",
-    "./bio-urls": "./bio/urls.ts"
+    "./bio-urls": "./bio/urls.ts",
+    "./api-scopes": "./api-keys/scopes.ts",
+    "./import-input": "./imports/csv.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -32,6 +34,7 @@
     "@shortn/billing": "workspace:*",
     "@shortn/redis": "workspace:*",
     "bcryptjs": "3.0.3",
-    "nanoid": "5.1.6"
+    "nanoid": "5.1.6",
+    "@shortn/qr-render": "workspace:*"
   }
 }

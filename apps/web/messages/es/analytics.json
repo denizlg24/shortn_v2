@@ -28,7 +28,8 @@
     "referrer": "Origen",
     "utmSource": "Fuente UTM",
     "utmMedium": "Medio UTM",
-    "utmCampaign": "Campaña UTM"
+    "utmCampaign": "Campaña UTM",
+    "branch": "Regla de destino"
   },
   "allLinks": "Todos los enlaces",
   "any": "Cualquiera",
@@ -97,6 +98,11 @@
       "title": "Campañas UTM",
       "column": "Campaña UTM",
       "description": "La etiqueta utm_campaign de los enlaces etiquetados."
+    },
+    "branches": {
+      "title": "Reglas de destino",
+      "column": "Regla de destino",
+      "description": "Visitas por la regla que seleccionó el destino. Los destinos se numeran según el orden de las reglas de cada enlace en el momento de la visita. Filtra por un enlace para comparar sus destinos; los cambios de orden pueden combinar destinos diferentes en los datos históricos."
     }
   },
   "table": {
@@ -114,8 +120,8 @@
   },
   "gated": {
     "title": "Desgloses",
-    "body": "Países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, y los filtros por cada uno, están incluidos a partir del plan {plan}.",
-    "withExport": "Países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, los filtros por cada uno y la exportación a CSV están incluidos a partir del plan {plan}."
+    "body": "Reglas de destino, países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, y los filtros por cada uno, están incluidos a partir del plan {plan}.",
+    "withExport": "Reglas de destino, países, ciudades, orígenes, dispositivos, navegadores, sistemas operativos y etiquetas UTM, los filtros por cada uno y la exportación a CSV están incluidos a partir del plan {plan}."
   },
   "error": {
     "title": "No se pudieron cargar las estadísticas",
@@ -139,6 +145,15 @@
       "wearable": "Dispositivo ponible",
       "xr": "Gafas XR",
       "embedded": "Integrado"
+    },
+    "branches": {
+      "unrecorded": "Sin registrar",
+      "destination": "Destino predeterminado",
+      "ios": "Aplicación iOS",
+      "android": "Aplicación Android",
+      "rotation": "Rotación {target}",
+      "device": "Dispositivo {target}",
+      "geo": "País {target}"
     }
   },
   "export": {

@@ -1,3 +1,6 @@
+import { validQrCaption } from "@shortn/qr-render/treatment-layout";
+import { requestHealthCheck } from "../links/health";
+import { requestSafetyScan } from "../links/safety-jobs";
 import { hasFeature, loadEntitlements } from "@shortn/billing";
 import {
   collection,
@@ -7,13 +10,26 @@ import {
 } from "@shortn/db";
 import { invalidateLinks } from "@shortn/redis";
 import { customAlphabet } from "nanoid";
-import { ObjectId, type Document } from "mongodb";
+import {
+  ObjectId,
+  type Document,
+  type Filter,
+  type ClientSession,
+} from "mongodb";
 import { z } from "zod";
+import { isDeepStrictEqual } from "node:util";
+import {
+  withMutation,
+  recordWebhookEvent,
+  linkEventData,
+} from "../webhooks/events";
 import { archiveLegacyClicks } from "../legacy-clicks";
 import { fail, ok, type Result } from "../result";
 import { validateDestination } from "../safety/structural";
 import { embeddedTags, ensureTags, tagName } from "../tags/service";
 import { countUsage } from "../usage/service";
+import { withQuotaMutation } from "../usage/quota-lock";
+import { reservedImportUsage } from "../imports/quota";
 import { can } from "../workspaces/authz";
 import { legacySubOf, nowOf, type ServiceContext } from "../workspaces/context";
 import { ownedBy, parseObjectId } from "../workspaces/service";
@@ -37,6 +53,13 @@ export const qrDesignSchema = z.object({
   width: z.number().int().min(64).max(4096).optional(),
   height: z.number().int().min(64).max(4096).optional(),
   type: z.enum(["svg", "canvas"]).optional(),
+  shape: z.enum(["square", "circle"]).optional(),
+  frameOptions: z
+    .object({
+      style: z.enum(["none", "outline", "solid"]).optional(),
+      caption: z.string().max(64).refine(validQrCaption).optional(),
+    })
+    .optional(),
   data: z.string().max(2048).optional(),
   image: z.string().max(2048).optional(),
   margin: z.number().int().min(0).max(100).optional(),
@@ -108,13 +131,15 @@ const storedOptions = (qr: QrCode): Record<string, unknown> => {
   return stored && typeof stored === "object" ? { ...stored } : {};
 };
 
+const qrDomain = (qr: QrCode, fallback: string) =>
+  typeof qr.domain === "string" && qr.domain ? qr.domain : fallback;
 export function toQrView(qr: QrCode, linkDomain: string): QrView {
   const key = qr.urlId ?? "";
   return {
     id: qr._id.toHexString(),
     publicId: qr.qrCodeId ?? qr.publicId ?? "",
     key,
-    shortUrl: `https://${linkDomain}/${key}`,
+    shortUrl: `https://${qrDomain(qr, linkDomain)}/${key}`,
     url: qr.longUrl ?? "",
     title: qr.title ?? "",
     tags: (qr.tags ?? []).flatMap((tag) => {
@@ -135,6 +160,7 @@ export function toQrView(qr: QrCode, linkDomain: string): QrView {
 }
 
 export type QrError =
+  | "invalid_input"
   | "forbidden"
   | "invalid_url"
   | "unsafe_destination"
@@ -199,6 +225,13 @@ export async function createQr(
   input: CreateQrInput,
 ): Promise<Result<QrView, QrError>> {
   if (!can(ctx.actor, "resource.create")) return fail("forbidden");
+  if (
+    input.design &&
+    !qrDesignSchema
+      .pick({ shape: true, frameOptions: true })
+      .safeParse(input.design).success
+  )
+    return fail("invalid_input");
   const checked = checkUrl(input.url);
   if (!checked.ok) return checked;
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
@@ -209,7 +242,10 @@ export async function createQr(
     : null;
   const attachedLink = attach
     ? await collection(ctx.db, "links").findOne({
-        $and: [{ _id: attach }, ownedBy<Link>(ctx.workspace)],
+        $and: [
+          { _id: attach, deletedAt: { $exists: false } },
+          ownedBy<Link>(ctx.workspace),
+        ],
       })
     : null;
   if (input.attachToLinkId && !attachedLink) return fail("not_found");
@@ -248,8 +284,10 @@ export async function createQr(
   const fields: Document = {};
   for (const [field, value] of Object.entries(derived.set))
     if (!field.startsWith("_sync.")) fields[field] = value;
-  await ctx.db.collection(physicalNames.links).insertOne({
+  const backingDoc: Document = {
     ...backing,
+    safetyScan: requestSafetyScan(now),
+    health: requestHealthCheck(url, undefined, now),
     ...fields,
     workspaceId: ctx.workspace._id,
     previousKeys: [],
@@ -257,7 +295,7 @@ export async function createQr(
     updatedAt: now,
     createdBy: ctx.actor.userId,
     _sync: { rev: 1, lastWriter: "v2", legacyHash: derived.legacyHash },
-  });
+  };
 
   const design = sanitizeDesign(
     input.design,
@@ -265,7 +303,7 @@ export async function createQr(
     hasFeature(entitlements, "qrLogo"),
   );
   const qrId = new ObjectId();
-  await ctx.db.collection(physicalNames.qr_codes).insertOne({
+  const qrDoc = {
     _id: qrId,
     ...(sub ? { sub } : {}),
     urlId: urlCode,
@@ -286,34 +324,113 @@ export async function createQr(
     createdAt: now,
     updatedAt: now,
     createdBy: ctx.actor.userId,
-  });
-
-  const limit = entitlements.limits.qrCodes;
-  if (limit !== null) {
-    const usage = await countUsage(ctx.db, ctx.workspace, entitlements.period);
-    if (usage.qrCodes > limit) {
-      await ctx.db.collection(physicalNames.qr_codes).deleteOne({ _id: qrId });
-      await ctx.db
-        .collection(physicalNames.links)
-        .deleteOne({ _id: backing._id });
-      return fail("limit_reached", { limit, used: usage.qrCodes - 1 });
+  };
+  let attachedInvalidation: { keys: string[]; domain: string } | undefined;
+  const result = await withQuotaMutation(ctx, async (session) => {
+    attachedInvalidation = undefined;
+    const limit = entitlements.limits.qrCodes;
+    if (limit !== null) {
+      const usage = await countUsage(
+        ctx.db,
+        ctx.workspace,
+        entitlements.period,
+        session,
+      );
+      const reserved = await reservedImportUsage(
+        ctx.db,
+        ctx.workspace._id,
+        entitlements.period,
+        now,
+        session,
+      );
+      if (usage.qrCodes + reserved.qrCodes >= limit)
+        return fail("limit_reached" as const, {
+          limit,
+          used: usage.qrCodes,
+          reserved: reserved.qrCodes,
+        });
     }
-  }
-  if (attachedLink)
+    const currentAttached = attachedLink
+      ? await collection(ctx.db, "links").findOne(
+          {
+            $and: [
+              { _id: attachedLink._id, deletedAt: { $exists: false } },
+              ownedBy<Link>(ctx.workspace),
+            ],
+          },
+          { session },
+        )
+      : null;
+    if (attachedLink && !currentAttached) return fail("not_found" as const);
     await ctx.db
       .collection(physicalNames.links)
-      .updateOne(
-        { _id: attachedLink._id },
-        { $set: { qrCodeId, attachedQrId: qrId } },
+      .insertOne(backingDoc, { session });
+    await ctx.db
+      .collection(physicalNames.qr_codes)
+      .insertOne(
+        { ...qrDoc, attachedUrl: currentAttached?.urlCode ?? "" },
+        { session },
       );
+    const createdBacking = await collection(ctx.db, "links").findOne(
+      { _id: backingDoc._id },
+      { session },
+    );
+    if (!createdBacking) throw new Error("Created QR backing vanished");
+    await recordWebhookEvent(
+      ctx.db,
+      ctx.workspace._id,
+      "link.created",
+      linkEventData(createdBacking, ctx.linkDomain),
+      session,
+      now,
+    );
+    if (currentAttached) {
+      attachedInvalidation = {
+        keys: [
+          currentAttached.key ?? currentAttached.urlCode ?? "",
+          ...(currentAttached.previousKeys ?? []),
+        ],
+        domain: currentAttached.domain ?? ctx.linkDomain,
+      };
+      const updatedAttached = await collection(
+        ctx.db,
+        "links",
+      ).findOneAndUpdate(
+        { _id: currentAttached._id },
+        { $set: { qrCodeId, attachedQrId: qrId, updatedAt: now } },
+        { session, returnDocument: "after" },
+      );
+      if (updatedAttached)
+        await recordWebhookEvent(
+          ctx.db,
+          ctx.workspace._id,
+          "link.updated",
+          linkEventData(updatedAttached, ctx.linkDomain),
+          session,
+          now,
+        );
+    }
+    const created = await collection(ctx.db, "qr_codes").findOne(
+      { _id: qrId },
+      { session },
+    );
+    if (!created) throw new Error("Created QR vanished");
+    return ok(toQrView(created, ctx.linkDomain));
+  });
+  if (!result.ok) return result;
+
   await invalidateLinks(
     ctx.cache,
     ctx.linkDomain,
     [urlCode, attachedLink?.urlCode].filter((k): k is string => Boolean(k)),
   );
-  const created = await collection(ctx.db, "qr_codes").findOne({ _id: qrId });
-  if (!created) throw new Error("Created QR vanished");
-  return ok(toQrView(created, ctx.linkDomain));
+  if (attachedInvalidation)
+    await invalidateLinks(
+      ctx.cache,
+      attachedInvalidation.domain,
+      attachedInvalidation.keys,
+    );
+  return result;
 }
 
 async function findOwned(
@@ -388,21 +505,24 @@ function mergeDesign(stored: Record<string, unknown>, edit: QrDesign) {
 }
 
 // Numbered pages for the QR list (17), alongside the unpaged listQrs.
-export async function pageQrs(
-  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
-  input: {
-    search?: string | undefined;
-    tag?: string | undefined;
-    tags?: string[] | undefined;
-    createdAfter?: Date | undefined;
-    /** Exclusive upper bound. */
-    createdBefore?: Date | undefined;
-    page?: number | undefined;
-    limit?: number | undefined;
-  } = {},
-) {
-  const limit = Math.min(Math.max(input.limit ?? 24, 1), 100);
-  const page = Math.max(1, Math.floor(input.page ?? 1));
+interface QrLibraryInput {
+  ids?: string[] | undefined;
+  search?: string | undefined;
+  tag?: string | undefined;
+  tags?: string[] | undefined;
+  createdAfter?: Date | undefined;
+  createdBefore?: Date | undefined;
+}
+
+function qrLibraryFilter(
+  ctx: Pick<ServiceContext, "workspace">,
+  input: QrLibraryInput,
+): Filter<QrCode> {
+  if (
+    input.ids &&
+    (input.ids.length > 500 || input.ids.some((id) => !parseObjectId(id)))
+  )
+    throw new Error("invalid_selection");
   const search = input.search?.trim();
   const tags = [...new Set(input.tags ?? (input.tag ? [input.tag] : []))].slice(
     0,
@@ -414,9 +534,12 @@ export async function pageQrs(
         "i",
       )
     : null;
-  const filter = {
+  return {
     $and: [
       ownedBy<QrCode>(ctx.workspace),
+      ...(input.ids
+        ? [{ _id: { $in: input.ids.map((id) => new ObjectId(id)) } }]
+        : []),
       ...(pattern
         ? [
             {
@@ -433,6 +556,51 @@ export async function pageQrs(
       ...(input.createdBefore ? [{ date: { $lt: input.createdBefore } }] : []),
     ],
   };
+}
+
+export async function cursorQrs(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  input: QrLibraryInput & {
+    cursor?: string | undefined;
+    limit?: number | undefined;
+  } = {},
+) {
+  const limit = Math.min(Math.max(input.limit ?? 50, 1), 200);
+  const filter = qrLibraryFilter(ctx, input);
+  const total = input.cursor
+    ? null
+    : await collection(ctx.db, "qr_codes").countDocuments(filter);
+  const cursor = input.cursor ? parseObjectId(input.cursor) : null;
+  const docs = await collection(ctx.db, "qr_codes")
+    .find(cursor ? { $and: [filter, { _id: { $lt: cursor } }] } : filter)
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .toArray();
+  const page = docs.slice(0, limit);
+  return {
+    items: page.map((doc) => toQrView(doc, ctx.linkDomain)),
+    total,
+    nextCursor: docs.length > limit ? page.at(-1)!._id.toHexString() : null,
+  };
+}
+
+export async function pageQrs(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  input: {
+    ids?: string[] | undefined;
+    search?: string | undefined;
+    tag?: string | undefined;
+    tags?: string[] | undefined;
+    createdAfter?: Date | undefined;
+    /** Exclusive upper bound. */
+    createdBefore?: Date | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+  } = {},
+) {
+  const limit = Math.min(Math.max(input.limit ?? 24, 1), 100);
+  const page = Math.max(1, Math.floor(input.page ?? 1));
+  const filter = qrLibraryFilter(ctx, input);
   const [total, docs] = await Promise.all([
     collection(ctx.db, "qr_codes").countDocuments(filter),
     collection(ctx.db, "qr_codes")
@@ -448,6 +616,15 @@ export async function pageQrs(
     page,
     pages: Math.max(1, Math.ceil(total / limit)),
   };
+}
+
+export async function countSelectedQrs(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  ids: string[],
+) {
+  return collection(ctx.db, "qr_codes").countDocuments(
+    qrLibraryFilter(ctx, { ids }),
+  );
 }
 
 export interface UpdateQrInput {
@@ -466,12 +643,19 @@ export async function updateQr(
   input: UpdateQrInput,
 ): Promise<Result<QrView, QrError>> {
   if (!can(ctx.actor, "resource.update")) return fail("forbidden");
+  if (
+    input.design &&
+    !qrDesignSchema
+      .pick({ shape: true, frameOptions: true })
+      .safeParse(input.design).success
+  )
+    return fail("invalid_input");
   const qr = await findOwned(ctx, id);
   if (!qr) return fail("not_found");
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
   const $set: Document = { updatedAt: nowOf(ctx) };
   const linkSet: Document = {};
-  if (input.url !== undefined && input.url.trim() !== qr.longUrl) {
+  if (input.url !== undefined) {
     const checked = checkUrl(input.url);
     if (!checked.ok) return checked;
     $set.longUrl = checked.value;
@@ -486,77 +670,147 @@ export async function updateQr(
     $set.tags = embeddedTags(tags, legacySubOf(ctx));
     $set.tagIds = tags.map((tag) => tag._id);
   }
-  if (input.design) {
-    if (input.design.image && !hasFeature(entitlements, "qrLogo"))
-      return fail("feature_required", { feature: "qrLogo" });
-    // Merged onto what is stored, so options the editor doesn't model
-    // (legacy gradients) survive an edit.
-    const design = {
-      ...mergeDesign(storedOptions(qr), input.design),
-      data: `https://${ctx.linkDomain}/${qr.urlId ?? ""}`,
-    };
-    $set.options = design;
-    $set.design = design;
-  }
-  await ctx.db
-    .collection(physicalNames.qr_codes)
-    .updateOne({ _id: qr._id }, { $set });
-  const keys = [qr.urlId];
-  if (Object.keys(linkSet).length && qr.urlId) {
-    await updateBackingLink(ctx, qr.urlId, { longUrl: linkSet.longUrl });
+  if (input.design?.image && !hasFeature(entitlements, "qrLogo"))
+    return fail("feature_required", { feature: "qrLogo" });
+  const result = await withMutation(ctx.db, async (session) => {
+    const current = await collection(ctx.db, "qr_codes").findOne(
+      { $and: [{ _id: qr._id }, ownedBy<QrCode>(ctx.workspace)] },
+      { session },
+    );
+    if (!current) return null;
+    const changes = { ...$set };
+    if (input.design) {
+      const design = {
+        ...mergeDesign(storedOptions(current), input.design),
+        data: `https://${qrDomain(current, ctx.linkDomain)}/${current.urlId ?? ""}`,
+      };
+      changes.options = design;
+      changes.design = design;
+    }
+    await ctx.db
+      .collection(physicalNames.qr_codes)
+      .updateOne({ _id: current._id }, { $set: changes }, { session });
+    const changedLinks: Link[] = [];
+    if (Object.keys(linkSet).length && current.urlId) {
+      const backing = await updateBackingLink(
+        ctx,
+        current.urlId,
+        linkSet,
+        session,
+        current.linkId,
+      );
+      if (backing) changedLinks.push(backing);
+    }
     if (
       input.applyToLink &&
-      typeof qr.attachedUrl === "string" &&
-      qr.attachedUrl
+      (current.attachedLinkId instanceof ObjectId ||
+        (typeof current.attachedUrl === "string" && current.attachedUrl))
     ) {
       const attachedSet: Document = { ...linkSet };
-      if ($set.tags) attachedSet.tags = $set.tags;
-      await updateBackingLink(ctx, qr.attachedUrl, attachedSet);
-      keys.push(qr.attachedUrl);
+      if (changes.tags) attachedSet.tags = changes.tags;
+      if (changes.tagIds) attachedSet.tagIds = changes.tagIds;
+      const attached = await updateBackingLink(
+        ctx,
+        typeof current.attachedUrl === "string" ? current.attachedUrl : "",
+        attachedSet,
+        session,
+        current.attachedLinkId instanceof ObjectId
+          ? current.attachedLinkId
+          : undefined,
+      );
+      if (attached) changedLinks.push(attached);
     }
-  }
+    const updated = await collection(ctx.db, "qr_codes").findOne(
+      { _id: current._id },
+      { session },
+    );
+    return updated ? { updated, changedLinks } : null;
+  });
+  if (!result) return fail("not_found");
   await invalidateLinks(
     ctx.cache,
-    ctx.linkDomain,
-    keys.filter((k): k is string => Boolean(k)),
+    qrDomain(result.updated, ctx.linkDomain),
+    [result.updated.urlId].filter((key): key is string => Boolean(key)),
   );
-  const updated = await collection(ctx.db, "qr_codes").findOne({ _id: qr._id });
-  if (!updated) return fail("not_found");
-  return ok(toQrView(updated, ctx.linkDomain));
+  for (const link of result.changedLinks)
+    await invalidateLinks(ctx.cache, link.domain ?? ctx.linkDomain, [
+      link.key ?? link.urlCode ?? "",
+      ...(link.previousKeys ?? []),
+    ]);
+  return ok(toQrView(result.updated, ctx.linkDomain));
 }
 
 async function updateBackingLink(
   ctx: ServiceContext,
   urlCode: string,
   changes: Document,
+  session: ClientSession,
+  linkId?: ObjectId,
 ) {
   const defined = Object.fromEntries(
     Object.entries(changes).filter(([, v]) => v !== undefined),
   );
-  if (!Object.keys(defined).length) return;
-  const links = ctx.db.collection(physicalNames.links);
-  const link = await links.findOne({
-    $and: [{ urlCode }, ownedBy<Document>(ctx.workspace)],
-  });
-  if (!link) return;
+  if (!Object.keys(defined).length) return null;
+  const links = collection(ctx.db, "links");
+  const link = await links.findOne(
+    {
+      $and: [
+        {
+          ...(linkId ? { _id: linkId } : { urlCode }),
+          deletedAt: { $exists: false },
+        },
+        ownedBy<Link>(ctx.workspace),
+      ],
+    },
+    { session },
+  );
+  if (
+    !link ||
+    Object.entries(defined).every(([key, value]) =>
+      isDeepStrictEqual(link[key], value),
+    )
+  )
+    return null;
+  if (defined.longUrl !== undefined && defined.longUrl !== link.longUrl) {
+    defined.safetyScan = requestSafetyScan(nowOf(ctx));
+    defined.health = requestHealthCheck(
+      String(defined.longUrl),
+      link.rules,
+      nowOf(ctx),
+    );
+    defined.safetyStatus =
+      link.safetyStatus === "blocked" ? "blocked" : "pending";
+  }
   const merged = { ...link, ...defined };
   const derived = deriveLink(merged);
   const fields: Document = {};
   for (const [field, value] of Object.entries(derived.set))
     if (!field.startsWith("_sync.")) fields[field] = value;
-  await links.updateOne(
-    { _id: link._id },
-    {
-      $set: {
-        ...defined,
-        ...fields,
-        "_sync.legacyHash": derived.legacyHash,
-        "_sync.lastWriter": "v2",
-        updatedAt: nowOf(ctx),
-      },
-      $inc: { "_sync.rev": 1 },
+  const mutation: Document = {
+    $set: {
+      ...defined,
+      ...fields,
+      "_sync.legacyHash": derived.legacyHash,
+      "_sync.lastWriter": "v2",
+      updatedAt: nowOf(ctx),
     },
+    $inc: { "_sync.rev": 1 },
+  };
+  const updated = await links.findOneAndUpdate(
+    { _id: link._id, deletedAt: { $exists: false } },
+    mutation,
+    { session, returnDocument: "after" },
   );
+  if (updated)
+    await recordWebhookEvent(
+      ctx.db,
+      ctx.workspace._id,
+      "link.updated",
+      linkEventData(updated, ctx.linkDomain),
+      session,
+      nowOf(ctx),
+    );
+  return updated;
 }
 
 // Mirrors legacy deleteQRCode: archive scans, delete the QR and its backing
@@ -584,36 +838,112 @@ export async function deleteQrs(
   const sub = legacySubOf(ctx);
   const deleted: string[] = [];
   for (const qr of qrs) {
-    if (sub && qr.qrCodeId)
-      await archiveLegacyClicks(
-        ctx.db,
-        { sub, urlCode: qr.qrCodeId, type: "scan" },
-        nowOf(ctx),
+    const removed = await withMutation(ctx.db, async (session) => {
+      const current = await collection(ctx.db, "qr_codes").findOne(
+        { $and: [{ _id: qr._id }, ownedBy<QrCode>(ctx.workspace)] },
+        { session },
       );
-    await ctx.db.collection(physicalNames.qr_codes).deleteOne({ _id: qr._id });
-    const keys: string[] = [];
-    if (qr.urlId) {
-      await ctx.db.collection(physicalNames.links).deleteOne({
-        $and: [
-          { urlCode: qr.urlId, isQrCode: true },
-          ownedBy<Document>(ctx.workspace),
-        ],
-      });
-      keys.push(qr.urlId);
-    }
-    if (qr.qrCodeId && typeof qr.attachedUrl === "string" && qr.attachedUrl) {
-      await ctx.db.collection(physicalNames.links).updateOne(
-        {
-          $and: [
-            { qrCodeId: qr.qrCodeId, isQrCode: { $ne: true } },
-            ownedBy<Document>(ctx.workspace),
-          ],
-        },
-        { $set: { qrCodeId: "" }, $unset: { attachedQrId: "" } },
-      );
-      keys.push(qr.attachedUrl);
-    }
-    await invalidateLinks(ctx.cache, ctx.linkDomain, keys);
+      if (!current) return null;
+      const now = nowOf(ctx);
+      if (sub && current.qrCodeId)
+        await archiveLegacyClicks(
+          ctx.db,
+          {
+            sub,
+            urlCode: current.qrCodeId,
+            type: "scan",
+            workspaceId: ctx.workspace._id,
+          },
+          now,
+          session,
+        );
+      await ctx.db
+        .collection(physicalNames.qr_codes)
+        .deleteOne({ _id: current._id }, { session });
+      const changedLinks: Link[] = [];
+      const backing = current.urlId
+        ? await collection(ctx.db, "links").findOneAndDelete(
+            {
+              $and: [
+                {
+                  ...(current.linkId
+                    ? { _id: current.linkId }
+                    : { urlCode: current.urlId }),
+                  isQrCode: true,
+                },
+                ownedBy<Link>(ctx.workspace),
+              ],
+            },
+            { session },
+          )
+        : null;
+      if (backing) {
+        changedLinks.push(backing);
+        await recordWebhookEvent(
+          ctx.db,
+          ctx.workspace._id,
+          "link.deleted",
+          linkEventData({ ...backing, deletedAt: now }, ctx.linkDomain),
+          session,
+          now,
+        );
+      }
+      if (
+        current.qrCodeId &&
+        (current.attachedLinkId instanceof ObjectId ||
+          (typeof current.attachedUrl === "string" && current.attachedUrl))
+      ) {
+        const attached = await collection(ctx.db, "links").findOneAndUpdate(
+          {
+            $and: [
+              {
+                ...(current.attachedLinkId instanceof ObjectId
+                  ? { _id: current.attachedLinkId }
+                  : {
+                      urlCode:
+                        typeof current.attachedUrl === "string"
+                          ? current.attachedUrl
+                          : "",
+                    }),
+                qrCodeId: current.qrCodeId,
+                isQrCode: { $ne: true },
+              },
+              ownedBy<Link>(ctx.workspace),
+            ],
+          },
+          {
+            $set: { qrCodeId: "", updatedAt: now },
+            $unset: { attachedQrId: "" },
+          },
+          { session, returnDocument: "after" },
+        );
+        if (attached) {
+          changedLinks.push(attached);
+          await recordWebhookEvent(
+            ctx.db,
+            ctx.workspace._id,
+            "link.updated",
+            linkEventData(attached, ctx.linkDomain),
+            session,
+            now,
+          );
+        }
+      }
+      return { current, changedLinks };
+    });
+    if (!removed) continue;
+    await invalidateLinks(
+      ctx.cache,
+      qrDomain(removed.current, ctx.linkDomain),
+      [removed.current.urlId, removed.current.attachedUrl].filter(
+        (key): key is string => typeof key === "string" && Boolean(key),
+      ),
+    );
+    for (const link of removed.changedLinks)
+      await invalidateLinks(ctx.cache, link.domain ?? ctx.linkDomain, [
+        link.key ?? link.urlCode ?? "",
+        ...(link.previousKeys ?? []),
+      ]);
     deleted.push(qr._id.toHexString());
   }
   return ok({ deleted });

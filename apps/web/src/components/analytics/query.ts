@@ -13,6 +13,7 @@ export const intervals = [
 
 // Filters on event attributes; they need the analyticsBreakdowns feature.
 export const filterDimensions = [
+  "branch",
   "country",
   "device",
   "browser",

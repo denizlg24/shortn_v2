@@ -9,6 +9,7 @@ import { CreatedFilter, createdSummary } from "../page/created-filter";
 import { normalizeCreated } from "../page/created-range";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
+import { RemoteLinkTags } from "./remote-tags";
 import {
   FilterBar,
   FilterCombobox,
@@ -16,8 +17,21 @@ import {
   FilterSelect,
 } from "../page/filters";
 
-export function LinksFilters({ tags }: { tags: string[] }) {
+export function LinksFilters({
+  tags,
+  trash = false,
+  archived = false,
+  workspace,
+  preserve,
+}: {
+  tags: string[];
+  trash?: boolean;
+  archived?: boolean;
+  workspace?: string;
+  preserve?: Record<string, string>;
+}) {
   const t = useTranslations("linkPages.list");
+  const trashText = useTranslations("linkPages.trash");
   const dateText = useTranslations("page.created");
   const params = useSearchParams();
   const q = params.get("q");
@@ -36,20 +50,37 @@ export function LinksFilters({ tags }: { tags: string[] }) {
   return (
     <FilterBar
       applied={applied}
+      clearParams={
+        trash || archived || preserve
+          ? {
+              ...preserve,
+              ...(trash ? { trash: "1" } : archived ? { archived: "1" } : {}),
+            }
+          : undefined
+      }
       normalize={(next, current) => normalizeCreated(next, current, new Date())}
     >
+      {Object.entries(preserve ?? {}).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
+      {trash ? <input type="hidden" name="trash" value="1" /> : null}
+      {archived ? <input type="hidden" name="archived" value="1" /> : null}
       <FilterSearch
         label={t("search")}
         name="q"
         placeholder={t("searchPlaceholder")}
       />
-      <FilterCombobox
-        multiple
-        label={t("tag")}
-        name="tag"
-        allLabel={t("anyTag")}
-        options={tags.map((tag) => ({ value: tag, label: tag }))}
-      />
+      {workspace ? (
+        <RemoteLinkTags workspace={workspace} initial={tags} />
+      ) : (
+        <FilterCombobox
+          multiple
+          label={t("tag")}
+          name="tag"
+          allLabel={t("anyTag")}
+          options={tags.map((tag) => ({ value: tag, label: tag }))}
+        />
+      )}
       <FilterSelect
         label={t("status")}
         name="status"
@@ -60,6 +91,16 @@ export function LinksFilters({ tags }: { tags: string[] }) {
         }))}
       />
       <CreatedFilter />
+      {trash || archived ? (
+        <FilterSelect
+          label={trashText("group")}
+          name="group"
+          options={[
+            { value: "", label: trashText("ungrouped") },
+            { value: "tag", label: trashText("byTag") },
+          ]}
+        />
+      ) : null}
       <FilterSelect
         label={t("sort")}
         name="sort"

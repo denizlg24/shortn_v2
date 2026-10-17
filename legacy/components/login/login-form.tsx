@@ -99,7 +99,11 @@ const loginFormSchema = z.object({
   }),
 });
 
-export const LoginForm = () => {
+export const LoginForm = ({
+  securityLoginUrl = null,
+}: {
+  securityLoginUrl?: string | null;
+}) => {
   const locale = useLocale();
   const t = useTranslations("login");
   const [loading, setLoading] = useState(0);
@@ -159,7 +163,16 @@ export const LoginForm = () => {
             setLoading(0);
           },
           onError: (ctx) => {
-            console.log(ctx);
+            if (ctx.error.code === "TWO_FACTOR_NEW_APP_REQUIRED") {
+              setLoading(0);
+              if (securityLoginUrl) window.location.assign(securityLoginUrl);
+              else
+                form.setError("root", {
+                  type: "manual",
+                  message: t("errors.two-factor-new-app"),
+                });
+              return;
+            }
             if (
               ctx.error.code === "EMAIL_NOT_VERIFIED" ||
               ctx.error.status === 403
@@ -238,7 +251,16 @@ export const LoginForm = () => {
             setLoading(0);
           },
           onError: (ctx) => {
-            console.log(ctx);
+            if (ctx.error.code === "TWO_FACTOR_NEW_APP_REQUIRED") {
+              setLoading(0);
+              if (securityLoginUrl) window.location.assign(securityLoginUrl);
+              else
+                form.setError("root", {
+                  type: "manual",
+                  message: t("errors.two-factor-new-app"),
+                });
+              return;
+            }
             if (
               ctx.error.code === "EMAIL_NOT_VERIFIED" ||
               ctx.error.status === 403

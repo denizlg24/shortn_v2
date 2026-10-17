@@ -2,12 +2,11 @@
 
 import type { PlanId } from "@shortn/billing";
 import { Button, cn, EmptyState, formatDate, Skeleton } from "@shortn/ui";
-import { Download } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { useIntlLocale } from "@/lib/intl-locale";
-import { GateNote, PlanGate, UpgradeLink } from "../plan-gate";
+import { GateNote, UpgradeLink } from "../plan-gate";
 import {
   AnalyticsFilters,
   shownFilters,
@@ -24,7 +23,7 @@ import {
   filterFor,
   type BreakdownSlug,
 } from "./breakdowns";
-import { downloadText, toCsv } from "./csv";
+import { ExportButton } from "./export-button";
 import { useValueLabel } from "./labels";
 import { parseQuery, queryString } from "./query";
 import {
@@ -104,31 +103,6 @@ export function BreakdownView({
       ? `/${workspace}/campaigns/${scope.id}/analytics`
       : `/${workspace}/analytics`;
 
-  const download = () => {
-    if (!data) return;
-    const day = (iso: string) => iso.slice(0, 10);
-    downloadText(
-      toCsv([
-        [
-          column,
-          t("table.value"),
-          t("table.clicks"),
-          t("table.scans"),
-          t("table.total"),
-        ],
-        ...rows.map((row) => [
-          row.label,
-          row.value,
-          row.clicks,
-          row.scans,
-          row.clicks + row.scans,
-        ]),
-      ]),
-      `shortn-${workspace}-${slug}-${day(data.range.from)}-${day(data.range.to)}.csv`,
-      "text/csv;charset=utf-8",
-    );
-  };
-
   return (
     <>
       <AnalyticsFilters
@@ -194,19 +168,13 @@ export function BreakdownView({
                     })
                 : null}
             </p>
-            {csvGate ? (
-              <PlanGate
-                feature={
-                  scope.type === "campaign" ? "campaignExport" : "csvExport"
-                }
-                plan={csvGate}
-              />
-            ) : (
-              <Button onClick={download} disabled={!data || rows.length === 0}>
-                <Download aria-hidden />
-                {t("export.label")}
-              </Button>
-            )}
+            <ExportButton
+              workspace={workspace}
+              query={query}
+              params={scopeParams}
+              gate={csvGate}
+              dimension={dimension}
+            />
           </div>
           {data === null ? (
             <div aria-hidden className="flex flex-col gap-2">

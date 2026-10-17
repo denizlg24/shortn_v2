@@ -15,10 +15,12 @@ type Format = (typeof formats)[number];
 export function QrDownloads({
   options,
   name,
+  formats: formatsToShow = formats,
 }: {
   options: Options;
   /** File name without extension, e.g. the code's public id. */
   name: string;
+  formats?: readonly Format[];
 }) {
   const t = useTranslations("qr.download");
   const id = useId();
@@ -58,7 +60,7 @@ export function QrDownloads({
             ))}
           </select>
         </div>
-        {formats.map((format) => (
+        {formatsToShow.map((format) => (
           <button
             key={format}
             type="button"

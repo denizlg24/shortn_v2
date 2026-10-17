@@ -41,8 +41,8 @@
   "delete": {
     "title": "Delete {count, plural, one {# link} other {# links}}?",
     "noneTitle": "You can't delete these links",
-    "body": "Their short URLs stop working immediately. This can't be undone.",
-    "partial": "You can delete {deletable} of the {count} selected links, because members can delete only the links they created. Their short URLs stop working immediately. This can't be undone.",
+    "body": "Their short URLs stop working immediately. You can restore them from Trash for 30 days.",
+    "partial": "You can delete {deletable} of the {count} selected links, because members can delete only the links they created. Their short URLs stop working immediately; you can restore them from Trash for 30 days.",
     "none": "Members can delete only the links they created. Ask a workspace admin to delete them.",
     "cancel": "Cancel",
     "confirm": "Delete {count, plural, one {# link} other {# links}}",

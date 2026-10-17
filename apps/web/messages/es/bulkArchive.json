@@ -1,0 +1,33 @@
+{
+  "selection": "{count, plural, one {# enlace seleccionado entre páginas y filtros.} other {# enlaces seleccionados entre páginas y filtros.}}",
+  "review": "Revisar enlaces seleccionados",
+  "reviewHelp": "Consulta los {count} enlaces seleccionados. Los filtros solo cambian esta revisión; la operación se aplica a toda la selección.",
+  "matching": "{count} de {total} enlaces seleccionados coinciden con esta vista.",
+  "untagged": "Sin etiquetas",
+  "emptyReview": "Ningún enlace seleccionado coincide con estos filtros.",
+  "back": "Volver a los enlaces",
+  "cancel": "Cancelar",
+  "entry": "Archivar",
+  "title": "Archivar enlaces seleccionados",
+  "unarchiveTitle": "Desarchivar enlaces seleccionados",
+  "limits": "Hasta 500 enlaces por operación. Los enlaces archivados siguen redirigiendo.",
+  "operation": "Confirmar operación",
+  "effect": "Retirar los {count} enlaces seleccionados de la biblioteca activa. Se conservan las redirecciones, códigos QR, análisis y campañas. No hay eliminación automática.",
+  "unarchiveEffect": "Devolver los {count} enlaces seleccionados a la biblioteca activa. Se conservan sus destinos y ajustes.",
+  "confirm": "Archivar los {count} enlaces seleccionados.",
+  "unarchiveConfirm": "Desarchivar los {count} enlaces seleccionados.",
+  "apply": "Archivar enlaces",
+  "unarchive": "Desarchivar",
+  "success": "Se archivaron {updated} de {selected} enlaces seleccionados. Los enlaces ya archivados no cambiaron.",
+  "unarchiveSuccess": "Se desarchivaron {updated} de {selected} enlaces seleccionados. Los enlaces activos no cambiaron.",
+  "viewArchived": "Ver enlaces archivados",
+  "libraryTitle": "Archivados",
+  "libraryHelp": "Los enlaces archivados siguen redirigiendo y permanecen en las campañas y páginas de bio existentes. Desarchívalos para devolverlos a la biblioteca activa.",
+  "emptyLibrary": "No hay enlaces archivados.",
+  "errors": {
+    "forbidden": "No tienes permiso para editar estos enlaces. Consulta a un administrador.",
+    "not_found": "La selección ha caducado o contiene enlaces que ya no están disponibles. No cambió nada. Vuelve a Enlaces y selecciona de nuevo.",
+    "invalid_input": "Selecciona entre 1 y 500 enlaces y confirma la operación.",
+    "failed": "No se pudo completar la operación de archivo. Se conserva tu selección. Inténtalo de nuevo."
+  }
+}

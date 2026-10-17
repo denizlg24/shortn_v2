@@ -1,3 +1,4 @@
+import { readHotClickCount, incrementUntrackedClickCount } from "@shortn/redis";
 import { encodeSecret } from "@shortn/core";
 import { closeMongoClient, getDb } from "@shortn/db";
 import { parseEnv, redirectEnv } from "@shortn/env";
@@ -49,6 +50,10 @@ const health = async () => {
 
 const app = createApp({
   resolver,
+  clickCounter: {
+    read: (id, base) => readHotClickCount(durable, id, base),
+    untracked: (id, base) => incrementUntrackedClickCount(durable, id, base),
+  },
   enqueue: clicks.enqueue,
   health,
   secrets: {

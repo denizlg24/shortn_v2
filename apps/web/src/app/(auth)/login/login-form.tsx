@@ -2,7 +2,8 @@
 
 import { authClient } from "@shortn/auth/client";
 import { Button, Input } from "@shortn/ui";
-import { AtSign, Mail } from "lucide-react";
+import { useRef, useState } from "react";
+import { AtSign, Mail, KeyRound, Building2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,11 +29,13 @@ export function LoginForm({
   oauthFailure,
   providers,
   next,
+  ssoHref,
 }: {
   oauthFailure: OAuthFailure;
   providers: EnabledProviders;
   /** Same-app path to land on after signing in (already sanitized). */
   next: string;
+  ssoHref: string;
 }) {
   const t = useTranslations("auth");
   const router = useRouter();
@@ -50,6 +53,8 @@ export function LoginForm({
       initialFormError: oauthMessage,
     },
   );
+  const [passkeyPending, setPasskeyPending] = useState(false);
+  const passkeyBusy = useRef(false);
   const usingEmail = form.values.identifier.includes("@");
 
   const onSubmit = form.submit(async (values) => {
@@ -101,7 +106,14 @@ export function LoginForm({
   return (
     <>
       <AuthHeading title={t("login.title")} />
-      <form noValidate onSubmit={onSubmit} className="flex flex-col gap-4">
+      <form
+        noValidate
+        onSubmit={(event) => {
+          if (passkeyBusy.current) event.preventDefault();
+          else void onSubmit(event);
+        }}
+        className="flex flex-col gap-4"
+      >
         <AuthField
           id={form.id("identifier")}
           label={t("fields.identifier")}
@@ -110,6 +122,14 @@ export function LoginForm({
           {(control) => (
             <Input
               {...form.field("identifier")}
+              onBlur={(event) => {
+                if (
+                  event.relatedTarget instanceof HTMLElement &&
+                  event.relatedTarget.closest("form") ===
+                    event.currentTarget.form
+                )
+                  form.field("identifier").onBlur();
+              }}
               {...control}
               size="lg"
               autoFocus
@@ -138,6 +158,14 @@ export function LoginForm({
           {(control) => (
             <PasswordInput
               {...form.field("password")}
+              onBlur={(event) => {
+                if (
+                  event.relatedTarget instanceof HTMLElement &&
+                  event.relatedTarget.closest("form") ===
+                    event.currentTarget.form
+                )
+                  form.field("password").onBlur();
+              }}
               {...control}
               size="lg"
               autoComplete="current-password"
@@ -151,10 +179,76 @@ export function LoginForm({
           size="lg"
           className="mt-1 w-full"
           loading={form.pending}
+          disabled={passkeyPending}
         >
           {t("login.submit")}
         </Button>
       </form>
+      <Button
+        type="button"
+        variant="secondary"
+        size="lg"
+        className="mt-3 w-full"
+        loading={passkeyPending}
+        disabled={form.pending}
+        onClick={async () => {
+          if (passkeyBusy.current || form.pending) return;
+          if (!window.isSecureContext || !window.PublicKeyCredential) {
+            form.setFormError(t("passkey.unsupported"));
+            return;
+          }
+          passkeyBusy.current = true;
+          setPasskeyPending(true);
+          form.setFormError("");
+          try {
+            const result = await authClient.signIn.passkey();
+            if (result.error)
+              form.setFormError(
+                t(
+                  result.error.status === 429
+                    ? "errors.tooManyAttempts"
+                    : [
+                          "AUTH_CANCELLED",
+                          "ERROR_CEREMONY_ABORTED",
+                          "ERROR_PASSTHROUGH_SEE_CAUSE_PROPERTY",
+                        ].includes(
+                          "code" in result.error ? result.error.code : "",
+                        )
+                      ? "passkey.cancelled"
+                      : "passkey.failed",
+                ),
+              );
+            else {
+              const data = result.data as {
+                redirect?: boolean;
+                url?: string;
+              } | null;
+              if (data?.redirect && data.url) window.location.assign(data.url);
+              else window.location.assign(next);
+              return;
+            }
+          } catch {
+            form.setFormError(t("errors.network"));
+          }
+          passkeyBusy.current = false;
+          setPasskeyPending(false);
+        }}
+      >
+        <KeyRound aria-hidden className="size-4" />
+        {t("passkey.signIn")}
+      </Button>
+      <Button asChild variant="secondary" size="lg" className="mt-3 w-full">
+        <Link
+          href={ssoHref}
+          aria-disabled={form.pending || passkeyPending || undefined}
+          onClick={(event) => {
+            if (form.pending || passkeyPending) event.preventDefault();
+          }}
+        >
+          <Building2 aria-hidden className="size-4" />
+          {t("sso.entry")}
+        </Link>
+      </Button>
       {hasSocialSignIn(providers) ? (
         <>
           <OrDivider label={t("or")} />
@@ -166,7 +260,7 @@ export function LoginForm({
                 ? "/login"
                 : `/login?next=${encodeURIComponent(next)}`
             }
-            disabled={form.pending}
+            disabled={form.pending || passkeyPending}
             onError={form.setFormError}
           />
         </>

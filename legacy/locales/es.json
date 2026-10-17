@@ -636,7 +636,8 @@
       "verify-email-toast": "Por favor verifica tu correo electrónico antes de iniciar sesión.",
       "resend-verification": "Reenviar correo de verificación.",
       "verification-resent": "Correo de verificación reenviado exitosamente.",
-      "not-verified-username": "Tu cuenta no está verificada. Por favor inicia sesión con tu correo para recibir un correo de verificación."
+      "not-verified-username": "Tu cuenta no está verificada. Por favor inicia sesión con tu correo para recibir un correo de verificación.",
+      "two-factor-new-app": "Esta cuenta requiere un código de autenticador. Continúa en el nuevo panel o contacta con soporte si no está disponible."
     }
   },
   "register": {

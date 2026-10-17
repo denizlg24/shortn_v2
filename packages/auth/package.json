@@ -5,7 +5,11 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./client": "./client.ts"
+    "./client": "./client.ts",
+    "./rate-limit": "./rate-limit.ts",
+    "./legacy-password-gate": "./legacy-password-gate.ts",
+    "./two-factor": "./two-factor.ts",
+    "./sso-views": "./sso-views.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -13,14 +17,22 @@
     "test": "bun test --pass-with-no-tests"
   },
   "devDependencies": {
-    "@shortn/config": "workspace:*"
+    "@shortn/config": "workspace:*",
+    "@simplewebauthn/server": "13.3.3",
+    "ioredis": "6.0.0",
+    "jose": "6.1.2",
+    "samlify": "2.13.1"
   },
   "dependencies": {
+    "@better-auth/core": "1.7.10",
+    "@better-auth/oauth-provider": "1.7.10",
+    "@better-auth/passkey": "1.7.10",
+    "@better-auth/sso": "1.7.10",
     "@polar-sh/better-auth": "1.8.4",
     "@polar-sh/sdk": "0.49.0",
     "@shortn/core": "workspace:*",
     "@shortn/db": "workspace:*",
-    "better-auth": "1.4.18",
+    "better-auth": "1.7.10",
     "mongodb": "7.1.0",
     "zod": "4.6.5"
   },

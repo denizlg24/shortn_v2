@@ -52,6 +52,35 @@ export const handoff = (options: { db: () => Db }) =>
             found.userId,
           );
           if (!user) throw ctx.redirect("/login");
+          if (Reflect.get(user, "twoFactorEnabled") && !found.impersonatedBy) {
+            // The one-time handoff proves the primary session only. Complete
+            // the second factor on this host before creating any full session.
+            const identifier = `2fa-${crypto.randomUUID()}`;
+            const maxAge = 600;
+            const expiresAt = new Date(Date.now() + maxAge * 1000);
+            await ctx.context.internalAdapter.createVerificationValue({
+              identifier,
+              value: user.id,
+              expiresAt,
+            });
+            await ctx.context.internalAdapter.createVerificationValue({
+              identifier: `2fa-attempts-${identifier}`,
+              value: "0",
+              expiresAt,
+            });
+            const cookie = ctx.context.createAuthCookie("two_factor", {
+              maxAge,
+            });
+            await ctx.setSignedCookie(
+              cookie.name,
+              identifier,
+              ctx.context.secret,
+              cookie.attributes,
+            );
+            throw ctx.redirect(
+              `/login/two-factor?next=${encodeURIComponent(next)}`,
+            );
+          }
           const session = await ctx.context.internalAdapter.createSession(
             user.id,
             false,

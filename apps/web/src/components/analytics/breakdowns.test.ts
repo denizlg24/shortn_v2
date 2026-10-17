@@ -1,5 +1,32 @@
 import { describe, expect, test } from "bun:test";
-import { nextSort, parseSort, sortParams, sortRows } from "./breakdowns";
+import {
+  breakdownSlugs,
+  isOpenBreakdown,
+  toggledFilter,
+  nextSort,
+  parseSort,
+  sortParams,
+  sortRows,
+} from "./breakdowns";
+
+import { parseQuery, queryString } from "./query";
+
+test("branch drilldown preserves scope and survives URL round trips", () => {
+  const query = parseQuery(
+    new URLSearchParams(
+      "range=7d&link=0123456789abcdef01234567&kind=scan&country=PT",
+    ),
+  );
+  const filtered = toggledFilter(query, breakdownSlugs.branches, "rotation:1")!;
+  expect(isOpenBreakdown("branch")).toBe(false);
+  expect(filtered.filters).toEqual({ ...query.filters, branch: "rotation:1" });
+  expect(
+    parseQuery(new URLSearchParams(queryString(filtered).slice(1))),
+  ).toEqual(filtered);
+  expect(toggledFilter(filtered, "branch", "rotation:1")!.filters).toEqual(
+    query.filters,
+  );
+});
 
 const rows = [
   { value: "PT", label: "Portugal", clicks: 5, scans: 1 },

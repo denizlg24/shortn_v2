@@ -2,6 +2,7 @@ import { LoginForm } from "@/components/login/login-form";
 import { MarketingPage } from "@/components/marketing/marketing-primitives";
 import { Check } from "lucide-react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import env from "@/utils/env";
 
 export async function generateMetadata() {
   const t = await getTranslations("metadata");
@@ -63,7 +64,11 @@ export default async function Home({
         </div>
         <div className="border-t border-primary/10 pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
           <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
-            <LoginForm />
+            <LoginForm
+              securityLoginUrl={
+                env.NEW_APP_URL ? new URL("/login", env.NEW_APP_URL).href : null
+              }
+            />
           </div>
         </div>
       </section>

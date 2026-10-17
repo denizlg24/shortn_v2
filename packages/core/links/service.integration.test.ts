@@ -3,7 +3,14 @@ import { deriveLink, physicalNames } from "@shortn/db";
 import { Redis } from "ioredis";
 import { MongoClient, ObjectId, type Db } from "mongodb";
 import { toCachedLink } from "./cached-link";
-import { createLink, deleteLinks, listLinks, updateLink } from "./service";
+import {
+  createLink,
+  deleteLinks,
+  listLinks,
+  updateLink,
+  purgeExpiredLinks,
+  linkTrashRetentionMs,
+} from "./service";
 import { ensurePersonalWorkspace, type Workspace } from "../workspaces/service";
 import type { ServiceContext } from "../workspaces/context";
 import type { Role } from "../workspaces/authz";
@@ -227,7 +234,7 @@ if (!enabled)
       expect(removed.ok && removed.value.password).toBeNull();
     });
 
-    test("delete archives legacy clicks, empties campaigns and bio pages", async () => {
+    test("expired trash archives legacy clicks and detaches owned references", async () => {
       const { userId, workspace } = await personal();
       const ctx = ctxFor(workspace, userId);
       const created = await createLink(ctx, { url: "https://a.com" });
@@ -240,11 +247,27 @@ if (!enabled)
       });
       await db
         .collection(physicalNames.campaigns)
-        .insertOne({ title: "c", links: [linkId] });
-      await db
-        .collection(physicalNames.bio_pages)
-        .insertOne({ slug: "b", links: [{ link: linkId }] });
+        .insertOne({ workspaceId: workspace._id, title: "c", links: [linkId] });
+      await db.collection(physicalNames.bio_pages).insertOne({
+        workspaceId: workspace._id,
+        slug: "b",
+        links: [{ link: linkId }],
+      });
       expect((await deleteLinks(ctx, [created.value.id])).ok).toBe(true);
+      expect(
+        await db
+          .collection(physicalNames.links)
+          .countDocuments({ _id: linkId }),
+      ).toBe(1);
+      expect(
+        await db
+          .collection(physicalNames.clicks)
+          .countDocuments({ urlCode: created.value.key }),
+      ).toBe(1);
+      await purgeExpiredLinks(
+        ctx,
+        new Date(Date.now() + linkTrashRetentionMs + 1000),
+      );
       expect(
         await db
           .collection(physicalNames.links)

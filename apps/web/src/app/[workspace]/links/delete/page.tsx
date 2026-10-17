@@ -1,3 +1,4 @@
+import { decodeSelection } from "@/lib/bulk-selection";
 import { can, getLink } from "@shortn/core";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
@@ -10,17 +11,20 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-// Bulk delete: the list's checkboxes submit here as ?ids=…
+// Bulk review accepts compact selections and legacy repeated ID parameters.
 export default async function DeleteSelectedPage({
   params,
   searchParams,
 }: PageProps<"/[workspace]/links/delete">) {
   const { workspace } = await params;
-  const { ids } = await searchParams;
+  const { ids, selection } = await searchParams;
   const t = await getTranslations("linkPages");
-  const requested = (Array.isArray(ids) ? ids : ids ? [ids] : [])
-    .filter((id) => /^[a-f0-9]{24}$/.test(id))
-    .slice(0, 500);
+  const requested =
+    selection !== undefined
+      ? decodeSelection(selection)
+      : (Array.isArray(ids) ? ids : ids ? [ids] : [])
+          .filter((id) => /^[a-f0-9]{24}$/.test(id))
+          .slice(0, 500);
   if (!requested.length) redirect(`/${workspace}/links`);
   const ctx = await serviceContext(workspace);
   const links = (

@@ -15,6 +15,7 @@ import { serviceContext } from "@/server/context";
 import { qrName } from "@/server/qr-page";
 import { createdBounds } from "@/components/page/created-range";
 import { requestTime } from "@/server/time";
+import { env } from "@/server/env";
 
 const pageSize = 24;
 
@@ -35,6 +36,10 @@ export default async function QrCodesPage({
   const { workspace } = await params;
   const query = await searchParams;
   const t = await getTranslations("qr.list");
+  const importText = await getTranslations("imports");
+  const exportText = await getTranslations("qrExports"),
+    selectionText = await getTranslations("page.selection");
+  const exportsEnabled = env().QR_EXPORTS_ENABLED === "1";
   const format = await getFormatter();
   const ctx = await serviceContext(workspace);
 
@@ -87,7 +92,7 @@ export default async function QrCodesPage({
   };
 
   const checkbox = (qr: QrView, className?: string) =>
-    deletable(qr) ? (
+    exportsEnabled || deletable(qr) ? (
       <input
         type="checkbox"
         name="ids"
@@ -132,12 +137,25 @@ export default async function QrCodesPage({
             })}
           </div>
           {canCreate ? (
-            <Link
-              href={`${base}/new`}
-              className={buttonVariants({ variant: "primary", size: "lg" })}
-            >
-              {t("new")}
-            </Link>
+            <>
+              {env().IMPORTS_ENABLED === "1" ? (
+                <Link
+                  href={`/${workspace}/imports/new?kind=qr`}
+                  className={buttonVariants({
+                    variant: "secondary",
+                    size: "lg",
+                  })}
+                >
+                  {importText("entry")}
+                </Link>
+              ) : null}
+              <Link
+                href={`${base}/new`}
+                className={buttonVariants({ variant: "primary", size: "lg" })}
+              >
+                {t("new")}
+              </Link>
+            </>
           ) : null}
         </>
       }
@@ -166,9 +184,38 @@ export default async function QrCodesPage({
         </div>
       ) : (
         <BulkSelection
-          key={JSON.stringify(query)}
+          key="qr-selection"
           action={`${base}/delete`}
-          enabled={anyDeletable}
+          enabled={exportsEnabled || anyDeletable}
+          allowed={exportsEnabled || can(ctx.actor, "resource.update")}
+          {...(exportsEnabled
+            ? {
+                actions: [
+                  {
+                    href: `${base}/export`,
+                    label: exportText("selectedAction"),
+                    clear: false,
+                  },
+                  ...(can(ctx.actor, "resource.update")
+                    ? [
+                        {
+                          href: `${base}/delete`,
+                          label: selectionText("delete"),
+                        },
+                      ]
+                    : []),
+                ],
+              }
+            : {})}
+          eligible={result.items
+            .filter(
+              (qr) =>
+                exportsEnabled ||
+                can(ctx.actor, "resource.delete", {
+                  createdBy: qr.createdBy ?? undefined,
+                }),
+            )
+            .map((qr) => qr.id)}
         >
           {view === "grid" ? (
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] border-t border-l border-line">
@@ -209,7 +256,7 @@ export default async function QrCodesPage({
               <table className="w-full text-small">
                 <thead className="border-b border-line text-left text-meta text-fg-muted">
                   <tr>
-                    {anyDeletable ? (
+                    {exportsEnabled || anyDeletable ? (
                       <th scope="col" className="w-10 py-2 pr-2 font-medium">
                         <span className="sr-only">{t("columns.select")}</span>
                       </th>
@@ -246,7 +293,7 @@ export default async function QrCodesPage({
                 <tbody className="divide-y divide-line">
                   {result.items.map((qr) => (
                     <tr key={qr.id} className="hover:bg-bg-subtle">
-                      {anyDeletable ? (
+                      {exportsEnabled || anyDeletable ? (
                         <td className="py-2.5 pr-2">{checkbox(qr)}</td>
                       ) : null}
                       <td className="py-2.5 pr-4">
@@ -260,10 +307,11 @@ export default async function QrCodesPage({
                             alt=""
                             lazy
                           />
-                          <div className="min-w-0">
+                          <div className="min-w-0 w-64 max-w-[calc(100vw-12rem)]">
                             <Link
                               href={`${base}/${qr.id}`}
-                              className="font-medium text-fg hover:underline"
+                              className="line-clamp-2 break-words font-medium text-fg hover:underline"
+                              title={qrName(qr)}
                             >
                               {qrName(qr)}
                             </Link>

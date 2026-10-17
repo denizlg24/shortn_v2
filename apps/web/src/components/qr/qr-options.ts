@@ -15,6 +15,9 @@ import { cornerStyles, dotStyles, errorLevels } from "./qr-draft";
 // stored qr-code-styling options (QrView.storedDesign) are what was
 // printed, legacy gradients and all.
 
+export type PrintedQrOptions = Options & {
+  frameOptions?: QrDesign["frameOptions"];
+};
 type Stored = Record<string, unknown>;
 
 const isRecord = (value: unknown): value is Stored =>
@@ -85,7 +88,7 @@ function paint<T extends string>(part: Stored, types: readonly T[]) {
  * qr-code-styling options from what is stored, the way legacy renders it.
  * Values outside the library's unions fall back to its defaults.
  */
-export function printedOptions(stored: Stored, data: string): Options {
+export function printedOptions(stored: Stored, data: string): PrintedQrOptions {
   const width = number(stored.width) ?? 300;
   const height = number(stored.height) ?? width;
   const margin = number(stored.margin);
@@ -112,6 +115,9 @@ export function printedOptions(stored: Stored, data: string): Options {
     ...(margin === undefined ? {} : { margin }),
     ...(image ? { image } : {}),
     ...(shape ? { shape } : {}),
+    ...(isRecord(stored.frameOptions)
+      ? { frameOptions: stored.frameOptions as QrDesign["frameOptions"] }
+      : {}),
     ...(level ? { qrOptions: { errorCorrectionLevel: level } } : {}),
     imageOptions: {
       ...(crossOrigin ? { crossOrigin } : {}),

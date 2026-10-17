@@ -24,6 +24,7 @@ export interface ComboboxProps {
   options: ComboboxOption[];
   value: string[];
   onValueChange: (value: string[]) => void;
+  onSearchChange?: ((query: string) => void) | undefined;
   multiple?: boolean;
   placeholder: string;
   searchPlaceholder: string;
@@ -33,6 +34,8 @@ export interface ComboboxProps {
   onCreate?: (query: string) => void;
   /** Replaces the default field-styled trigger. Must be a single focusable element. */
   trigger?: ReactNode;
+  /** Optional content below results, such as server pagination. */
+  footer?: ReactNode;
   id?: string;
   className?: string;
   contentClassName?: string;
@@ -45,6 +48,7 @@ export function Combobox({
   options,
   value,
   onValueChange,
+  onSearchChange,
   multiple = false,
   placeholder,
   searchPlaceholder,
@@ -52,6 +56,7 @@ export function Combobox({
   createLabel,
   onCreate,
   trigger,
+  footer,
   id,
   className,
   contentClassName,
@@ -99,6 +104,7 @@ export function Combobox({
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
+        if (nextOpen) onSearchChange?.("");
         if (!nextOpen) setQuery("");
       }}
     >
@@ -142,7 +148,10 @@ export function Combobox({
         <Command>
           <CommandInput
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(value) => {
+              setQuery(value);
+              onSearchChange?.(value);
+            }}
             placeholder={searchPlaceholder}
             frameClassName="h-10 px-3"
             className="text-small"
@@ -203,6 +212,7 @@ export function Combobox({
             </CommandGroup>
           </CommandList>
         </Command>
+        {footer}
       </PopoverContent>
     </Popover>
   );

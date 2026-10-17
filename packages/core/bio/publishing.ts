@@ -1,6 +1,8 @@
+import { recordWebhookEvent } from "../webhooks/events";
 import { loadEntitlements } from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
 import { ObjectId, type Db, type Document } from "mongodb";
+import { z } from "zod";
 import { can } from "../workspaces/authz";
 import { ownedBy, parseObjectId } from "../workspaces/service";
 import { nowOf, type ServiceContext } from "../workspaces/context";
@@ -41,6 +43,7 @@ export async function readBioDraft(
     handle: String(page.handle ?? page.slug),
     revision: Number(page.draftRevision ?? 0),
     publishedRevision: Number(page.publishedRevision ?? 0),
+    published: page.published === true,
     content: parsed.success ? parsed.data : migratedBioContent(page),
   };
 }
@@ -61,7 +64,10 @@ async function validateContent(ctx: ServiceContext, input: unknown) {
     return fail("feature_required" as const);
   const ids = bioLinkIds(result.data).map((id) => new ObjectId(id));
   const count = await collection(ctx.db, "links").countDocuments({
-    $and: [{ _id: { $in: ids } }, ownedBy(ctx.workspace, "sub")],
+    $and: [
+      { _id: { $in: ids }, deletedAt: { $exists: false } },
+      ownedBy(ctx.workspace, "sub"),
+    ],
   });
   if (count !== ids.length) return fail("link_not_found" as const);
   return ok({ ...result.data, theme: accessibleBioTheme(result.data.theme) });
@@ -96,6 +102,54 @@ export async function saveBioDraft(
     ? ok({ revision: revision + 1 })
     : fail("conflict" as const);
 }
+export const bioDraftPatchInput = z
+  .object({
+    revision: z.number().int().min(0),
+    content: z
+      .object({
+        locale: z.enum(["en", "pt", "es"]).optional(),
+        blocks: bioContentSchema.shape.blocks.optional(),
+        theme: bioContentSchema.shape.theme.partial().strict().optional(),
+        seo: z
+          .object({
+            favicon: bioContentSchema.shape.seo.shape.favicon,
+            title: z.string().max(120).optional(),
+            description: z.string().max(500).optional(),
+            noindex: z.boolean().optional(),
+          })
+          .strict()
+          .optional(),
+        hideBranding: z.boolean().optional(),
+      })
+      .strict()
+      .refine(
+        (value) => Object.keys(value).length > 0,
+        "Provide a content change",
+      ),
+  })
+  .strict();
+
+export async function patchBioDraft(
+  ctx: ServiceContext,
+  id: string,
+  input: unknown,
+) {
+  if (!can(ctx.actor, "resource.update")) return fail("forbidden" as const);
+  const parsed = bioDraftPatchInput.safeParse(input);
+  if (!parsed.success) return fail("invalid_input" as const);
+  const current = await readBioDraft(ctx, id);
+  if (!current) return fail("not_found" as const);
+  if (current.revision !== parsed.data.revision)
+    return fail("conflict" as const);
+  const patch = parsed.data.content;
+  return saveBioDraft(ctx, id, parsed.data.revision, {
+    ...current.content,
+    ...patch,
+    theme: { ...current.content.theme, ...patch.theme },
+    seo: { ...current.content.seo, ...patch.seo },
+  });
+}
+
 export async function publishBioDraft(
   ctx: ServiceContext,
   id: string,
@@ -114,33 +168,47 @@ export async function publishBioDraft(
   const now = nowOf(ctx);
   const session = ctx.db.client.startSession();
   try {
-    await session.withTransaction(async () => {
-      const match =
-        revision === 0
-          ? {
-              $or: [
-                { draftRevision: 0 },
-                { draftRevision: { $exists: false } },
-              ],
-            }
-          : { draftRevision: revision };
-      const updated = await pages(ctx.db).updateOne(
-        { _id: page._id, ...match },
-        {
-          $set: {
-            publishedContent: checked.value,
-            published: true,
-            publishedRevision: revision,
-            publicationManaged: true,
-            updatedAt: now,
+    await session.withTransaction(
+      async () => {
+        const current = await pages(ctx.db).findOne(
+          { _id: page._id },
+          { session },
+        );
+        if (!current || Number(current.draftRevision ?? 0) !== revision)
+          throw new Error("bio_conflict");
+        if (
+          current.publicationManaged === true &&
+          current.published === true &&
+          current.publishedContent &&
+          current.publishedRevision !== undefined &&
+          Number(current.publishedRevision) === revision
+        )
+          return;
+
+        const match =
+          revision === 0
+            ? {
+                $or: [
+                  { draftRevision: 0 },
+                  { draftRevision: { $exists: false } },
+                ],
+              }
+            : { draftRevision: revision };
+        const updated = await pages(ctx.db).updateOne(
+          { _id: page._id, ...match },
+          {
+            $set: {
+              publishedContent: checked.value,
+              published: true,
+              publishedRevision: revision,
+              publicationManaged: true,
+              updatedAt: now,
+            },
           },
-        },
-        { session },
-      );
-      if (!updated.matchedCount) throw new Error("bio_conflict");
-      await ctx.db
-        .collection(bioVersionsCollection)
-        .updateOne(
+          { session },
+        );
+        if (!updated.matchedCount) throw new Error("bio_conflict");
+        await ctx.db.collection(bioVersionsCollection).updateOne(
           { bioPageId: page._id, revision },
           {
             $setOnInsert: {
@@ -152,27 +220,37 @@ export async function publishBioDraft(
           },
           { upsert: true, session },
         );
-      const versions = await ctx.db
-        .collection(bioVersionsCollection)
-        .find({ bioPageId: page._id }, { session })
-        .sort({ createdAt: -1, revision: -1 })
-        .skip(20)
-        .toArray();
-      if (versions.length)
-        await ctx.db
+        const versions = await ctx.db
           .collection(bioVersionsCollection)
-          .deleteMany(
-            { _id: { $in: versions.map((v) => v._id) } },
-            { session },
+          .find({ bioPageId: page._id }, { session })
+          .sort({ createdAt: -1, revision: -1 })
+          .skip(20)
+          .toArray();
+        if (versions.length)
+          await ctx.db
+            .collection(bioVersionsCollection)
+            .deleteMany(
+              { _id: { $in: versions.map((v) => v._id) } },
+              { session },
+            );
+        await ctx.db
+          .collection(bioOutboxCollection)
+          .updateOne(
+            { bioPageId: page._id },
+            { $set: { nextAttemptAt: now, attempts: 0, updatedAt: now } },
+            { upsert: true, session },
           );
-      await ctx.db
-        .collection(bioOutboxCollection)
-        .updateOne(
-          { bioPageId: page._id },
-          { $set: { nextAttemptAt: now, attempts: 0, updatedAt: now } },
-          { upsert: true, session },
+        await recordWebhookEvent(
+          ctx.db,
+          ctx.workspace._id,
+          "bio.published",
+          { id, handle: String(page.handle ?? page.slug), revision },
+          session,
+          now,
         );
-    });
+      },
+      { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } },
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "bio_conflict")
       return fail("conflict" as const);
@@ -207,13 +285,11 @@ export async function restoreBioVersion(
 ) {
   const page = await ownedBioDocument(ctx, id);
   if (!page) return fail("not_found" as const);
-  const saved = await ctx.db
-    .collection(bioVersionsCollection)
-    .findOne({
-      bioPageId: page._id,
-      workspaceId: ctx.workspace._id,
-      revision: version,
-    });
+  const saved = await ctx.db.collection(bioVersionsCollection).findOne({
+    bioPageId: page._id,
+    workspaceId: ctx.workspace._id,
+    revision: version,
+  });
   if (!saved) return fail("not_found" as const);
   return saveBioDraft(ctx, id, revision, saved.content);
 }
@@ -271,19 +347,17 @@ export async function changeBioHandle(
         { session },
       );
       if (!changed.matchedCount) throw new Error("bio_conflict");
-      await ctx.db
-        .collection(bioOutboxCollection)
-        .updateOne(
-          { bioPageId: page._id },
-          {
-            $set: {
-              nextAttemptAt: nowOf(ctx),
-              attempts: 0,
-              oldHandle: page.handle,
-            },
+      await ctx.db.collection(bioOutboxCollection).updateOne(
+        { bioPageId: page._id },
+        {
+          $set: {
+            nextAttemptAt: nowOf(ctx),
+            attempts: 0,
+            oldHandle: page.handle,
           },
-          { upsert: true, session },
-        );
+        },
+        { upsert: true, session },
+      );
     });
   } catch (error) {
     if (error instanceof Error && error.message === "bio_conflict")
@@ -338,6 +412,7 @@ export async function publicBioFromDocument(
   const links = await collection(db, "links")
     .find({
       _id: { $in: ids },
+      deletedAt: { $exists: false },
       ...(page.workspaceId
         ? { workspaceId: page.workspaceId }
         : { sub: page.userId }),

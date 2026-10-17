@@ -1,5 +1,7 @@
 import {
+  isLinkPreviewBot,
   accessCookieName,
+  rotationCookieName,
   boundedQuery,
   decide,
   localeFrom,
@@ -16,10 +18,17 @@ import { getCookie } from "hono/cookie";
 import { isbot } from "isbot";
 import type { Enqueue } from "./clicks";
 import { metrics } from "./metrics";
+import { deletedPage } from "./deleted-page";
+import { deepLinkPage } from "./deep-link-page";
+import { socialPreviewPage } from "./social-preview";
 import type { Resolver } from "./resolver";
 
 export interface AppOptions {
   resolver: Pick<Resolver, "resolve">;
+  clickCounter?: {
+    read: (id: string, base: number) => Promise<number>;
+    untracked: (id: string, base: number) => Promise<void>;
+  };
   enqueue: Enqueue;
   health: () => Promise<boolean>;
   secrets: TokenSecrets;
@@ -40,16 +49,73 @@ export interface AppOptions {
 // Matches the headers legacy's next.config.ts adds to every response.
 const securityHeaders = {
   "Cache-Control": "private, max-age=0",
+  Vary: "User-Agent",
   "Referrer-Policy": "strict-origin-when-cross-origin",
   "X-Content-Type-Options": "nosniff",
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
 };
 
 function respond(decision: Decision, key: string): Response {
+  if (decision.type === "not_found" || decision.type === "unavailable")
+    return new Response(
+      deletedPage(
+        decision.locale,
+        decision.type === "unavailable" ? decision.reason : undefined,
+      ),
+      {
+        status: decision.status,
+        headers: {
+          ...securityHeaders,
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy":
+            "default-src 'none'; style-src 'unsafe-inline'; font-src data:; base-uri 'none'; frame-ancestors 'none'",
+        },
+      },
+    );
+  if (decision.socialPreview)
+    return new Response(
+      socialPreviewPage(
+        decision.socialPreview.og,
+        decision.socialPreview.canonical,
+        decision.location,
+      ),
+      {
+        status: 200,
+        headers: {
+          ...securityHeaders,
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Security-Policy":
+            "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'",
+        },
+      },
+    );
+  if (decision.deepLink) {
+    const page = deepLinkPage(
+      decision.location,
+      decision.deepLink.fallback,
+      decision.deepLink.locale,
+      decision.deepLink.store,
+    );
+    return new Response(page.html, {
+      status: 200,
+      headers: {
+        ...securityHeaders,
+        "Content-Type": "text/html; charset=utf-8",
+        "Content-Security-Policy": page.csp,
+      },
+    });
+  }
   const headers = new Headers({
     ...securityHeaders,
     Location: decision.location,
   });
+  if (decision.rotationCookie) {
+    const cookie = decision.rotationCookie;
+    headers.append(
+      "Set-Cookie",
+      `${cookie.name}=${cookie.value}; Path=/; Max-Age=${cookie.maxAge}; HttpOnly; Secure; SameSite=Lax`,
+    );
+  }
   if (decision.clearAccessCookie)
     headers.append(
       "Set-Cookie",
@@ -204,6 +270,9 @@ export function createApp(options: AppOptions) {
       const link = await options.resolver.resolve(domain, path.key);
       if (!link && domainRecord?.notFoundRedirect)
         return c.redirect(String(domainRecord.notFoundRedirect), 302);
+      const userAgent = (c.req.header("user-agent") ?? "").slice(0, 2000);
+      const previewBot = isLinkPreviewBot(userAgent);
+      const bot = previewBot || isbot(userAgent);
       const decision = await decide({
         link,
         key: path.key,
@@ -213,7 +282,28 @@ export function createApp(options: AppOptions) {
         confirmationToken: url.searchParams.get("token") ?? undefined,
         accessCookie: getCookie(c, accessCookieName(path.key)),
         secrets: options.secrets,
+        query: url.searchParams,
+        clickCount:
+          link.kind === "link" && options.clickCounter
+            ? () => options.clickCounter!.read(link.id, link.hits ?? 0)
+            : undefined,
+        country: c.req.header("cf-ipcountry"),
+        userAgent,
+        bot,
+        previewBot,
+        rotationCookie:
+          link.kind === "link"
+            ? getCookie(c, rotationCookieName(link.id))
+            : undefined,
       });
+      if (decision.type === "redirect" && decision.untrackedCount && !bot) {
+        if (!options.clickCounter)
+          throw new Error("Missing untracked click counter");
+        await options.clickCounter.untracked(
+          decision.untrackedCount.linkId,
+          decision.untrackedCount.base,
+        );
+      }
       const attributionCookie = `shortn_bio_${path.key}`;
       const suppliedRef = url.searchParams.get("ref"),
         suppliedBlock = url.searchParams.get("block");
@@ -237,6 +327,20 @@ export function createApp(options: AppOptions) {
         }
       }
       const trackedQuery = new URLSearchParams(url.searchParams);
+      if (link.kind === "link" && link.rules && decision.track) {
+        const effective = new URL(decision.location).searchParams;
+        for (const field of [
+          "source",
+          "medium",
+          "campaign",
+          "term",
+          "content",
+        ]) {
+          const name = `utm_${field}`;
+          if (effective.has(name)) trackedQuery.set(name, effective.get(name)!);
+        }
+      }
+
       if (attribution) {
         trackedQuery.set("ref", attribution.ref);
         if (attribution.block) trackedQuery.set("block", attribution.block);
@@ -248,6 +352,10 @@ export function createApp(options: AppOptions) {
           v: 1,
           ts: Date.now(),
           linkId: decision.track.linkId,
+          ...(decision.track.counterBase !== undefined
+            ? { counterBase: decision.track.counterBase }
+            : {}),
+          ...(decision.track.branch ? { branch: decision.track.branch } : {}),
           ...(decision.track.qr
             ? {
                 qrId: decision.track.qr.id,
@@ -256,7 +364,7 @@ export function createApp(options: AppOptions) {
             : {}),
           domain,
           key: path.key,
-          bot: isbot(fields.ua ?? ""),
+          bot,
           query: boundedQuery(trackedQuery),
           ...fields,
         };

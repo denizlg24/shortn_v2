@@ -1,3 +1,4 @@
+import { validQrCaption } from "@shortn/qr-render/treatment-layout";
 import type { QrDesign } from "@shortn/core";
 
 // qr-code-styling's own values; legacy offered these six for every part and
@@ -42,6 +43,9 @@ export const libraryDefaults = {
 
 /** The design fields the editor offers; everything else passes through. */
 export interface QrDraft {
+  shape: "square" | "circle";
+  frame: "none" | "outline" | "solid";
+  caption: string;
   foreground: string;
   background: string;
   /** null draws that part of the corners in the code colour. */
@@ -59,6 +63,9 @@ export interface QrDraft {
 
 export function draftOf(design: QrDesign): QrDraft {
   return {
+    shape: design.shape ?? "square",
+    frame: design.frameOptions?.style ?? "none",
+    caption: design.frameOptions?.caption ?? "",
     foreground: design.dotsOptions?.color ?? libraryDefaults.foreground,
     background: design.backgroundOptions?.color ?? libraryDefaults.background,
     cornerSquareColor: design.cornersSquareOptions?.color ?? null,
@@ -84,6 +91,8 @@ export function designOf(base: QrDesign, draft: QrDraft): QrDesign {
   const logo = draft.logo.trim();
   return {
     ...base,
+    shape: draft.shape,
+    frameOptions: { style: draft.frame, caption: draft.caption },
     image: logo,
     dotsOptions: { color: draft.foreground.trim(), type: draft.dotStyle },
     backgroundOptions: { color: draft.background.trim() },
@@ -109,6 +118,8 @@ export function designOf(base: QrDesign, draft: QrDraft): QrDesign {
 // The server merges these onto the stored options key by key, so each one
 // is sent whole or not at all.
 const editorKeys = [
+  "shape",
+  "frameOptions",
   "image",
   "dotsOptions",
   "backgroundOptions",
@@ -144,10 +155,11 @@ export const designChanges = (
 
 const httpUrl = /^https?:\/\/\S+$/i;
 
-export type DraftProblem = "logoUrl" | "color";
+export type DraftProblem = "logoUrl" | "color" | "caption";
 
 /** What would make the server refuse the design, checked before saving. */
 export function draftProblem(draft: QrDraft): DraftProblem | null {
+  if (!validQrCaption(draft.caption)) return "caption";
   const logo = draft.logo.trim();
   if (logo && !httpUrl.test(logo)) return "logoUrl";
   const colors = [

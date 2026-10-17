@@ -128,12 +128,12 @@
   "delete": {
     "title": "Delete link",
     "titleMany": "Delete {count, plural, one {# link} other {# links}}",
-    "description": "This can't be undone.",
+    "description": "Short URLs stop working immediately. You can restore these links from Trash for 30 days.",
     "consequences": [
       "The short link stops redirecting immediately; printed copies stop working.",
-      "Its click history is archived and no longer shown.",
-      "It's removed from campaigns and bio pages; campaigns left empty are deleted.",
-      "An attached QR code stays, but no longer points at this link."
+      "Its keys stay reserved for 30 days.",
+      "Campaign and bio references are kept for restoration; the link is hidden from public bio pages.",
+      "After 30 days, the link is permanently removed. Aggregate analytics remain."
     ],
     "confirm": "Delete",
     "confirmMany": "Delete {count, plural, one {# link} other {# links}}",
@@ -188,5 +188,46 @@
     "feature_required": "Your plan doesn't include this.",
     "limit_reached": "You've used all {limit} links in this period.",
     "utm_limit": "A link can have up to 50 saved UTM variants. Remove a variant before adding another."
+  },
+  "trash": {
+    "title": "Trash",
+    "sections": "Link views",
+    "description": "Deleted links stop redirecting immediately. Restore them within 30 days to keep their keys, settings, campaigns and bio references. Selections stay with you across pages and filters in this tab.",
+    "empty": "Trash is empty.",
+    "restore": "Restore selected",
+    "restoring": "Restoring…",
+    "selection": "{count} selected · up to {limit}",
+    "limit": "Select up to {limit} links per operation.",
+    "failed": "Links could not be restored. Check your permissions and try again.",
+    "partial": "{count, plural, one {# selected link could not be restored.} other {# selected links could not be restored.}} It may have expired or your permissions may have changed. Clear the selection to continue.",
+    "restored": "{count, plural, one {# link restored.} other {# links restored.}}",
+    "restoreUntil": "Restore until",
+    "until": "Restore until {date}",
+    "expired": "Expired",
+    "group": "Group this page",
+    "ungrouped": "No grouping",
+    "byTag": "By first tag",
+    "untagged": "Untagged"
+  },
+  "health": {
+    "title": "Destination health",
+    "flag": "Destination error",
+    "flagFor": "View destination health for {key}",
+    "description": "Weekly checks are informational. Redirect settings stay in effect.",
+    "edit": "Edit link",
+    "repeatedErrors": "Some destinations returned errors in repeated checks.",
+    "pending": "Waiting for the first check.",
+    "partial": "First results are available.",
+    "noErrors": "The latest checks returned no errors.",
+    "resultsAvailable": "Destination check results are available.",
+    "results": "{count, plural, one {View # destination result} other {View # destination results}}",
+    "checked": "Checked {date}",
+    "since": "Errors observed since {date}",
+    "response": "HTTP {code}",
+    "responded": "Responded",
+    "httpError": "HTTP {code} error",
+    "blocked": "Address could not be checked",
+    "unreachable": "Destination could not be reached",
+    "streak": "{count, plural, one {# check returned an error} other {# consecutive checks returned errors}}"
   }
 }

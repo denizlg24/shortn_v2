@@ -1,0 +1,46 @@
+{
+  "title": "Editar etiquetas das ligações selecionadas",
+  "entry": "Editar etiquetas",
+  "limits": "Até 500 ligações por operação e 50 etiquetas por ligação.",
+  "operation": "Alterações de etiquetas",
+  "selection": "{count, plural, one {# ligação selecionada entre páginas e filtros.} other {# ligações selecionadas entre páginas e filtros.}}",
+  "mode": "Operação",
+  "modes": {
+    "add": "Adicionar etiquetas",
+    "remove": "Remover etiquetas",
+    "replace": "Substituir todas as etiquetas"
+  },
+  "effects": {
+    "add": "Adicionar estas etiquetas às {count} ligações selecionadas. As etiquetas existentes mantêm-se.",
+    "remove": "Remover estas etiquetas das {count} ligações selecionadas. As restantes mantêm-se.",
+    "replace": "Substituir todas as etiquetas das {count} ligações selecionadas por esta lista."
+  },
+  "tags": "Etiquetas",
+  "choose": "Escolher etiquetas",
+  "search": "Pesquisar todas as etiquetas do espaço…",
+  "empty": "Nenhuma etiqueta correspondente.",
+  "create": "Criar «{name}»",
+  "searchHelp": "Até 50 resultados. Pesquise para encontrar qualquer etiqueta. Escolha até 50 etiquetas.",
+  "searchFailed": "Não foi possível carregar as etiquetas. Pesquise novamente. As etiquetas escolhidas mantêm-se.",
+  "chosen": "Etiquetas escolhidas",
+  "removeChoice": "Remover {name} desta operação",
+  "summary": "Aplicar a {count, plural, one {# ligação selecionada} other {# ligações selecionadas}} · {tags, plural, one {# etiqueta escolhida} other {# etiquetas escolhidas}}",
+  "confirmClear": "Remover todas as etiquetas das {count} ligações selecionadas.",
+  "clear": "Remover todas as etiquetas",
+  "apply": "Aplicar alterações",
+  "cancel": "Cancelar",
+  "back": "Voltar às ligações",
+  "success": "Etiquetas atualizadas em {updated} de {selected} ligações selecionadas. As restantes não precisavam de alterações.",
+  "review": "Rever ligações selecionadas",
+  "reviewHelp": "Consulte abaixo as {count} ligações selecionadas. Os filtros alteram apenas esta revisão; a operação aplica-se à seleção completa.",
+  "matching": "{count} de {total} ligações selecionadas correspondem a esta vista.",
+  "untagged": "Sem etiquetas",
+  "emptyReview": "Nenhuma ligação selecionada corresponde a estes filtros.",
+  "errors": {
+    "forbidden": "Não tem permissão para editar estas ligações. Peça ajuda a um administrador.",
+    "not_found": "A seleção expirou ou contém ligações que já não estão disponíveis. Nada foi alterado. Volte a Ligações e selecione novamente.",
+    "invalid_input": "Escolha até 50 etiquetas, com um máximo de 48 caracteres cada. Confirme antes de remover todas as etiquetas.",
+    "tag_limit": "Esta operação ultrapassaria 50 etiquetas numa ligação selecionada. Nada foi alterado. Remova etiquetas ou escolha menos etiquetas a adicionar.",
+    "failed": "Não foi possível guardar as alterações. A seleção mantém-se. Tente novamente."
+  }
+}

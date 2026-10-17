@@ -41,8 +41,8 @@
   "delete": {
     "title": "¿Eliminar {count, plural, one {# enlace} other {# enlaces}}?",
     "noneTitle": "No puedes eliminar estos enlaces",
-    "body": "Los enlaces cortos dejan de funcionar de inmediato. Esta acción no se puede deshacer.",
-    "partial": "Puedes eliminar {deletable} de los {count} enlaces seleccionados, porque los miembros solo pueden eliminar los enlaces que han creado. Los enlaces cortos dejan de funcionar de inmediato. Esta acción no se puede deshacer.",
+    "body": "Sus URL cortas dejan de funcionar al instante. Puedes restaurarlos desde la Papelera durante 30 días.",
+    "partial": "Puedes eliminar {deletable} de los {count} enlaces seleccionados, porque los miembros solo pueden eliminar enlaces que crearon. Sus URL cortas dejan de funcionar al instante; puedes restaurarlos desde la Papelera durante 30 días.",
     "none": "Los miembros solo pueden eliminar los enlaces que han creado. Pide a un administrador del espacio de trabajo que los elimine.",
     "cancel": "Cancelar",
     "confirm": "Eliminar {count, plural, one {# enlace} other {# enlaces}}",

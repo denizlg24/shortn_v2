@@ -201,7 +201,7 @@ export function AnalyticsFilters({
           ["technology", ["device", "browser", "os"]],
           [
             "attribution",
-            ["referrer", "utmSource", "utmMedium", "utmCampaign"],
+            ["branch", "referrer", "utmSource", "utmMedium", "utmCampaign"],
           ],
         ] as const
       ).map(([group, members]) => {

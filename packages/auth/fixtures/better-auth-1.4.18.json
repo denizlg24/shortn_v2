@@ -1,0 +1,34 @@
+{
+  "version": "1.4.18",
+  "origin": "http://localhost:3450",
+  "secret": "synthetic-legacy-compatibility-secret-synthetic-legacy-compatibility-secret-",
+  "password": "synthetic-legacy-compatibility-password",
+  "cookie": "shortn_auth_.session_token=mdrcyAKLMgXhHohwKT4JK4z2J70grY4P.cJSxMVlOORsyPf5D4mqIknSl2XaMpfvszOh%2BtsXNJJU%3D",
+  "user": {
+    "name": "Legacy compatibility fixture",
+    "email": "legacy-compat@example.invalid",
+    "emailVerified": false,
+    "createdAt": "2026-10-16T12:12:44.717Z",
+    "updatedAt": "2026-10-16T12:12:44.717Z",
+    "id": "600000000000000000000001"
+  },
+  "account": {
+    "accountId": "600000000000000000000001",
+    "providerId": "credential",
+    "userId": "600000000000000000000001",
+    "password": "0b3be83c6ec8d6f62e3a6ce390d55b91:4ebb9a7d780e6c40e30bb9e2ea889f9dddca434d2712c84196b45cee873fb86bc33b34c3dd26c2e6991a0e8f04bff622148faac4758540ede8879ba6d1f0d87d",
+    "createdAt": "2026-10-16T12:12:44.718Z",
+    "updatedAt": "2026-10-16T12:12:44.718Z",
+    "id": "600000000000000000000002"
+  },
+  "session": {
+    "expiresAt": "2026-10-23T12:12:44.718Z",
+    "token": "mdrcyAKLMgXhHohwKT4JK4z2J70grY4P",
+    "createdAt": "2026-10-16T12:12:44.718Z",
+    "updatedAt": "2026-10-16T12:12:44.718Z",
+    "ipAddress": "",
+    "userAgent": "",
+    "userId": "600000000000000000000001",
+    "id": "600000000000000000000003"
+  }
+}

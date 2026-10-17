@@ -4,6 +4,7 @@ import {
   createLink,
   dailyTrends,
   deleteLinks,
+  restoreLinks,
   getLink,
   listLinks,
   listTags,
@@ -159,6 +160,22 @@ export async function deleteLinksAction(
     return invalidInput;
   const ctx = await serviceContext(workspace);
   return toAction(await deleteLinks(ctx, ids));
+}
+
+export async function restoreLinksAction(
+  workspace: string,
+  ids: string[],
+): Promise<ActionResult<{ restored: string[] }>> {
+  if (
+    !slug.safeParse(workspace).success ||
+    !z
+      .array(z.string().regex(/^[a-f\d]{24}$/i))
+      .min(1)
+      .max(1000)
+      .safeParse(ids).success
+  )
+    return invalidInput;
+  return toAction(await restoreLinks(await serviceContext(workspace), ids));
 }
 
 export async function setLinkUtmAction(

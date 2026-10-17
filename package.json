@@ -18,7 +18,9 @@
     "env:example": "bun run --cwd packages/env env:example",
     "db:indexes": "bun run --cwd packages/db db:indexes",
     "db:migrate": "bun run --cwd packages/db db:migrate",
-    "dev:check": "bun --no-env-file scripts/dev.ts --check"
+    "dev:check": "bun --no-env-file scripts/dev.ts --check",
+    "gen:llms": "bun apps/api/scripts/generate-docs.ts",
+    "check:llms": "bun apps/api/scripts/generate-docs.ts --check"
   },
   "devDependencies": {
     "turbo": "2.11.7",

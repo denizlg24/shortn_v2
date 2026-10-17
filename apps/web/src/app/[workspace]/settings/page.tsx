@@ -8,6 +8,7 @@ import { Page, Section } from "@/components/page/page";
 import { WorkspaceForm } from "@/components/settings/general/workspace-form";
 import { updateWorkspacePageAction } from "@/server/actions/settings-pages";
 import { env } from "@/server/env";
+import { linkExportStore } from "@/server/link-exports";
 import { requireWorkspace } from "@/server/workspace";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -20,10 +21,11 @@ export default async function GeneralSettingsPage({
   searchParams,
 }: PageProps<"/[workspace]/settings">) {
   const slug = (await params).workspace;
-  const [{ saved }, { workspace, actor }, t] = await Promise.all([
+  const [{ saved }, { workspace, actor }, t, tExport] = await Promise.all([
     searchParams,
     requireWorkspace(slug),
     getTranslations("settings"),
+    getTranslations("workspaceExports"),
   ]);
   const base = `/${slug}/settings`;
   const canDelete = !workspace.personal && can(actor, "workspace.delete");
@@ -57,6 +59,18 @@ export default async function GeneralSettingsPage({
           {t("general.workspaces.create")}
         </Link>
       </Section>
+      {workspace.ownerUserId === actor.userId &&
+      actor.role === "owner" &&
+      linkExportStore() ? (
+        <Section title={tExport("title")} description={tExport("entryHelp")}>
+          <Link
+            href={`${base}/workspace/export`}
+            className={buttonVariants({ variant: "secondary", size: "md" })}
+          >
+            {tExport("entry")}
+          </Link>
+        </Section>
+      ) : null}
       <Section
         title={t("general.danger.title")}
         description={

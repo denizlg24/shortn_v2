@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { cn, Skeleton } from "@shortn/ui";
 import type { Options } from "qr-code-styling";
 import { useEffect, useRef, useState } from "react";
@@ -30,6 +31,7 @@ export function QrImage({
   onRendered?: (result: { logoFailed: boolean }) => void;
   className?: string;
 }) {
+  const t = useTranslations("qr.preview");
   const frame = useRef<HTMLDivElement>(null);
   const current = useRef<string | null>(null);
   const reported = useRef(onRendered);
@@ -73,7 +75,12 @@ export function QrImage({
         reported.current?.({ logoFailed: result.logoFailed });
       },
       () => {
-        if (live) setFailed(true);
+        if (live) {
+          setFailed(true);
+          setUrl(null);
+          if (current.current) revokeLater(current.current);
+          current.current = null;
+        }
       },
     );
     return () => {
@@ -104,7 +111,9 @@ export function QrImage({
           className="size-full object-contain"
         />
       ) : failed ? (
-        <span className="text-meta text-fg-subtle">{alt}</span>
+        <span role="img" aria-label={alt} className="text-meta text-fg-muted">
+          {t("unavailable")}
+        </span>
       ) : (
         <Skeleton className="size-full rounded-chip" />
       )}

@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { render } from "@react-email/components";
 import { recipientAllowed } from "./index";
 import { locales } from "./messages";
+import { WebhookDisabled } from "./templates/webhook";
 import { ResetPassword, WorkspaceInvite } from "./templates/account";
 
 test("allowlist matches exact addresses and domain suffixes", () => {
@@ -32,5 +33,30 @@ test("every locale renders the templates with the action URL", async () => {
       />,
     );
     expect(invite).toContain("Vida");
+  }
+});
+
+test("webhook disable email renders every locale and escapes receiver names", async () => {
+  for (const locale of locales) {
+    const html = await render(
+      <WebhookDisabled
+        locale={locale}
+        name={"<script>receiver</script>"}
+        url="https://app.shortn.at/workspace/settings"
+      />,
+    );
+    expect(html).toContain(`lang="${locale}"`);
+    expect(html).toContain("https://app.shortn.at/workspace/settings");
+    expect(html).not.toContain("<script>");
+    const text = await render(
+      <WebhookDisabled
+        locale={locale}
+        name="Receiver"
+        url="https://app.shortn.at/workspace/settings"
+      />,
+      { plainText: true },
+    );
+    expect(text).toContain("Receiver");
+    expect(text).toContain("https://app.shortn.at/workspace/settings");
   }
 });

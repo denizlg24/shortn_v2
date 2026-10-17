@@ -1,0 +1,46 @@
+{
+  "title": "Editar etiquetas de los enlaces seleccionados",
+  "entry": "Editar etiquetas",
+  "limits": "Hasta 500 enlaces por operación y 50 etiquetas por enlace.",
+  "operation": "Cambios de etiquetas",
+  "selection": "{count, plural, one {# enlace seleccionado entre páginas y filtros.} other {# enlaces seleccionados entre páginas y filtros.}}",
+  "mode": "Operación",
+  "modes": {
+    "add": "Añadir etiquetas",
+    "remove": "Eliminar etiquetas",
+    "replace": "Reemplazar todas las etiquetas"
+  },
+  "effects": {
+    "add": "Añadir estas etiquetas a los {count} enlaces seleccionados. Se conservan las etiquetas existentes.",
+    "remove": "Eliminar estas etiquetas de los {count} enlaces seleccionados. Se conservan las demás.",
+    "replace": "Reemplazar todas las etiquetas de los {count} enlaces seleccionados por esta lista."
+  },
+  "tags": "Etiquetas",
+  "choose": "Elegir etiquetas",
+  "search": "Buscar todas las etiquetas del espacio…",
+  "empty": "No hay etiquetas coincidentes.",
+  "create": "Crear «{name}»",
+  "searchHelp": "Hasta 50 resultados. Busca para encontrar cualquier etiqueta. Elige hasta 50 etiquetas.",
+  "searchFailed": "No se pudieron cargar las etiquetas. Busca de nuevo. Se conservan las etiquetas elegidas.",
+  "chosen": "Etiquetas elegidas",
+  "removeChoice": "Quitar {name} de esta operación",
+  "summary": "Aplicar a {count, plural, one {# enlace seleccionado} other {# enlaces seleccionados}} · {tags, plural, one {# etiqueta elegida} other {# etiquetas elegidas}}",
+  "confirmClear": "Eliminar todas las etiquetas de los {count} enlaces seleccionados.",
+  "clear": "Eliminar todas las etiquetas",
+  "apply": "Aplicar cambios",
+  "cancel": "Cancelar",
+  "back": "Volver a los enlaces",
+  "success": "Etiquetas actualizadas en {updated} de {selected} enlaces seleccionados. Los demás no necesitaban cambios.",
+  "review": "Revisar enlaces seleccionados",
+  "reviewHelp": "Consulta los {count} enlaces seleccionados. Los filtros solo cambian esta revisión; la operación se aplica a toda la selección.",
+  "matching": "{count} de {total} enlaces seleccionados coinciden con esta vista.",
+  "untagged": "Sin etiquetas",
+  "emptyReview": "Ningún enlace seleccionado coincide con estos filtros.",
+  "errors": {
+    "forbidden": "No tienes permiso para editar estos enlaces. Consulta a un administrador.",
+    "not_found": "La selección ha caducado o contiene enlaces que ya no están disponibles. No cambió nada. Vuelve a Enlaces y selecciona de nuevo.",
+    "invalid_input": "Elige hasta 50 etiquetas, con un máximo de 48 caracteres cada una. Confirma antes de eliminar todas las etiquetas.",
+    "tag_limit": "Esta operación superaría 50 etiquetas en un enlace seleccionado. No cambió nada. Elimina etiquetas o elige menos etiquetas para añadir.",
+    "failed": "No se pudieron guardar los cambios. Se conserva tu selección. Inténtalo de nuevo."
+  }
+}

@@ -26,6 +26,18 @@ export function useValueLabel(linkLabels: Record<string, string> = noLabels) {
   );
   return useCallback(
     (dimension: Dimension, value: string): string => {
+      if (dimension === "branch") {
+        if (value === "unknown") return t("branches.unrecorded");
+        if (value === "destination") return t("branches.destination");
+        if (value === "deep:ios") return t("branches.ios");
+        if (value === "deep:android") return t("branches.android");
+        const target = /^(rotation|device|geo):([0-9])$/.exec(value);
+        if (target) {
+          const kind = target[1] as "rotation" | "device" | "geo";
+          return t(`branches.${kind}`, { target: Number(target[2]) + 1 });
+        }
+        return value;
+      }
       if (value === "unknown") return t("unknown");
       switch (dimension) {
         case "country":

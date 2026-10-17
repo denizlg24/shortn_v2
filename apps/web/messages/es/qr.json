@@ -120,7 +120,8 @@
     "label": "Vista previa",
     "alt": "Código QR de {link}",
     "size": "{width} × {height} px",
-    "altNew": "Vista previa del nuevo código QR"
+    "altNew": "Vista previa del nuevo código QR",
+    "unavailable": "Vista previa no disponible"
   },
   "colors": {
     "title": "Colores",
@@ -205,6 +206,24 @@
     "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
     "urlRequired": "Escribe la URL que debe abrir el código.",
     "logoUrl": "Escribe la URL completa del logotipo, empezando por https://.",
-    "color": "Cada color necesita un valor de hasta 32 caracteres, como #0f172b."
+    "color": "Cada color necesita un valor de hasta 32 caracteres, como #0f172b.",
+    "caption": "Usa hasta 64 caracteres imprimibles en la leyenda. Algunos símbolos no son compatibles; elimínalos o elige otra leyenda."
+  },
+  "treatment": {
+    "title": "Forma y leyenda",
+    "description": "Los marcos y las leyendas quedan fuera del espacio libre alrededor del código. La forma circular conserva la matriz QR cuadrada dentro de un círculo.",
+    "shape": "Forma",
+    "shapes": {
+      "square": "Cuadrado",
+      "circle": "Círculo"
+    },
+    "frame": "Marco",
+    "frames": {
+      "none": "Ninguno",
+      "outline": "Contorno",
+      "solid": "Sólido"
+    },
+    "caption": "Leyenda",
+    "captionHint": "Opcional, hasta 64 caracteres. La leyenda aparece en las vistas previas y las descargas. El color de la leyenda se ajusta para facilitar la lectura."
   }
 }

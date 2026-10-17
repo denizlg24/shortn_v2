@@ -1,0 +1,46 @@
+{
+  "title": "Edit tags on selected links",
+  "entry": "Edit tags",
+  "limits": "Up to 500 links per operation and 50 tags per link.",
+  "operation": "Tag changes",
+  "selection": "{count, plural, one {# link selected across pages and filters.} other {# links selected across pages and filters.}}",
+  "mode": "Operation",
+  "modes": {
+    "add": "Add tags",
+    "remove": "Remove tags",
+    "replace": "Replace all tags"
+  },
+  "effects": {
+    "add": "Add these tags to all {count} selected links. Existing tags stay.",
+    "remove": "Remove these tag names from all {count} selected links. Other tags stay.",
+    "replace": "Replace every tag on all {count} selected links with this list."
+  },
+  "tags": "Tags",
+  "choose": "Choose tags",
+  "search": "Search all workspace tags…",
+  "empty": "No matching tags.",
+  "create": "Create “{name}”",
+  "searchHelp": "Up to 50 matches. Search to find any tag. Choose up to 50 tags.",
+  "searchFailed": "Tags could not load. Search again to retry. Your chosen tags are kept.",
+  "chosen": "Chosen tags",
+  "removeChoice": "Remove {name} from this operation",
+  "summary": "Apply to {count, plural, one {# selected link} other {# selected links}} · {tags, plural, one {# tag chosen} other {# tags chosen}}",
+  "confirmClear": "Remove every tag from all {count} selected links.",
+  "clear": "Remove all tags",
+  "apply": "Apply tag changes",
+  "cancel": "Cancel",
+  "back": "Back to links",
+  "success": "Tags updated on {updated} of {selected} selected links. Unchanged links needed no update.",
+  "review": "Review selected links",
+  "reviewHelp": "Browse the {count} selected links below. Filters only change this review; the operation applies to the full selection.",
+  "matching": "{count} of {total} selected links match this view.",
+  "untagged": "No tags",
+  "emptyReview": "No selected links match these filters.",
+  "errors": {
+    "forbidden": "You do not have permission to edit these links. Ask a workspace admin.",
+    "not_found": "This selection has expired or contains links that are no longer available. Nothing changed. Return to Links and select them again.",
+    "invalid_input": "Choose up to 50 tags, each no longer than 48 characters. Confirm before removing every tag.",
+    "tag_limit": "Adding these tags would exceed 50 tags on a selected link. Nothing changed. Remove some tags or select fewer tags to add.",
+    "failed": "Tag changes could not be saved. Your selection is kept. Try again."
+  }
+}

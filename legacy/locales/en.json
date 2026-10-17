@@ -636,7 +636,8 @@
       "verify-email-toast": "Please verify your email address before logging in.",
       "resend-verification": "Resend verification email.",
       "verification-resent": "Verification email resent successfully.",
-      "not-verified-username": "Your account isn't verified. Please login with your email to get a verification email."
+      "not-verified-username": "Your account isn't verified. Please login with your email to get a verification email.",
+      "two-factor-new-app": "This account requires an authenticator code. Continue on the new dashboard, or contact support if it is unavailable."
     }
   },
   "register": {

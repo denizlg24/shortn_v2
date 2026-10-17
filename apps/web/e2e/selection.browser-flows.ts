@@ -1,3 +1,4 @@
+import { decodeSelection } from "../src/lib/bulk-selection";
 import { strict as assert } from "node:assert";
 import { mkdir } from "node:fs/promises";
 import type { Page } from "playwright-core";
@@ -75,7 +76,10 @@ export async function checkBulkSelection({
     const chosen = await rows.first().inputValue();
     await remove.click();
     await page.waitForURL((url) => url.pathname.endsWith("/delete"));
-    assert.deepEqual(new URL(page.url()).searchParams.getAll("ids"), [chosen]);
+    assert.deepEqual(
+      decodeSelection(new URL(page.url()).searchParams.get("selection")),
+      [chosen],
+    );
     await page.getByRole("link", { name: "Cancel", exact: true }).click();
     await page.waitForURL((url) => !url.pathname.endsWith("/delete"));
     assert(
@@ -96,10 +100,16 @@ export async function checkBulkSelection({
   assert(
     await page
       .getByRole("button", { name: "Delete selected", exact: true })
-      .isDisabled(),
+      .isEnabled(),
   );
-  assert.equal(await page.locator('input[name="ids"]:checked').count(), 0);
+  await page
+    .getByRole("status")
+    .filter({ hasText: /^1 selected$/ })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Clear selection", exact: true })
+    .click();
   console.log(
-    "Bulk selection passed: count, mixed state, current-page selection, clear, confirmation/cancel and filter reset.",
+    "Bulk selection passed: count, mixed state, current-page selection, clear, confirmation/cancel and cross-filter persistence.",
   );
 }

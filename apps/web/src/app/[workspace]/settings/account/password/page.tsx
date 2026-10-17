@@ -4,10 +4,13 @@ import { headers } from "next/headers";
 import { auth } from "@/server/auth";
 import { AccountPage } from "@/server/account-page";
 import { requireWorkspace } from "@/server/workspace";
+import { advancedAuthAvailable } from "@shortn/auth/two-factor";
+import { db } from "@/server/db";
+import { TwoFactorSettings } from "@/components/settings/account/two-factor";
 
 export async function generateMetadata() {
-  const t = await getTranslations("settings.account.password");
-  return { title: t("title") };
+  const t = await getTranslations("settings.account.twoFactor");
+  return { title: t("pageTitle") };
 }
 
 export default async function AccountSettingsPage({
@@ -15,12 +18,12 @@ export default async function AccountSettingsPage({
 }: PageProps<"/[workspace]/settings/account/password">) {
   const { workspace: slug } = await params;
   const { session } = await requireWorkspace(slug);
-  const t = await getTranslations("settings.account.password");
+  const t = await getTranslations("settings.account.twoFactor");
   const accounts = await auth().api.listUserAccounts({
     headers: await headers(),
   });
   return (
-    <AccountPage workspace={slug} title={t("title")}>
+    <AccountPage workspace={slug} title={t("pageTitle")}>
       <PasswordSection
         hasPassword={accounts.some(
           (account) => account.providerId === "credential",
@@ -30,6 +33,15 @@ export default async function AccountSettingsPage({
           .map((account) => account.providerId)
           .filter((id) => id !== "credential")}
       />
+      <div className="mt-10 border-t border-line pt-8">
+        <TwoFactorSettings
+          active={Boolean(session.user.twoFactorEnabled)}
+          available={await advancedAuthAvailable(await db(), session.user.id)}
+          hasPassword={accounts.some(
+            (account) => account.providerId === "credential",
+          )}
+        />
+      </div>
     </AccountPage>
   );
 }

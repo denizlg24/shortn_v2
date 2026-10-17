@@ -63,6 +63,51 @@ const enabled = Boolean(mongoUrl && redisUrl);
     };
   }
 
+  test("circle/frame/caption designs persist on free plans and invalid edits are atomic", async () => {
+    const ctx = await context();
+    const result = await createQr(ctx, {
+      url: "https://example.com/caption",
+      title: "Original",
+      design: {
+        shape: "circle",
+        frameOptions: { style: "outline", caption: "São João" },
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.value.design.shape).toBe("circle");
+    expect(result.value.storedDesign.frameOptions).toEqual({
+      style: "outline",
+      caption: "São João",
+    });
+    const changed = await updateQr(ctx, result.value.id, {
+      design: {
+        shape: "square",
+        frameOptions: { style: "solid", caption: "¡Escanea aquí!" },
+      },
+    });
+    expect(changed.ok).toBe(true);
+    if (!changed.ok) return;
+    expect(changed.value.shortUrl).toBe(result.value.shortUrl);
+    expect(changed.value.design.frameOptions?.caption).toBe("¡Escanea aquí!");
+    const invalid = await updateQr(ctx, result.value.id, {
+      title: "Must not write",
+      design: { frameOptions: { caption: "Unsupported 🎉" } },
+    });
+    expect(invalid.ok).toBe(false);
+    expect((await getQr(ctx, result.value.id))?.title).toBe("Original");
+    const cleared = await updateQr(ctx, result.value.id, {
+      design: { shape: "square", frameOptions: { style: "none", caption: "" } },
+    });
+    expect(cleared.ok).toBe(true);
+    if (!cleared.ok) return;
+    expect(cleared.value.design.frameOptions).toEqual({
+      style: "none",
+      caption: "",
+    });
+    expect(cleared.value.shortUrl).toBe(result.value.shortUrl);
+  });
+
   test("QR date ranges include the last instant of a day and exclude the next day", async () => {
     const ctx = await context("pro");
     const ids: string[] = [];

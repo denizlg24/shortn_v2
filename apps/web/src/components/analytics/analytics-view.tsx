@@ -80,7 +80,7 @@ export function AnalyticsView({
   breakdownGate: PlanId | null;
   /** Inside a `Page` that owns the heading and the gutters. */
   embedded?: boolean;
-  /** Adds an export of the raw events for the selected range and filters. */
+  /** Adds export review for raw events or aggregates in the selected view. */
   csvExport?: { params: Record<string, string>; gate: PlanId | null };
   /** The workspace's links for the Link filter (server-loaded). */
   links?: LinkOption[];

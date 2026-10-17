@@ -1,0 +1,61 @@
+{
+  "workspace": {
+    "title": "Choose a workspace",
+    "label": "Workspace",
+    "placeholder": "Select a workspace",
+    "description": "The app will have access only to the workspace you select.",
+    "empty": "No workspaces are available for this connection. Cancel and contact your workspace administrator."
+  },
+  "consent": {
+    "title": "Connect an app"
+  },
+  "invalid": {
+    "title": "Connection request unavailable",
+    "description": "This request has expired or is invalid. Return to the app and start the connection again."
+  },
+  "callback": "Return address",
+  "permissions": "Requested permissions",
+  "roleLimit": "Your current workspace role limits what this app can do.",
+  "viewerLimit": "Your role allows viewing only. Changes requested by the app will be refused.",
+  "sessionLimit": "Access ends when you disconnect the app or sign out of this session.",
+  "continue": "Continue",
+  "allow": "Allow access",
+  "cancel": "Cancel",
+  "change": "Change",
+  "roles": {
+    "owner": "Owner",
+    "admin": "Administrator",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "errors": {
+    "invalid": "This request is no longer valid. Return to the app and connect again.",
+    "workspaceChanged": "The workspace selection changed. Reload this page to review it again.",
+    "unavailable": "This workspace is no longer available. Go back and choose another workspace.",
+    "failed": "We could not complete the connection. Try again."
+  },
+  "scopes": {
+    "links_read": "Read links",
+    "links_write": "Create, edit and move links to trash",
+    "analytics_read": "Read analytics",
+    "qr_read": "Read QR codes",
+    "qr_write": "Manage QR codes",
+    "qr_all": "Manage QR codes",
+    "bio_read": "Read bio pages",
+    "bio_write": "Manage bio pages",
+    "bio_all": "Manage bio pages",
+    "domains_read": "Read domains",
+    "domains_write": "Manage domains",
+    "domains_all": "Manage domains",
+    "webhooks_read": "Read webhooks",
+    "webhooks_write": "Manage webhooks",
+    "webhooks_all": "Manage webhooks",
+    "tags_read": "Read tags",
+    "tags_write": "Manage tags",
+    "campaigns_read": "Read campaigns",
+    "campaigns_write": "Manage campaigns",
+    "workspace_read": "Read workspace usage",
+    "offline_access": "Renew access without asking again"
+  },
+  "fullAddress": "Show full address"
+}

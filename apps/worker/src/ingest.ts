@@ -7,6 +7,8 @@ import type { Redis } from "ioredis";
 import { ObjectId } from "mongodb";
 import type { AnyBulkWriteOperation, Db, Document } from "mongodb";
 
+import { captureWebhookClicks } from "./webhook-clicks";
+import type { WebhookConfig } from "@shortn/core";
 import { ingestBioViews } from "./bio-views";
 
 export const ingestGroup = "ingest";
@@ -147,6 +149,7 @@ export async function writeBatch(
           linkId: new ObjectId(message.linkId),
           ...(message.qrId ? { qrId: new ObjectId(message.qrId) } : {}),
           kind: message.qrId ? "scan" : "click",
+          ...(message.branch ? { branch: message.branch } : {}),
           domain: message.domain,
           key: message.key,
           ...(link?.urlCode ? { legacyCode: link.urlCode } : {}),
@@ -261,6 +264,7 @@ export function createIngest(options: {
   db: Db;
   ipSecret: string;
   consumer: string;
+  webhooks?: Pick<WebhookConfig, "enabled" | "rolloutPercent">;
   batchSize?: number;
   blockMs?: number;
   log?: (message: string, error?: unknown) => void;
@@ -295,6 +299,8 @@ export function createIngest(options: {
       redelivered,
       ipSecret: options.ipSecret,
     });
+    if (options.webhooks)
+      await captureWebhookClicks(db, humans, options.webhooks);
     await stream.xack(
       keys.clicksStream,
       ingestGroup,

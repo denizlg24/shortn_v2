@@ -82,8 +82,7 @@ export function Connections({
     setError(null);
     try {
       const { error: failure } = await authClient.unlinkAccount({
-        providerId: account.providerId,
-        accountId: account.accountId,
+        accountId: account.id,
       });
       if (!failure) {
         router.refresh();

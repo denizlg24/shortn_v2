@@ -74,7 +74,7 @@ const mongoUrl = process.env.MONGO_TEST_URL,
       });
       if (!created.ok) throw new Error(created.error);
       pageId = created.value.id;
-    });
+    }, 30_000);
     afterAll(async () => {
       await db?.dropDatabase();
       await client?.close();
@@ -133,14 +133,12 @@ const mongoUrl = process.env.MONGO_TEST_URL,
         }),
       ).toMatchObject({ ok: false, error: "feature_required" });
       const foreignId = new ObjectId();
-      await db
-        .collection(physicalNames.links)
-        .insertOne({
-          _id: foreignId,
-          workspaceId: new ObjectId(),
-          urlCode: "foreign",
-          longUrl: "https://example.com",
-        });
+      await db.collection(physicalNames.links).insertOne({
+        _id: foreignId,
+        workspaceId: new ObjectId(),
+        urlCode: "foreign",
+        longUrl: "https://example.com",
+      });
       expect(
         await saveBioDraft(ctx, pageId, draft.revision, {
           ...draft.content,
@@ -159,31 +157,27 @@ const mongoUrl = process.env.MONGO_TEST_URL,
     });
     test("nested collections batch ownership checks and retain hundreds of references on publish and restore", async () => {
       const directoryId = new ObjectId();
-      await db
-        .collection(physicalNames.bio_pages)
-        .insertOne({
-          _id: directoryId,
-          workspaceId: ctx.workspace._id,
-          handle: "p5-directory-test",
-          published: false,
-          draft: migratedBioContent({ title: "Directory" }),
-          draftRevision: 0,
-        });
+      await db.collection(physicalNames.bio_pages).insertOne({
+        _id: directoryId,
+        workspaceId: ctx.workspace._id,
+        handle: "p5-directory-test",
+        published: false,
+        draft: migratedBioContent({ title: "Directory" }),
+        draftRevision: 0,
+      });
       const created = { value: { id: String(directoryId) } };
       const draft = (await readBioDraft(ctx, created.value.id))!;
       const ids = Array.from({ length: 250 }, () => new ObjectId());
-      await db
-        .collection(physicalNames.links)
-        .insertMany(
-          ids.map((_id, i) => ({
-            _id,
-            workspaceId: ctx.workspace._id,
-            urlCode: `resource-${i}`,
-            domain: "shortn.at",
-            longUrl: `https://example.com/${i}`,
-            title: `Resource ${i}`,
-          })),
-        );
+      await db.collection(physicalNames.links).insertMany(
+        ids.map((_id, i) => ({
+          _id,
+          workspaceId: ctx.workspace._id,
+          urlCode: `resource-${i}`,
+          domain: "shortn.at",
+          longUrl: `https://example.com/${i}`,
+          title: `Resource ${i}`,
+        })),
+      );
       const section = {
         id: "resources",
         type: "links",
@@ -205,14 +199,12 @@ const mongoUrl = process.env.MONGO_TEST_URL,
         blocks: [...draft.content.blocks, section],
       };
       const foreign = new ObjectId();
-      await db
-        .collection(physicalNames.links)
-        .insertOne({
-          _id: foreign,
-          workspaceId: new ObjectId(),
-          urlCode: "foreign-nested",
-          longUrl: "https://example.com",
-        });
+      await db.collection(physicalNames.links).insertOne({
+        _id: foreign,
+        workspaceId: new ObjectId(),
+        urlCode: "foreign-nested",
+        longUrl: "https://example.com",
+      });
       expect(
         await saveBioDraft(ctx, draft.id, draft.revision, {
           ...input,
@@ -314,13 +306,11 @@ const mongoUrl = process.env.MONGO_TEST_URL,
         pageId,
       );
       expect((await resolveBioDocument(db, "p5-test"))?.handle).toBe("p5-new");
-      await db
-        .collection(physicalNames.bio_pages)
-        .insertOne({
-          handle: "a",
-          published: true,
-          blocks: migratedBioContent({ title: "A" }).blocks,
-        });
+      await db.collection(physicalNames.bio_pages).insertOne({
+        handle: "a",
+        published: true,
+        blocks: migratedBioContent({ title: "A" }).blocks,
+      });
       expect((await resolveBioDocument(db, "a"))?.handle).toBe("a");
     });
     test("hostname provisioning requires an add-on and both hostname and TLS readiness", async () => {
@@ -332,23 +322,19 @@ const mongoUrl = process.env.MONGO_TEST_URL,
           "shortn.at",
         ),
       ).toMatchObject({ ok: false, error: "addon_required" });
-      await db
-        .collection(physicalNames.subscriptions)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          status: "active",
-          plan: "pro",
-          polarSubscriptionId: "plan",
-          currentPeriodStart: new Date(),
-          currentPeriodEnd: new Date(Date.now() + 86400000),
-        });
-      await db
-        .collection(physicalNames.domain_addons)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          polarSubscriptionId: "addon",
-          status: "active",
-        });
+      await db.collection(physicalNames.subscriptions).insertOne({
+        workspaceId: ctx.workspace._id,
+        status: "active",
+        plan: "pro",
+        polarSubscriptionId: "plan",
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: new Date(Date.now() + 86400000),
+      });
+      await db.collection(physicalNames.domain_addons).insertOne({
+        workspaceId: ctx.workspace._id,
+        polarSubscriptionId: "addon",
+        status: "active",
+      });
       const added = await addDomain(
         ctx,
         { hostname: "go.example.com", kind: "both", bioPageId: pageId },
@@ -408,15 +394,13 @@ const mongoUrl = process.env.MONGO_TEST_URL,
         id: String(root),
       });
       const assignable = new ObjectId();
-      await db
-        .collection(physicalNames.links)
-        .insertOne({
-          _id: assignable,
-          workspaceId: ctx.workspace._id,
-          key: "move-me",
-          domain: "shortn.at",
-          longUrl: "https://example.com",
-        });
+      await db.collection(physicalNames.links).insertOne({
+        _id: assignable,
+        workspaceId: ctx.workspace._id,
+        key: "move-me",
+        domain: "shortn.at",
+        longUrl: "https://example.com",
+      });
       expect(
         (await assignDomainLink(ctx, domain.id, String(assignable))).ok,
       ).toBe(true);

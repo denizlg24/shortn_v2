@@ -104,7 +104,9 @@ const productionRules = (
   const seen = new Set<string>();
   for (const [key, item] of Object.entries(env)) {
     if (
-      !/(SECRET|TOKEN|PEPPER|API_KEY)$|^R2_SECRET_ACCESS_KEY$/.test(key) ||
+      !/(SECRET|TOKEN|PEPPER|API_KEY)$|^(R2_SECRET_ACCESS_KEY|WEBHOOK_SECRET_KEY)$/.test(
+        key,
+      ) ||
       typeof item !== "string"
     )
       continue;
@@ -204,6 +206,100 @@ const security = {
   LINK_ACCESS_SECRET: secret("Link access token secret"),
   API_KEY_PEPPER: secret("API key hashing pepper"),
 };
+const platformApi = {
+  PLATFORM_API_ENABLED: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Mount public REST API routes; default disabled",
+  ),
+  PLATFORM_API_ROLLOUT: value(
+    z.coerce.number().min(0).max(100).default(0),
+    "0",
+    "Percent of workspaces in the REST API cohort; explicit workspace overrides take precedence",
+  ),
+  API_KEY_PEPPER: secret(
+    "Distinct API key hash pepper; changing it invalidates every API key",
+  ).optional(),
+};
+const platformMcp = {
+  PLATFORM_MCP_ENABLED: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Mount MCP Streamable HTTP routes; default disabled",
+  ),
+  PLATFORM_MCP_ROLLOUT: value(
+    z.coerce.number().min(0).max(100).default(0),
+    "0",
+    "Percent of workspaces in the MCP cohort; explicit overrides take precedence",
+  ),
+  MCP_PUBLIC_ORIGIN: httpUrl(
+    "https://api.shortn.at",
+    "Canonical public MCP API origin for request origin validation",
+  ).optional(),
+};
+const mcpOAuth = {
+  MCP_OAUTH_ENABLED: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Enable workspace OAuth consent for MCP; default disabled",
+  ),
+};
+const mcpOAuthRules = (env: Record<string, unknown>, ctx: z.RefinementCtx) => {
+  if (env.MCP_OAUTH_ENABLED !== "1") return;
+  for (const name of [
+    "MCP_PUBLIC_ORIGIN",
+    ...(Object.hasOwn(env, "PLATFORM_MCP_ENABLED") ? ["MCP_OAUTH_ISSUER"] : []),
+  ]) {
+    const value = env[name];
+    if (
+      typeof value !== "string" ||
+      (env.NODE_ENV === "production" && !value.startsWith("https://"))
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: [name],
+        message: "Required for MCP OAuth; production requires HTTPS",
+      });
+  }
+  if (
+    Object.hasOwn(env, "PLATFORM_MCP_ENABLED") &&
+    env.PLATFORM_MCP_ENABLED !== "1"
+  )
+    ctx.addIssue({
+      code: "custom",
+      path: ["PLATFORM_MCP_ENABLED"],
+      message: "MCP must be enabled for OAuth",
+    });
+};
+const platformWebhooks = {
+  PLATFORM_WEBHOOKS_ENABLED: value(
+    z.enum(["0", "1"]).default("0"),
+    "0",
+    "Enable outgoing webhook endpoint creation and worker delivery; default disabled",
+  ),
+  PLATFORM_WEBHOOKS_ROLLOUT: value(
+    z.coerce.number().min(0).max(100).default(0),
+    "0",
+    "Percent of workspaces in the outgoing webhook cohort; workspace overrides take precedence",
+  ),
+  WEBHOOK_SECRET_KEY: secret(
+    "Distinct encryption key for recoverable outgoing webhook signing secrets",
+  ).optional(),
+};
+const webhookRules = (env: Record<string, unknown>, ctx: z.RefinementCtx) => {
+  if (env.PLATFORM_WEBHOOKS_ENABLED !== "1") return;
+  for (const key of [
+    "WEBHOOK_SECRET_KEY",
+    "REDIS_CACHE_URL",
+    "REDIS_DURABLE_URL",
+  ])
+    if (!env[key])
+      ctx.addIssue({
+        code: "custom",
+        path: [key],
+        message: "Required when PLATFORM_WEBHOOKS_ENABLED=1",
+      });
+};
 const oauth = {
   AUTH_GITHUB_ID: value(z.string().min(1), "replace-me", "GitHub OAuth app id"),
   AUTH_GITHUB_SECRET: secret("GitHub OAuth app secret"),
@@ -246,9 +342,64 @@ const objectStorage = {
   ),
 };
 
+function privateExportRules(
+  config: Record<string, unknown>,
+  ctx: z.RefinementCtx,
+) {
+  if (config.EXPORTS_ENABLED !== "1") return;
+  for (const field of [
+    "S3_ENDPOINT",
+    "S3_REGION",
+    "S3_BUCKET",
+    "S3_ACCESS_KEY_ID",
+    "S3_SECRET_ACCESS_KEY",
+  ])
+    if (!config[field])
+      ctx.addIssue({
+        code: "custom",
+        path: [field],
+        message: "Required for private exports",
+      });
+  if (
+    config.NODE_ENV === "production" &&
+    typeof config.S3_ENDPOINT === "string" &&
+    !config.S3_ENDPOINT.startsWith("https://")
+  )
+    ctx.addIssue({
+      code: "custom",
+      path: ["S3_ENDPOINT"],
+      message: "Production export storage requires HTTPS",
+    });
+}
+
 export const webEnv = z
   .object({
+    EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private data exports; requires object storage and export worker",
+    ),
+    IMPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private CSV import dashboard flows; requires object storage and worker",
+    ),
+    IMPORT_UPLOAD_PROXY_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Upload CSV through the authenticated app for storage gateways without browser CORS or conditional PUT",
+    ),
+    QR_EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private QR export dashboard flows; requires object storage and worker",
+    ),
     ...common,
+    ...platformApi,
+    ...mcpOAuth,
+    MCP_PUBLIC_ORIGIN: platformMcp.MCP_PUBLIC_ORIGIN,
+    PLATFORM_MCP_ROLLOUT: platformMcp.PLATFORM_MCP_ROLLOUT,
+    ...platformWebhooks,
     ...bio,
     S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional().meta(
       objectStorage.S3_ENDPOINT.meta() ?? {},
@@ -269,6 +420,11 @@ export const webEnv = z
     BETTER_AUTH_URL: httpUrl(
       "http://localhost:3000",
       "Dashboard origin (app.shortn.at); auth cookies are host-only here",
+    ),
+    SSO_TRUSTED_ORIGINS: value(
+      z.string().default(""),
+      "https://login.microsoftonline.com,https://your-company.okta.com",
+      "Comma-separated operator-approved identity provider origins; no wildcards",
     ),
     AUTH_GITHUB_ID: oauth.AUTH_GITHUB_ID.optional(),
     AUTH_GITHUB_SECRET: oauth.AUTH_GITHUB_SECRET.optional(),
@@ -326,8 +482,63 @@ export const webEnv = z
       "Web port",
     ),
   })
+  .superRefine(webhookRules)
+  .superRefine(privateExportRules)
   .superRefine(productionRules)
-  .superRefine(bioRules("web"));
+  .superRefine(bioRules("web"))
+  .superRefine(mcpOAuthRules)
+  .superRefine((config, ctx) => {
+    if (config.IMPORTS_ENABLED !== "1") return;
+    for (const field of [
+      "S3_ENDPOINT",
+      "S3_REGION",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+    ] as const)
+      if (!config[field])
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "Required for imports",
+        });
+    if (
+      config.NODE_ENV === "production" &&
+      config.S3_ENDPOINT &&
+      !config.S3_ENDPOINT.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["S3_ENDPOINT"],
+        message: "Production import storage requires HTTPS",
+      });
+  })
+  .superRefine((config, ctx) => {
+    if (config.QR_EXPORTS_ENABLED !== "1") return;
+    for (const field of [
+      "S3_ENDPOINT",
+      "S3_REGION",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+    ] as const)
+      if (!config[field])
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "Required for QR exports",
+        });
+    if (
+      config.NODE_ENV === "production" &&
+      config.S3_ENDPOINT &&
+      !config.S3_ENDPOINT.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["S3_ENDPOINT"],
+        message: "Production storage requires HTTPS",
+      });
+  });
 export const redirectEnv = z
   .object({
     ...common,
@@ -373,10 +584,38 @@ export const billingMode = value(
 );
 export const apiEnv = z
   .object({
+    EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private data exports; requires object storage and export worker",
+    ),
+    QR_EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private QR exports in API and MCP; requires object storage",
+    ),
+    S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional(),
+    S3_REGION: objectStorage.S3_REGION.optional(),
+    S3_BUCKET: objectStorage.S3_BUCKET.optional(),
+    S3_ACCESS_KEY_ID: objectStorage.S3_ACCESS_KEY_ID.optional(),
+    S3_SECRET_ACCESS_KEY: objectStorage.S3_SECRET_ACCESS_KEY.optional(),
     NODE_ENV: common.NODE_ENV,
     ...mongo,
     REDIS_CACHE_URL: redis.REDIS_CACHE_URL.optional(),
     REDIS_DURABLE_URL: redis.REDIS_DURABLE_URL.optional(),
+    ...platformApi,
+    ...platformMcp,
+    ...mcpOAuth,
+    MCP_OAUTH_ISSUER: httpUrl(
+      "https://app.shortn.at/api/auth",
+      "Canonical OAuth issuer for MCP JWT verification",
+    ).optional(),
+    ...platformWebhooks,
+    LINK_DOMAIN: value(
+      z.string().min(1).default("shortn.at"),
+      "shortn.at",
+      "Default short-link domain for public API services",
+    ),
     ...bio,
     IP_HASH_SECRET: secret("Bio view rate-limit IP HMAC secret").optional(),
     PUBLIC_ORIGIN: httpUrl(
@@ -392,8 +631,65 @@ export const apiEnv = z
       "API port",
     ),
   })
+  .superRefine((env, ctx) => {
+    if (env.PLATFORM_API_ENABLED !== "1" && env.PLATFORM_MCP_ENABLED !== "1")
+      return;
+    for (const key of [
+      "API_KEY_PEPPER",
+      "REDIS_CACHE_URL",
+      "REDIS_DURABLE_URL",
+    ] as const)
+      if (!env[key])
+        ctx.addIssue({
+          code: "custom",
+          path: [key],
+          message:
+            "Required when PLATFORM_API_ENABLED=1 or PLATFORM_MCP_ENABLED=1",
+        });
+    if (
+      env.PLATFORM_MCP_ENABLED === "1" &&
+      (!env.MCP_PUBLIC_ORIGIN ||
+        (env.NODE_ENV === "production" &&
+          !env.MCP_PUBLIC_ORIGIN.startsWith("https://")))
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["MCP_PUBLIC_ORIGIN"],
+        message: "Required when MCP is enabled; production requires HTTPS",
+      });
+  })
+  .superRefine(webhookRules)
+  .superRefine(privateExportRules)
   .superRefine(productionRules)
-  .superRefine(bioRules("api"));
+  .superRefine(bioRules("api"))
+  .superRefine(mcpOAuthRules)
+  .superRefine((config, ctx) => {
+    if (config.QR_EXPORTS_ENABLED !== "1") return;
+    for (const field of [
+      "S3_ENDPOINT",
+      "S3_REGION",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+    ] as const) {
+      if (!config[field])
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "Required for QR exports",
+        });
+    }
+    if (
+      config.NODE_ENV === "production" &&
+      config.S3_ENDPOINT &&
+      !config.S3_ENDPOINT.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["S3_ENDPOINT"],
+        message: "Production storage requires HTTPS",
+      });
+  });
 const liveBillingNeedsMail = (
   env: Record<string, unknown>,
   ctx: z.RefinementCtx,
@@ -409,7 +705,28 @@ const liveBillingNeedsMail = (
 };
 export const workerEnv = z
   .object({
+    EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private data exports; requires object storage and export worker",
+    ),
     ...common,
+    IMPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable durable CSV import worker; requires private object storage",
+    ),
+    QR_EXPORTS_ENABLED: value(
+      z.enum(["0", "1"]).default("0"),
+      "0",
+      "Enable private QR export worker; requires object storage and APP_URL",
+    ),
+    S3_ENDPOINT: objectStorage.S3_ENDPOINT.optional(),
+    S3_REGION: objectStorage.S3_REGION.optional(),
+    S3_BUCKET: objectStorage.S3_BUCKET.optional(),
+    S3_ACCESS_KEY_ID: objectStorage.S3_ACCESS_KEY_ID.optional(),
+    S3_SECRET_ACCESS_KEY: objectStorage.S3_SECRET_ACCESS_KEY.optional(),
+    ...platformWebhooks,
     ...bio,
     PUBLIC_ORIGIN: httpUrl(
       "http://localhost:3001",
@@ -417,6 +734,7 @@ export const workerEnv = z
     ).optional(),
     IP_HASH_SECRET: secret("Click IP HMAC secret"),
     LINK_DOMAIN: redirectEnv.shape.LINK_DOMAIN,
+    WEB_RISK_API_KEY: webEnv.shape.WEB_RISK_API_KEY,
     PORT: value(
       z.coerce.number().int().min(1).max(65535).default(3004),
       "3004",
@@ -446,8 +764,74 @@ export const workerEnv = z
       "Run continuous expand migrations every minute",
     ),
   })
+  .superRefine(webhookRules)
+  .superRefine(privateExportRules)
   .superRefine(productionRules)
   .superRefine(liveBillingNeedsMail)
+  .superRefine((config, ctx) => {
+    if (config.IMPORTS_ENABLED !== "1") return;
+    for (const field of [
+      "S3_ENDPOINT",
+      "S3_REGION",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+    ] as const)
+      if (!config[field])
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "Required for imports",
+        });
+    if (
+      config.NODE_ENV === "production" &&
+      config.S3_ENDPOINT &&
+      !config.S3_ENDPOINT.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["S3_ENDPOINT"],
+        message: "Production import storage requires HTTPS",
+      });
+  })
+  .superRefine((config, ctx) => {
+    if (config.QR_EXPORTS_ENABLED !== "1") return;
+    for (const field of [
+      "S3_ENDPOINT",
+      "S3_REGION",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+      "APP_URL",
+    ] as const) {
+      if (!config[field])
+        ctx.addIssue({
+          code: "custom",
+          path: [field],
+          message: "Required for QR exports",
+        });
+    }
+    if (
+      config.NODE_ENV === "production" &&
+      config.S3_ENDPOINT &&
+      !config.S3_ENDPOINT.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["S3_ENDPOINT"],
+        message: "Production storage requires HTTPS",
+      });
+    if (
+      config.NODE_ENV === "production" &&
+      config.APP_URL &&
+      !config.APP_URL.startsWith("https://")
+    )
+      ctx.addIssue({
+        code: "custom",
+        path: ["APP_URL"],
+        message: "Production QR logo origin requires HTTPS",
+      });
+  })
   .superRefine(bioRules("worker"));
 
 // Legacy infrastructure variables also belong in the generated root example.

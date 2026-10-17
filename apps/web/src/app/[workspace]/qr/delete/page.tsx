@@ -1,3 +1,4 @@
+import { decodeSelection } from "@/lib/bulk-selection";
 import { getQr } from "@shortn/core";
 import { can } from "@shortn/core/authz";
 import { getTranslations } from "next-intl/server";
@@ -13,15 +14,18 @@ export async function generateMetadata() {
   return { title: t("titleSelected") };
 }
 
-// Bulk delete: the list's checkboxes submit here as ?ids=…
+// Bulk review accepts compact selections and legacy repeated ID parameters.
 export default async function DeleteSelectedQrsPage({
   params,
   searchParams,
 }: PageProps<"/[workspace]/qr/delete">) {
   const { workspace } = await params;
-  const { ids } = await searchParams;
+  const { ids, selection } = await searchParams;
   const t = await getTranslations("qr");
-  const requested = objectIds(Array.isArray(ids) ? ids : ids ? [ids] : []);
+  const requested =
+    selection !== undefined
+      ? decodeSelection(selection)
+      : objectIds(Array.isArray(ids) ? ids : ids ? [ids] : []);
   if (!requested.length) redirect(`/${workspace}/qr`);
   const ctx = await serviceContext(workspace);
   const qrs = (await Promise.all(requested.map((id) => getQr(ctx, id)))).filter(

@@ -1,4 +1,5 @@
 import type { Options } from "qr-code-styling";
+import type { PrintedQrOptions } from "./qr-options";
 import { parseColor } from "./qr-scan-check";
 
 const renderTimeoutMs = 10_000;
@@ -83,11 +84,89 @@ function withTimeout<T>(promise: Promise<T>): Promise<T> {
 
 type Format = "svg" | "png" | "jpeg";
 
-async function render(options: Options, format: Format): Promise<Blob> {
+export async function renderQrBlob(
+  options: PrintedQrOptions,
+  format: Format,
+): Promise<Blob> {
   const QRCodeStyling = await loadStyling();
-  const data = await withTimeout(new QRCodeStyling(options).getRawData(format));
+  const [{ qrMatrix }, { treatmentLayout }] = await Promise.all([
+    import("@shortn/qr-render/matrix"),
+    import("@shortn/qr-render/treatment-layout"),
+  ]);
+  const size = options.width ?? 300;
+  const layout = treatmentLayout(options as Record<string, unknown>, size);
+  const correction =
+    options.image || options.qrOptions?.errorCorrectionLevel === "H"
+      ? "H"
+      : "Q";
+  const count = qrMatrix(options.data ?? "", correction).size;
+  const margin = Math.max(
+    Math.ceil(((options.margin ?? 0) * layout.coreSize) / size),
+    Math.ceil((layout.coreSize * 4) / (count + 8)),
+  );
+  const unit =
+    options.dotsOptions?.roundSize === false
+      ? (layout.coreSize - margin * 2) / count
+      : Math.floor((layout.coreSize - margin * 2) / count);
+  if (unit < 1) throw new Error("invalid_size");
+  const inset =
+    options.dotsOptions?.roundSize === false
+      ? margin
+      : Math.floor((layout.coreSize - count * unit) / 2);
+  const ready: Options = {
+    ...options,
+    type: "svg",
+    shape: "square",
+    width: layout.coreSize,
+    height: layout.coreSize,
+    margin: inset,
+    qrOptions: { ...options.qrOptions, errorCorrectionLevel: correction },
+    imageOptions: {
+      ...options.imageOptions,
+      margin: Math.floor(
+        ((options.imageOptions?.margin ?? 0) * layout.coreSize) / size,
+      ),
+    },
+  };
+  const data = await withTimeout(
+    new QRCodeStyling(ready).getRawData(layout.enabled ? "svg" : format),
+  );
   if (!(data instanceof Blob)) throw new Error("QR render failed");
-  return data;
+  if (!layout.enabled) return data;
+  const { composeQrTreatment } = await import("@shortn/qr-render/treatment");
+  const svg = composeQrTreatment(
+    await data.text(),
+    options as Record<string, unknown>,
+    size,
+  );
+  const blob = new Blob([svg], { type: "image/svg+xml" });
+  if (format === "svg") return blob;
+  const url = URL.createObjectURL(blob);
+  try {
+    const image = new Image();
+    image.src = url;
+    await withTimeout(image.decode());
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = size;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("QR render failed");
+    if (format === "jpeg") {
+      context.fillStyle = "#ffffff";
+      context.fillRect(0, 0, size, size);
+    }
+    context.drawImage(image, 0, 0);
+    return await withTimeout(
+      new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (result) =>
+            result ? resolve(result) : reject(new Error("QR render failed")),
+          `image/${format}`,
+        ),
+      ),
+    );
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export interface Rendered {
@@ -100,7 +179,7 @@ export interface Rendered {
 export async function renderQrUrl(options: Options): Promise<Rendered> {
   const logoFailed = options.image ? !(await logoLoads(options.image)) : false;
   const usable = logoFailed ? { ...options, image: "" } : options;
-  const blob = await render(usable, "svg");
+  const blob = await renderQrBlob(usable, "svg");
   return { url: URL.createObjectURL(blob), logoFailed };
 }
 
@@ -119,7 +198,7 @@ export async function downloadQr(
       ? { ...options, backgroundOptions: { color: "#ffffff" } }
       : options;
   try {
-    const blob = await render(ready, format);
+    const blob = await renderQrBlob(ready, format);
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;

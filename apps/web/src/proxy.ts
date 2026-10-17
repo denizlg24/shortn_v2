@@ -1,8 +1,12 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { bioHandleFromHost } from "@shortn/core/bio-hosts";
+import { workspaceExportReturnPath } from "@/lib/workspace-export";
 
 export function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
+  headers.delete("x-shortn-workspace-export-path");
+  const exportPath = workspaceExportReturnPath(request.nextUrl.pathname);
+  if (exportPath) headers.set("x-shortn-workspace-export-path", exportPath);
   headers.delete("x-shortn-public-bio");
   const internal = request.nextUrl.pathname.startsWith("/_bio/");
   const handle = request.headers.get("x-shortn-bio-handle");

@@ -40,6 +40,8 @@ export default async function EditLinkPage({
         mode="edit"
         domain={link.domain}
         initial={{
+          ...(link.rules ? { rules: link.rules } : {}),
+          ...(link.og ? { og: link.og } : {}),
           url: link.url,
           key: link.key,
           title: link.title,

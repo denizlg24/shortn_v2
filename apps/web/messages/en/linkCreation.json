@@ -1,0 +1,11 @@
+{
+  "idle": "Paste a destination URL. Page details can suggest a title and key; you can edit both.",
+  "loading": "Looking up page details… You can create the link while this finishes.",
+  "ready": "Page suggestions are ready. Your own edits are kept.",
+  "unavailable": "Page details could not be loaded. Enter a title yourself or create the link without one.",
+  "retry": "Try again",
+  "useKey": "Use suggested key",
+  "useTitle": "Use page title",
+  "copied": "Link created and copied to your clipboard.",
+  "copyDenied": "Link created. Automatic copying was unavailable; use Copy to copy its address."
+}
