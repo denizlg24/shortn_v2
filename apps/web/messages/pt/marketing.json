@@ -1,0 +1,430 @@
+{
+  "meta": {
+    "siteName": "Shortn",
+    "home": {
+      "title": "Shortn: links curtos, códigos QR e páginas bio",
+      "description": "Crie links curtos, códigos QR dinâmicos e páginas bio, e conte cada clique e cada leitura num só painel. Plano gratuito, sem cartão."
+    },
+    "features": {
+      "title": "Funcionalidades",
+      "description": "Links curtos, códigos QR dinâmicos para impressão, páginas bio, campanhas, estatísticas, segurança de links e uma API pública com servidor MCP."
+    },
+    "pricing": {
+      "title": "Preços",
+      "description": "Planos Free, Basic, Plus, Pro e Enterprise. Comece grátis e mude de plano quando precisar de mais links, lugares ou histórico."
+    },
+    "about": {
+      "title": "Sobre",
+      "description": "O Shortn é uma plataforma de links independente feita em Portugal, usada em produção pela Vida Económica desde 2023."
+    },
+    "contact": {
+      "title": "Contacto",
+      "description": "Dúvidas sobre planos, Enterprise, faturas ou a sua conta. Envie uma mensagem e respondemos por email."
+    },
+    "abuse": {
+      "title": "Política de abuso",
+      "description": "Como o Shortn deteta e trata links perigosos, e como denunciar um."
+    },
+    "privacy": {
+      "title": "Política de privacidade",
+      "description": "O que o Shortn recolhe, porquê, durante quanto tempo e como exercer os seus direitos."
+    },
+    "terms": {
+      "title": "Termos de serviço",
+      "description": "Os termos que se aplicam quando usa o Shortn."
+    },
+    "notFound": {
+      "title": "Página não encontrada"
+    }
+  },
+  "nav": {
+    "label": "Principal",
+    "home": "Página inicial do Shortn",
+    "features": "Funcionalidades",
+    "pricing": "Preços",
+    "docs": "Documentação",
+    "about": "Sobre",
+    "contact": "Contacto",
+    "signIn": "Iniciar sessão",
+    "getStarted": "Começar grátis",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu",
+    "skipToContent": "Saltar para o conteúdo"
+  },
+  "footer": {
+    "label": "Rodapé",
+    "tagline": "Links curtos, códigos QR e páginas bio para equipas que publicam em papel e online.",
+    "product": "Produto",
+    "company": "Empresa",
+    "resources": "Recursos",
+    "legal": "Legal",
+    "guides": "Guias",
+    "apiReference": "Referência da API",
+    "status": "Estado do serviço",
+    "reportLink": "Denunciar um link",
+    "abuse": "Política de abuso",
+    "privacy": "Privacidade",
+    "terms": "Termos",
+    "copyright": "© {year} Shortn"
+  },
+  "locale": {
+    "label": "Idioma",
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "home": {
+    "hero": {
+      "title": "Todos os links que publica, em papel e online",
+      "body": "O Shortn cria links curtos, códigos QR dinâmicos e páginas bio, e conta cada clique e cada leitura num só lugar.",
+      "primary": "Começar grátis",
+      "secondary": "Ver preços",
+      "reassurance": "Plano gratuito. Sem cartão."
+    },
+    "demo": {
+      "label": "Cole um link longo",
+      "placeholder": "https://exemplo.pt/um-endereco-muito-longo",
+      "submit": "Encurtar",
+      "submitting": "A encurtar…",
+      "resultLabel": "O seu link curto",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "open": "Abrir",
+      "qrAlt": "Código QR para {url}",
+      "downloadQr": "Descarregar código QR",
+      "expiry": "Este link de demonstração deixa de funcionar daqui a 24 horas. Crie uma conta gratuita para guardar os seus links e ver os cliques.",
+      "keep": "Criar conta gratuita",
+      "another": "Encurtar outro link",
+      "report": "Denunciar este link",
+      "errors": {
+        "invalid": "Introduza um endereço completo que comece por https:// ou http://.",
+        "blocked": "Não podemos encurtar este endereço porque a nossa verificação de segurança o assinalou.",
+        "rateLimited": "Criou vários links de demonstração em pouco tempo. Aguarde alguns minutos ou crie uma conta gratuita.",
+        "capReached": "A demonstração atingiu o limite de hoje. Crie uma conta gratuita para continuar a encurtar links.",
+        "challenge": "Não conseguimos confirmar que é uma pessoa. Recarregue a página e tente novamente.",
+        "unavailable": "A demonstração não está a funcionar neste momento. A sua conta gratuita funciona normalmente."
+      }
+    },
+    "proof": {
+      "title": "Os links da Vida Económica passam pelo Shortn desde 2023",
+      "body": "O grupo editorial português usa o Shortn no seu site, na livraria online e nos códigos QR das agendas impressas.",
+      "stats": {
+        "clicks": "cliques e leituras contados",
+        "links": "links curtos criados",
+        "qrCodes": "códigos QR criados",
+        "scans": "leituras de QR desde {month}"
+      },
+      "source": "Espaço de trabalho da Vida Económica, dados de {date}. Partilhados com a sua autorização."
+    },
+    "print": {
+      "title": "Imprima o código QR uma vez. Mude o destino quando quiser.",
+      "body": "Cada código QR aponta para um link curto, por isso pode alterar o destino depois de a agenda, o cartaz ou a embalagem estarem impressos. Leituras e cliques são contados em separado.",
+      "points": {
+        "formats": "Exporte em SVG, PNG ou PDF para impressão, com indicações de tamanho e margem.",
+        "style": "Adicione as suas cores, uma moldura, uma legenda ou um logótipo.",
+        "bulk": "Descarregue uma seleção inteira de códigos num único ficheiro ZIP."
+      }
+    },
+    "manage": {
+      "title": "Feito para bibliotecas com milhares de links",
+      "body": "Pesquise, filtre por etiqueta e campanha, selecione entre páginas e altere centenas de links de uma vez. Os links apagados ficam 30 dias no lixo e as suas chaves nunca passam para outra pessoa.",
+      "cta": "Ver todas as funcionalidades"
+    },
+    "analytics": {
+      "title": "Saiba o que cada link fez",
+      "body": "Cliques e leituras por dia, país, dispositivo, navegador e origem, para um link, uma campanha ou todo o espaço de trabalho. Exporte os números em CSV sempre que precisar."
+    },
+    "developers": {
+      "title": "Uma API para o seu código, um servidor MCP para os seus agentes",
+      "body": "Crie e gira links a partir dos seus sistemas com a API REST e os webhooks, ou deixe um assistente de IA trabalhar através do servidor MCP com as permissões que lhe der.",
+      "cta": "Ler a documentação"
+    },
+    "pricing": {
+      "title": "Comece grátis. Pague quando precisar de mais.",
+      "body": "O plano Free inclui {links} links e {qrCodes} códigos QR por mês. Os planos pagos começam em {price} por mês.",
+      "cta": "Comparar planos"
+    },
+    "cta": {
+      "title": "Crie o seu primeiro link curto",
+      "body": "Demora menos de um minuto. Os seus links continuam a funcionar se mudar de plano.",
+      "primary": "Começar grátis",
+      "secondary": "Falar connosco"
+    }
+  },
+  "features": {
+    "title": "Tudo o que o Shortn faz",
+    "intro": "Links curtos, códigos QR, páginas bio e campanhas partilham a mesma biblioteca e as mesmas estatísticas.",
+    "toc": "Nesta página",
+    "links": {
+      "nav": "Links curtos",
+      "title": "Links curtos que se leem em voz alta",
+      "body": "Escolha a sua chave ou use uma aleatória. Altere o destino, o título e as etiquetas mais tarde sem mudar o link.",
+      "points": {
+        "keys": "Chaves personalizadas, com sugestões a partir do título da página",
+        "rules": "Datas de expiração, horários, limites de cliques e um endereço alternativo",
+        "targeting": "Destinos diferentes conforme o dispositivo ou o país do visitante",
+        "rotation": "Tráfego dividido entre vários destinos",
+        "deepLinks": "Abertura na aplicação em vez do navegador, no telemóvel",
+        "passwords": "Links protegidos por palavra-passe",
+        "utm": "Parâmetros UTM e reencaminhamento de parâmetros",
+        "trash": "Lixo durante 30 dias e chaves que nunca são reutilizadas"
+      }
+    },
+    "qr": {
+      "nav": "Códigos QR",
+      "title": "Códigos QR dinâmicos feitos para impressão",
+      "body": "Cada código aponta para um link curto que pode editar depois de impresso. O Shortn conta as leituras em separado dos cliques.",
+      "points": {
+        "formats": "Exportação em SVG, PNG e PDF",
+        "print": "Indicações de impressão para tamanho, contraste e margem",
+        "style": "Cores, molduras, legendas e logótipos",
+        "bulk": "Exportação em ZIP de qualquer seleção"
+      }
+    },
+    "bio": {
+      "nav": "Páginas bio",
+      "title": "Uma página bio no seu próprio endereço",
+      "body": "Reúna todos os links que partilha numa página com o seu nome, como seunome.shortn.at, ou no seu próprio domínio.",
+      "points": {
+        "blocks": "Links, texto, imagens e conteúdos incorporados",
+        "themes": "Temas com contraste verificado para leitura",
+        "drafts": "Rascunhos, publicação agendada e as últimas 20 versões",
+        "domains": "O seu domínio com o extra de domínio personalizado"
+      }
+    },
+    "campaigns": {
+      "nav": "Campanhas",
+      "title": "Agrupe links por campanha",
+      "body": "Junte os links de um lançamento, de uma edição ou de um evento numa campanha e leia os resultados em conjunto.",
+      "points": {
+        "utm": "Definições UTM partilhadas",
+        "results": "Totais da campanha e resultados por link",
+        "export": "Exportação da campanha"
+      }
+    },
+    "analytics": {
+      "nav": "Estatísticas",
+      "title": "Cliques e leituras, ao pormenor",
+      "body": "Veja cliques e leituras de um link, de uma campanha ou de todo o espaço de trabalho, em qualquer intervalo coberto pelo histórico do seu plano.",
+      "points": {
+        "breakdowns": "País, cidade, dispositivo, navegador, sistema operativo e origem",
+        "scans": "Leituras de QR contadas à parte dos cliques",
+        "exports": "Exportações CSV de totais e de eventos individuais",
+        "privacy": "Os endereços IP dos visitantes são guardados como hash e os endereços originais são apagados ao fim de 90 dias"
+      }
+    },
+    "teams": {
+      "nav": "Equipas",
+      "title": "Espaços de trabalho para toda a equipa",
+      "body": "Convide colegas, atribua uma função a cada um e mantenha espaços de trabalho separados para marcas ou clientes diferentes.",
+      "points": {
+        "roles": "Funções de proprietário, administrador, membro e leitor",
+        "security": "Autenticação de dois fatores e chaves de acesso",
+        "sso": "Início de sessão único SAML e OIDC no Enterprise",
+        "imports": "Importação CSV de até 50 000 links e exportação completa do espaço de trabalho"
+      }
+    },
+    "developers": {
+      "nav": "API e MCP",
+      "title": "Feito para ser automatizado",
+      "body": "Tudo o que faz no painel, o seu código pode fazer através da API.",
+      "points": {
+        "api": "API REST com referência OpenAPI e chaves de API com permissões",
+        "webhooks": "Webhooks assinados para eventos de links, cliques, leituras e publicação",
+        "mcp": "Servidor MCP para assistentes de IA, com autorização OAuth por espaço de trabalho",
+        "llms": "llms.txt para os assistentes poderem ler a documentação"
+      },
+      "cta": "Ler a documentação da API"
+    },
+    "safety": {
+      "nav": "Segurança",
+      "title": "Seguro para quem clica",
+      "body": "O Shortn verifica os destinos contra ameaças conhecidas, avisa os visitantes antes de páginas suspeitas e permite que qualquer pessoa denuncie um link.",
+      "points": {
+        "scanning": "Verificação automática dos destinos contra ameaças conhecidas",
+        "interstitial": "Uma página de aviso que mostra o destino completo",
+        "reports": "Qualquer pessoa pode denunciar um link, e três denúncias desativam-no até ser revisto"
+      }
+    },
+    "cta": {
+      "title": "Experimente com os seus próprios links",
+      "body": "Comece no plano Free. Mude de plano quando precisar de chaves personalizadas, campanhas ou mais histórico.",
+      "primary": "Começar grátis",
+      "secondary": "Comparar planos"
+    }
+  },
+  "pricing": {
+    "title": "Planos para uma pessoa ou para uma redação inteira",
+    "intro": "Comece grátis. Suba, desça ou cancele o plano nas definições de faturação, a qualquer momento.",
+    "currencyNote": "Os preços estão em dólares americanos e são cobrados mensalmente. Mostramos uma estimativa em euros à taxa mais recente do Banco Central Europeu. Podem aplicar-se impostos.",
+    "eurEstimate": "≈ {eur} por mês",
+    "perMonth": "{price} / mês",
+    "custom": "Preço à medida",
+    "recommended": "Recomendado",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "summary": "Para experimentar o Shortn com poucos links.",
+        "cta": "Começar grátis"
+      },
+      "basic": {
+        "name": "Basic",
+        "summary": "Para uma pessoa que partilha links todas as semanas.",
+        "cta": "Escolher Basic"
+      },
+      "plus": {
+        "name": "Plus",
+        "summary": "Para equipas pequenas que fazem campanhas.",
+        "cta": "Escolher Plus"
+      },
+      "pro": {
+        "name": "Pro",
+        "summary": "Para editoras e equipas de marketing com bibliotecas grandes.",
+        "cta": "Escolher Pro"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "summary": "Para organizações que precisam de início de sessão único e de não ter limites.",
+        "cta": "Contactar-nos"
+      }
+    },
+    "limits": {
+      "links": "{count, plural, one {# link} other {# links}} por mês",
+      "qrCodes": "{count, plural, one {# código QR} other {# códigos QR}} por mês",
+      "bioPages": "{count, plural, one {# página bio} other {# páginas bio}}",
+      "seats": "{count, plural, one {# lugar} other {# lugares}}",
+      "workspaces": "{count, plural, one {# espaço de trabalho} other {# espaços de trabalho}}",
+      "analyticsDays": "{count, plural, one {# dia} other {# dias}} de histórico de estatísticas",
+      "apiPerMinute": "{count, plural, one {# pedido à API} other {# pedidos à API}} por minuto",
+      "unlimitedLinks": "Links ilimitados",
+      "unlimitedQrCodes": "Códigos QR ilimitados",
+      "unlimitedBioPages": "Páginas bio ilimitadas",
+      "unlimitedSeats": "Lugares ilimitados",
+      "unlimitedWorkspaces": "Espaços de trabalho ilimitados",
+      "unlimitedAnalytics": "Histórico de estatísticas completo",
+      "unlimitedApi": "Limites de API à medida",
+      "noApi": "Sem acesso à API"
+    },
+    "featureNames": {
+      "customKeys": "Chaves personalizadas",
+      "passwords": "Links protegidos por palavra-passe",
+      "campaigns": "Campanhas",
+      "campaignExport": "Exportação de campanhas",
+      "analyticsBreakdowns": "Estatísticas detalhadas",
+      "csvExport": "Exportação CSV",
+      "qrLogo": "Logótipo nos códigos QR",
+      "api": "API REST",
+      "mcp": "Servidor MCP",
+      "sso": "Início de sessão único (SAML, OIDC)"
+    },
+    "compare": {
+      "title": "Comparar planos",
+      "feature": "Funcionalidade",
+      "included": "Incluído",
+      "notIncluded": "Não incluído"
+    },
+    "addon": {
+      "title": "Extra de domínio personalizado",
+      "body": "Sirva links curtos e páginas bio a partir do seu próprio domínio. Cada extra cobre um domínio e é cobrado à parte do plano."
+    },
+    "faq": {
+      "title": "Perguntas",
+      "limits": {
+        "question": "O que acontece quando chego ao limite mensal?",
+        "answer": "Os links que já existem continuam a funcionar. Pode voltar a criar links e códigos QR quando o período de faturação recomeçar, ou mudar de plano de imediato."
+      },
+      "downgrade": {
+        "question": "Os meus links deixam de funcionar se descer de plano ou cancelar?",
+        "answer": "Não. Os links e códigos QR que já criou continuam a redirecionar em qualquer plano."
+      },
+      "currency": {
+        "question": "Porque é que os preços estão em dólares?",
+        "answer": "O nosso fornecedor de pagamentos cobra em dólares americanos. O seu banco faz a conversão, por isso o valor em euros que mostramos é uma estimativa."
+      },
+      "invoices": {
+        "question": "Posso receber faturas com os dados da minha empresa?",
+        "answer": "Sim. Indique o nome da empresa e o NIF no pagamento e as faturas passam a incluí-los."
+      },
+      "enterprise": {
+        "question": "O que inclui o Enterprise?",
+        "answer": "Sem limites de links, lugares ou espaços de trabalho, início de sessão único, limites de API à medida e um preço acordado. Contacte-nos para o configurar."
+      }
+    }
+  },
+  "about": {
+    "title": "Uma plataforma de links independente, feita em Portugal",
+    "intro": "O Shortn nasceu em 2023 para gerir os links da Vida Económica, um grupo editorial português de economia e negócios. Desde então, trata dos seus links online e em papel.",
+    "principles": {
+      "title": "Como o construímos",
+      "honest": {
+        "title": "Honesto por defeito",
+        "body": "Os preços estão na página, pode cancelar nas definições de faturação e não há truques no pagamento."
+      },
+      "durable": {
+        "title": "Links que duram",
+        "body": "Um código QR impresso pode ficar anos numa prateleira, por isso nunca reutilizamos uma chave e os links continuam a funcionar quando muda de plano."
+      },
+      "private": {
+        "title": "Cuidado com os dados dos visitantes",
+        "body": "Guardamos os endereços IP dos visitantes como hash e apagamos os endereços originais ao fim de 90 dias. Não vendemos dados."
+      },
+      "open": {
+        "title": "Aberto às suas ferramentas",
+        "body": "Uma API pública, webhooks e um servidor MCP, com documentação aberta."
+      }
+    },
+    "languages": "O Shortn está disponível em português, inglês e espanhol.",
+    "cta": "Falar connosco"
+  },
+  "contact": {
+    "title": "Contacte-nos",
+    "intro": "Pergunte sobre planos, Enterprise, faturas ou a sua conta. Respondemos por email.",
+    "abuse": "Para denunciar um link perigoso, use antes o <link>formulário de denúncia</link>. Chega diretamente à fila de revisão.",
+    "form": {
+      "name": "Nome",
+      "email": "Email",
+      "company": "Empresa",
+      "optional": "Opcional",
+      "topic": "Assunto",
+      "topics": {
+        "sales": "Planos e Enterprise",
+        "billing": "Faturação e faturas",
+        "account": "A minha conta",
+        "other": "Outro assunto"
+      },
+      "message": "Mensagem",
+      "messageHint": "{count} de {max} caracteres",
+      "submit": "Enviar mensagem",
+      "submitting": "A enviar…",
+      "errors": {
+        "nameRequired": "Introduza o seu nome.",
+        "emailInvalid": "Introduza um email como nome@exemplo.pt.",
+        "messageShort": "Escreva pelo menos {min} caracteres para podermos ajudar.",
+        "messageLong": "Reduza a mensagem para {max} caracteres ou menos.",
+        "challenge": "Não conseguimos confirmar que é uma pessoa. Recarregue a página e tente novamente.",
+        "rateLimited": "Enviou várias mensagens em pouco tempo. Aguarde alguns minutos e tente novamente.",
+        "failed": "A mensagem não foi enviada. Tente novamente ou escreva-nos para {email}."
+      },
+      "success": {
+        "title": "Mensagem enviada",
+        "body": "Enviámos uma cópia para {email}. A sua referência é {reference}.",
+        "another": "Enviar outra mensagem"
+      }
+    }
+  },
+  "abuse": {
+    "authoritative": "Esta política é publicada em inglês. O texto em inglês é a versão que se aplica.",
+    "report": "Denunciar um link"
+  },
+  "legal": {
+    "updated": "Última atualização: {date}",
+    "authoritative": "Este documento é publicado em inglês. O texto em inglês é a versão que se aplica.",
+    "contents": "Índice"
+  },
+  "notFound": {
+    "title": "Não encontrámos essa página",
+    "body": "O endereço pode ter um erro, ou a página mudou de sítio.",
+    "home": "Ir para a página inicial",
+    "shortLink": "Procura um link curto? Verifique se a chave depois de shortn.at/ está bem escrita."
+  }
+}

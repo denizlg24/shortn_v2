@@ -5,6 +5,7 @@ import bulkCampaign from "./bulkCampaign.json";
 import bulkTags from "./bulkTags.json";
 // One file per namespace so surfaces can be edited independently.
 import common from "./common.json";
+import marketing from "./marketing.json";
 import auth from "./auth.json";
 import mcpOAuth from "./mcpOAuth.json";
 import nav from "./nav.json";
@@ -47,6 +48,7 @@ export default {
   page,
   linkPages,
   common,
+  marketing,
   auth,
   mcpOAuth,
   nav,

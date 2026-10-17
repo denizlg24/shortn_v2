@@ -1,8 +1,9 @@
 # 20 — Marketing site breakdown (draft)
 
-Status: **accepted as the next phase, 2026-10-17**. Nothing is implemented yet.
-Owner decisions D-M1, D-M2, D-M3, D-M8 and D-M10 were answered on 2026-10-17
-(§7); the rest are settled inside the slices that need them.
+Status: **in progress.** Accepted as the next phase on 2026-10-17. **M.1 is
+complete** ([21](21-marketing-content.md)), and **M.2 (design round) is next**.
+Owner decisions D-M1 to D-M4, D-M8, D-M10 and D-M11 are answered (§7). M.1
+settled D-M5 and D-M6 (21 §1). D-M7 and D-M9 stay open for M.7 and M.4.
 
 ## 1. Scope and why it is its own phase
 
@@ -29,7 +30,7 @@ PM cutover.
 | Marketing is a **Persuade**-mode surface with its own impeccable round at Linear/Dub level | [12](12-design-system-and-ui.md) surface table |
 | Hero demonstrates the mechanism live: a working shortener creating a real demo link (expires 24 h) and showing the redirect and QR instantly | 12 |
 | Real product screenshots only; proof is Vida Económica (with permission) plus a verified click count; no "Supercharge your links with AI" copy | 12 |
-| Pricing in EUR; pt/es/en | 12 |
+| ~~Pricing in EUR~~ USD as billed, with an ECB euro estimate (21 M1-c); pt/es/en | 12 |
 | Marketing display face chosen in this round (brief: a heavy grotesque that rhymes with the logo's "S"), not from the dashboard face shortlist; display sizes are marketing-only | 12 type scale |
 | Served by apps/web (marketing route group) on `shortn.at` | [07](07-domains-and-subdomains.md) host map, [01](01-monorepo-foundation.md) |
 | Locale negotiation happens only on marketing routes, via the Next 16 `proxy` | [05](05-auth-and-workspaces.md) |
@@ -50,7 +51,7 @@ audit says otherwise.
 | --- | --- | --- |
 | `/` → `/{locale}` | home | **Rebuild** (hero demo, proof, features, pricing teaser) |
 | `/{locale}/pricing` | 1 | **Rebuild**; plans and prices come from the same plan definitions as the dashboard billing page, never a second copy |
-| `/{locale}/products/{url-shortener,qr-code,analytics,pages}` | 4 | **Rebuild** as feature pages, or consolidate (D-M4). `/{locale}/products` has no page (404) but is in the sitemap |
+| `/{locale}/products/{url-shortener,qr-code,analytics,pages}` | 4 | **301** to anchors on the single `/{locale}/features` page (D-M4). `/{locale}/products` has no page (404) but is in the sitemap |
 | `/{locale}/about`, `/{locale}/contact` | 2 | **Rebuild**; contact backend in M.7 |
 | `/{locale}/privacy`, `/{locale}/terms` | 2 (≈1,150 lines of text) | **Port the text verbatim** into the new templates; any wording change needs legal review (D-M6) |
 | `/{locale}/abuse` | 1 | **Rebuild** next to the existing web safety/report pages |
@@ -114,14 +115,14 @@ blocker list.
 | D-M1 | Phase placement | **Decided 2026-10-17:** the next phase after P6, before P7, built on staging alongside the production promotions |
 | D-M2 | Copy ownership | **Decided 2026-10-17:** the implementer writes and approves the en/pt/es copy in M.1; the owner does a second review afterwards. Each language is written natively, not machine-translated |
 | D-M3 | Help centre | **Decided 2026-10-17:** fold into `/docs` as user guides (one place, already in llms.txt), with 301s from every old help URL |
-| D-M4 | Feature pages | Keep four product pages, or consolidate into one features page with anchors. Fewer pages means less copy to maintain in three languages |
-| D-M5 | Blog | Plan 07 reserves `/blog` but no content exists. Recommendation: no blog in PM; add `/{locale}/blog` later if there is a content plan |
-| D-M6 | Legal text | Port verbatim (recommended for PM), or revise with legal review, which may change the timeline |
+| D-M4 | Feature pages | **Decided 2026-10-17:** one `/{locale}/features` page with anchors; the four product pages 301 to them (21 §2.1) |
+| D-M5 | Blog | **Settled in M.1:** no blog in PM; add `/{locale}/blog` later if there is a content plan |
+| D-M6 | Legal text | **Settled in M.1:** port privacy, terms and abuse verbatim in English under every locale, with a localized notice; the review items in 21 §8 do not block the port |
 | D-M7 | Contact backend | Keep writing the legacy `Contact` collection so the admin console (`admin.shortn.at`, separate repo) keeps working, or move to a new collection plus email-to-inbox and update the console |
 | D-M8 | Legacy SEO hotfix | **Decided 2026-10-17:** no legacy hotfix. §4.1–4.3 stay live until the M.9 cutover, so M.9 is also the SEO fix |
 | D-M9 | Marketing analytics | None today. Options: none; cookieless self-hosted (e.g. Plausible/Umami on the existing infra); or Shortn's own click pipeline for CTA links. Any choice must fit the privacy policy text |
 | D-M10 | Demo link domain | **Decided 2026-10-17:** real `shortn.at` keys, random non-vanity only, reserved after the 24 h expiry. The M.5 abuse controls are therefore mandatory before launch, because demo links share the main domain's reputation |
-| D-M11 | Vida Económica proof | Confirm permission and which figure is shown (verified click count from the new analytics) |
+| D-M11 | Vida Económica proof | **Decided 2026-10-17:** the owner granted permission to use all Vida Económica statistics (name and figures; not their logo or a quotation). Figures and method in 21 §5 |
 
 ## 8. P7 items this phase does not cover
 

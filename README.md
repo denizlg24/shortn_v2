@@ -18,7 +18,7 @@ Use `bun run dev:check` to validate configuration without starting services. Ove
 
 **A modern URL shortener and link-in-bio platform built for businesses, creators, and brands.**
 
-Shortn is a comprehensive link management solution that goes beyond simple URL shortening. It provides powerful analytics, customizable QR codes, and beautiful link-in-bio pages—all in one platform. Currently serving [Vida Económica](https://vidaeconomica.pt), Portugal's leading economic magazine, Shortn has been trusted to deliver over 2.4 million clicks with enterprise-grade reliability.
+Shortn is a comprehensive link management solution that goes beyond simple URL shortening. It provides powerful analytics, customizable QR codes, and beautiful link-in-bio pages—all in one platform. It has served [Vida Económica](https://vidaeconomica.pt), a Portuguese business publisher, since 2023: more than 2,600 links and 160,000 counted clicks and scans as of October 2026.
 
 ---
 
@@ -57,7 +57,7 @@ Shortn helps you create, manage, and track every link you share. Whether you're 
 - **Build link-in-bio pages** that showcase all your important links in one place
 - **Organize campaigns** and measure performance across channels
 
-Built with scale and performance in mind, Shortn handles millions of clicks while providing detailed analytics on every interaction.
+Shortn records every click and QR scan and provides detailed analytics on each one.
 
 ---
 
@@ -123,7 +123,7 @@ Built on a modern, scalable tech stack:
 - **MongoDB** for flexible, high-performance data storage
 - **Polar** integration for seamless subscription management
 - **Advanced caching** for sub-50ms response times
-- **Real-time analytics** processing millions of events
+- **Real-time analytics** for every click and scan
 
 The platform is designed to handle enterprise-scale traffic while maintaining a seamless user experience.
 
@@ -165,7 +165,7 @@ Create QR codes for event check-ins, registration links, and sponsor materials. 
 
 Shortn was born from a real need in the marketplace. When Vida Económica, one of Portugal's most respected business publications, needed a reliable link management solution, existing platforms couldn't provide the combination of features, customization, and analytics they required.
 
-What started as a solution for one client has evolved into a full-featured platform capable of serving businesses of all sizes. The system has successfully processed over 2.4 million clicks while maintaining 99.9% uptime and sub-second response times.
+What started as a solution for one client has evolved into a full-featured platform capable of serving businesses of all sizes. As of October 2026 it has counted more than 160,000 clicks and scans.
 
 ### Mission
 
@@ -208,10 +208,8 @@ To provide businesses and creators with enterprise-grade link management tools t
 
 ## 📈 Performance Metrics
 
-- **2.4M+** total clicks processed
-- **<50ms** average response time
-- **99.9%** uptime
-- **Multi-region** deployment for global reach
+- **160,000+** clicks and scans counted (production, October 2026)
+- **2,600+** links and **540** QR codes for Vida Económica
 
 ---
 
@@ -246,7 +244,7 @@ For licensing inquiries, please contact [denizgunes@oceaninformatix.com](mailto:
 
 ## 🌟 Featured Client
 
-**Vida Económica** - Portugal's leading economic and business magazine has trusted Shortn to power their link management infrastructure, handling millions of clicks with reliability and precision.
+**Vida Económica**, a Portuguese business publisher, has run its web and print links on Shortn since 2023.
 
 ---
 
