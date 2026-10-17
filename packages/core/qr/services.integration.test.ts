@@ -11,6 +11,7 @@ import {
 } from "../campaigns/service";
 import { isLegacyQrBacked, toCachedLink } from "../links/cached-link";
 import { createLink } from "../links/service";
+import { mongoLinkLoader } from "../links/loader";
 import type { ServiceContext } from "../workspaces/context";
 import { ensurePersonalWorkspace } from "../workspaces/service";
 import { createQr, deleteQrs, getQr, pageQrs, updateQr } from "./service";
@@ -62,6 +63,40 @@ const enabled = Boolean(mongoUrl && redisUrl);
       linkDomain: "shortn.at",
     };
   }
+
+  test("QR backing links resolve on the configured staging/local domain and keep it after edits", async () => {
+    for (const domain of ["staging.shortn.at", "localhost:3202"]) {
+      const ctx = { ...(await context()), linkDomain: domain };
+      const created = await createQr(ctx, {
+        url: "https://example.com/domain",
+        title: "Domain regression",
+      });
+      expect(created.ok).toBe(true);
+      if (!created.ok) throw new Error(created.error);
+      const qr = await db
+        .collection(physicalNames.qr_codes)
+        .findOne({ _id: new ObjectId(created.value.id) });
+      const backing = await db
+        .collection(physicalNames.links)
+        .findOne({ _id: qr!.linkId });
+      expect(backing!.domain).toBe(domain);
+      expect(created.value.shortUrl).toBe(
+        `https://${domain}/${backing!.urlCode}`,
+      );
+      const load = mongoLinkLoader(db, domain);
+      const resolved = await load(domain, backing!.urlCode);
+      expect(resolved.kind).toBe("link");
+      if (resolved.kind === "link")
+        expect(resolved.qr?.publicId).toBe(created.value.publicId);
+      expect(
+        (await updateQr(ctx, created.value.id, { title: "Edited domain" })).ok,
+      ).toBe(true);
+      expect(
+        (await db.collection(physicalNames.links).findOne({ _id: qr!.linkId }))!
+          .domain,
+      ).toBe(domain);
+    }
+  });
 
   test("circle/frame/caption designs persist on free plans and invalid edits are atomic", async () => {
     const ctx = await context();
