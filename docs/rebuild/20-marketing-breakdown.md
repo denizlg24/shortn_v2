@@ -1,7 +1,8 @@
 # 20 — Marketing site breakdown (draft)
 
-Status: **proposed, 2026-10-17**. Nothing is implemented. The open decisions in
-§7 need an owner answer before slice M.1 starts.
+Status: **accepted as the next phase, 2026-10-17**. Nothing is implemented yet.
+Owner decisions D-M1, D-M2, D-M3, D-M8 and D-M10 were answered on 2026-10-17
+(§7); the rest are settled inside the slices that need them.
 
 ## 1. Scope and why it is its own phase
 
@@ -62,7 +63,7 @@ audit says otherwise.
 ## 4. Defects in the live site (production, verified 2026-10-17)
 
 These are in today's legacy marketing. The rebuild must not reproduce them.
-D-M8 asks whether to hotfix legacy first, because the rebuild is weeks away.
+Per D-M8, legacy is **not** hotfixed; the rebuild's cutover (M.9) is the fix.
 
 1. **Every marketing page canonicalizes to its locale's home page.** The
    `(marketing)` layout sets `alternates.canonical = https://shortn.at/{locale}`
@@ -106,20 +107,20 @@ verified. Search Console coverage is stable for 14 days after cutover. Legacy se
 no marketing, help or root-host auth page, which removes those items from the P7
 blocker list.
 
-## 7. Open decisions (owner)
+## 7. Decisions
 
-| # | Decision | Options / recommendation |
+| # | Decision | Outcome / options |
 | --- | --- | --- |
-| D-M1 | Phase placement | **Recommended:** its own phase between P6 and P7, built on staging alongside the production promotions |
-| D-M2 | Copy ownership | Who writes and approves en/pt/es copy, and whether the pt original is translated to es/en or each is written natively |
-| D-M3 | Help centre | **Recommended:** fold into `/docs` (one place, already in llms.txt). Alternative: keep a separate localized `/{locale}/help` |
+| D-M1 | Phase placement | **Decided 2026-10-17:** the next phase after P6, before P7, built on staging alongside the production promotions |
+| D-M2 | Copy ownership | **Decided 2026-10-17:** the implementer writes and approves the en/pt/es copy in M.1; the owner does a second review afterwards. Each language is written natively, not machine-translated |
+| D-M3 | Help centre | **Decided 2026-10-17:** fold into `/docs` as user guides (one place, already in llms.txt), with 301s from every old help URL |
 | D-M4 | Feature pages | Keep four product pages, or consolidate into one features page with anchors. Fewer pages means less copy to maintain in three languages |
 | D-M5 | Blog | Plan 07 reserves `/blog` but no content exists. Recommendation: no blog in PM; add `/{locale}/blog` later if there is a content plan |
 | D-M6 | Legal text | Port verbatim (recommended for PM), or revise with legal review, which may change the timeline |
 | D-M7 | Contact backend | Keep writing the legacy `Contact` collection so the admin console (`admin.shortn.at`, separate repo) keeps working, or move to a new collection plus email-to-inbox and update the console |
-| D-M8 | Legacy SEO hotfix | Fix §4.1–4.3 on legacy now (small production change: per-page canonical, a clean robots.txt, a corrected sitemap) or wait for the rebuild. Recommendation: hotfix now, because the canonical bug actively suppresses indexing |
+| D-M8 | Legacy SEO hotfix | **Decided 2026-10-17:** no legacy hotfix. §4.1–4.3 stay live until the M.9 cutover, so M.9 is also the SEO fix |
 | D-M9 | Marketing analytics | None today. Options: none; cookieless self-hosted (e.g. Plausible/Umami on the existing infra); or Shortn's own click pipeline for CTA links. Any choice must fit the privacy policy text |
-| D-M10 | Demo link domain | Real `shortn.at` keys (matches the brief; uses the reserved-after-expiry rule) or a separate demo hostname that keeps demo traffic away from the main domain's reputation |
+| D-M10 | Demo link domain | **Decided 2026-10-17:** real `shortn.at` keys, random non-vanity only, reserved after the 24 h expiry. The M.5 abuse controls are therefore mandatory before launch, because demo links share the main domain's reputation |
 | D-M11 | Vida Económica proof | Confirm permission and which figure is shown (verified click count from the new analytics) |
 
 ## 8. P7 items this phase does not cover

@@ -2778,3 +2778,17 @@ All implementation slices 6.1–6.10 are merged to `staging` and accepted there.
 - **#445** (`51c9a40`): the edge forwards the visitor address as `x-shortn-client-ip`, and the redirect accepts it only after `x-edge-auth`. Staging Worker `8ec85562-6b73-4aff-b64b-4c7c9d34f10e` then recorded `87.60.121.0/24` for a fresh 12-request sample.
 - **#446**: the same issue affected apps/web password-attempt limits and safety reports on edge-proxied pages, where all visitors shared one identity. The edge now sends the address with a dedicated `WEB_EDGE_AUTH_SECRET` proof and strips client-supplied copies. The web trusts it only with that proof or the redirect's `x-bio-auth`, and the custom-domain forwarder passes it through. The secret is set on the staging web target and the staging Worker.
 - **Production rollout order:** promote to `master` so the redirect/web deploy first, set `WEB_EDGE_AUTH_SECRET` on the production web target and Worker, then run `bun run --cwd apps/edge deploy`. Either side tolerates the other being older.
+
+
+## P6 sign-off — 2026-10-17
+
+The owner signed off P6 as done on 2026-10-17. All implementation slices
+6.1–6.11 are merged to `staging` and accepted there (#438–#446). The following
+are carried forward as operator steps, not P6 work:
+
+- production promotion together with the P4/P5 production setup, including
+  `API_EDGE_AUTH_SECRET` and `WEB_EDGE_AUTH_SECRET` and per-feature 10% → 100% rollout with a rollback exercise;
+- the external checks in "P6 status" above (real inbox mail, enterprise IdP, physical-device deep links, production legacy QR sample);
+- the deferred legacy QR `qrCodeId` backfill decision.
+
+The next phase is the marketing site ([20](20-marketing-breakdown.md)).
