@@ -2763,3 +2763,18 @@ All implementation slices 6.1–6.10 are merged to `staging` and accepted there.
 | Native deep links on physical devices | iOS/Android devices with the target apps |
 | Production legacy QR sample: scans reach unchanged destinations and are counted as scans | An agreed QR sample and read path |
 | Legacy/new deployment coexistence with `NEW_APP_URL` handoff in production | Coordinated with the P4 production promotion |
+
+
+### 2026-10-17 legacy link/QR acceptance and visitor-address correction
+
+**Redirect parity.** `apps/redirect/scripts/parity.ts` ran against the staging legacy and redirect origins over SSH tunnels, using the restored production data. It checked all 2,687 legacy link keys, all 525 legacy QR paths and 2 missing-key probes: **3,214 paths, 0 status/`Location` mismatches**.
+
+**Counting.** Twelve randomly sampled legacy-created links and QR codes were requested through the public `staging.shortn.at` edge with a browser user agent. Every one redirected to its stored destination. Links incremented `clicks.total`, wrote a `click` event and dual-wrote a legacy `clicks` row. A first run appeared not to count, but its user-agent suffix (`legacy-check-N`) matches `isbot`: a test artifact, not a defect.
+
+**Known legacy data issue (recorded, not fixed).** 275 of the 525 legacy QR codes were created between 2023-10-03 and 2025-12-30, 217 of them with 9-character IDs. Their QR-only backing link has `isQrCode: true` but `qrCodeId: ""`. Legacy counts a scan only when `qrCodeId && isQrCode` (`legacy/app/actions/linkActions.ts`), so scans of these codes have always been recorded as clicks on the hidden backing link: the QR counter never moves and the legacy row is `type: "click"`. About 14,200 such clicks have accumulated on those backing links. The new redirect reproduces legacy exactly, which keeps parity. A fix would backfill `qrCodeId` on the backing links (and optionally reattribute their history to scans). That is a production data change, deferred for an owner decision.
+
+**Visitor-address defect (fixed on staging).** Cloudflare rewrites `CF-Connecting-IP` on the edge Worker's subrequest to a proxied origin, replacing it with the Worker egress address `2a06:98c0:3600::103`.
+- Production impact: since the P2 cutover at 2026-10-10 05:06 UTC, every production click event (2,808 non-bot events at the time of inspection) shares one IP hash and the prefix `2a06:98c0:3600::/48`. Geo headers are unaffected. The original addresses were never stored, so these events cannot be corrected.
+- **#445** (`51c9a40`): the edge forwards the visitor address as `x-shortn-client-ip`, and the redirect accepts it only after `x-edge-auth`. Staging Worker `8ec85562-6b73-4aff-b64b-4c7c9d34f10e` then recorded `87.60.121.0/24` for a fresh 12-request sample.
+- **#446**: the same issue affected apps/web password-attempt limits and safety reports on edge-proxied pages, where all visitors shared one identity. The edge now sends the address with a dedicated `WEB_EDGE_AUTH_SECRET` proof and strips client-supplied copies. The web trusts it only with that proof or the redirect's `x-bio-auth`, and the custom-domain forwarder passes it through. The secret is set on the staging web target and the staging Worker.
+- **Production rollout order:** promote to `master` so the redirect/web deploy first, set `WEB_EDGE_AUTH_SECRET` on the production web target and Worker, then run `bun run --cwd apps/edge deploy`. Either side tolerates the other being older.
