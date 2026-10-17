@@ -213,6 +213,12 @@ export const workspaces: Migration = {
       discrepancies.push(
         `${users.length - maps.byUserId.size} users without a personal workspace`,
       );
+    // Native records can intentionally have no legacy sub/userId. Their
+    // explicit, existing workspace is authority; only unassigned/actual orphan
+    // records belong in the legacy orphan reconciliation.
+    const canonicalWorkspaceIds = await ctx
+      .read(names.workspaces)
+      .distinct("_id", { slug: { $ne: orphanWorkspaceSlug } });
     let expectedOrphans = 0;
     let actualOrphans = 0;
     for (const [collection, field] of bySubCollections) {
@@ -226,7 +232,15 @@ export const workspaces: Migration = {
       for (const owner of owners) {
         const sub = owner._id ?? "";
         if (!subs.has(sub)) {
-          expectedOrphans += owner.n;
+          const nativeAssigned = !sub
+            ? await ctx.read(collection).countDocuments({
+                [field]: owner._id ?? null,
+                workspaceId: { $in: canonicalWorkspaceIds },
+              })
+            : 0;
+          expectedOrphans += owner.n - nativeAssigned;
+          counts[`${collection}.nativeWorkspaceDocs`] =
+            (counts[`${collection}.nativeWorkspaceDocs`] ?? 0) + nativeAssigned;
           continue;
         }
         const workspaceId = maps.bySub.get(sub);
