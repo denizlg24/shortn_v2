@@ -146,7 +146,8 @@ export function createApp(options: AppOptions) {
     const host =
       options.edgeAuthSecret &&
       c.req.header("x-edge-auth") === options.edgeAuthSecret
-        ? c.req.header("x-forwarded-host")
+        ? (c.req.header("x-shortn-forwarded-host") ??
+          c.req.header("x-forwarded-host"))
         : undefined;
     if (
       host &&
@@ -167,6 +168,7 @@ export function createApp(options: AppOptions) {
       headers.delete("origin");
       headers.set("x-bio-auth", options.bio.secret);
       headers.set("x-forwarded-host", host);
+      headers.set("x-shortn-forwarded-host", host);
       return fetch(target, {
         method: c.req.method,
         headers,
@@ -184,7 +186,8 @@ export function createApp(options: AppOptions) {
     const forwarded =
       options.edgeAuthSecret &&
       c.req.header("x-edge-auth") === options.edgeAuthSecret
-        ? c.req.header("x-forwarded-host")
+        ? (c.req.header("x-shortn-forwarded-host") ??
+          c.req.header("x-forwarded-host"))
         : undefined;
     const domain = forwarded?.toLowerCase() ?? options.linkDomain;
     if (!/^[a-z0-9.-]+(?::\d+)?$/.test(domain))

@@ -7,7 +7,8 @@ import { env } from "./env";
 export async function publicRequestDomain() {
   const e = env(),
     h = await headers();
-  const forwarded = h.get("x-forwarded-host");
+  const forwarded =
+    h.get("x-shortn-forwarded-host") ?? h.get("x-forwarded-host");
   if (
     !forwarded ||
     forwarded === e.LINK_DOMAIN ||

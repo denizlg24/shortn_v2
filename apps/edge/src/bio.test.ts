@@ -54,12 +54,14 @@ test("custom hosts preserve form bodies and authenticated host context", async (
       headers: {
         "content-type": "application/x-www-form-urlencoded",
         "x-forwarded-host": "evil.example",
+        "x-shortn-forwarded-host": "evil.example",
       },
       body: "password=secret",
     }),
     env,
   );
   expect(seen?.headers.get("x-forwarded-host")).toBe("go.example.com");
+  expect(seen?.headers.get("x-shortn-forwarded-host")).toBe("go.example.com");
   expect(seen?.headers.get("x-edge-auth")).toBe("edge-secret");
   expect(await seen?.text()).toBe("password=secret");
 });
