@@ -56,6 +56,7 @@ export interface LegacyLinkFields {
     { clicks?: number | undefined; scans?: number | undefined } | undefined;
   isQrCode?: boolean | undefined;
   qrCodeId?: string | undefined;
+  demo?: boolean | undefined;
 }
 
 export interface LegacyQrFields {
@@ -83,6 +84,7 @@ export const linkProjection = {
   passwordProtected: 1,
   isQrCode: 1,
   qrCodeId: 1,
+  demo: 1,
 } as const;
 
 export function isLegacyQrBacked(link: LegacyLinkFields): boolean {
@@ -134,6 +136,7 @@ export function toCachedLink(
     ...(qrBacked && qr?.qrCodeId
       ? { qr: { id: qr._id.toHexString(), publicId: qr.qrCodeId } }
       : {}),
-    ...(qrBacked && !qr?.qrCodeId ? { untracked: true } : {}),
+    // Demo links are counted for their click cap but never enter analytics.
+    ...((qrBacked && !qr?.qrCodeId) || link.demo ? { untracked: true } : {}),
   };
 }

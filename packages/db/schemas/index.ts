@@ -104,6 +104,8 @@ export const linkSchema = z.looseObject({
   workspaceId: objectId.optional(),
   domain: text.optional(),
   key: text.optional(),
+  // Anonymous marketing demo link: no workspace, untracked, expires in 24 h.
+  demo: z.boolean().optional(),
   destination: z.httpUrl().optional(),
   description: text.optional(),
   tagIds: z.array(objectId).optional(),
@@ -484,6 +486,18 @@ export const apiKeySchema = z.object({
 });
 export const schemas = {
   links: linkSchema,
+  // Legacy's mongoose Contact model; admin.shortn.at reads it (D-M7).
+  contacts: z.looseObject({
+    ...base,
+    ticketId: text,
+    name: text,
+    subject: text,
+    email: text,
+    company: text.optional(),
+    message: text,
+    ipAddress: text,
+    userAgent: text,
+  }),
   qr_codes: qrCodeSchema,
   click_events: clickEventSchema,
   click_rollups: clickRollupSchema,

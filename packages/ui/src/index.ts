@@ -115,7 +115,11 @@ export {
   type KeyboardHintProps,
 } from "./components/keyboard-hint";
 
-export { ShortnMark, type ShortnMarkProps } from "./components/shortn-mark";
+export {
+  ShortnMark,
+  shortnMarkPath,
+  type ShortnMarkProps,
+} from "./components/shortn-mark";
 export { ShortLink, type ShortLinkProps } from "./components/short-link";
 export {
   Destination,

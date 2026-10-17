@@ -8,6 +8,8 @@ const escape = (text: string) =>
 // Authored Markdown only: raw HTML is displayed as text, never executed.
 const markdown = new Marked({ renderer: { html: ({ text }) => escape(text) } });
 const sourceDirectory = new URL("../../../docs/api/", import.meta.url);
+const guidesDirectory = new URL("../../../docs/guides/", import.meta.url);
+const guideLocales = ["en", "pt", "es"] as const;
 const output = new URL(
   "../../../packages/docs/generated.json",
   import.meta.url,
@@ -25,7 +27,13 @@ export async function generateDocumentation() {
   spec.servers = [{ url: "https://api.shortn.at" }];
   const pages: Record<
     string,
-    { title: string; markdown: string; html: string }
+    {
+      title: string;
+      markdown: string;
+      html: string;
+      locale?: (typeof guideLocales)[number];
+      guide?: string;
+    }
   > = {};
   for (const filename of (await readdir(sourceDirectory)).sort()) {
     if (!/\.mdx?$/.test(filename)) continue;
@@ -37,6 +45,32 @@ export async function generateDocumentation() {
     const title = /^# (.+)$/m.exec(text)?.[1];
     if (!title) throw new Error(`Missing title in ${filename}`);
     pages[slug] = { title, markdown: text, html: await markdown.parse(text) };
+  }
+  // User guides (21 M1-a): /docs/{locale}/guides/{path}, in every locale.
+  for (const locale of guideLocales) {
+    const root = new URL(`${locale}/`, guidesDirectory);
+    const files = (await readdir(root, { recursive: true }))
+      .filter((file) => /\.md$/.test(file))
+      .sort();
+    for (const file of files) {
+      const path = file.replace(/\.md$/, "").replaceAll("\\", "/");
+      const text = await Bun.file(new URL(file, root)).text();
+      if (/^import\s|^export\s|<[A-Z]/m.test(text))
+        throw new Error(
+          `Unsupported MDX component in guides/${locale}/${file}`,
+        );
+      const title = /^# (.+)$/m.exec(text)?.[1];
+      if (!title) throw new Error(`Missing title in guides/${locale}/${file}`);
+      pages[
+        path === "index" ? `${locale}/guides` : `${locale}/guides/${path}`
+      ] = {
+        title,
+        markdown: text,
+        html: await markdown.parse(text),
+        locale,
+        guide: path === "index" ? "" : path,
+      };
+    }
   }
   let reference =
     "# Shortn API reference\n\nBase URL: `https://api.shortn.at`. Authenticate with a scoped bearer API key.\n\nThis reference is generated from the implemented OpenAPI contract.\n";

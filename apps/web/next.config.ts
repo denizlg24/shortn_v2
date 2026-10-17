@@ -9,6 +9,8 @@ const config: NextConfig = {
       ? process.env.SHORTN_NEXT_DIST_DIR
       : ".next",
   output: "standalone",
+  // Marketing social images read their font files from disk at request time.
+  outputFileTracingIncludes: { "/*": ["src/server/og-fonts/*.woff"] },
   outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
   transpilePackages: [
     "@shortn/auth",

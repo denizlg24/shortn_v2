@@ -9,6 +9,12 @@ import { messages, type Locale } from "./messages";
 import { WebhookDisabled, webhookDisabledSubject } from "./templates/webhook";
 import { DomainReady, domainReadySubject } from "./templates/domain";
 import {
+  ContactNotification,
+  contactNotificationSubject,
+  ContactReceived,
+  contactReceivedSubject,
+} from "./templates/contact";
+import {
   BillingEmail,
   billingSubject,
   type BillingNotice,
@@ -51,6 +57,7 @@ export function createMailer(config: MailerConfig) {
     subject: string,
     element: ReactElement,
     idempotencyKey?: string,
+    replyTo?: string,
   ) {
     if (!recipientAllowed(config.allowlist, to)) {
       console.info("mail dropped by allowlist", { subject });
@@ -65,12 +72,45 @@ export function createMailer(config: MailerConfig) {
         subject,
         html,
         text,
+        ...(replyTo ? { replyTo } : {}),
       },
       idempotencyKey ? { idempotencyKey } : undefined,
     );
     if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
   }
   return {
+    contactReceived(input: {
+      to: string;
+      locale: Locale;
+      reference: string;
+      message: string;
+    }) {
+      return send(
+        input.to,
+        contactReceivedSubject(input.locale, input.reference),
+        <ContactReceived {...input} />,
+        `contact-received-${input.reference}`,
+      );
+    },
+    contactNotification(input: {
+      to: string;
+      replyTo: string;
+      reference: string;
+      name: string;
+      email: string;
+      company?: string | undefined;
+      topic: string;
+      locale: Locale;
+      message: string;
+    }) {
+      return send(
+        input.to,
+        contactNotificationSubject(input.topic, input.reference),
+        <ContactNotification {...input} />,
+        `contact-notification-${input.reference}`,
+        input.replyTo,
+      );
+    },
     workspaceExportReady(input: {
       to: string;
       locale: Locale;

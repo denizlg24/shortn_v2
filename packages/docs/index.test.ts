@@ -25,6 +25,8 @@ test("every authored docs page has an HTML and markdown route and internal links
     expect((await docs.request(path)).status).toBe(200);
     expect(await (await docs.request(`${path}.md`)).text()).toBe(page.markdown);
     for (const [, link] of page.markdown.matchAll(/\]\((\/[^)]+)\)/g)) {
+      // Guides also link to marketing pages, which apps/web serves itself.
+      if (/^\/(?:en|pt|es)(?:\/|$)/.test(link!)) continue;
       expect((await docs.request(link!)).status).toBe(200);
     }
   }

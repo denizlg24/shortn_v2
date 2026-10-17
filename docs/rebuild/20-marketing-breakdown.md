@@ -1,9 +1,11 @@
 # 20 — Marketing site breakdown (draft)
 
-Status: **in progress.** Accepted as the next phase on 2026-10-17. **M.1 is
-complete** ([21](21-marketing-content.md)), and **M.2 (design round) is next**.
-Owner decisions D-M1 to D-M4, D-M8, D-M10 and D-M11 are answered (§7). M.1
-settled D-M5 and D-M6 (21 §1). D-M7 and D-M9 stay open for M.7 and M.4.
+Status: **built and staged; production cutover pending.** M.1 is complete
+([21](21-marketing-content.md)). M.2–M.8 are built and merged to `staging`, and
+the M.9 staging cutover is live; the build record and gate evidence are in
+[22](22-marketing-build.md). The production half of M.9 needs the P4–P6
+production promotion first (21 §8) and explicit owner authorization. All
+decisions in §7 are answered.
 
 ## 1. Scope and why it is its own phase
 
@@ -118,9 +120,9 @@ blocker list.
 | D-M4 | Feature pages | **Decided 2026-10-17:** one `/{locale}/features` page with anchors; the four product pages 301 to them (21 §2.1) |
 | D-M5 | Blog | **Settled in M.1:** no blog in PM; add `/{locale}/blog` later if there is a content plan |
 | D-M6 | Legal text | **Settled in M.1:** port privacy, terms and abuse verbatim in English under every locale, with a localized notice; the review items in 21 §8 do not block the port |
-| D-M7 | Contact backend | Keep writing the legacy `Contact` collection so the admin console (`admin.shortn.at`, separate repo) keeps working, or move to a new collection plus email-to-inbox and update the console |
+| D-M7 | Contact backend | **Decided in M.7 (implementer, under the 2026-10-17 build goal):** keep writing legacy's `contacts` collection in its mongoose shape (`CT-YYYYMMDD-XXXXX` ticket ids), so the admin console works unchanged, plus a confirmation email and an owner notification (`CONTACT_INBOX`). One deviation: `ipAddress` holds the visitor's HMAC instead of the raw address |
 | D-M8 | Legacy SEO hotfix | **Decided 2026-10-17:** no legacy hotfix. §4.1–4.3 stay live until the M.9 cutover, so M.9 is also the SEO fix |
-| D-M9 | Marketing analytics | None today. Options: none; cookieless self-hosted (e.g. Plausible/Umami on the existing infra); or Shortn's own click pipeline for CTA links. Any choice must fit the privacy policy text |
+| D-M9 | Marketing analytics | **Decided in M.4 (implementer): none for launch.** The verbatim privacy policy needs no change, and nothing loads on the marketing pages beyond Turnstile on the two forms. Revisit with a cookieless option once there is a question the numbers would answer |
 | D-M10 | Demo link domain | **Decided 2026-10-17:** real `shortn.at` keys, random non-vanity only, reserved after the 24 h expiry. The M.5 abuse controls are therefore mandatory before launch, because demo links share the main domain's reputation |
 | D-M11 | Vida Económica proof | **Decided 2026-10-17:** the owner granted permission to use all Vida Económica statistics (name and figures; not their logo or a quotation). Figures and method in 21 §5 |
 
