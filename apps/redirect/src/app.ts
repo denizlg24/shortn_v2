@@ -350,7 +350,13 @@ export function createApp(options: AppOptions) {
       }
       metrics.inc(`decision_${decision.track ? "destination" : "gate"}_total`);
       if (decision.track) {
-        const fields = requestClickFields(c.req.raw.headers);
+        const fields = requestClickFields(
+          c.req.raw.headers,
+          Boolean(
+            options.edgeAuthSecret &&
+            c.req.header("x-edge-auth") === options.edgeAuthSecret,
+          ),
+        );
         const message: ClickMessage = {
           v: 1,
           ts: Date.now(),

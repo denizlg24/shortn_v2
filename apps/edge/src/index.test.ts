@@ -50,6 +50,7 @@ test("single-segment keys and /qr/ paths go to apps/redirect with edge headers",
   );
   expect(forwarded?.headers.get("x-edge-auth")).toBe("edge-secret");
   expect(forwarded?.headers.get("cf-connecting-ip")).toBe("203.0.113.1");
+  expect(forwarded?.headers.get("x-shortn-client-ip")).toBe("203.0.113.1");
   expect(forwarded?.headers.get("x-request-id")).toBe("ray1");
   await handler(new Request("https://shortn.at/qr/abc"), env);
   expect(seen.redirect[1]?.url).toBe(
@@ -248,4 +249,27 @@ test("docs reach web even with short-link rollout disabled", async () => {
     ).toBe(200);
     expect(seen.at(-1)).toBe(`https://app.shortn.at${path}`);
   }
+});
+
+test("the redirect origin receives the visitor address, never a client-supplied one", async () => {
+  const { handler, seen } = setup(redirected);
+  await handler(
+    new Request("https://shortn.at/abc", {
+      headers: {
+        "cf-connecting-ip": "203.0.113.7",
+        "x-shortn-client-ip": "192.0.2.99",
+      },
+    }),
+    env,
+  );
+  await handler(
+    new Request("https://shortn.at/abc", {
+      headers: { "x-shortn-client-ip": "192.0.2.99" },
+    }),
+    env,
+  );
+  expect(seen.redirect[0]?.headers.get("x-shortn-client-ip")).toBe(
+    "203.0.113.7",
+  );
+  expect(seen.redirect[1]?.headers.has("x-shortn-client-ip")).toBe(false);
 });

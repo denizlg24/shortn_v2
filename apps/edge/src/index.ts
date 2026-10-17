@@ -59,6 +59,12 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
   const ray = request.headers.get("cf-ray");
   if (ray) headers.set("x-request-id", ray);
   if (env.EDGE_AUTH_SECRET) headers.set("x-edge-auth", env.EDGE_AUTH_SECRET);
+  // Cloudflare rewrites CF-Connecting-IP on the Worker's subrequest to its own
+  // egress address, so the visitor's address travels in a dedicated header.
+  const clientIp =
+    request.headers.get("cf-connecting-ipv6") ??
+    request.headers.get("cf-connecting-ip");
+  if (clientIp) headers.set("x-shortn-client-ip", clientIp);
   headers.set("x-forwarded-host", source.host);
   headers.set("x-shortn-forwarded-host", source.host);
   return new Request(target.toString(), {
