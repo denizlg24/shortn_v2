@@ -51,6 +51,8 @@ export function WhatsNewDialog({ impersonating }: { impersonating: boolean }) {
   const [open, setOpen] = useState(false);
   const startTour = useRef(false);
   const primary = useRef<HTMLButtonElement>(null);
+  // Opened by itself, so there is no trigger for focus to return to.
+  const returnFocus = useRef<HTMLElement | null>(null);
   const tourActive = tour.progress.status === "active";
 
   useEffect(() => {
@@ -59,7 +61,13 @@ export function WhatsNewDialog({ impersonating }: { impersonating: boolean }) {
       !shouldAutoOpen({ status, impersonating, tourActive })
     )
       return;
-    const timer = setTimeout(() => setOpen(true), openDelay);
+    const timer = setTimeout(() => {
+      returnFocus.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
+      setOpen(true);
+    }, openDelay);
     return () => clearTimeout(timer);
   }, [status, impersonating, tourActive]);
 
@@ -84,8 +92,12 @@ export function WhatsNewDialog({ impersonating }: { impersonating: boolean }) {
           primary.current?.focus();
         }}
         onCloseAutoFocus={(event) => {
+          event.preventDefault();
           // The tour moves focus into its own popover.
-          if (startTour.current) event.preventDefault();
+          if (startTour.current) return;
+          const previous = returnFocus.current;
+          if (previous?.isConnected) previous.focus();
+          else document.getElementById("main")?.focus();
         }}
       >
         <DialogHeader

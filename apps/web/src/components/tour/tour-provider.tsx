@@ -311,7 +311,8 @@ export function TourProvider({ children }: { children: ReactNode }) {
         }
       }
       const found =
-        "anchor" in step && landed
+        // A fallback list page never renders the detail step's anchor.
+        "anchor" in step && landed && !target?.missingEntity
           ? await waitForAnchor(step.anchor, anchorTimeout, run.signal)
           : null;
       if (run.signal.aborted) return;
