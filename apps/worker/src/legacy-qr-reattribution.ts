@@ -144,8 +144,13 @@ export interface Plan {
 }
 
 interface Transfer {
+  // Taken off the backing link.
   clicks: number;
   legacyTotal: number;
+  // Added to the QR: the QR's counters already hold a snapshot of the link's
+  // (equal for most codes), so only the link's growth since then moves over.
+  qrClicks: number;
+  qrLegacyTotal: number;
   at: Date;
   linkLastClick?: Date;
   qrLastClickBefore?: Date | null;
@@ -567,10 +572,10 @@ export function predictedAfter(link: PlannedLink) {
     clickEvents: 0,
     scanEvents: before.scanEvents + before.clickEvents,
     linkTotal: 0,
-    qrTotal: before.qrTotal + before.linkTotal,
+    qrTotal: Math.max(before.qrTotal, before.linkTotal),
     linkLegacyTotal: moveLegacy ? 0 : before.linkLegacyTotal,
     qrLegacyTotal: moveLegacy
-      ? (before.qrLegacyTotal ?? 0) + (before.linkLegacyTotal ?? 0)
+      ? Math.max(before.qrLegacyTotal ?? 0, before.linkLegacyTotal ?? 0)
       : before.qrLegacyTotal,
   };
 }
@@ -838,9 +843,15 @@ async function transferCounters(ctx: Context, run: RunDoc, link: RunLink) {
     const raisesQrLast =
       lastClick !== undefined &&
       !(qrLast instanceof Date && qrLast >= lastClick);
+    const qrClicks = Math.max(0, clicks - link.before.qrTotal);
+    const qrLegacyTotal = legacyTotal
+      ? Math.max(0, legacyTotal - (link.before.qrLegacyTotal ?? 0))
+      : 0;
     const result: Transfer = {
       clicks,
       legacyTotal,
+      qrClicks,
+      qrLegacyTotal,
       at: new Date(),
       ...(lastClick ? { linkLastClick: lastClick } : {}),
       ...(raisesQrLast && lastClick
@@ -851,7 +862,7 @@ async function transferCounters(ctx: Context, run: RunDoc, link: RunLink) {
               : { qrLastClickBefore: qrLast }),
           }
         : {}),
-      ...(clicks && qrDoc.clicks?.total === undefined
+      ...(qrClicks && qrDoc.clicks?.total === undefined
         ? { qrTotalMissing: true }
         : {}),
     };
@@ -869,8 +880,8 @@ async function transferCounters(ctx: Context, run: RunDoc, link: RunLink) {
         { session },
       );
     const qrInc: Document = {
-      ...(clicks ? { "clicks.total": clicks } : {}),
-      ...(legacyTotal ? { "stats.legacyTotal": legacyTotal } : {}),
+      ...(qrClicks ? { "clicks.total": qrClicks } : {}),
+      ...(qrLegacyTotal ? { "stats.legacyTotal": qrLegacyTotal } : {}),
     };
     if (Object.keys(qrInc).length || raisesQrLast)
       await qrs.updateOne(
@@ -1335,22 +1346,23 @@ export async function verifyApplied(
     counts.clicksTransferred += transfer.clicks;
     const linkTotal = count(linkDoc?.clicks?.total);
     const qrTotal = count(qrDoc?.clicks?.total);
-    const sumBefore = count(oldLink.clicks?.total) + count(oldQr.clicks?.total);
+    // The QR's snapshot of the link's history is counted once, not twice.
+    const expectedQr = count(oldQr.clicks?.total) + transfer.qrClicks;
     if (linkTotal)
       issues.push(
         `${link.urlCode}: backing link clicks.total is ${linkTotal}; re-run --apply`,
       );
-    if (qrTotal < count(oldQr.clicks?.total) + transfer.clicks)
+    if (qrTotal < expectedQr)
       issues.push(`${link.urlCode}: QR clicks.total below the transferred sum`);
-    if (!arrivals && linkTotal + qrTotal !== sumBefore)
+    if (!arrivals && linkTotal + qrTotal !== expectedQr)
       issues.push(
-        `${link.urlCode}: legacy counters ${linkTotal}+${qrTotal} ≠ ${sumBefore} before`,
+        `${link.urlCode}: legacy counters ${linkTotal}+${qrTotal} ≠ ${expectedQr} expected`,
       );
     if (
       transfer.legacyTotal &&
       (linkDoc?.stats?.legacyTotal !== 0 ||
         qrDoc?.stats?.legacyTotal !==
-          count(oldQr.stats?.legacyTotal) + transfer.legacyTotal)
+          count(oldQr.stats?.legacyTotal) + transfer.qrLegacyTotal)
     )
       issues.push(`${link.urlCode}: stats.legacyTotal transfer mismatch`);
     await derivedCounters(db, link, issues);
@@ -1540,9 +1552,9 @@ async function restoreLink(ctx: Context, run: RunDoc, link: RunLink) {
           { session },
         );
       const qrInc: Document = {
-        ...(transfer.clicks ? { "clicks.total": -transfer.clicks } : {}),
-        ...(transfer.legacyTotal
-          ? { "stats.legacyTotal": -transfer.legacyTotal }
+        ...(transfer.qrClicks ? { "clicks.total": -transfer.qrClicks } : {}),
+        ...(transfer.qrLegacyTotal
+          ? { "stats.legacyTotal": -transfer.qrLegacyTotal }
           : {}),
       };
       if (Object.keys(qrInc).length)
@@ -1720,7 +1732,7 @@ export function formatPlan(plan: Plan, samples: string[], runs: RunDoc[]) {
     "",
     "Changes per collection:",
     `  ${names.links}: ${plan.links.filter((link) => !link.sweep).length} qrCodeId backfills; clicks.total moved off ${plan.links.filter((link) => link.before.linkTotal).length} links (${sum((link) => link.before.linkTotal)} hits); stats recomputed for ${plan.links.length}`,
-    `  ${names.qr_codes}: clicks.total +${sum((link) => link.before.linkTotal)} across ${plan.links.length}; stats.legacyTotal moved for ${legacyMoves.length} (+${legacyMoves.reduce((total, link) => total + (link.before.linkLegacyTotal ?? 0), 0)})`,
+    `  ${names.qr_codes}: clicks.total +${sum((link) => Math.max(0, link.before.linkTotal - link.before.qrTotal))} across ${plan.links.length}; stats.legacyTotal moved for ${legacyMoves.length} (+${legacyMoves.reduce((total, link) => total + Math.max(0, (link.before.linkLegacyTotal ?? 0) - (link.before.qrLegacyTotal ?? 0)), 0)})`,
     `  ${names.clicks}: ${sum((link) => link.before.clickRows)} rows click → scan (urlCode → qrCodeId)`,
     `  ${names.click_events}: ${sum((link) => link.before.clickEvents)} events click → scan (${sum((link) => link.before.legacyClickEvents)} legacy-copied, ${sum((link) => link.before.liveClickEvents)} live)`,
     `  ${names.click_rollups}: ${sum((link) => link.before.rollups)} docs recomputed`,

@@ -166,7 +166,12 @@ interface Fixture {
       options: { data: `https://shortn.at/qr/${urlId}` },
       clicks: { total: 0, lastClick: null },
     });
-    const affectedQr = qr("QA1234567", "bkA", affected._id);
+    // Production shape: the QR holds an older snapshot of the link's counter,
+    // and the link kept counting after it was taken.
+    const affectedQr = {
+      ...qr("QA1234567", "bkA", affected._id),
+      clicks: { total: 3, lastClick: day(6) },
+    };
     const healthyQr = {
       ...qr("QB", "bkB"),
       clicks: { total: 2, lastClick: day(4) },
@@ -284,9 +289,9 @@ interface Fixture {
       legacyClickEvents: 4,
       liveClickEvents: 2,
       linkTotal: 6,
-      qrTotal: 0,
+      qrTotal: 3,
       linkLegacyTotal: 4,
-      qrLegacyTotal: 0,
+      qrLegacyTotal: 3,
     });
     expect(
       Object.fromEntries(
@@ -299,7 +304,8 @@ interface Fixture {
       bkF: "qr-linked-elsewhere",
     });
     expect(report).toContain("6 rows click → scan");
-    expect(report).toContain("total 6/0 → 0/6");
+    expect(report).toContain("total 6/3 → 0/6");
+    expect(report).toContain("clicks.total +3 across 1");
     expect(await dump(db)).toEqual(before);
     expect(await db.listCollections({ name: runsCollection }).hasNext()).toBe(
       false,
