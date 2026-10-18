@@ -175,6 +175,16 @@ export function createHandler(
         : null;
     const customHost =
       url.hostname !== publicHost && !url.hostname.endsWith(`.${publicHost}`);
+    // The wildcard handle route also matches our own subdomains (admin, www,
+    // staging, ...). Those are reserved labels, never handles, and must reach
+    // their origin untouched rather than be parsed as short-link paths.
+    if (
+      env.BIO_SUBDOMAINS === "1" &&
+      !handle &&
+      !customHost &&
+      url.hostname !== publicHost
+    )
+      return legacy(request);
     if (
       env.BIO_DELIVERY_ENABLED === "1" &&
       env.WEB_ORIGIN &&
