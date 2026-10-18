@@ -54,11 +54,18 @@ import {
   changeBioHandleAction,
   bioVersionListAction,
 } from "@/server/actions/bio-publishing";
+import type { PlanId } from "@shortn/billing";
+import { cn } from "@shortn/ui";
 import { ImageUpload, useUploadStatus } from "../page/image-upload";
+import { PlanGate } from "../plan-gate";
 import { LinkManager } from "./link-manager";
 import "./bio-editor.css";
 import { BioRenderer } from "./public/bio-renderer";
 import "./public/fonts.css";
+
+// Free pages cannot schedule sections, show the badge or hide branding;
+// every paid plan can (core/bio/publishing validateContent).
+const paidPlan: PlanId = "basic";
 
 function CanvasSection({
   block,
@@ -276,13 +283,15 @@ export function BioEditor({
     value: string,
     onChange: (value: string) => void,
     type = "text",
+    disabled = false,
   ) => (
     <label className="flex flex-col gap-1 text-small">
       {label}
       <input
-        className="min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-fg focus-visible:outline-2 focus-visible:outline-signal"
+        className="min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-fg focus-visible:outline-2 focus-visible:outline-signal disabled:cursor-not-allowed disabled:opacity-50"
         type={type}
         value={value ?? ""}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
@@ -675,18 +684,29 @@ export function BioEditor({
                         onBusyChange={onBusyChange}
                       />
                     }
-                    {paid ? (
-                      <label className="text-small">
+                    <div className="flex flex-col gap-2">
+                      <label
+                        className={cn(
+                          "text-small",
+                          !paid &&
+                            !profile.paidBadge &&
+                            "cursor-not-allowed opacity-50",
+                        )}
+                      >
                         <input
                           type="checkbox"
                           checked={profile.paidBadge ?? false}
+                          disabled={!paid && !profile.paidBadge}
                           onChange={(e) =>
                             update(profile.id, { paidBadge: e.target.checked })
                           }
                         />{" "}
                         {t("paidBadge")}
                       </label>
-                    ) : null}
+                      {paid ? null : (
+                        <PlanGate feature="bioBadge" plan={paidPlan} />
+                      )}
+                    </div>
                     {select(
                       t("avatarShape"),
                       profile.avatarShape,
@@ -1058,7 +1078,7 @@ export function BioEditor({
                             />{" "}
                             {t("visible")}
                           </label>
-                          {paid ? (
+                          <div className="flex flex-col gap-2">
                             <div className="grid gap-3 sm:grid-cols-2">
                               {field(
                                 t("from"),
@@ -1073,6 +1093,7 @@ export function BioEditor({
                                     },
                                   }),
                                 "datetime-local",
+                                !paid && !block.schedule?.from,
                               )}
                               {field(
                                 t("to"),
@@ -1087,9 +1108,13 @@ export function BioEditor({
                                     },
                                   }),
                                 "datetime-local",
+                                !paid && !block.schedule?.to,
                               )}
                             </div>
-                          ) : null}
+                            {paid ? null : (
+                              <PlanGate feature="bioSchedule" plan={paidPlan} />
+                            )}
+                          </div>
                           <div className="flex flex-wrap gap-5 text-small">
                             <button
                               type="button"
@@ -1331,11 +1356,19 @@ export function BioEditor({
                         }
                         onBusyChange={onBusyChange}
                       />
-                      {paid ? (
-                        <label className="text-small">
+                      <div className="flex flex-col gap-2">
+                        <label
+                          className={cn(
+                            "text-small",
+                            !paid &&
+                              !content.hideBranding &&
+                              "cursor-not-allowed opacity-50",
+                          )}
+                        >
                           <input
                             type="checkbox"
                             checked={content.hideBranding}
+                            disabled={!paid && !content.hideBranding}
                             onChange={(e) =>
                               setContent((c) => ({
                                 ...c,
@@ -1345,7 +1378,10 @@ export function BioEditor({
                           />{" "}
                           {t("hideBranding")}
                         </label>
-                      ) : null}
+                        {paid ? null : (
+                          <PlanGate feature="bioBranding" plan={paidPlan} />
+                        )}
+                      </div>
                     </fieldset>
                   </>
                 ) : null}

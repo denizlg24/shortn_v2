@@ -8,7 +8,8 @@ import { Notice } from "@/components/page/notice";
 import { Pagination } from "@/components/page/pagination";
 import { LinksFilters } from "@/components/link-pages/links-filters";
 import { BulkCampaignForm } from "@/components/link-pages/bulk-campaign-form";
-import { hasFeature, loadEntitlements } from "@shortn/billing";
+import { hasFeature, loadEntitlements, minimumPlanFor } from "@shortn/billing";
+import { PlanGate } from "@/components/plan-gate";
 import { serviceContext } from "@/server/context";
 import {
   saveCampaignSelection,
@@ -73,15 +74,21 @@ export default async function BulkCampaignPage({
     >
       {!valid ? (
         <>
-          <Notice tone="warning">
-            {t(
-              !can(ctx.actor, "resource.update")
-                ? "errors.forbidden"
-                : !entitled
-                  ? "errors.feature_required"
+          {can(ctx.actor, "resource.update") && !entitled ? (
+            <PlanGate
+              feature="campaigns"
+              plan={minimumPlanFor("campaigns")}
+              className="mb-5"
+            />
+          ) : (
+            <Notice tone="warning">
+              {t(
+                !can(ctx.actor, "resource.update")
+                  ? "errors.forbidden"
                   : "errors.not_found",
-            )}
-          </Notice>
+              )}
+            </Notice>
+          )}
           <Link
             href={base}
             className={buttonVariants({ variant: "secondary", size: "md" })}

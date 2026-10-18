@@ -7,6 +7,7 @@ import {
   revokeApiKey,
   rollApiKey,
 } from "@shortn/core";
+import { hasFeature, loadEntitlements } from "@shortn/billing";
 import { revalidatePath } from "next/cache";
 import { serviceContext } from "../context";
 import { env } from "../env";
@@ -36,6 +37,14 @@ export async function createApiKeyAction(
 ): Promise<ApiKeyActionResult> {
   const auth = await authorizedContext(workspace);
   if (!auth.ok) return auth;
+  // New keys follow the plan; existing keys keep working and can be rotated or revoked.
+  if (
+    !hasFeature(
+      await loadEntitlements(auth.ctx.db, auth.ctx.workspace._id),
+      "api",
+    )
+  )
+    return { ok: false, error: "feature_required" };
   const input = parseApiKeyForm(form);
   if (!input.ok) return input;
   const result = await createApiKey(auth.ctx, input.value, auth.pepper);

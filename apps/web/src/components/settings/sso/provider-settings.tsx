@@ -4,10 +4,10 @@ import { authClient } from "@shortn/auth/client";
 import type { SsoProviderView } from "@shortn/auth/sso-views";
 import { Button, Input, Textarea } from "@shortn/ui";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { AuthField } from "@/components/auth/auth-field";
+import { PlanGate } from "@/components/plan-gate";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Notice, SettingsSection } from "../section";
 import {
@@ -201,18 +201,24 @@ export function SsoProviderSettings({
         <p className="text-small text-fg-muted">
           {t("count", { count: total })}
         </p>
-        {reason ? (
+        {reason === "enterprise" ? (
+          <div className="flex flex-col items-start gap-3">
+            {owner ? (
+              <Button
+                type="button"
+                variant="secondary"
+                disabled
+                aria-describedby="sso-gate"
+              >
+                {t("add")}
+              </Button>
+            ) : null}
+            <PlanGate id="sso-gate" feature="sso" plan="enterprise" />
+          </div>
+        ) : reason ? (
           <p className="text-small text-fg-muted">
             {t(`availability.${reason}`)}
           </p>
-        ) : null}
-        {reason === "enterprise" ? (
-          <Link
-            href={returnPath.replace(/\/sso$/, "/billing")}
-            className="text-small underline underline-offset-4"
-          >
-            {t("billing")}
-          </Link>
         ) : null}
         {rows.length ? (
           <ul

@@ -9,6 +9,8 @@ import { getTranslations } from "next-intl/server";
 import { Page, Section } from "@/components/page/page";
 import { Notice } from "@/components/page/notice";
 import { CopyButton } from "@/components/page/copy-button";
+import { GateNote, UpgradeLink } from "@/components/plan-gate";
+import { billingOverview } from "@/server/plan";
 import { serviceContext } from "@/server/context";
 import { env } from "@/server/env";
 import {
@@ -32,14 +34,19 @@ export default async function DomainsPage({
     ctx = await serviceContext(workspace),
     e = env();
   const t = await getTranslations("settings.domains");
-  const [domains, pages, allowance, links] = await Promise.all([
+  const gate = await getTranslations("gate");
+  const [domains, pages, allowance, links, overview] = await Promise.all([
     listDomains(ctx),
     listBioPages(ctx),
     domainAllowance(ctx.db, ctx.workspace._id),
     listLinks(ctx, { limit: 100 }),
+    billingOverview(workspace),
   ]);
+  // domainAllowance is 0 on Free even with an add-on, so Free needs a plan first.
+  const freePlan = overview.plan === "free";
   const manage = can(ctx.actor, "billing.manage"),
-    writes = e.DOMAIN_WRITES === "1";
+    writes = e.DOMAIN_WRITES === "1",
+    full = allowance <= domains.filter((d) => d.status !== "disabled").length;
   const input =
     "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small text-fg";
   return (
@@ -58,6 +65,20 @@ export default async function DomainsPage({
       ) : null}
       {manage && writes ? (
         <Section title={t("add")}>
+          {full ? (
+            <GateNote id="domain-addon-gate" className="mb-4">
+              {freePlan ? (
+                <>
+                  {t("addonPlan", { plan: gate("plans.basic") })}{" "}
+                  <UpgradeLink />
+                </>
+              ) : allowance === 0 ? (
+                t("addonNeeded")
+              ) : (
+                t("addonFull", { count: allowance })
+              )}
+            </GateNote>
+          ) : null}
           <form
             action={addDomainAction.bind(null, workspace)}
             className="grid max-w-lg gap-4"
@@ -92,17 +113,16 @@ export default async function DomainsPage({
               </select>
             </label>
             <button
-              disabled={
-                allowance <=
-                domains.filter((d) => d.status !== "disabled").length
-              }
+              disabled={full}
+              aria-describedby={full ? "domain-addon-gate" : undefined}
               className="min-h-10 justify-self-start rounded-control bg-primary px-4 text-primary-fg disabled:opacity-50"
               type="submit"
             >
               {t("add")}
             </button>
           </form>
-          {allowance <= domains.filter((d) => d.status !== "disabled").length &&
+          {full &&
+          !freePlan &&
           e.BILLING_WRITES === "1" &&
           e.POLAR_DOMAIN_PRODUCT_ID ? (
             <form action={buyDomainAddonAction.bind(null, workspace)}>

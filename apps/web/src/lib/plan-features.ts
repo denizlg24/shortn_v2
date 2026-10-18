@@ -11,7 +11,15 @@ export type GatedFeature = (typeof gatedFeatures)[number];
 
 /** Features with an upgrade explanation in the `gate` catalog. */
 export type ExplainedFeature =
-  GatedFeature | "qrLogo" | "csvExport" | "campaignExport";
+  | GatedFeature
+  | "qrLogo"
+  | "csvExport"
+  | "campaignExport"
+  | "api"
+  | "sso"
+  | "bioBadge"
+  | "bioSchedule"
+  | "bioBranding";
 
 export interface FeatureAccess {
   allowed: boolean;
