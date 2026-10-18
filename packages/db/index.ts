@@ -1,4 +1,5 @@
 export * from "./client";
+export { confirmMongoTarget } from "./cli-target";
 export * from "./collections";
 export * from "./schemas";
 export * from "./indexes";
