@@ -33,4 +33,18 @@ describe("design tokens", () => {
 
     expect(failing).toContain("light fg-subtle on bg");
   });
+
+  test("hold body text to 7:1 even where AA would pass", () => {
+    const greyBody = tokens.replace(
+      /(\.dark\s*\{[^}]*?--fg:\s*)[^;]+;/,
+      "$1oklch(0.66 0 0);",
+    );
+    expect(greyBody).not.toBe(tokens);
+
+    const failing = runTokenChecks(greyBody)
+      .filter((result) => !result.pass)
+      .map((result) => `${result.theme} ${result.name}`);
+
+    expect(failing).toContain("dark fg on bg");
+  });
 });

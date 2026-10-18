@@ -7,6 +7,8 @@ import {
 } from "./color-math";
 
 export const TEXT_AA = 4.5;
+/** Body text (`fg`) reads at AAA on every surface; secondary text stays AA. */
+export const BODY_TEXT = 7;
 export const NON_TEXT_AA = 3;
 export const MIN_SERIES_DELTA = 0.08;
 
@@ -74,7 +76,11 @@ interface ContrastPair {
 const surfaces = ["bg", "bg-subtle", "bg-muted", "field", "overlay"];
 const textPairs: ContrastPair[] = [
   ...["fg", "fg-muted", "fg-subtle"].flatMap((fg) =>
-    surfaces.map((bg) => ({ fg, bg, min: TEXT_AA })),
+    surfaces.map((bg) => ({
+      fg,
+      bg,
+      min: fg === "fg" ? BODY_TEXT : TEXT_AA,
+    })),
   ),
   { fg: "primary-fg", bg: "primary", min: TEXT_AA },
   { fg: "primary-fg", bg: "primary-hover", min: TEXT_AA },
