@@ -25,6 +25,7 @@ export const defaultPhysicalNames = {
   domains: "domains",
   subscriptions: "subscriptions",
   billing_events: "billing_events",
+  billing_mail: "billing_mail",
   handoff_tokens: "handoff_tokens",
   billing_shadow_diffs: "billing_shadow_diffs",
   billing_reconcile_runs: "billing_reconcile_runs",

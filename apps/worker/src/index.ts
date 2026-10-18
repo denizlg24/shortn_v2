@@ -26,6 +26,9 @@ import { hostname } from "node:os";
 import { createIngest } from "./ingest";
 import { createMailer } from "@shortn/emails";
 import { billingMailer, processBillingEvents, runReconcile } from "./billing";
+import { mongoMailLedger } from "./billing-mail-ledger";
+import { orderMailer } from "./billing-receipts";
+import { billingRecipients } from "./billing-recipients";
 import { createInvalidator } from "./invalidator";
 import {
   every,
@@ -80,16 +83,33 @@ const mailer = env.RESEND_API_KEY
       apiKey: env.RESEND_API_KEY,
       from: env.MAIL_FROM,
       allowlist: env.MAIL_ALLOWLIST,
+      assetOrigin: env.APP_URL,
     })
   : undefined;
+const billingMail =
+  polar && mailer && env.APP_URL
+    ? {
+        polar,
+        mailer,
+        ledger: mongoMailLedger(db),
+        recipients: billingRecipients(db, env.APP_URL),
+        log,
+      }
+    : undefined;
 const billing = polar && {
   db,
   polar,
   server: env.POLAR_ENVIRONMENT,
   mode: env.BILLING_MODE,
   log,
-  ...(mailer && env.APP_URL
-    ? { onApplied: billingMailer({ db, mailer, appUrl: env.APP_URL, log }) }
+  ...(billingMail
+    ? {
+        onApplied: billingMailer(billingMail),
+        onOrder: orderMailer({
+          ...billingMail,
+          server: env.POLAR_ENVIRONMENT,
+        }),
+      }
     : {}),
 };
 

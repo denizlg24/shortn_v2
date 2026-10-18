@@ -38,6 +38,7 @@ const mongoUrl = process.env.MONGO_TEST_URL;
         webhookId: new ObjectId(),
         generation: "first",
         name: "Receiver",
+        url: "https://hooks.example/shortn",
         createdAt: now,
       })
     ).insertedId;
@@ -60,6 +61,7 @@ const mongoUrl = process.env.MONGO_TEST_URL;
       to: "owner@example.test",
       locale: "es",
       name: "Receiver",
+      endpoint: "https://hooks.example/shortn",
       url: "https://app.example/workspace/settings",
     });
     expect((await notices.findOne({ _id: id }))?.lastError).toBe("mail_failed");

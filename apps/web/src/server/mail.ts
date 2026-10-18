@@ -11,6 +11,8 @@ export function mail() {
       apiKey: e.RESEND_API_KEY,
       from: e.MAIL_FROM,
       allowlist: e.MAIL_ALLOWLIST,
+      // Next serves apps/web/public from the dashboard origin.
+      assetOrigin: e.BETTER_AUTH_URL,
     });
   }
   return mailer;

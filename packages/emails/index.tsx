@@ -1,6 +1,6 @@
-import { render } from "@react-email/components";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
+import { renderEmail } from "./render";
 import {
   WorkspaceExportReady,
   workspaceExportSubject,
@@ -20,6 +20,18 @@ import {
   type BillingNotice,
 } from "./templates/billing";
 import {
+  BillingReceipt,
+  BillingRefund,
+  receiptSubject,
+  refundSubject,
+  type Receipt,
+  type Refund,
+} from "./templates/receipt";
+import {
+  announcementSubject,
+  ProductAnnouncement,
+} from "./templates/announcement";
+import {
   ConfirmEmailChange,
   EmailVerified,
   ResetPassword,
@@ -28,7 +40,9 @@ import {
 } from "./templates/account";
 
 export { isLocale, locales, messages, type Locale } from "./messages";
-export type { BillingNotice } from "./templates/billing";
+export type { Card } from "./format";
+export type { BillingNotice, PaymentFailure } from "./templates/billing";
+export type { Receipt, ReceiptReason, Refund } from "./templates/receipt";
 
 export interface MailerConfig {
   apiKey: string;
@@ -36,6 +50,11 @@ export interface MailerConfig {
   // Comma-separated addresses or "@domain" suffixes. When set, every other
   // recipient is dropped, so staging can't reach real customers (15).
   allowlist?: string | undefined;
+  /**
+   * Dashboard origin that serves apps/web/public (the brand mark). Only an
+   * https origin is used: mail clients can't load images from localhost.
+   */
+  assetOrigin?: string | undefined;
 }
 
 export function recipientAllowed(allowlist: string | undefined, to: string) {
@@ -50,21 +69,36 @@ export function recipientAllowed(allowlist: string | undefined, to: string) {
     );
 }
 
+export function logoUrl(assetOrigin: string | undefined) {
+  if (!assetOrigin?.startsWith("https://")) return undefined;
+  return new URL("/email/mark@2x.png", assetOrigin).toString();
+}
+
+// Announcements go to every account, so they carry an unsubscribe route.
+const announcementHeaders = {
+  "List-Unsubscribe": "<mailto:support@shortn.at?subject=unsubscribe>",
+};
+
+interface SendOptions {
+  idempotencyKey?: string | undefined;
+  replyTo?: string | undefined;
+  headers?: Record<string, string> | undefined;
+}
+
 export function createMailer(config: MailerConfig) {
   const resend = new Resend(config.apiKey);
+  const logo = logoUrl(config.assetOrigin);
   async function send(
     to: string,
     subject: string,
     element: ReactElement,
-    idempotencyKey?: string,
-    replyTo?: string,
+    options: SendOptions = {},
   ) {
     if (!recipientAllowed(config.allowlist, to)) {
       console.info("mail dropped by allowlist", { subject });
       return;
     }
-    const html = await render(element);
-    const text = await render(element, { plainText: true });
+    const { html, text } = await renderEmail(element);
     const { error } = await resend.emails.send(
       {
         from: config.from,
@@ -72,9 +106,12 @@ export function createMailer(config: MailerConfig) {
         subject,
         html,
         text,
-        ...(replyTo ? { replyTo } : {}),
+        ...(options.replyTo ? { replyTo: options.replyTo } : {}),
+        ...(options.headers ? { headers: options.headers } : {}),
       },
-      idempotencyKey ? { idempotencyKey } : undefined,
+      options.idempotencyKey
+        ? { idempotencyKey: options.idempotencyKey }
+        : undefined,
     );
     if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
   }
@@ -88,8 +125,8 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         contactReceivedSubject(input.locale, input.reference),
-        <ContactReceived {...input} />,
-        `contact-received-${input.reference}`,
+        <ContactReceived {...input} logoUrl={logo} />,
+        { idempotencyKey: `contact-received-${input.reference}` },
       );
     },
     contactNotification(input: {
@@ -106,9 +143,11 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         contactNotificationSubject(input.topic, input.reference),
-        <ContactNotification {...input} />,
-        `contact-notification-${input.reference}`,
-        input.replyTo,
+        <ContactNotification {...input} logoUrl={logo} />,
+        {
+          idempotencyKey: `contact-notification-${input.reference}`,
+          replyTo: input.replyTo,
+        },
       );
     },
     workspaceExportReady(input: {
@@ -121,22 +160,23 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         workspaceExportSubject(input.locale),
-        <WorkspaceExportReady {...input} />,
-        input.idempotencyKey,
+        <WorkspaceExportReady {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
       );
     },
     webhookDisabled(input: {
       to: string;
       locale: Locale;
       name: string;
+      endpoint?: string | undefined;
       url: string;
       idempotencyKey: string;
     }) {
       return send(
         input.to,
         webhookDisabledSubject(input.locale),
-        <WebhookDisabled {...input} />,
-        input.idempotencyKey,
+        <WebhookDisabled {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
       );
     },
     domainReady(input: {
@@ -149,8 +189,8 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         domainReadySubject(input.locale),
-        <DomainReady {...input} />,
-        input.idempotencyKey,
+        <DomainReady {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
       );
     },
     verifyEmail(input: {
@@ -164,21 +204,21 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         input.reason === "change" ? t.changeSubject : t.subject,
-        <VerifyEmail {...input} />,
+        <VerifyEmail {...input} logoUrl={logo} />,
       );
     },
     emailVerified(input: { to: string; locale: Locale; url: string }) {
       return send(
         input.to,
         messages[input.locale].verified.subject,
-        <EmailVerified {...input} />,
+        <EmailVerified {...input} logoUrl={logo} />,
       );
     },
     resetPassword(input: { to: string; locale: Locale; url: string }) {
       return send(
         input.to,
         messages[input.locale].reset.subject,
-        <ResetPassword {...input} />,
+        <ResetPassword {...input} logoUrl={logo} />,
       );
     },
     confirmEmailChange(input: {
@@ -190,7 +230,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         messages[input.locale].emailChange.subject,
-        <ConfirmEmailChange {...input} />,
+        <ConfirmEmailChange {...input} logoUrl={logo} />,
       );
     },
     billing(input: {
@@ -199,11 +239,43 @@ export function createMailer(config: MailerConfig) {
       workspace: string;
       notice: BillingNotice;
       url: string;
+      idempotencyKey?: string | undefined;
     }) {
       return send(
         input.to,
         billingSubject(input.locale, input.notice),
-        <BillingEmail {...input} />,
+        <BillingEmail {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
+      );
+    },
+    billingReceipt(input: {
+      to: string;
+      locale: Locale;
+      workspace: string;
+      receipt: Receipt;
+      url: string;
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        receiptSubject(input.locale, input.receipt),
+        <BillingReceipt {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
+      );
+    },
+    billingRefund(input: {
+      to: string;
+      locale: Locale;
+      workspace: string;
+      refund: Refund;
+      url: string;
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        refundSubject(input.locale, input.refund),
+        <BillingRefund {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
       );
     },
     workspaceInvite(input: {
@@ -217,7 +289,25 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         messages[input.locale].invite.subject(input.workspace),
-        <WorkspaceInvite {...input} />,
+        <WorkspaceInvite {...input} logoUrl={logo} />,
+      );
+    },
+    productAnnouncement(input: {
+      to: string;
+      locale: Locale;
+      name?: string | undefined;
+      handle?: string | undefined;
+      url: string;
+      idempotencyKey?: string | undefined;
+    }) {
+      return send(
+        input.to,
+        announcementSubject(input.locale),
+        <ProductAnnouncement {...input} logoUrl={logo} />,
+        {
+          idempotencyKey: input.idempotencyKey,
+          headers: announcementHeaders,
+        },
       );
     },
   };

@@ -1,44 +1,52 @@
-import { Action, Layout, Heading, Paragraph } from "../layout";
+import {
+  Action,
+  DetailRows,
+  Heading,
+  Layout,
+  Panel,
+  Paragraph,
+  type Detail,
+  type Branded,
+} from "../layout";
 import { messages, type Locale } from "../messages";
 
-const copy = {
-  en: {
-    subject: "Your webhook was disabled",
-    body: "Delivery to this webhook has failed for three days. Check your receiver, then enable the webhook again using the API.",
-    action: "Open workspace settings",
-  },
-  pt: {
-    subject: "O seu webhook foi desativado",
-    body: "A entrega para este webhook falhou durante três dias. Verifique o destino e volte a ativar o webhook através da API.",
-    action: "Abrir definições do espaço de trabalho",
-  },
-  es: {
-    subject: "Tu webhook se ha desactivado",
-    body: "La entrega a este webhook ha fallado durante tres días. Revisa el destino y vuelve a activar el webhook mediante la API.",
-    action: "Abrir ajustes del espacio de trabajo",
-  },
-};
-export const webhookDisabledSubject = (locale: Locale) => copy[locale].subject;
+export const webhookDisabledSubject = (locale: Locale) =>
+  messages[locale].webhook.subject;
+
 export function WebhookDisabled({
   locale,
   name,
+  endpoint,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   name: string;
+  endpoint?: string | undefined;
   url: string;
 }) {
-  const t = copy[locale];
+  const t = messages[locale];
+  const rows: Detail[] = [
+    { label: t.webhook.webhook, value: name },
+    ...(endpoint
+      ? [{ label: t.webhook.endpoint, value: endpoint, mono: true, wide: true }]
+      : []),
+    { label: t.webhook.reason, value: t.webhook.reasonValue },
+  ];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
-      preview={t.subject}
-      footer={messages[locale].footer}
+      preview={`${name} · ${t.webhook.body}`}
+      footer={t.footer.workspace}
     >
-      <Heading>{t.subject}</Heading>
-      <Paragraph>{name}</Paragraph>
-      <Paragraph>{t.body}</Paragraph>
-      <Action href={url}>{t.action}</Action>
+      <Heading>{t.webhook.heading}</Heading>
+      <Paragraph>{t.webhook.body}</Paragraph>
+      <Panel>
+        <DetailRows rows={rows} />
+      </Panel>
+      <Paragraph>{t.webhook.next}</Paragraph>
+      <Action href={url}>{t.webhook.action}</Action>
     </Layout>
   );
 }
