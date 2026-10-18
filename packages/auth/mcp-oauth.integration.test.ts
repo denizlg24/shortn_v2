@@ -242,7 +242,9 @@ const mongo = process.env.MONGO_TEST_URL,
       const registered = await registration.json();
       clientId = registered.client_id;
       expect(typeof clientId).toBe("string");
-    });
+      // Creates every legacy collection and syncs every index before the
+      // registration round trip; bun's 5 s hook default is too tight on CI.
+    }, 60_000);
     afterAll(async () => {
       await db?.dropDatabase();
       await closeMongoClient();
@@ -525,48 +527,38 @@ const mongo = process.env.MONGO_TEST_URL,
       const ssoProviderName = "synthetic-sso-mcp",
         identityIssuer = "https://idp.synthetic.invalid",
         subject = "synthetic-exact-subject";
-      await db
-        .collection(physicalNames.workspaces)
-        .insertOne({
-          _id: ssoTenant,
-          ownerUserId: String(userId),
-          personal: false,
-          platformFeatures: { advancedAuth: true },
-        });
-      await db
-        .collection(physicalNames.workspace_members)
-        .insertOne({
-          workspaceId: ssoTenant,
-          userId: String(userId),
-          role: "member",
-        });
-      await db
-        .collection(physicalNames.subscriptions)
-        .insertOne({
-          _id: ssoSubscription,
-          workspaceId: ssoTenant,
-          plan: "enterprise",
-          status: "active",
-        });
-      await db
-        .collection(physicalNames.sso_providers)
-        .insertOne({
-          _id: ssoProvider,
-          workspaceId: ssoTenant,
-          providerId: ssoProviderName,
-          identityIssuer,
-          domainVerified: true,
-        });
-      await db
-        .collection(physicalNames.sso_bindings)
-        .insertOne({
-          providerRecordId: String(ssoProvider),
-          providerId: ssoProviderName,
-          workspaceId: ssoTenant,
-          issuer: identityIssuer,
-          subject,
-          userId,
-        });
+      await db.collection(physicalNames.workspaces).insertOne({
+        _id: ssoTenant,
+        ownerUserId: String(userId),
+        personal: false,
+        platformFeatures: { advancedAuth: true },
+      });
+      await db.collection(physicalNames.workspace_members).insertOne({
+        workspaceId: ssoTenant,
+        userId: String(userId),
+        role: "member",
+      });
+      await db.collection(physicalNames.subscriptions).insertOne({
+        _id: ssoSubscription,
+        workspaceId: ssoTenant,
+        plan: "enterprise",
+        status: "active",
+      });
+      await db.collection(physicalNames.sso_providers).insertOne({
+        _id: ssoProvider,
+        workspaceId: ssoTenant,
+        providerId: ssoProviderName,
+        identityIssuer,
+        domainVerified: true,
+      });
+      await db.collection(physicalNames.sso_bindings).insertOne({
+        providerRecordId: String(ssoProvider),
+        providerId: ssoProviderName,
+        workspaceId: ssoTenant,
+        issuer: identityIssuer,
+        subject,
+        userId,
+      });
       const boundAccount = {
         _id: ssoAccount,
         userId,
@@ -574,17 +566,15 @@ const mongo = process.env.MONGO_TEST_URL,
         accountId: subject,
       };
       await db.collection(physicalNames.account).insertOne(boundAccount);
-      await db
-        .collection(physicalNames.session)
-        .updateOne(
-          { _id: sourceSession._id },
-          {
-            $set: {
-              ssoProviderId: String(ssoProvider),
-              ssoWorkspaceId: String(ssoTenant),
-            },
+      await db.collection(physicalNames.session).updateOne(
+        { _id: sourceSession._id },
+        {
+          $set: {
+            ssoProviderId: String(ssoProvider),
+            ssoWorkspaceId: String(ssoTenant),
           },
-        );
+        },
+      );
       try {
         expect(
           (await authenticateMcpOAuth(db, tokens.access_token, config)).ok,
