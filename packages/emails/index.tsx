@@ -1,6 +1,6 @@
-import { render } from "@react-email/components";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
+import { renderEmail } from "./render";
 import {
   WorkspaceExportReady,
   workspaceExportSubject,
@@ -19,6 +19,10 @@ import {
   billingSubject,
   type BillingNotice,
 } from "./templates/billing";
+import {
+  announcementSubject,
+  ProductAnnouncement,
+} from "./templates/announcement";
 import {
   ConfirmEmailChange,
   EmailVerified,
@@ -63,8 +67,7 @@ export function createMailer(config: MailerConfig) {
       console.info("mail dropped by allowlist", { subject });
       return;
     }
-    const html = await render(element);
-    const text = await render(element, { plainText: true });
+    const { html, text } = await renderEmail(element);
     const { error } = await resend.emails.send(
       {
         from: config.from,
@@ -129,6 +132,7 @@ export function createMailer(config: MailerConfig) {
       to: string;
       locale: Locale;
       name: string;
+      endpoint?: string | undefined;
       url: string;
       idempotencyKey: string;
     }) {
@@ -218,6 +222,20 @@ export function createMailer(config: MailerConfig) {
         input.to,
         messages[input.locale].invite.subject(input.workspace),
         <WorkspaceInvite {...input} />,
+      );
+    },
+    productAnnouncement(input: {
+      to: string;
+      locale: Locale;
+      name?: string | undefined;
+      url: string;
+      idempotencyKey?: string | undefined;
+    }) {
+      return send(
+        input.to,
+        announcementSubject(input.locale),
+        <ProductAnnouncement {...input} />,
+        input.idempotencyKey,
       );
     },
   };
