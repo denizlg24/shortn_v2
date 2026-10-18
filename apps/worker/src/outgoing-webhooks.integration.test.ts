@@ -339,6 +339,14 @@ const config = {
       expect(
         await db
           .collection(physicalNames.webhook_notifications)
+          .findOne({ webhookId: new ObjectId(hook.id) }),
+      ).toMatchObject({
+        name: "Receiver",
+        url: "https://receiver.example/hook",
+      });
+      expect(
+        await db
+          .collection(physicalNames.webhook_notifications)
           .countDocuments({ webhookId: new ObjectId(hook.id) }),
       ).toBe(1);
       await maintainWebhookFailures(db, now);
