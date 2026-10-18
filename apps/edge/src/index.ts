@@ -87,6 +87,8 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
 // Public link pages that apps/web owns from P4: password prompt and safety
 // interstitial (the redirect sends visitors to exactly these paths).
 const webPaths = [
+  // The web app's asset prefix: CSS, JS and fonts for every page it serves.
+  /^\/_web\//,
   /^\/auth\/mcp\/(?:workspace|consent)\/?$/,
   /^\/\.well-known\/oauth-authorization-server\/api\/auth\/?$/,
   /^\/docs(?:\.md|\/.*)?\/?$/,
@@ -228,6 +230,7 @@ export function createHandler(
         }
         if (
           url.pathname.startsWith("/_next/") ||
+          url.pathname.startsWith("/_web/") ||
           /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(url.pathname)
         )
           return web(

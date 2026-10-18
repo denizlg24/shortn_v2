@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { preconnect } from "react-dom";
 import { displayFace } from "@/components/marketing/fonts/display";
 import { SiteFooter } from "@/components/marketing/site-footer";
 import { SiteHeader } from "@/components/marketing/site-header";
@@ -12,9 +11,6 @@ export default async function MarketingLayout({
   const locale = toLocale((await params).locale);
   if (!locale) notFound();
   const current = await currentMarketingPath();
-  // On the root host, CSS, fonts and scripts come from the web origin.
-  if (process.env.WEB_ASSET_ORIGIN)
-    preconnect(process.env.WEB_ASSET_ORIGIN, { crossOrigin: "anonymous" });
   return (
     <div className={`${displayFace.variable} flex min-h-dvh flex-col`}>
       <SiteHeader

@@ -261,6 +261,7 @@ export function createApp(options: AppOptions) {
       if (
         domainRecord &&
         (c.req.path.startsWith("/_next/") ||
+          c.req.path.startsWith("/_web/") ||
           /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(c.req.path))
       )
         return proxyBio(c.req.path + url.search);
