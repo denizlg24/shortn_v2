@@ -1,4 +1,4 @@
-// Vida Económica proof (21 §5). Recompute with the same definitions before
+// Largest-customer proof (21 §5); the customer is not named on the site. Recompute with the same definitions before
 // each launch and update the figures and the date together.
 export const proof = {
   measuredOn: "2026-10-17",
