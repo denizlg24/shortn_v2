@@ -165,6 +165,7 @@ export async function maintainWebhookFailures(db: Db, now = new Date()) {
               $set: {
                 workspaceId: endpoint.workspaceId,
                 name: endpoint.name,
+                url: endpoint.url,
                 generation: crypto.randomUUID(),
                 createdAt: now,
               },

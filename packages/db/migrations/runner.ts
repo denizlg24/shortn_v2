@@ -643,3 +643,94 @@ export async function runMigrations(
   }
   return reports;
 }
+
+export interface MigrationLease {
+  holder: string;
+  assert(): Promise<void>;
+  release(): Promise<void>;
+}
+
+// Takes the same `_migrations` lock as runMigrations, so continuous migrations
+// skip their ticks while an operator script writes. Call assert() before each
+// write batch; it fails once the lease has lapsed.
+export async function acquireMigrationLease(
+  client: MongoClient,
+  db: Db,
+  leaseMs = 30_000,
+): Promise<MigrationLease> {
+  if (leaseMs < 100) throw new Error("leaseMs must be at least 100");
+  const states = db.collection<MigrationState>("_migrations");
+  const holder = crypto.randomUUID();
+  const liveLease = {
+    _id: "lock",
+    holder,
+    $expr: { $gt: ["$expiresAt", "$$NOW"] },
+  };
+  const transaction = async (
+    work: (session: ClientSession) => Promise<void>,
+  ) => {
+    const session = client.startSession();
+    try {
+      await session.withTransaction(() => work(session), {
+        readConcern: { level: "snapshot" },
+        writeConcern: { w: "majority" },
+      });
+    } finally {
+      await session.endSession();
+    }
+  };
+  await transaction(async (session) => {
+    await states.updateOne(
+      { _id: "lock" },
+      { $setOnInsert: { holder: null, expiresAt: new Date(0) } },
+      { upsert: true, session },
+    );
+    const lock = await states.findOneAndUpdate(
+      {
+        _id: "lock",
+        $or: [{ holder: null }, { $expr: { $lte: ["$expiresAt", "$$NOW"] } }],
+      },
+      [{ $set: { holder, expiresAt: { $add: ["$$NOW", leaseMs] } } }],
+      { returnDocument: "after", session },
+    );
+    if (!lock) throw new Error("Migration lock held by another runner");
+  });
+  let failure: Error | undefined;
+  let renewing = false;
+  const heartbeat = setInterval(
+    () => {
+      if (renewing || failure) return;
+      renewing = true;
+      void transaction(async (session) => {
+        const result = await states.updateOne(
+          liveLease,
+          [{ $set: { expiresAt: { $add: ["$$NOW", leaseMs] } } }],
+          { session },
+        );
+        if (!result.matchedCount)
+          throw new Error("Migration lease lost; refusing writes");
+      })
+        .catch((error: Error) => {
+          failure = error;
+        })
+        .finally(() => {
+          renewing = false;
+        });
+    },
+    Math.max(25, Math.floor(leaseMs / 3)),
+  );
+  return {
+    holder,
+    async assert() {
+      if (failure) throw failure;
+      if (!(await states.findOne(liveLease)))
+        throw new Error("Migration lease lost; refusing writes");
+    },
+    async release() {
+      clearInterval(heartbeat);
+      await states.updateOne(liveLease, {
+        $set: { holder: null, expiresAt: new Date(0) },
+      });
+    },
+  };
+}

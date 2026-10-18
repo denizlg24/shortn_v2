@@ -117,7 +117,7 @@ All write logic lives in `packages/core` (domain services). `apps/web` server ac
 
 - Verify `next_period` on the Polar sandbox, including the rule "no plan change while scheduled to cancel" (06).
 - Confirm add-on prices before creating the Polar products (06; proposed values are in the catalog).
-- Network path Forge ↔ pi-cloud: latency, TLS and IP allowlisting for `mongodb.denizlg24.com:27018` (13).
+- Network path Forge ↔ pi-cloud: latency, TLS and IP allowlisting for the pi-cloud MongoDB endpoint (13).
 
 ## Review log
 

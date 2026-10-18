@@ -15,7 +15,7 @@
     },
     "about": {
       "title": "Sobre",
-      "description": "O Shortn é uma plataforma de links independente feita em Portugal, usada em produção pela Vida Económica desde 2023."
+      "description": "O Shortn é uma plataforma de links independente feita em Portugal, em produção desde 2023."
     },
     "contact": {
       "title": "Contacto",
@@ -108,15 +108,15 @@
       }
     },
     "proof": {
-      "title": "Os links da Vida Económica passam pelo Shortn desde 2023",
-      "body": "O grupo editorial português usa o Shortn no seu site, na livraria online e nos códigos QR das agendas impressas.",
+      "title": "Os links do nosso maior cliente passam pelo Shortn desde 2023",
+      "body": "É um grupo editorial português e usa o Shortn no seu site, na livraria online e nos códigos QR das agendas impressas.",
       "stats": {
         "clicks": "cliques e leituras contados",
         "links": "links curtos criados",
         "qrCodes": "códigos QR criados",
         "scans": "leituras de QR desde {month}"
       },
-      "source": "Espaço de trabalho da Vida Económica, dados de {date}. Partilhados com a sua autorização."
+      "source": "Espaço de trabalho do nosso maior cliente, dados de {date}. Partilhados com a sua autorização."
     },
     "print": {
       "title": "Imprima o código QR uma vez. Mude o destino quando quiser.",
@@ -357,7 +357,7 @@
   },
   "about": {
     "title": "Uma plataforma de links independente, feita em Portugal",
-    "intro": "O Shortn nasceu em 2023 para gerir os links da Vida Económica, um grupo editorial português de economia e negócios. Desde então, trata dos seus links online e em papel.",
+    "intro": "O Shortn nasceu em 2023 para gerir os links de um grupo editorial português de economia e negócios, ainda hoje o nosso maior cliente. Desde então, trata dos seus links online e em papel.",
     "principles": {
       "title": "Como o construímos",
       "honest": {

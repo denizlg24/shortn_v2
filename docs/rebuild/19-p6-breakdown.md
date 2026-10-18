@@ -2773,6 +2773,71 @@ All implementation slices 6.1–6.10 are merged to `staging` and accepted there.
 
 **Known legacy data issue (recorded, not fixed).** 275 of the 525 legacy QR codes were created between 2023-10-03 and 2025-12-30, 217 of them with 9-character IDs. Their QR-only backing link has `isQrCode: true` but `qrCodeId: ""`. Legacy counts a scan only when `qrCodeId && isQrCode` (`legacy/app/actions/linkActions.ts`), so scans of these codes have always been recorded as clicks on the hidden backing link: the QR counter never moves and the legacy row is `type: "click"`. About 14,200 such clicks have accumulated on those backing links. The new redirect reproduces legacy exactly, which keeps parity. A fix would backfill `qrCodeId` on the backing links (and optionally reattribute their history to scans). That is a production data change, deferred for an owner decision.
 
+**Legacy QR reattribution: method and operator steps (owner decision: backfill and reattribute history; applied to production 2026-10-18, run `lqr-20261018T072047Z-dadb`).** The one-off script is `apps/worker/scripts/reattribute-legacy-qr.ts` and its logic is in `apps/worker/src/legacy-qr-reattribution.ts`. It is not a registered migration: the runner would apply a registered migration on its own, and this change needs a reviewed dry run first. It does take the runner's `_migrations` lock for the whole run, so continuous migrations, including `0007`, skip their ticks while it writes.
+
+- **Scan identification.** Every hit on an affected backing link counts as a scan. Legacy's `createQrCode` encodes `${BASEURL}/${urlCode}` in the image, and older codes use the `/qr/{urlId}` form that `legacy/proxy.ts` still rewrites. Legacy hides `isQrCode` links from its link list, counts and dashboard (`isQrCode: false` filters; the per-link CSV export needs the key). The QR UI only displays `attachedUrl`, never the backing key. So the key is only distributed inside the QR image. This matches what legacy itself records for a correctly linked QR (`qrCodeId && isQrCode` counts every hit as a scan, with or without a referrer). **Residual risk:** anyone who decoded a QR and shared the URL as text produced real clicks that are now counted as scans. The dry run reports rows that carry a referrer, links with clicks recorded before their QR was created, and the encoded URL form, to size this risk. Hits through a bio page are never treated as scans: a link with any bio-attributed row or event is skipped.
+- **Mapping.** A backing link is a link with `isQrCode: true` and `qrCodeId` in `{missing, null, ""}`. Its QR is the single `qr_codes` document with `urlId === link.urlCode` (legacy's own lookup) or `linkId === link._id`. The link is **skipped and reported** if: the link or QR is in the trash; `urlCode` is not unique; there is no QR, or more than one; the QR's `urlId` differs; `qrCodeId` is empty or shared by another QR; the QR's `linkId` points elsewhere (or is `null`, which would make the redirect treat the link as untracked); the owner `sub` or workspace differ; click rows carry another owner's `sub`; or click events already carry QR fields. The 9-character IDs are plain strings, and the dry run tallies ID lengths.
+- **Writes, in order.** The script first archives each original into `archive_<collection>_legacy-qr-reattribution`, as `{runId, sourceId, linkId, doc}`, with a unique `(runId, sourceId)` and `$setOnInsert`. This covers `urlv3`, `qrcodesv2`, `clicks`, `click_events` and `click_rollups`. The run journal is `_legacy_qr_reattribution_runs`. Then, per link:
+  1. Compare-and-set `qrCodeId` from the QR. The worker's change-stream invalidator drops the cached link; with `REDIS_CACHE_URL` set, the script also invalidates it directly. A settle wait (`--settle-ms`, default 15 s) covers the redirect's 10 s in-memory layer and the queued clicks.
+  2. Legacy `clicks` rows `{urlCode: backing, type ≠ "scan"}` get `type: "scan"` and `urlCode: qrCodeId`, which is the row legacy writes for a scan.
+  3. Time-series events. MongoDB 8.2 rejects time-series updates that filter or modify non-meta fields. Verified locally: `featureFlagTimeseriesUpdatesSupport` is off, and `updateOne` by `_id` fails. Arbitrary deletes are allowed, but a delete followed by reinsert leaves a gap in which `0007` or readers can miss events. So the script uses one **meta-only** `updateMany` per link: `{m.linkId, m.kind: "click", no m.qrId / m.reattributedBy / m.bioPageId}` → `$set m.kind: "scan", m.qrId, m.reattributedBy: <runId>`. This is atomic per bucket, keeps `_id` and `legacyId`, and is idempotent. Events that arrive between the archive copy and the update are archived afterwards as the exact inverse. `m.legacyCode` keeps the backing code, which is the convention the worker uses for live scans; nothing reads it.
+  4. Counters, in one transaction with the journal entry. The backing link's `clicks.total` drops to 0, and `clicks.lastClick` moves by `$max`. The QR already holds a **snapshot of the link's counter**: in production, 243 of 275 QR codes had `clicks.total` equal to their backing link's, and in the other 32 the link was ahead by roughly the clicks recorded since. So the QR gains only the link's growth since that snapshot (`max(0, link − qr)` as an `$inc`, so concurrent worker increments are never lost), and ends equal to the link's full count. `stats.legacyTotal` follows the same rule when both documents have one. A first version added the link's whole total and would have doubled every QR (+14,211); the production dry run caught it before any write, and a fixture now reproduces that shape.
+  5. `click_rollups` and `links.stats` are recomputed from events (`recomputeRollups` for the affected links). The Redis hot counter `stats:link:{id}` counts clicks plus scans, so it is unchanged. Bot tallies, `click_ips` and already-delivered webhooks or exports are history and stay as they are.
+- **Concurrency.** `0007` cannot run during the script because of the lock. Afterwards it re-reads its 10-minute tail, finds every rewritten row's `legacyId` still present, and inserts nothing (covered by a test). Live hits after the backfill arrive as scans through both paths: the redirect loader resolves the QR, and the worker dual-writes a scan row and the QR counter. A click queued before the backfill is converted if it lands before its link's step. If it lands later, verification lists it and a second `--apply` sweeps the link (a "sweep" entry in the plan).
+- **Verification**, after every apply and with `--verify <runId>`:
+  - every archived row and event exists exactly once in scan form;
+  - legacy rows and events per link equal the plan's count plus arrivals since the run started (conservation);
+  - no duplicate `legacyId`, `sid` or `_id` among the link's events;
+  - rollups and `links.stats` equal fresh counts from `click_events`;
+  - the link plus QR legacy counter sum equals the QR's snapshot plus the moved growth when there was no traffic, and is never below it when there was;
+  - the real redirect loader (`mongoLinkLoader`) returns the QR, not `untracked`, and legacy's `urlId` lookup finds exactly that QR.
+- **Rollback** (`--rollback <runId>`, newest run first; the script refuses otherwise) restores `qrCodeId` with compare-and-set, reverts the events by their `m.reattributedBy` marker (also meta-only), restores row `type` and `urlCode` from the archive, and applies the inverse counter deltas. `lastClick` is restored only where the run's value is still in place. Rollups are then recomputed. On a database without traffic the result is identical to the original (covered by a test); scans recorded correctly after the apply stay scans.
+
+Operator commands, run from a checkout of this branch. Use the production MongoDB endpoint from the operator secret store (resource credentials, `directConnection=true`). `MONGODB_DB` is the production worker target's value. `--yes` is required for any non-loopback host, including dry runs.
+
+```sh
+export MONGODB_URL='mongodb://<user>:<password>@<prod-mongo-host>:<port>/?authSource=<db>&directConnection=true'
+export MONGODB_DB='<production database>'
+
+# 1. Backup of the touched collections (in addition to the owner's own backups).
+#    No database path in the URI; --db selects it.
+for c in urlv3 qrcodesv2 clicks click_events click_rollups; do
+  mongodump --uri="$MONGODB_URL" --db="$MONGODB_DB" --collection="$c" \
+    --gzip --archive="shortn-prod-$c-$(date -u +%Y%m%dT%H%M%SZ).archive.gz"
+done
+
+# 2. Dry run (read-only; a read-only database user is enough).
+bun run --cwd apps/worker legacy-qr:reattribute --yes | tee lqr-dry-run.txt
+bun run --cwd apps/worker legacy-qr:reattribute --yes --json > lqr-dry-run.json
+
+# 3. Apply, after the dry run is reviewed. It resumes an interrupted run automatically.
+bun run --cwd apps/worker legacy-qr:reattribute --apply --yes
+# If verification lists click rows or events that arrived after conversion:
+bun run --cwd apps/worker legacy-qr:reattribute --apply --yes
+
+# 4. Re-check later, or undo.
+bun run --cwd apps/worker legacy-qr:reattribute --verify <runId> --yes
+bun run --cwd apps/worker legacy-qr:reattribute --rollback <runId> --yes
+```
+
+Production numbers (2026-10-18). A backup of the five touched collections is on pi-cloud in `~/shortn-prod-backups/lqr-20261018T071943Z/`. `click_events` is time-series, so it was exported with `mongoexport --jsonFormat=canonical`: the `mongodump` of the view is empty, and the `system.buckets` dump was not permitted for the resource user.
+
+| Item | Dry run | Applied |
+| --- | --- | --- |
+| Backing links without `qrCodeId` (recorded: 275) | 275 of 549 | 275 backfilled |
+| Planned QR codes | 275 | 275 |
+| Skipped, by reason | 0 | 0 |
+| `clicks` rows click → scan | 257 (the ~14,200 recorded earlier is the counter total; per-hit rows only go back to 2026-01) | 257 |
+| `click_events` click → scan (legacy-copied / live) | 257 (245 / 12) | 257, 0 duplicates |
+| `clicks.total` taken off backing links / added to QR codes | 14,211 / +252 | same |
+| `stats.legacyTotal` added to QR codes | +240 across 275 | same |
+| `click_rollups` documents recomputed | 130 | 130 |
+| Rows with a referrer / links with clicks before their QR | 62 of 257 / 0 | — |
+| Encoded URL form (`/qr/` / root / other / none) | 275 / 0 / 0 / 0 | — |
+| Run id and verification result | — | `lqr-20261018T072047Z-dadb`, `ok=true quiescent=true`, 0 remaining click rows or events |
+
+Spot checks after the run: `SShYrywuj` keeps 4,932 on the QR (not doubled), `9RrmFdk3D` moves from 17/12 to 0/17 with its 5 hits as scan rows, and `1FiNr7yVY` moves from 55/30 to 0/55.
+
 **Visitor-address defect (fixed on staging).** Cloudflare rewrites `CF-Connecting-IP` on the edge Worker's subrequest to a proxied origin, replacing it with the Worker egress address `2a06:98c0:3600::103`.
 - Production impact: since the P2 cutover at 2026-10-10 05:06 UTC, every production click event (2,808 non-bot events at the time of inspection) shares one IP hash and the prefix `2a06:98c0:3600::/48`. Geo headers are unaffected. The original addresses were never stored, so these events cannot be corrected.
 - **#445** (`51c9a40`): the edge forwards the visitor address as `x-shortn-client-ip`, and the redirect accepts it only after `x-edge-auth`. Staging Worker `8ec85562-6b73-4aff-b64b-4c7c9d34f10e` then recorded `87.60.121.0/24` for a fresh 12-request sample.

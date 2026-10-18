@@ -38,6 +38,14 @@ export function subscriptionIdsOf(event: VerifiedEvent): string[] {
   return [];
 }
 
+// The order an order.* event concerns; the worker refetches it to send the
+// receipt or refund email.
+export function orderIdOf(event: VerifiedEvent): string | undefined {
+  return event.type.startsWith("order.")
+    ? stringField(event.data, "id")[0]
+    : undefined;
+}
+
 export type WebhookResult =
   | { status: 403 }
   | { status: 200; duplicate: true }
@@ -68,11 +76,13 @@ export async function receivePolarWebhook(
   const id = input.headers["webhook-id"];
   if (!id) return { status: 403 };
   const subscriptionIds = subscriptionIdsOf(event);
+  const orderId = orderIdOf(event);
   try {
     await collection(deps.db, "billing_events").insertOne({
       _id: id,
       type: event.type,
       subscriptionIds,
+      ...(orderId ? { orderId } : {}),
       receivedAt: new Date(),
     });
   } catch (error) {

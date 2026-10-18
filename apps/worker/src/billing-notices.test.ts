@@ -16,13 +16,10 @@ const mirror = (overrides: Record<string, unknown> = {}) => ({
   ...overrides,
 });
 
-test("a new paid subscription sends only the welcome", () => {
-  expect(noticesFor(null, mirror())).toEqual([
-    { kind: "started", plan: "plus" },
-  ]);
-  expect(noticesFor(mirror({ status: "incomplete" }), mirror())).toEqual([
-    { kind: "started", plan: "plus" },
-  ]);
+test("paid starts and plan changes leave the mail to their order's receipt", () => {
+  expect(noticesFor(null, mirror())).toEqual([]);
+  expect(noticesFor(mirror({ status: "incomplete" }), mirror())).toEqual([]);
+  expect(noticesFor(mirror(), mirror({ plan: "pro" }))).toEqual([]);
 });
 
 test("replaying the same state sends nothing", () => {
@@ -30,10 +27,12 @@ test("replaying the same state sends nothing", () => {
   expect(noticesFor(state, state)).toEqual([]);
 });
 
-test("upgrade, cancellation, scheduled downgrade and failed payment", () => {
-  expect(noticesFor(mirror(), mirror({ plan: "pro" }))).toEqual([
-    { kind: "changed", plan: "pro" },
-  ]);
+test("a past-due subscription keeps asking for the failed-payment mail; the ledger sends it once", () => {
+  const pastDue = mirror({ status: "past_due" });
+  expect(noticesFor(pastDue, pastDue)).toEqual([{ kind: "payment_failed" }]);
+});
+
+test("cancellation, scheduled downgrade and failed payment", () => {
   expect(noticesFor(mirror(), mirror({ cancelAtPeriodEnd: true }))).toEqual([
     { kind: "canceled", at: new Date("2026-11-01") },
   ]);
@@ -45,6 +44,12 @@ test("upgrade, cancellation, scheduled downgrade and failed payment", () => {
     ),
   ).toEqual([{ kind: "scheduled", plan: "basic", at }]);
   expect(noticesFor(mirror(), mirror({ status: "past_due" }))).toEqual([
+    { kind: "payment_failed" },
+  ]);
+});
+
+test("a subscription that starts past due still reports the failed payment", () => {
+  expect(noticesFor(null, mirror({ status: "past_due" }))).toEqual([
     { kind: "payment_failed" },
   ]);
 });

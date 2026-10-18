@@ -1,73 +1,224 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
-import type { ReactNode } from "react";
-import type { Locale } from "./messages";
+import { Body, Button, Head, Html, Preview } from "@react-email/components";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
+import { messages, type Locale } from "./messages";
 
-// Hex approximations of the UI tokens (12): mail clients don't parse oklch.
+// Hex approximations of the DESIGN.md tokens: mail clients don't parse oklch.
 export const palette = {
   ink: "#0f172b",
-  muted: "#5c6378",
-  line: "#e2e5ec",
-  signal: "#2a5bd7",
+  muted: "#505869",
+  subtle: "#686f7e",
+  line: "#e3e6ed",
+  panel: "#f4f6f9",
+  signal: "#2c67dc",
   bg: "#ffffff",
+  onInk: "#ffffff",
 };
 
-const font =
-  "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
+const fonts = {
+  sans: "Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  display:
+    "'Schibsted Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+  mono: "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace",
+};
 
+const htmlLang: Record<Locale, string> = { en: "en", pt: "pt-PT", es: "es" };
+
+const siteUrl = "https://shortn.at";
+
+function Block({
+  padding,
+  style,
+  children,
+}: {
+  padding: string;
+  style?: CSSProperties;
+  children: ReactNode;
+}) {
+  return (
+    <table
+      role="presentation"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+    >
+      <tbody>
+        <tr>
+          <td style={{ padding, ...style }}>{children}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+/**
+ * Every template takes the hosted brand mark's absolute URL from the mailer.
+ * A prop, not context: apps/web renders these on the React server build,
+ * which has no createContext.
+ */
+export interface Branded {
+  logoUrl?: string | undefined;
+}
+
+function Brand({ logoUrl }: Branded) {
+  const mark: CSSProperties = {
+    color: palette.onInk,
+    fontFamily: fonts.display,
+    fontSize: 23,
+    fontWeight: 900,
+    lineHeight: "26px",
+    textAlign: "center",
+  };
+  return (
+    <table
+      role="presentation"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+      data-skip-in-text="true"
+    >
+      <tbody>
+        <tr>
+          <td
+            width={26}
+            height={26}
+            align="center"
+            valign="middle"
+            style={{
+              ...mark,
+              backgroundColor: palette.ink,
+              borderRadius: 4,
+              height: 26,
+              width: 26,
+            }}
+          >
+            {logoUrl ? (
+              // With images blocked, the styled alt text on the navy cell
+              // still reads as the mark.
+              <img
+                src={logoUrl}
+                width={26}
+                height={26}
+                alt="S"
+                aria-hidden="true"
+                style={{
+                  ...mark,
+                  border: 0,
+                  borderRadius: 4,
+                  display: "block",
+                  height: 26,
+                  width: 26,
+                }}
+              />
+            ) : (
+              "S"
+            )}
+          </td>
+          <td
+            style={{
+              color: palette.ink,
+              fontFamily: fonts.display,
+              fontSize: 19,
+              fontWeight: 800,
+              letterSpacing: "-0.4px",
+              lineHeight: "26px",
+              paddingLeft: 10,
+            }}
+          >
+            Shortn
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+function Footer({ locale, reason }: { locale: Locale; reason: string }) {
+  const text: CSSProperties = {
+    color: palette.subtle,
+    fontSize: 12,
+    lineHeight: "18px",
+    margin: 0,
+  };
+  return (
+    <Block padding="16px 0 0">
+      <Block
+        padding="24px 0 0"
+        style={{ borderTop: `1px solid ${palette.line}` }}
+      >
+        <p style={text}>{reason}</p>
+        <p style={{ ...text, marginTop: 6 }}>
+          Shortn · {messages[locale].footer.madeIn} ·{" "}
+          <a href={siteUrl} className="site" style={{ color: palette.subtle }}>
+            shortn.at
+          </a>
+        </p>
+      </Block>
+    </Block>
+  );
+}
+
+/**
+ * `footer` is the localized reason the recipient got this email; the brand
+ * line under it is added here.
+ */
 export function Layout({
   locale,
   preview,
   footer,
+  logoUrl,
   children,
-}: {
+}: Branded & {
   locale: Locale;
   preview: string;
   footer: string;
   children: ReactNode;
 }) {
   return (
-    <Html lang={locale}>
-      <Head />
+    <Html lang={htmlLang[locale]}>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
+        <meta
+          name="format-detection"
+          content="telephone=no, date=no, address=no, email=no, url=no"
+        />
+        <style>
+          {":root{color-scheme:light;supported-color-schemes:light}"}
+        </style>
+      </Head>
       <Preview>{preview}</Preview>
       <Body
-        style={{ backgroundColor: palette.bg, fontFamily: font, margin: 0 }}
+        style={{
+          backgroundColor: palette.bg,
+          color: palette.ink,
+          fontFamily: fonts.sans,
+          margin: 0,
+          padding: 0,
+        }}
       >
-        <Container style={{ maxWidth: 520, padding: "40px 24px" }}>
-          <Text
-            style={{
-              color: palette.ink,
-              fontSize: 18,
-              fontWeight: 700,
-              letterSpacing: "-0.01em",
-              margin: "0 0 32px",
-            }}
-          >
-            Shortn
-          </Text>
-          {children}
-          <Hr style={{ borderColor: palette.line, margin: "32px 0 16px" }} />
-          <Text
-            style={{
-              color: palette.muted,
-              fontSize: 12,
-              lineHeight: "18px",
-              margin: 0,
-            }}
-          >
-            {footer}
-          </Text>
-        </Container>
+        <table
+          role="presentation"
+          align="center"
+          width="100%"
+          cellPadding={0}
+          cellSpacing={0}
+          border={0}
+          style={{ maxWidth: 560 }}
+        >
+          <tbody>
+            <tr>
+              <td style={{ padding: "40px 24px 48px" }}>
+                <Brand logoUrl={logoUrl} />
+                <Block padding="40px 0 0">
+                  {children}
+                  <Footer locale={locale} reason={footer} />
+                </Block>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </Body>
     </Html>
   );
@@ -75,48 +226,46 @@ export function Layout({
 
 export function Heading({ children }: { children: ReactNode }) {
   return (
-    <Text
+    <h1
       style={{
         color: palette.ink,
-        fontSize: 20,
-        fontWeight: 600,
-        lineHeight: "28px",
-        margin: "0 0 12px",
+        fontFamily: fonts.display,
+        fontSize: 32,
+        fontWeight: 800,
+        letterSpacing: "-1px",
+        lineHeight: "36px",
+        margin: "0 0 16px",
       }}
     >
       {children}
-    </Text>
+    </h1>
   );
 }
 
 export function Paragraph({ children }: { children: ReactNode }) {
   return (
-    <Text
+    <p
       style={{
         color: palette.ink,
-        fontSize: 14,
-        lineHeight: "22px",
+        fontSize: 16,
+        lineHeight: "26px",
         margin: "0 0 16px",
       }}
     >
       {children}
-    </Text>
+    </p>
   );
 }
 
+const mutedText: CSSProperties = {
+  color: palette.muted,
+  fontSize: 14,
+  lineHeight: "22px",
+  margin: "0 0 12px",
+};
+
 export function Muted({ children }: { children: ReactNode }) {
-  return (
-    <Text
-      style={{
-        color: palette.muted,
-        fontSize: 13,
-        lineHeight: "20px",
-        margin: "0 0 12px",
-      }}
-    >
-      {children}
-    </Text>
-  );
+  return <p style={mutedText}>{children}</p>;
 }
 
 export function Action({
@@ -127,36 +276,380 @@ export function Action({
   children: ReactNode;
 }) {
   return (
-    <Section style={{ margin: "24px 0" }}>
+    <Block padding="12px 0 28px">
       <Button
         href={href}
         style={{
           backgroundColor: palette.ink,
           borderRadius: 6,
-          color: "#ffffff",
+          color: palette.onInk,
           display: "inline-block",
-          fontSize: 14,
-          fontWeight: 500,
-          padding: "10px 16px",
+          fontFamily: fonts.sans,
+          fontSize: 15,
+          fontWeight: 600,
+          lineHeight: "20px",
+          padding: "12px 20px",
+          textAlign: "center",
           textDecoration: "none",
         }}
       >
         {children}
       </Button>
-    </Section>
+    </Block>
   );
 }
 
+// The button already prints its URL in the plain-text part.
 export function FallbackLink({ label, href }: { label: string; href: string }) {
   return (
-    <Muted>
+    <p style={mutedText} data-skip-in-text="true">
       {label}{" "}
-      <Link
-        href={href}
-        style={{ color: palette.signal, wordBreak: "break-all" }}
-      >
+      <a href={href} style={{ color: palette.signal, wordBreak: "break-all" }}>
         {href}
-      </Link>
-    </Muted>
+      </a>
+    </p>
+  );
+}
+
+/** Light grey surface for structured data only: rows, codes, key/values. */
+export function Panel({ children }: { children: ReactNode }) {
+  return (
+    <Block padding="8px 0 24px">
+      <Block
+        padding="4px 20px"
+        style={{ backgroundColor: palette.panel, borderRadius: 8 }}
+      >
+        {children}
+      </Block>
+    </Block>
+  );
+}
+
+export interface Detail {
+  label: string;
+  value: ReactNode;
+  mono?: boolean;
+  /** Puts the value under its label, for long values such as URLs. */
+  wide?: boolean;
+}
+
+/**
+ * Label/value rows. Inside a Panel they need no outer rules; `ruled` frames
+ * them with hairlines for use on the white page.
+ */
+export function DetailRows({
+  rows,
+  ruled = false,
+}: {
+  rows: readonly Detail[];
+  ruled?: boolean;
+}) {
+  const table = (
+    <table
+      role="presentation"
+      className="details"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+    >
+      <tbody>
+        {rows.map((row, index) => {
+          const rule = `1px solid ${palette.line}`;
+          const cell: CSSProperties = {
+            borderBottom: ruled && index === rows.length - 1 ? rule : "none",
+            borderTop: index === 0 && !ruled ? "none" : rule,
+            fontSize: 14,
+            lineHeight: "20px",
+            padding: "12px 0",
+            verticalAlign: "top",
+          };
+          const value: CSSProperties = {
+            color: palette.ink,
+            fontFamily: row.mono ? fonts.mono : fonts.sans,
+            fontSize: row.mono ? 13 : 14,
+            fontVariantNumeric: "tabular-nums",
+            fontWeight: 500,
+            overflowWrap: "anywhere",
+            wordBreak: row.mono ? "break-all" : "break-word",
+          };
+          return row.wide ? (
+            <tr key={row.label}>
+              <td colSpan={2} style={cell}>
+                <div style={{ color: palette.muted }}>{row.label}</div>
+                <div style={{ ...value, marginTop: 2 }}>{row.value}</div>
+              </td>
+            </tr>
+          ) : (
+            <tr key={row.label}>
+              <td
+                width="40%"
+                style={{ ...cell, color: palette.muted, paddingRight: 16 }}
+              >
+                {row.label}
+              </td>
+              <td
+                align="right"
+                style={{ ...cell, ...value, textAlign: "right" }}
+              >
+                {row.value}
+              </td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+  return ruled ? <Block padding="8px 0 24px">{table}</Block> : table;
+}
+
+export interface LedgerLine {
+  label: string;
+  amount: string;
+}
+
+/**
+ * Receipt arithmetic: line items, then the adjustments that lead from the
+ * subtotal to the total. Sits inside a Panel.
+ */
+export function Ledger({
+  items,
+  adjustments,
+  total,
+}: {
+  items: readonly LedgerLine[];
+  adjustments: readonly LedgerLine[];
+  total: LedgerLine;
+}) {
+  const rule = `1px solid ${palette.line}`;
+  const base: CSSProperties = {
+    fontSize: 14,
+    lineHeight: "20px",
+    verticalAlign: "top",
+  };
+  const amount: CSSProperties = {
+    color: palette.ink,
+    fontVariantNumeric: "tabular-nums",
+    paddingLeft: 16,
+    textAlign: "right",
+    whiteSpace: "nowrap",
+  };
+  const adjustmentPadding = (index: number) => {
+    const top = index === 0 ? 12 : 4;
+    const bottom = index === adjustments.length - 1 ? 12 : 4;
+    return `${top}px 0 ${bottom}px`;
+  };
+  return (
+    <table
+      role="presentation"
+      className="details"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+    >
+      <tbody>
+        {items.map((item, index) => {
+          const cell: CSSProperties = {
+            ...base,
+            borderTop: index === 0 ? "none" : rule,
+            padding: "12px 0",
+          };
+          return (
+            <tr key={`item-${index}`}>
+              <td style={{ ...cell, color: palette.ink }}>{item.label}</td>
+              <td align="right" style={{ ...cell, ...amount }}>
+                {item.amount}
+              </td>
+            </tr>
+          );
+        })}
+        {adjustments.map((line, index) => {
+          const cell: CSSProperties = {
+            ...base,
+            borderTop: index === 0 ? rule : "none",
+            padding: adjustmentPadding(index),
+          };
+          return (
+            <tr key={`adjustment-${index}`}>
+              <td style={{ ...cell, color: palette.muted }}>{line.label}</td>
+              <td align="right" style={{ ...cell, ...amount }}>
+                {line.amount}
+              </td>
+            </tr>
+          );
+        })}
+        <tr>
+          <td
+            style={{
+              ...base,
+              borderTop: rule,
+              color: palette.ink,
+              fontSize: 15,
+              fontWeight: 600,
+              padding: "12px 0",
+            }}
+          >
+            {total.label}
+          </td>
+          <td
+            align="right"
+            style={{
+              ...base,
+              ...amount,
+              borderTop: rule,
+              fontSize: 16,
+              fontWeight: 700,
+              padding: "12px 0 12px 16px",
+            }}
+          >
+            {total.amount}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  );
+}
+
+/** A reference or one-time value the reader may need to copy or quote. */
+export function Code({
+  label,
+  children,
+}: {
+  label?: string;
+  children: string;
+}) {
+  return (
+    <Panel>
+      {label ? (
+        <p
+          style={{
+            color: palette.muted,
+            fontSize: 13,
+            lineHeight: "18px",
+            margin: "12px 0 4px",
+          }}
+        >
+          {label}
+        </p>
+      ) : null}
+      <p
+        style={{
+          color: palette.ink,
+          fontFamily: fonts.mono,
+          fontSize: 20,
+          fontWeight: 600,
+          letterSpacing: "0.5px",
+          lineHeight: "28px",
+          margin: label ? "0 0 12px" : "12px 0",
+          wordBreak: "break-all",
+        }}
+      >
+        {children}
+      </p>
+    </Panel>
+  );
+}
+
+/** Hairline-separated items: a bold lead line with a short explanation. */
+export function List({
+  items,
+}: {
+  items: readonly { title: string; body: string }[];
+}) {
+  return (
+    <Block padding="8px 0 24px">
+      <table
+        role="presentation"
+        width="100%"
+        cellPadding={0}
+        cellSpacing={0}
+        border={0}
+      >
+        <tbody>
+          {items.map((item, index) => (
+            <tr key={item.title}>
+              <td
+                style={{
+                  borderBottom:
+                    index === items.length - 1
+                      ? `1px solid ${palette.line}`
+                      : "none",
+                  borderTop: `1px solid ${palette.line}`,
+                  padding: "14px 0",
+                }}
+              >
+                <p
+                  style={{
+                    color: palette.ink,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    lineHeight: "24px",
+                    margin: 0,
+                  }}
+                >
+                  {item.title}
+                </p>
+                <p
+                  style={{
+                    color: palette.muted,
+                    fontSize: 15,
+                    lineHeight: "22px",
+                    margin: "2px 0 0",
+                  }}
+                >
+                  {item.body}
+                </p>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </Block>
+  );
+}
+
+/** Text the reader wrote, echoed back with its line breaks intact. */
+export function Quote({
+  label,
+  children,
+}: {
+  label: string;
+  children: string;
+}) {
+  return (
+    <Block padding="8px 0 24px">
+      <p
+        style={{
+          color: palette.muted,
+          fontSize: 13,
+          lineHeight: "18px",
+          margin: "0 0 8px",
+        }}
+      >
+        {label}
+      </p>
+      <Block
+        padding="2px 0 2px 16px"
+        style={{ borderLeft: `2px solid ${palette.line}` }}
+      >
+        <p
+          style={{
+            color: palette.ink,
+            fontSize: 15,
+            lineHeight: "24px",
+            margin: 0,
+            overflowWrap: "anywhere",
+          }}
+        >
+          {children.split(/\r?\n/).map((line, index) => (
+            <Fragment key={index}>
+              {index > 0 ? <br /> : null}
+              {line}
+            </Fragment>
+          ))}
+        </p>
+      </Block>
+    </Block>
   );
 }

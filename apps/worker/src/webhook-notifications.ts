@@ -54,6 +54,7 @@ export async function sendWebhookNotifications(
         to: String(owner.email),
         locale: isLocale(owner.locale) ? owner.locale : "en",
         name: String(notice.name ?? "Webhook"),
+        endpoint: typeof notice.url === "string" ? notice.url : undefined,
         url: `${appUrl.replace(/\/$/, "")}/${encodeURIComponent(String(workspace.slug))}/settings`,
         idempotencyKey: `webhook-disabled-${notice._id}-${notice.generation ?? new Date(notice.createdAt).getTime()}`,
       });

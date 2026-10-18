@@ -15,7 +15,7 @@
     },
     "about": {
       "title": "Quiénes somos",
-      "description": "Shortn es una plataforma de enlaces independiente hecha en Portugal, usada en producción por Vida Económica desde 2023."
+      "description": "Shortn es una plataforma de enlaces independiente hecha en Portugal, en producción desde 2023."
     },
     "contact": {
       "title": "Contacto",
@@ -108,15 +108,15 @@
       }
     },
     "proof": {
-      "title": "Los enlaces de Vida Económica pasan por Shortn desde 2023",
-      "body": "El grupo editorial portugués usa Shortn en su web, en su librería online y en los códigos QR de sus agendas impresas.",
+      "title": "Los enlaces de nuestro mayor cliente pasan por Shortn desde 2023",
+      "body": "Es un grupo editorial portugués y usa Shortn en su web, en su librería online y en los códigos QR de sus agendas impresas.",
       "stats": {
         "clicks": "clics y escaneos contados",
         "links": "enlaces cortos creados",
         "qrCodes": "códigos QR creados",
         "scans": "escaneos de QR desde {month}"
       },
-      "source": "Espacio de trabajo de Vida Económica, datos de {date}. Compartidos con su permiso."
+      "source": "Espacio de trabajo de nuestro mayor cliente, datos de {date}. Compartidos con su permiso."
     },
     "print": {
       "title": "Imprime el código QR una vez. Cambia su destino cuando quieras.",
@@ -357,7 +357,7 @@
   },
   "about": {
     "title": "Una plataforma de enlaces independiente, hecha en Portugal",
-    "intro": "Shortn nació en 2023 para gestionar los enlaces de Vida Económica, un grupo editorial portugués de economía y negocios. Desde entonces se encarga de sus enlaces en internet y en papel.",
+    "intro": "Shortn nació en 2023 para gestionar los enlaces de un grupo editorial portugués de economía y negocios, que sigue siendo nuestro mayor cliente. Desde entonces se encarga de sus enlaces en internet y en papel.",
     "principles": {
       "title": "Cómo lo construimos",
       "honest": {

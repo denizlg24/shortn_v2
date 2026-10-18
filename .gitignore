@@ -63,3 +63,6 @@ scripts/*
 
 # graft's local graph cache — regenerable, not committed (run `graft build`).
 /graft/
+
+# rendered email previews (bun run --cwd packages/emails preview)
+packages/emails/.preview/

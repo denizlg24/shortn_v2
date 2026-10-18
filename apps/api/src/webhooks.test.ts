@@ -1,8 +1,10 @@
 import { describe, expect, test } from "bun:test";
+import { collection } from "@shortn/db";
 import { MongoClient } from "mongodb";
 import { createHmac } from "node:crypto";
 import { orderFixture } from "../../../packages/billing/test-fixtures/order";
 import {
+  orderIdOf,
   receivePolarWebhook,
   subscriptionIdsOf,
   type Verify,
@@ -77,6 +79,13 @@ const mongoUrl = process.env.MONGO_TEST_URL;
           duplicate: true,
         });
       expect(await db.collection("billing_events").countDocuments()).toBe(1);
+      expect(
+        await collection(db, "billing_events").findOne({ _id: "msg_signed" }),
+      ).toMatchObject({
+        type: "order.paid",
+        subscriptionIds: ["sub_signed"],
+        orderId: "00000000-0000-4000-8000-000000000001",
+      });
     } finally {
       await db.dropDatabase();
       await client.close();
@@ -110,11 +119,27 @@ const mongoUrl = process.env.MONGO_TEST_URL;
           duplicate: true,
         });
       expect(await db.collection("billing_events").countDocuments()).toBe(1);
+      expect(
+        await collection(db, "billing_events").findOne({ _id: "msg_9" }),
+      ).not.toHaveProperty("orderId");
     } finally {
       await db.dropDatabase();
       await client.close();
     }
   });
+});
+
+test("only order events carry an order id", () => {
+  expect(orderIdOf({ type: "order.paid", data: { id: "ord_1" } })).toBe(
+    "ord_1",
+  );
+  expect(orderIdOf({ type: "order.refunded", data: { id: "ord_2" } })).toBe(
+    "ord_2",
+  );
+  expect(orderIdOf({ type: "order.paid", data: { id: "" } })).toBeUndefined();
+  expect(
+    orderIdOf({ type: "subscription.updated", data: { id: "sub_1" } }),
+  ).toBeUndefined();
 });
 
 test("subscription ids come from subscription, order and customer-state events", () => {

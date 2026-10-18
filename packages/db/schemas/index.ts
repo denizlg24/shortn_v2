@@ -291,6 +291,9 @@ export const clickEventSchema = z.object({
     domain: text,
     key: text,
     legacyCode: text.optional(),
+    // Run id of the legacy QR reattribution that turned this click into a
+    // scan; its rollback selects events by this meta field.
+    reattributedBy: text.optional(),
   }),
   country: text.optional(),
   region: text.optional(),
@@ -457,6 +460,8 @@ export const billingEventSchema = z.object({
   _id: text,
   type: text,
   subscriptionIds: z.array(text),
+  // Polar order id, for order.* events.
+  orderId: text.optional(),
   receivedAt: z.date(),
   processedAt: z.date().optional(),
   error: text.optional(),
@@ -541,6 +546,13 @@ export const schemas = {
   domains: domainSchema,
   subscriptions: subscriptionSchema,
   billing_events: billingEventSchema,
+  // Once-only ledger for billing mail: _id is "receipt:{orderId}" and so on.
+  billing_mail: z.object({
+    _id: text,
+    createdAt: z.date(),
+    claimedUntil: z.date().optional(),
+    sentAt: z.date().optional(),
+  }),
   usage_periods: usagePeriodSchema,
   api_keys: apiKeySchema,
   audit_log: z.object({
