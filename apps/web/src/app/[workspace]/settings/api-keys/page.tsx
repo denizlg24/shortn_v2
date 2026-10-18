@@ -9,6 +9,7 @@ import { serviceContext } from "@/server/context";
 import { env } from "@/server/env";
 import { gateOf } from "@/lib/plan-features";
 import { featureAccess } from "@/server/plan";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings.apiKeys");
@@ -59,7 +60,12 @@ export default async function ApiKeysPage({
       description={t("description")}
     >
       {!manage ? (
-        <p className="text-small text-fg-muted">{t("adminOnly")}</p>
+        <p
+          className="text-small text-fg-muted"
+          {...tourAnchor("api-keys-create")}
+        >
+          {t("adminOnly")}
+        </p>
       ) : result && !result.ok ? (
         <p role="alert" className="text-small text-danger">
           {t("errors.invalid_input")}{" "}

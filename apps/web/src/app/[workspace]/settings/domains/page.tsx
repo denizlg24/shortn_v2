@@ -22,6 +22,7 @@ import {
   removeDomainAction,
   retryDomainAction,
 } from "@/server/actions/domains";
+import { tourAnchor } from "@/lib/tour/anchors";
 export default async function DomainsPage({
   params,
   searchParams,
@@ -61,10 +62,15 @@ export default async function DomainsPage({
         <Notice tone="warning">{t("conflicts")}</Notice>
       ) : null}
       {!writes ? (
-        <p className="mb-6 text-small text-fg-muted">{t("disabled")}</p>
+        <p
+          className="mb-6 text-small text-fg-muted"
+          {...tourAnchor("domains-add")}
+        >
+          {t("disabled")}
+        </p>
       ) : null}
       {manage && writes ? (
-        <Section title={t("add")}>
+        <Section title={t("add")} anchor="domains-add">
           {full ? (
             <GateNote id="domain-addon-gate" className="mb-4">
               {freePlan ? (

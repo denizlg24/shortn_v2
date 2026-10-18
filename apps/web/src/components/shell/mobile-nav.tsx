@@ -11,6 +11,7 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { AccountMenu } from "./account-menu";
+import { HelpMenu } from "./help-menu";
 import { allNav, mobileTabs, sectionHref } from "./nav";
 import { useShell } from "./shell-context";
 import { UsageSummary } from "./usage-summary";
@@ -106,7 +107,10 @@ export function MobileDrawer({
           </nav>
           <div className="mt-auto flex flex-col gap-4 border-t border-line pt-4">
             <UsageSummary items={usage} className="px-2.5" />
-            <AccountMenu layout="full" />
+            <div className="flex flex-col gap-px">
+              <HelpMenu layout="full" />
+              <AccountMenu layout="full" />
+            </div>
           </div>
         </SheetBody>
       </SheetContent>

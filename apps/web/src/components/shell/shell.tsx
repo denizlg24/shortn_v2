@@ -3,6 +3,8 @@
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { WhatsNewDialog } from "../changelog/whats-new-dialog";
+import { TourProvider } from "../tour/tour-provider";
 import { CommandPalette } from "./command-palette";
 import { ImpersonationBanner } from "./impersonation-banner";
 import { MobileDrawer, MobileTabBar } from "./mobile-nav";
@@ -52,6 +54,7 @@ export function Shell({
   const openPalette = useCallback(() => setPaletteOpen(true), []);
   const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
   const openDrawer = useCallback(() => setDrawerOpen(true), []);
+  const closeDrawer = useCallback(() => setDrawerOpen(false), []);
   // The switcher lives in the sidebar, which is hidden below 768px.
   const openWorkspaceMenu = useCallback(() => {
     if (window.matchMedia(sidebarQuery).matches) setWorkspaceMenuOpen(true);
@@ -80,6 +83,7 @@ export function Shell({
       navigate,
       switchWorkspace,
       openDrawer,
+      closeDrawer,
       openShortcuts,
     }),
     [
@@ -91,41 +95,45 @@ export function Shell({
       navigate,
       switchWorkspace,
       openDrawer,
+      closeDrawer,
       openShortcuts,
     ],
   );
 
   return (
     <ShellContext.Provider value={value}>
-      <a
-        href="#main"
-        className="sr-only z-50 rounded-control bg-bg px-3 py-2 text-small font-medium shadow-overlay focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
-      >
-        {t("skipToContent")}
-      </a>
-      {/* `relative` keeps absolutely positioned descendants (sr-only labels,
+      <TourProvider>
+        <a
+          href="#main"
+          className="sr-only z-50 rounded-control bg-bg px-3 py-2 text-small font-medium shadow-overlay focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        >
+          {t("skipToContent")}
+        </a>
+        {/* `relative` keeps absolutely positioned descendants (sr-only labels,
           hidden inputs) inside the scroll container; otherwise they resolve
           against the viewport and give the page a second, empty scrollbar. */}
-      <div className="relative flex h-dvh flex-col overflow-hidden bg-bg text-fg">
-        {impersonating ? <ImpersonationBanner /> : null}
-        <div className="flex min-h-0 flex-1">
-          <Sidebar
-            workspaceMenuOpen={workspaceMenuOpen}
-            onWorkspaceMenuOpenChange={setWorkspaceMenuOpen}
-          />
-          <main
-            id="main"
-            tabIndex={-1}
-            className="relative flex min-w-0 flex-1 flex-col overflow-y-auto outline-none max-md:pb-14"
-          >
-            {children}
-          </main>
+        <div className="relative flex h-dvh flex-col overflow-hidden bg-bg text-fg">
+          {impersonating ? <ImpersonationBanner /> : null}
+          <div className="flex min-h-0 flex-1">
+            <Sidebar
+              workspaceMenuOpen={workspaceMenuOpen}
+              onWorkspaceMenuOpenChange={setWorkspaceMenuOpen}
+            />
+            <main
+              id="main"
+              tabIndex={-1}
+              className="relative flex min-w-0 flex-1 flex-col overflow-y-auto outline-none max-md:pb-14"
+            >
+              {children}
+            </main>
+          </div>
+          <MobileTabBar />
         </div>
-        <MobileTabBar />
-      </div>
-      <MobileDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
-      <ShortcutsSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+        <MobileDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />
+        <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
+        <ShortcutsSheet open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+        <WhatsNewDialog impersonating={impersonating} />
+      </TourProvider>
     </ShellContext.Provider>
   );
 }

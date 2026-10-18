@@ -54,6 +54,7 @@ import {
   changeBioHandleAction,
   bioVersionListAction,
 } from "@/server/actions/bio-publishing";
+import { tourAnchor } from "@/lib/tour/anchors";
 import type { PlanId } from "@shortn/billing";
 import { cn } from "@shortn/ui";
 import { ImageUpload, useUploadStatus } from "../page/image-upload";
@@ -440,7 +441,7 @@ export function BioEditor({
   };
   return (
     <div className="bio-studio">
-      <div className="studio-toolbar">
+      <div className="studio-toolbar" {...tourAnchor("bio-toolbar")}>
         <div className="flex flex-wrap gap-2">
           <button
             className="studio-primary"

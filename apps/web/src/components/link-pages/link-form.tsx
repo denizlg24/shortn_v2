@@ -200,7 +200,7 @@ export function LinkForm({
         ) : null}
       </Section>
 
-      <Section title={t("keySection")}>
+      <Section title={t("keySection")} anchor="link-key">
         <FormField
           id={`${id}-key`}
           label={t("key")}
@@ -326,7 +326,7 @@ export function LinkForm({
         />
       </Section>
 
-      <Section title={t("passwordSection")}>
+      <Section title={t("passwordSection")} anchor="link-password">
         {gates.passwords ? (
           <div className="flex flex-col gap-3">
             <FormField id={`${id}-password`} label={t("password")}>
@@ -411,7 +411,7 @@ export function LinkForm({
         )}
       </Section>
 
-      <Section title={advanced("title")}>
+      <Section title={advanced("title")} anchor="link-advanced">
         <LinkAdvancedFields
           {...(initial.rules ? { initial: initial.rules } : {})}
           {...(initial.og ? { preview: initial.og } : {})}

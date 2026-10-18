@@ -136,6 +136,7 @@ export default async function BillingSettingsPage({
 
       <Section
         title={t("current.title")}
+        anchor="billing-plan"
         description={canManage ? undefined : t("current.ownerOnly")}
       >
         <p className="flex flex-wrap items-baseline gap-x-3">

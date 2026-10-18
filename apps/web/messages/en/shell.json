@@ -14,7 +14,8 @@
   "help": {
     "label": "Help",
     "center": "Help center",
-    "shortcuts": "Keyboard shortcuts"
+    "shortcuts": "Keyboard shortcuts",
+    "unseen": "Help (new updates)"
   },
   "account": {
     "menu": "Account",

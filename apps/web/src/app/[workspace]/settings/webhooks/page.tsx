@@ -7,6 +7,7 @@ import { inputClass } from "@/components/page/form";
 import { WebhookManager } from "@/components/settings/webhooks/manager";
 import { serviceContext } from "@/server/context";
 import { env } from "@/server/env";
+import { tourAnchor } from "@/lib/tour/anchors";
 export async function generateMetadata() {
   return { title: (await getTranslations("settings.webhooks"))("title") };
 }
@@ -48,7 +49,12 @@ export default async function WebhooksPage({
       description={t("description")}
     >
       {!manage ? (
-        <p className="text-small text-fg-muted">{t("adminOnly")}</p>
+        <p
+          className="text-small text-fg-muted"
+          {...tourAnchor("webhooks-endpoints")}
+        >
+          {t("adminOnly")}
+        </p>
       ) : result && !result.ok ? (
         <p role="alert" className="text-small text-danger">
           {t("errors.invalid_input")}{" "}

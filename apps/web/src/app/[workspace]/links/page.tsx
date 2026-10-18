@@ -16,6 +16,7 @@ import { linksViewQuery, linksViewSearch } from "@/server/link-list-query";
 import { linkExportStore } from "@/server/link-exports";
 import { requestTime } from "@/server/time";
 import { importStore } from "@/server/imports";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 const pageSize = 25;
 
@@ -120,6 +121,7 @@ export default async function LinksPage({
               <Link
                 href={`/${workspace}/links/new`}
                 className={buttonVariants({ variant: "primary", size: "lg" })}
+                {...tourAnchor("links-new")}
               >
                 {t("new")}
               </Link>
@@ -132,6 +134,7 @@ export default async function LinksPage({
       <nav
         aria-label={trashText("sections")}
         className="mb-4 flex flex-wrap gap-2"
+        {...tourAnchor("links-library")}
       >
         <Link
           href={`/${workspace}/links`}
@@ -177,12 +180,14 @@ export default async function LinksPage({
       {deleted > 0 ? (
         <Notice tone="success">{t("deleted", { count: deleted })}</Notice>
       ) : null}
-      <LinksFilters
-        workspace={workspace}
-        tags={tagPage.items.map((item) => item.name)}
-        trash={trash}
-        archived={archived}
-      />
+      <div {...tourAnchor("links-filters")}>
+        <LinksFilters
+          workspace={workspace}
+          tags={tagPage.items.map((item) => item.name)}
+          trash={trash}
+          archived={archived}
+        />
+      </div>
 
       <Selection
         key={trash ? "trash" : archived ? "archived" : "active"}

@@ -1,0 +1,261 @@
+/* The product tour's popover, restyled from driver.js's base sheet onto the
+   design tokens: overlay surface, 8px radius, Geist type scale and the
+   Button variants. Loaded after driver.js/dist/driver.css. */
+
+:root {
+  --tour-overlay: oklch(0.208 0.042 265.755 / 38%);
+}
+
+.dark {
+  --tour-overlay: oklch(0.06 0.002 265 / 64%);
+}
+
+.driver-popover.shortn-tour {
+  box-sizing: border-box;
+  width: min(22.5rem, calc(100vw - 24px));
+  min-width: 0;
+  max-width: none;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--overlay-radius);
+  background: var(--overlay);
+  color: var(--fg);
+  box-shadow: var(--elevation-overlay);
+  font-family: var(--font-ui);
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .driver-popover.shortn-tour {
+    animation: overlay-in var(--motion-base) var(--motion-ease);
+  }
+}
+
+.shortn-tour .driver-popover-arrow {
+  display: none;
+}
+
+.shortn-tour .driver-popover-title {
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  font-size: var(--type-emphasis);
+  line-height: var(--type-emphasis-lh);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  text-wrap: pretty;
+}
+
+.shortn-tour .shortn-tour-title-text {
+  margin-right: 8px;
+}
+
+.shortn-tour .shortn-tour-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--chip-radius);
+  background: color-mix(in oklab, var(--fg) 7%, transparent);
+  color: var(--fg-muted);
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+  font-weight: 500;
+  letter-spacing: 0;
+  white-space: nowrap;
+  vertical-align: 2px;
+}
+
+.shortn-tour .driver-popover-title[style*="block"] + .driver-popover-description {
+  margin-top: 6px;
+}
+
+.shortn-tour .driver-popover-description {
+  margin: 0;
+  font: inherit;
+  font-size: var(--type-body);
+  line-height: var(--type-body-lh);
+  color: var(--fg-muted);
+}
+
+.shortn-tour .driver-popover-description > :not(:first-child) {
+  margin-top: 10px;
+}
+
+.shortn-tour .shortn-tour-body {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+.shortn-tour .shortn-tour-note {
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+  color: var(--fg-subtle);
+  text-wrap: pretty;
+}
+
+.shortn-tour .shortn-tour-gate {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+  color: var(--fg-muted);
+  text-wrap: pretty;
+}
+
+.shortn-tour .shortn-tour-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.shortn-tour .shortn-tour-gate .shortn-tour-icon {
+  margin-top: 1px;
+  color: var(--fg-subtle);
+}
+
+.shortn-tour .shortn-tour-link,
+.shortn-tour .shortn-tour-docs {
+  border-radius: var(--chip-radius);
+  color: var(--signal);
+  font-weight: 500;
+  text-decoration: none;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.shortn-tour .shortn-tour-link:hover,
+.shortn-tour .shortn-tour-docs:hover {
+  text-decoration: underline;
+}
+
+.shortn-tour .shortn-tour-docs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+}
+
+.shortn-tour .shortn-tour-docs .shortn-tour-icon {
+  width: 14px;
+  height: 14px;
+}
+
+.shortn-tour .driver-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.shortn-tour .driver-popover-progress-text {
+  flex-shrink: 0;
+  font-family: var(--font-data);
+  font-size: var(--type-meta);
+  line-height: var(--type-meta-lh);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-subtle);
+}
+
+.shortn-tour .driver-popover-navigation-btns {
+  display: flex;
+  flex-grow: 1;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.shortn-tour .driver-popover-navigation-btns button + button {
+  margin-left: 0;
+}
+
+/* Skip, Back and Next share the Button shape (sm size). */
+.shortn-tour .driver-popover-footer-btn,
+.shortn-tour .driver-popover-close-btn {
+  all: unset;
+  box-sizing: border-box;
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: var(--control-radius);
+  font-family: var(--font-ui);
+  font-size: var(--type-small);
+  line-height: var(--type-small-lh);
+  font-weight: 500;
+  white-space: nowrap;
+  text-shadow: none;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast);
+}
+
+.shortn-tour .driver-popover-close-btn {
+  color: var(--fg-muted);
+}
+
+.shortn-tour .driver-popover-close-btn:hover {
+  background: var(--bg-muted);
+  color: var(--fg);
+}
+
+.shortn-tour .driver-popover-prev-btn {
+  border: 1px solid var(--line-strong);
+  background: var(--field);
+  color: var(--fg);
+}
+
+.shortn-tour .driver-popover-prev-btn:hover {
+  border-color: color-mix(in oklab, var(--fg-subtle) 60%, transparent);
+  background: var(--bg-subtle);
+}
+
+.shortn-tour .driver-popover-next-btn {
+  background: var(--primary);
+  color: var(--primary-fg);
+}
+
+.shortn-tour .driver-popover-next-btn:hover {
+  background: var(--primary-hover);
+}
+
+.shortn-tour .driver-popover-footer .driver-popover-btn-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.shortn-tour .driver-popover-footer-btn:focus-visible,
+.shortn-tour .driver-popover-close-btn:focus-visible,
+.shortn-tour .shortn-tour-link:focus-visible,
+.shortn-tour .shortn-tour-docs:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.shortn-tour .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

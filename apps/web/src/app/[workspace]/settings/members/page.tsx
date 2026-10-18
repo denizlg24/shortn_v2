@@ -113,6 +113,7 @@ export default async function MembersSettingsPage({
 
       <Section
         title={t("members.list.title", { count: members.length })}
+        anchor="members-list"
         description={
           seats.limit === null
             ? undefined

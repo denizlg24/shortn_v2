@@ -178,7 +178,11 @@ export function ApiKeyManager({
         <p className="mb-6 text-small text-fg-muted">{t("disabled")}</p>
       ) : null}
       {!secret && enabled && gate ? (
-        <Section title={t("createTitle")} description={t("createHint")}>
+        <Section
+          title={t("createTitle")}
+          description={t("createHint")}
+          anchor="api-keys-create"
+        >
           <div className="flex flex-col items-start gap-3">
             <button
               type="button"
@@ -193,7 +197,11 @@ export function ApiKeyManager({
         </Section>
       ) : null}
       {!secret && enabled && !gate ? (
-        <Section title={t("createTitle")} description={t("createHint")}>
+        <Section
+          title={t("createTitle")}
+          description={t("createHint")}
+          anchor="api-keys-create"
+        >
           {!creating ? (
             <button
               type="button"

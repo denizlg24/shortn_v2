@@ -7,6 +7,7 @@ import { Notice } from "@/components/page/notice";
 import { ImportUpload } from "@/components/imports/upload";
 import { serviceContext } from "@/server/context";
 import { importStore } from "@/server/imports";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 export async function generateMetadata() {
   return { title: (await getTranslations("imports"))("new") };
@@ -36,21 +37,23 @@ export default async function NewImportPage({
       description={t("description")}
       width="form"
     >
-      {enabled && can(ctx.actor, "resource.create") ? (
-        <ImportUpload workspace={workspace} kind={kind} />
-      ) : (
-        <>
-          <Notice tone="warning">
-            {t(enabled ? "errors.forbidden" : "disabled")}
-          </Notice>
-          <Link
-            href={`/${workspace}/${kind}`}
-            className={buttonVariants({ variant: "secondary", size: "md" })}
-          >
-            {t("back")}
-          </Link>
-        </>
-      )}
+      <div {...tourAnchor("imports-upload")}>
+        {enabled && can(ctx.actor, "resource.create") ? (
+          <ImportUpload workspace={workspace} kind={kind} />
+        ) : (
+          <>
+            <Notice tone="warning">
+              {t(enabled ? "errors.forbidden" : "disabled")}
+            </Notice>
+            <Link
+              href={`/${workspace}/${kind}`}
+              className={buttonVariants({ variant: "secondary", size: "md" })}
+            >
+              {t("back")}
+            </Link>
+          </>
+        )}
+      </div>
     </Page>
   );
 }

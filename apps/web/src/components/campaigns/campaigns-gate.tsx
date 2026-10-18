@@ -1,6 +1,7 @@
 import type { PlanId } from "@shortn/billing";
 import { buttonVariants } from "@shortn/ui";
 import { getTranslations } from "next-intl/server";
+import { tourAnchor } from "@/lib/tour/anchors";
 import { Page } from "../page/page";
 import { PlanGate } from "../plan-gate";
 
@@ -25,11 +26,18 @@ export async function CampaignsGate({ plan }: { plan: PlanId }) {
       }
       width="form"
     >
-      <p className="text-body font-medium text-pretty">{t("gated.title")}</p>
-      <p className="mt-2 text-small text-pretty text-fg-muted">
-        {t("gated.body")}
-      </p>
-      <PlanGate id={gateId} feature="campaigns" plan={plan} className="mt-5" />
+      <div {...tourAnchor("campaigns-list")}>
+        <p className="text-body font-medium text-pretty">{t("gated.title")}</p>
+        <p className="mt-2 text-small text-pretty text-fg-muted">
+          {t("gated.body")}
+        </p>
+        <PlanGate
+          id={gateId}
+          feature="campaigns"
+          plan={plan}
+          className="mt-5"
+        />
+      </div>
     </Page>
   );
 }
