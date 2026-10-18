@@ -198,20 +198,21 @@ export function billingMailer(deps: {
         });
       else if (notice.kind === "canceled")
         await send({ kind: "canceled", date: date(notice.at) });
-      else await sendPaymentFailed(after.polarSubscriptionId, send);
+      else await sendPaymentFailed(after, send);
     }
   };
 
-  // The state change alone triggers this mail, so a failed lookup degrades
-  // to the plain notice rather than throwing: a retried event finds the
-  // mirror already past due and would never send it.
+  // Every applied event while past due lands here, so both variants go
+  // through the ledger. A failed lookup degrades to the plain notice, keyed
+  // by subscription and period, rather than throwing.
   async function sendPaymentFailed(
-    subscriptionId: string,
+    after: Parameters<NonNullable<BillingDeps["onApplied"]>>[0]["after"],
     send: (
       notice: { kind: "payment_failed"; failure?: PaymentFailure },
       idempotencyKey?: string,
     ) => Promise<void>,
   ) {
+    const subscriptionId = after.polarSubscriptionId;
     let latest: Awaited<ReturnType<typeof paymentFailureFor>>;
     try {
       latest = await paymentFailureFor(deps.polar, subscriptionId);
@@ -221,10 +222,16 @@ export function billingMailer(deps: {
         error,
       );
     }
-    if (!latest) return send({ kind: "payment_failed" });
+    const at = deps.now ? deps.now() : new Date();
+    if (!latest) {
+      const key = `payment-failed:${subscriptionId}:${after.currentPeriodEnd.toISOString()}`;
+      return sendOnce(deps.ledger, key, at, () =>
+        send({ kind: "payment_failed" }, key),
+      );
+    }
     const key = `payment-failed:${latest.orderId}`;
     const failure = latest.failure;
-    await sendOnce(deps.ledger, key, deps.now ? deps.now() : new Date(), () =>
+    await sendOnce(deps.ledger, key, at, () =>
       send({ kind: "payment_failed", failure }, key),
     );
   }
