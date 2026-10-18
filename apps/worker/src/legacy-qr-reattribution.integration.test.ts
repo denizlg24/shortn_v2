@@ -437,6 +437,29 @@ interface Fixture {
     );
   });
 
+  test("a sweep moves a straggler counted after the transfer to the QR whole", async () => {
+    const { db, ids } = await fresh();
+    const first = await applyReattribution(
+      options(db, async (phase) => {
+        if (phase === "converted")
+          await writeBatch(db, [hit(ids.affectedLink, "bkA")], {
+            redelivered: false,
+            ipSecret,
+          });
+      }),
+    );
+    const total = async (name: string, id: ObjectId) =>
+      (await db.collection(name).findOne({ _id: id }))?.clicks.total;
+    expect(first.verify?.ok).toBe(false);
+    expect(await total(names.qr_codes, ids.affectedQr)).toBe(6);
+    expect(await total(names.links, ids.affectedLink)).toBe(1);
+
+    const sweep = await applyReattribution(options(db));
+    expect(sweep.plan?.links.map((link) => link.sweep)).toEqual([true]);
+    expect(await total(names.qr_codes, ids.affectedQr)).toBe(7);
+    expect(await total(names.links, ids.affectedLink)).toBe(0);
+  });
+
   test("live traffic mid-run is attributed correctly and late stragglers are swept", async () => {
     const { db, ids } = await fresh();
     const inject = async (phase: Phase) => {

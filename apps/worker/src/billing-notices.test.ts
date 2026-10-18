@@ -25,8 +25,11 @@ test("paid starts and plan changes leave the mail to their order's receipt", () 
 test("replaying the same state sends nothing", () => {
   const state = mirror({ cancelAtPeriodEnd: true });
   expect(noticesFor(state, state)).toEqual([]);
+});
+
+test("a past-due subscription keeps asking for the failed-payment mail; the ledger sends it once", () => {
   const pastDue = mirror({ status: "past_due" });
-  expect(noticesFor(pastDue, pastDue)).toEqual([]);
+  expect(noticesFor(pastDue, pastDue)).toEqual([{ kind: "payment_failed" }]);
 });
 
 test("cancellation, scheduled downgrade and failed payment", () => {

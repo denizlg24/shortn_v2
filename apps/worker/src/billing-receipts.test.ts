@@ -437,7 +437,11 @@ describe("failed payments", () => {
     await transition();
     expect(sent).toHaveLength(1);
     expect(sent[0]?.notice).toEqual({ kind: "payment_failed" });
-    expect(sent[0]?.idempotencyKey).toBeUndefined();
+    // Keyed by subscription and period, so later events while past due
+    // don't resend it.
+    expect(sent[0]?.idempotencyKey).toMatch(/^payment-failed:sub_late:/);
+    await transition();
+    expect(sent).toHaveLength(1);
   });
 });
 

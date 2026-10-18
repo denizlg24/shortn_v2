@@ -44,8 +44,9 @@ for (let i = 0; i < args.length; i++) {
       throw new Error(`${arg} requires a run id (lqr-…)`);
   } else if (arg === "--settle-ms" || arg === "--batch-size") {
     const value = Number(args[++i]);
-    if (!Number.isInteger(value) || value < 0)
-      throw new Error(`${arg} requires a nonnegative integer`);
+    const min = arg === "--batch-size" ? 1 : 0;
+    if (!Number.isInteger(value) || value < min)
+      throw new Error(`${arg} requires an integer of at least ${min}`);
     if (arg === "--settle-ms") settleMs = value;
     else batchSize = value;
   } else throw new Error(`Unknown argument: ${arg}`);

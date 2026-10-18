@@ -21,8 +21,10 @@ const paid = (mirror: Mirror | null) =>
 export function noticesFor(before: Mirror | null, after: Mirror): Notice[] {
   if (!paid(after)) return [];
   const notices: Notice[] = [];
-  if (after.status === "past_due" && before?.status !== "past_due")
-    notices.push({ kind: "payment_failed" });
+  // Asked for on every applied event while past due, not only on the
+  // transition: the billing mail ledger sends it once, and a retried event
+  // after a failed send would otherwise never deliver it.
+  if (after.status === "past_due") notices.push({ kind: "payment_failed" });
   if (after.cancelAtPeriodEnd && !before?.cancelAtPeriodEnd)
     notices.push({
       kind: "canceled",

@@ -2793,10 +2793,10 @@ All implementation slices 6.1–6.10 are merged to `staging` and accepted there.
   - the real redirect loader (`mongoLinkLoader`) returns the QR, not `untracked`, and legacy's `urlId` lookup finds exactly that QR.
 - **Rollback** (`--rollback <runId>`, newest run first; the script refuses otherwise) restores `qrCodeId` with compare-and-set, reverts the events by their `m.reattributedBy` marker (also meta-only), restores row `type` and `urlCode` from the archive, and applies the inverse counter deltas. `lastClick` is restored only where the run's value is still in place. Rollups are then recomputed. On a database without traffic the result is identical to the original (covered by a test); scans recorded correctly after the apply stay scans.
 
-Operator commands, run from a checkout of this branch. Production is reachable from the laptop at `mongodb.denizlg24.com:27018` (resource credentials, `directConnection=true`). `MONGODB_DB` is the production worker target's value. `--yes` is required for any non-loopback host, including dry runs.
+Operator commands, run from a checkout of this branch. Use the production MongoDB endpoint from the operator secret store (resource credentials, `directConnection=true`). `MONGODB_DB` is the production worker target's value. `--yes` is required for any non-loopback host, including dry runs.
 
 ```sh
-export MONGODB_URL='mongodb://<user>:<password>@mongodb.denizlg24.com:27018/?authSource=<db>&directConnection=true'
+export MONGODB_URL='mongodb://<user>:<password>@<prod-mongo-host>:<port>/?authSource=<db>&directConnection=true'
 export MONGODB_DB='<production database>'
 
 # 1. Backup of the touched collections (in addition to the owner's own backups).

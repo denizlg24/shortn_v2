@@ -572,10 +572,14 @@ export function predictedAfter(link: PlannedLink) {
     clickEvents: 0,
     scanEvents: before.scanEvents + before.clickEvents,
     linkTotal: 0,
-    qrTotal: Math.max(before.qrTotal, before.linkTotal),
+    qrTotal: link.sweep
+      ? before.qrTotal + before.linkTotal
+      : Math.max(before.qrTotal, before.linkTotal),
     linkLegacyTotal: moveLegacy ? 0 : before.linkLegacyTotal,
     qrLegacyTotal: moveLegacy
-      ? Math.max(before.qrLegacyTotal ?? 0, before.linkLegacyTotal ?? 0)
+      ? link.sweep
+        ? (before.qrLegacyTotal ?? 0) + (before.linkLegacyTotal ?? 0)
+        : Math.max(before.qrLegacyTotal ?? 0, before.linkLegacyTotal ?? 0)
       : before.qrLegacyTotal,
   };
 }
@@ -843,10 +847,16 @@ async function transferCounters(ctx: Context, run: RunDoc, link: RunLink) {
     const raisesQrLast =
       lastClick !== undefined &&
       !(qrLast instanceof Date && qrLast >= lastClick);
-    const qrClicks = Math.max(0, clicks - link.before.qrTotal);
-    const qrLegacyTotal = legacyTotal
-      ? Math.max(0, legacyTotal - (link.before.qrLegacyTotal ?? 0))
-      : 0;
+    // On a sweep the earlier run already moved the full count, so whatever
+    // is on the link now is new hits and moves over whole.
+    const qrClicks = link.sweep
+      ? clicks
+      : Math.max(0, clicks - link.before.qrTotal);
+    const qrLegacyTotal = !legacyTotal
+      ? 0
+      : link.sweep
+        ? legacyTotal
+        : Math.max(0, legacyTotal - (link.before.qrLegacyTotal ?? 0));
     const result: Transfer = {
       clicks,
       legacyTotal,
@@ -962,13 +972,20 @@ async function archiveOriginals(ctx: Context, run: RunDoc, links: RunLink[]) {
   }
 }
 
+// Validated before the lease is taken: a throw after acquiring it would
+// leave the heartbeat holding the migration lock.
+function batchSizeOf(options: ReattributionOptions) {
+  const batchSize = options.batchSize ?? 1000;
+  if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 5000)
+    throw new Error("batchSize must be 1–5000");
+  return batchSize;
+}
+
 function context(
   options: ReattributionOptions,
   lease: MigrationLease,
 ): Context {
-  const batchSize = options.batchSize ?? 1000;
-  if (!Number.isInteger(batchSize) || batchSize < 1 || batchSize > 5000)
-    throw new Error("batchSize must be 1–5000");
+  const batchSize = batchSizeOf(options);
   return {
     client: options.client,
     db: options.db,
@@ -988,6 +1005,7 @@ export interface ApplyResult {
 export async function applyReattribution(
   options: ReattributionOptions,
 ): Promise<ApplyResult> {
+  batchSizeOf(options);
   const lease = await acquireMigrationLease(
     options.client,
     options.db,
@@ -1589,6 +1607,7 @@ export async function rollbackReattribution(
 ): Promise<{ run: RunDoc; verify: VerifyResult }> {
   if (!isRunId(options.runId))
     throw new Error(`Invalid run id: ${options.runId}`);
+  batchSizeOf(options);
   const lease = await acquireMigrationLease(
     options.client,
     options.db,
@@ -1732,7 +1751,7 @@ export function formatPlan(plan: Plan, samples: string[], runs: RunDoc[]) {
     "",
     "Changes per collection:",
     `  ${names.links}: ${plan.links.filter((link) => !link.sweep).length} qrCodeId backfills; clicks.total moved off ${plan.links.filter((link) => link.before.linkTotal).length} links (${sum((link) => link.before.linkTotal)} hits); stats recomputed for ${plan.links.length}`,
-    `  ${names.qr_codes}: clicks.total +${sum((link) => Math.max(0, link.before.linkTotal - link.before.qrTotal))} across ${plan.links.length}; stats.legacyTotal moved for ${legacyMoves.length} (+${legacyMoves.reduce((total, link) => total + Math.max(0, (link.before.linkLegacyTotal ?? 0) - (link.before.qrLegacyTotal ?? 0)), 0)})`,
+    `  ${names.qr_codes}: clicks.total +${sum((link) => (link.sweep ? link.before.linkTotal : Math.max(0, link.before.linkTotal - link.before.qrTotal)))} across ${plan.links.length}; stats.legacyTotal moved for ${legacyMoves.length} (+${legacyMoves.reduce((total, link) => total + (link.sweep ? (link.before.linkLegacyTotal ?? 0) : Math.max(0, (link.before.linkLegacyTotal ?? 0) - (link.before.qrLegacyTotal ?? 0))), 0)})`,
     `  ${names.clicks}: ${sum((link) => link.before.clickRows)} rows click → scan (urlCode → qrCodeId)`,
     `  ${names.click_events}: ${sum((link) => link.before.clickEvents)} events click → scan (${sum((link) => link.before.legacyClickEvents)} legacy-copied, ${sum((link) => link.before.liveClickEvents)} live)`,
     `  ${names.click_rollups}: ${sum((link) => link.before.rollups)} docs recomputed`,

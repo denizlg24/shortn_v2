@@ -183,7 +183,23 @@ const mongoUrl = process.env.MONGO_TEST_URL;
         ? noticesFor(outcome.before, outcome.after)
         : [],
     );
-    expect(notices).toEqual([{ kind: "payment_failed" }]);
+    // Both outcomes ask for the mail; the ledger is what sends it once.
+    expect(notices.length).toBeGreaterThan(0);
+    expect(notices.every((notice) => notice.kind === "payment_failed")).toBe(
+      true,
+    );
+    const ledger = mongoMailLedger(db);
+    const sent: string[] = [];
+    for (const notice of notices)
+      await sendOnce(
+        ledger,
+        "payment-failed:order_dup",
+        new Date(),
+        async () => {
+          sent.push(notice.kind);
+        },
+      );
+    expect(sent).toEqual(["payment_failed"]);
     expect(
       await collection(db, "subscriptions").countDocuments({
         polarSubscriptionId: state.current.id,
