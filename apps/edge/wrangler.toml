@@ -10,6 +10,11 @@ compatibility_date = "2026-09-01"
 routes = [
   { pattern = "shortn.at/*", zone_name = "denizlg24.com" },
   { pattern = "api.shortn.at/*", zone_name = "denizlg24.com" },
+  # Everything proxied in the shortn.at zone: {handle}.shortn.at (a proxied `*`
+  # AAAA 100:: record) and customer domains (Cloudflare for SaaS custom
+  # hostnames on this zone, fallback cname.shortn.at). Reserved subdomains
+  # pass through; customer hosts go to the redirect origin.
+  { pattern = "*/*", zone_name = "shortn.at" },
 ]
 
 [vars]
@@ -23,10 +28,11 @@ CANARY_PERCENT = "100"
 WEB_ORIGIN = "https://app.shortn.at"
 DASHBOARD_HANDOFF = "1"
 MARKETING_ENABLED = "1"
-# P5: new bio renderer through the edge. /b/{slug} renders in place until the
-# handle subdomains are live (BIO_SUBDOMAINS, BIO_LEGACY_REDIRECTS).
+# P5: new bio renderer, {handle}.shortn.at subdomains, and /b/{slug} 301s to
+# the handle (live 2026-10-18).
 BIO_DELIVERY_ENABLED = "1"
-BIO_LEGACY_REDIRECTS = "0"
+BIO_SUBDOMAINS = "1"
+BIO_LEGACY_REDIRECTS = "1"
 
 # Cloudflare-side limit on the demo shortener and contact posts, per visitor
 # address, in front of the app's own per-visitor and daily limits.
