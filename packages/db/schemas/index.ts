@@ -291,6 +291,9 @@ export const clickEventSchema = z.object({
     domain: text,
     key: text,
     legacyCode: text.optional(),
+    // Run id of the legacy QR reattribution that turned this click into a
+    // scan; its rollback selects events by this meta field.
+    reattributedBy: text.optional(),
   }),
   country: text.optional(),
   region: text.optional(),
