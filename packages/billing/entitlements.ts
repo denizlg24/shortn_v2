@@ -90,10 +90,3 @@ export const hasFeature = (
   entitlements: Pick<Entitlements, "features">,
   feature: Feature,
 ) => entitlements.features.includes(feature);
-
-export function minimumPlanFor(feature: Feature): PlanId {
-  const plan = (Object.keys(plans) as PlanId[]).find((id) =>
-    plans[id].features.includes(feature),
-  );
-  return plan ?? "enterprise";
-}
