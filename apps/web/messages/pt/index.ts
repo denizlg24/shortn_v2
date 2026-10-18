@@ -14,6 +14,8 @@ import placeholder from "./placeholder.json";
 import links from "./links.json";
 import analytics from "./analytics.json";
 import gate from "./gate.json";
+import tour from "./tour.json";
+import changelog from "./changelog.json";
 import settings from "./settings.json";
 import billing from "./billing.json";
 import invite from "./invite.json";
@@ -57,6 +59,8 @@ export default {
   links,
   analytics,
   gate,
+  tour,
+  changelog,
   settings,
   billing,
   invite,

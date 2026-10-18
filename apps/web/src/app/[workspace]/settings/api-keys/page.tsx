@@ -7,6 +7,9 @@ import { Page } from "@/components/page/page";
 import { ApiKeyManager } from "@/components/settings/api-keys/key-manager";
 import { serviceContext } from "@/server/context";
 import { env } from "@/server/env";
+import { gateOf } from "@/lib/plan-features";
+import { featureAccess } from "@/server/plan";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("settings.apiKeys");
@@ -18,11 +21,12 @@ export default async function ApiKeysPage({
   searchParams,
 }: PageProps<"/[workspace]/settings/api-keys">) {
   const { workspace } = await params;
-  const [ctx, t, settings, query] = await Promise.all([
+  const [ctx, t, settings, query, api] = await Promise.all([
     serviceContext(workspace),
     getTranslations("settings.apiKeys"),
     getTranslations("settings"),
     searchParams,
+    featureAccess(workspace, "api"),
   ]);
   const base = `/${workspace}/settings/api-keys`,
     config = env();
@@ -56,7 +60,12 @@ export default async function ApiKeysPage({
       description={t("description")}
     >
       {!manage ? (
-        <p className="text-small text-fg-muted">{t("adminOnly")}</p>
+        <p
+          className="text-small text-fg-muted"
+          {...tourAnchor("api-keys-create")}
+        >
+          {t("adminOnly")}
+        </p>
       ) : result && !result.ok ? (
         <p role="alert" className="text-small text-danger">
           {t("errors.invalid_input")}{" "}
@@ -70,6 +79,7 @@ export default async function ApiKeysPage({
             workspace={workspace}
             items={items}
             enabled={enabled}
+            gate={gateOf(api)}
             today={now.toISOString().slice(0, 10)}
           />
           <nav

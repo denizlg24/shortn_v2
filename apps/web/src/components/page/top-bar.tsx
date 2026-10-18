@@ -5,6 +5,7 @@ import { ChevronRight, Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { tourAnchor } from "@/lib/tour/anchors";
 import { useShell } from "../shell/shell-context";
 
 export interface Crumb {
@@ -25,6 +26,7 @@ export function TopBar({ crumbs }: { crumbs: Crumb[] }) {
         className="-ml-2 md:hidden"
         aria-label={nav("openMenu")}
         onClick={openDrawer}
+        {...tourAnchor("help-menu")}
       >
         <Menu aria-hidden />
       </Button>

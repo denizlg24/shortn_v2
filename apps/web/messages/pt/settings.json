@@ -447,7 +447,10 @@
     "assignHint": "O endereço anterior deixa de funcionar. A chave e as estatísticas ficam com o link.",
     "createLink": "Criar um link",
     "destination": "URL de destino",
-    "key": "Chave (opcional)"
+    "key": "Chave (opcional)",
+    "addonPlan": "Os domínios personalizados estão incluídos a partir do plano {plan}. Cada domínio precisa ainda do seu próprio extra de domínio.",
+    "addonNeeded": "Cada domínio personalizado precisa do seu próprio extra de domínio.",
+    "addonFull": "{count, plural, one {O seu extra de domínio já está em uso.} other {Os # extras de domínio já estão em uso.}} Cada domínio adicional precisa de outro extra."
   },
   "apiKeys": {
     "title": "Chaves de API",
@@ -521,7 +524,8 @@
       "failed": "Não foi possível guardar a chave. Verifique a ligação e tente novamente.",
       "invalid_name": "Introduza um nome entre 1 e 100 caracteres.",
       "invalid_scopes": "Selecione pelo menos uma permissão.",
-      "invalid_ips": "Use endereços IPv4/IPv6 ou CIDRs válidos, até 100 entradas."
+      "invalid_ips": "Use endereços IPv4/IPv6 ou CIDRs válidos, até 100 entradas.",
+      "feature_required": "As chaves de API não estão incluídas no plano deste espaço de trabalho. Veja em Faturação os planos com acesso à API."
     }
   },
   "webhooks": {

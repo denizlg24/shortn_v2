@@ -1,0 +1,121 @@
+{
+  "label": "Product tour",
+  "progress": "{current} of {total}",
+  "next": "Next",
+  "back": "Back",
+  "done": "Finish",
+  "skip": "Skip tour",
+  "learnMore": "Learn more",
+  "newTab": "(opens in a new tab)",
+  "upgrade": "See plans",
+  "badges": {
+    "planAddon": "{plan} + add-on",
+    "addon": "Add-on"
+  },
+  "locked": {
+    "plan": "Not included in the {current} plan. It comes with {plan} and up.",
+    "planAddon": "Not included in the {current} plan. It needs {plan} or higher, plus a domain add-on.",
+    "addon": "Your plan supports custom domains once you add a domain add-on."
+  },
+  "fallback": {
+    "hidden": "This part isn't on screen right now, so here's what it does.",
+    "link": "There are no links in this workspace yet. Create one and its pages work as described.",
+    "qr": "There are no QR codes in this workspace yet. Create one to design it.",
+    "bio": "There are no bio pages in this workspace yet. Create one to open the editor."
+  },
+  "menu": {
+    "start": "Take the tour",
+    "resume": "Resume the tour ({current} of {total})",
+    "restart": "Start the tour over"
+  },
+  "steps": {
+    "links": {
+      "title": "Your link library",
+      "body": "Every short link in this workspace, newest first, 25 to a page. Archived and deleted links have their own tabs, and deleted ones can be restored for 30 days."
+    },
+    "filters": {
+      "title": "Find links and act in bulk",
+      "body": "Search by key, destination or title, then narrow by tag, status and date. Tick links across pages and filters to archive, tag, move to a campaign or delete up to 500 at once."
+    },
+    "newLink": {
+      "title": "Create a link",
+      "body": "Open the full form here, or paste a URL anywhere on this page to start one. The new short link is copied for you."
+    },
+    "customKey": {
+      "title": "Choose the key",
+      "body": "Pick the part after the slash, like shortn.at/spring-sale. If you rename it later, the old key keeps redirecting."
+    },
+    "password": {
+      "title": "Protect a link",
+      "body": "Ask visitors for a password before they're redirected, with an optional hint on the password page."
+    },
+    "rules": {
+      "title": "Rules, expiry and app links",
+      "body": "Schedule when a link works, cap its visits, route visitors by country or device, split traffic between destinations, open apps directly and set the social preview."
+    },
+    "linkPages": {
+      "title": "Everything about one link",
+      "body": "Each link has its own pages: overview, analytics, QR code, UTM variants and edit. The overview also shows destination health from weekly checks."
+    },
+    "qr": {
+      "title": "QR codes",
+      "body": "Every code has its own short link, so you can change where it goes after printing. Scans are counted separately from clicks."
+    },
+    "qrDesign": {
+      "title": "Design for print",
+      "body": "Set colours, shapes, a frame and a caption while a live check confirms the code still scans. Export SVG, PNG or PDF at the size you need from the code's page."
+    },
+    "qrLogo": {
+      "title": "Add your logo",
+      "body": "Place your logo in the centre of the code. Error correction goes up so it stays readable."
+    },
+    "bio": {
+      "title": "Bio pages",
+      "body": "Each page lives at its own handle.shortn.at address. Add sections, pick a theme and drag sections into order; edits stay in a draft until you publish."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "body": "Clicks and scans across the workspace, compared with the previous period. Every filter lives in the address, so you can bookmark or share a view."
+    },
+    "breakdowns": {
+      "title": "Breakdowns and exports",
+      "body": "See where visits come from by country, referrer, device and UTM tag, filter by any row, and export the raw events as CSV."
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "body": "Group links under a campaign, build UTM-tagged links for each channel and read their results together."
+    },
+    "imports": {
+      "title": "Imports and exports",
+      "body": "Bring in links or QR codes from a CSV file or a pasted list, with a dry run before anything is created. Link, analytics and workspace exports also run in the background."
+    },
+    "domains": {
+      "title": "Custom domains",
+      "body": "Use your own domain for links or a bio page. Each domain needs its own custom-domain add-on."
+    },
+    "members": {
+      "title": "Members and roles",
+      "body": "Invite people as admins, members or viewers. Pending invites count towards your seats."
+    },
+    "apiKeys": {
+      "title": "API keys",
+      "body": "Connect your own systems to the REST API with keys scoped to what they need. AI assistants can connect through the MCP server."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "body": "Receive an event at your endpoint when links and other resources change, with delivery history and redelivery."
+    },
+    "security": {
+      "title": "Security",
+      "body": "Turn on two-factor authentication here and add passkeys under Sign-in methods. Enterprise workspaces can also set up workplace SSO."
+    },
+    "billing": {
+      "title": "Billing",
+      "body": "Your plan, usage and invoices. Upgrades apply right away and are prorated; downgrades take effect at the end of the period."
+    },
+    "finish": {
+      "title": "That's the tour",
+      "body": "You can take it again, or see what's new, from the help menu at any time."
+    }
+  }
+}

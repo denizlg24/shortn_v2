@@ -176,6 +176,7 @@ export function TwoFactorSettings({
   return (
     <SettingsSection
       id="two-factor"
+      anchor="security-two-factor"
       title={t("title")}
       description={t("description")}
     >

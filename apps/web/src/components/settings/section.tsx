@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useId, type ReactNode } from "react";
+import { tourAnchor, type TourAnchor } from "@/lib/tour/anchors";
 
 /** One settings page: its heading, then sections split by hairlines. */
 export function SettingsPage({
@@ -42,10 +43,12 @@ export function SettingsSection({
   aside,
   tone = "default",
   wide = false,
+  anchor,
   children,
 }: {
   /** Fragment target, e.g. `#plans`. */
   id?: string;
+  anchor?: TourAnchor;
   title: ReactNode;
   description?: ReactNode;
   /** Rendered at the end of the heading row, e.g. a section-level action. */
@@ -61,6 +64,7 @@ export function SettingsSection({
       id={id}
       aria-labelledby={headingId}
       className="scroll-mt-page-header"
+      {...(anchor ? tourAnchor(anchor) : {})}
     >
       <div className={cn("flex flex-col gap-5", !wide && "max-w-140")}>
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">

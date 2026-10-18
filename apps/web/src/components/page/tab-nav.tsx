@@ -3,6 +3,7 @@
 import { cn } from "@shortn/ui";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { tourAnchor, type TourAnchor } from "@/lib/tour/anchors";
 
 export interface Tab {
   label: string;
@@ -12,11 +13,20 @@ export interface Tab {
 }
 
 // Detail pages split into one URL per tab (17: owner decision).
-export function TabNav({ tabs, label }: { tabs: Tab[]; label: string }) {
+export function TabNav({
+  tabs,
+  label,
+  anchor,
+}: {
+  tabs: Tab[];
+  label: string;
+  anchor?: TourAnchor;
+}) {
   const pathname = usePathname();
   return (
     <nav
       aria-label={label}
+      {...(anchor ? tourAnchor(anchor) : {})}
       className="-mb-px overflow-x-auto [scrollbar-width:none]"
     >
       <ul className="flex gap-5">

@@ -5,6 +5,7 @@ import type { QrDesign } from "@shortn/core";
 import { cn, Input } from "@shortn/ui";
 import { useTranslations } from "next-intl";
 import { useCallback, useId, useMemo, useState, type ReactNode } from "react";
+import { tourAnchor } from "@/lib/tour/anchors";
 import { ColorField } from "../editor/color-field";
 import { ChoiceField } from "../editor/option-group";
 import { FormField } from "../page/form";
@@ -155,6 +156,7 @@ export function QrDesignPreview({
   return (
     <aside
       aria-label={t("preview.label")}
+      {...tourAnchor("qr-preview")}
       className="flex flex-col items-center gap-6 border-y border-line bg-bg-subtle px-5 py-8 lg:border"
     >
       <figure className="flex w-full flex-col items-center gap-2">
@@ -474,7 +476,7 @@ function LogoSection({
   // A downgraded plan keeps the logo it has and may still remove it.
   const locked = gate !== null;
   return (
-    <Section title={t("title")} description={t("description")}>
+    <Section title={t("title")} description={t("description")} anchor="qr-logo">
       <div className="flex flex-col gap-5">
         {gate ? (
           hasLogo ? (

@@ -1,22 +1,10 @@
 "use client";
 
-import {
-  cn,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  Tooltip,
-} from "@shortn/ui";
-import {
-  ArrowUpRight,
-  CircleQuestionMark,
-  Keyboard,
-  LifeBuoy,
-} from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { cn, Tooltip } from "@shortn/ui";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { AccountMenu } from "./account-menu";
+import { HelpMenu } from "./help-menu";
 import { primaryNav, secondaryNav, sectionHref, type NavItem } from "./nav";
 import { useShell } from "./shell-context";
 import { UsageSummary } from "./usage-summary";
@@ -63,7 +51,7 @@ export function Sidebar({
       <div className="mt-auto flex flex-col gap-3 px-2 pb-3 xl:px-3">
         <UsageSummary items={usage} className="hidden px-2 xl:flex" />
         <div className="flex flex-col gap-px border-t border-line pt-2 max-xl:items-center">
-          <HelpMenu />
+          <HelpMenu layout="rail" />
           <AccountMenu layout="rail" />
         </div>
       </div>
@@ -107,52 +95,5 @@ function NavLink({ item }: { item: NavItem }) {
         <span className="truncate max-xl:sr-only">{label}</span>
       </Link>
     </Tooltip>
-  );
-}
-
-function HelpMenu() {
-  const t = useTranslations("shell.help");
-  const locale = useLocale();
-  const { openShortcuts } = useShell();
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          aria-label={t("label")}
-          className="flex h-8 w-full cursor-pointer items-center gap-2.5 rounded-control px-2 text-small text-fg-muted hover:bg-bg-muted hover:text-fg aria-expanded:bg-bg-muted max-xl:size-8 max-xl:justify-center max-xl:px-0"
-        >
-          <CircleQuestionMark
-            aria-hidden
-            className="size-4 shrink-0 text-fg-subtle"
-          />
-          <span className="max-xl:sr-only">{t("label")}</span>
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="top" className="w-60">
-        <DropdownMenuItem
-          icon={<LifeBuoy aria-hidden />}
-          onSelect={() =>
-            window.open(
-              `https://shortn.at/${locale}/help`,
-              "_blank",
-              "noopener,noreferrer",
-            )
-          }
-        >
-          <span className="inline-flex items-center gap-1">
-            {t("center")}
-            <ArrowUpRight aria-hidden className="size-3.5 text-fg-subtle" />
-          </span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          icon={<Keyboard aria-hidden />}
-          shortcut="?"
-          onSelect={openShortcuts}
-        >
-          {t("shortcuts")}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }

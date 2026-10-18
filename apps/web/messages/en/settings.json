@@ -447,7 +447,10 @@
     "assignHint": "The previous address stops working. The key and analytics stay with the link.",
     "createLink": "Create a link",
     "destination": "Destination URL",
-    "key": "Key (optional)"
+    "key": "Key (optional)",
+    "addonPlan": "Custom domains come with the {plan} plan and up. Each domain also needs its own domain add-on.",
+    "addonNeeded": "Each custom domain needs its own domain add-on.",
+    "addonFull": "{count, plural, one {Your domain add-on is in use.} other {All # domain add-ons are in use.}} Each extra domain needs another add-on."
   },
   "apiKeys": {
     "title": "API keys",
@@ -521,7 +524,8 @@
       "failed": "The key could not be saved. Check your connection and try again.",
       "invalid_name": "Enter a name between 1 and 100 characters.",
       "invalid_scopes": "Select at least one permission.",
-      "invalid_ips": "Use valid IPv4/IPv6 addresses or CIDRs, up to 100 entries."
+      "invalid_ips": "Use valid IPv4/IPv6 addresses or CIDRs, up to 100 entries.",
+      "feature_required": "API keys aren't included in this workspace's plan. See Billing for plans with API access."
     }
   },
   "webhooks": {

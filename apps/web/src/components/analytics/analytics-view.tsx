@@ -17,6 +17,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useId, useMemo, type ReactNode } from "react";
 import { useIntlLocale } from "@/lib/intl-locale";
 import type { AnalyticsResult } from "@/server/actions/analytics";
+import { tourAnchor } from "@/lib/tour/anchors";
 import { GateNote, UpgradeLink } from "../plan-gate";
 import { PageHeader } from "../shell/page-header";
 import {
@@ -92,6 +93,7 @@ export function AnalyticsView({
   const searchParams = useSearchParams();
   const chartHeadingId = useId();
   const gateHeadingId = useId();
+  const gateNoteId = useId();
 
   const query = useMemo(() => parseQuery(searchParams), [searchParams]);
   const filterable = breakdownGate === null;
@@ -134,15 +136,17 @@ export function AnalyticsView({
       : null;
 
   const exportGated = csvExport?.gate ?? null;
-  const exportControl =
-    csvExport && (filterable || !exportGated) ? (
-      <ExportButton
-        workspace={workspace}
-        query={query}
-        params={csvExport.params}
-        gate={exportGated}
-      />
-    ) : null;
+  // Without breakdowns, the gate section below already names CSV export, so
+  // the disabled button points there instead of repeating the note.
+  const exportControl = csvExport ? (
+    <ExportButton
+      workspace={workspace}
+      query={query}
+      params={csvExport.params}
+      gate={exportGated}
+      {...(!filterable && exportGated ? { describedBy: gateNoteId } : {})}
+    />
+  ) : null;
 
   const body = (
     <>
@@ -216,7 +220,11 @@ export function AnalyticsView({
             />
           )}
 
-          <section aria-labelledby={chartHeadingId} className="min-w-0">
+          <section
+            aria-labelledby={chartHeadingId}
+            className="min-w-0"
+            {...tourAnchor("analytics-chart")}
+          >
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
               <h2 id={chartHeadingId} className="text-small font-medium">
                 {t("series")}
@@ -243,7 +251,10 @@ export function AnalyticsView({
           </section>
 
           {slugs.length ? (
-            <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
+            <div
+              className="grid gap-x-10 gap-y-8 md:grid-cols-2"
+              {...(breakdownGate ? {} : tourAnchor("analytics-breakdowns"))}
+            >
               {slugs.map((slug) => {
                 const dimension = breakdownSlugs[slug];
                 const filter = filterFor(dimension);
@@ -273,11 +284,12 @@ export function AnalyticsView({
             <section
               aria-labelledby={gateHeadingId}
               className="border-t border-line pt-5"
+              {...tourAnchor("analytics-breakdowns")}
             >
               <h2 id={gateHeadingId} className="mb-2 text-small font-medium">
                 {t("gated.title")}
               </h2>
-              <GateNote>
+              <GateNote id={gateNoteId}>
                 {t(
                   csvExport && exportGated ? "gated.withExport" : "gated.body",
                   { plan: tGate(`plans.${breakdownGate}`) },

@@ -1,5 +1,6 @@
 "use client";
 
+import type { PlanId } from "@shortn/billing";
 import { apiScopes, type ApiScope } from "@shortn/core/api-scopes";
 import { buttonVariants, cn } from "@shortn/ui";
 import { useFormatter, useTranslations } from "next-intl";
@@ -8,6 +9,7 @@ import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { CopyButton } from "@/components/page/copy-button";
 import { FormField, inputClass } from "@/components/page/form";
 import { Section } from "@/components/page/page";
+import { PlanGate } from "@/components/plan-gate";
 import {
   createApiKeyAction,
   revokeApiKeyAction,
@@ -43,11 +45,14 @@ export function ApiKeyManager({
   workspace,
   items,
   enabled,
+  gate,
   today,
 }: {
   workspace: string;
   items: ApiKeyListItem[];
   enabled: boolean;
+  /** Cheapest plan with API access, or null when this workspace has it. */
+  gate: PlanId | null;
   today: string;
 }) {
   const t = useTranslations("settings.apiKeys"),
@@ -88,7 +93,7 @@ export function ApiKeyManager({
         if (!result.ok) {
           setError({
             message: t(
-              `errors.${result.error === "invalid_expiry" ? "invalid_expiry" : result.error === "invalid_input" ? (result.field === "name" ? "invalid_name" : result.field === "scopes" ? "invalid_scopes" : result.field === "ipAllowlist" ? "invalid_ips" : "invalid_input") : result.error === "forbidden" ? "forbidden" : result.error === "disabled" ? "disabled" : result.error === "not_found" ? "not_found" : "failed"}`,
+              `errors.${result.error === "invalid_expiry" ? "invalid_expiry" : result.error === "invalid_input" ? (result.field === "name" ? "invalid_name" : result.field === "scopes" ? "invalid_scopes" : result.field === "ipAllowlist" ? "invalid_ips" : "invalid_input") : result.error === "forbidden" ? "forbidden" : result.error === "disabled" ? "disabled" : result.error === "feature_required" ? "feature_required" : result.error === "not_found" ? "not_found" : "failed"}`,
             ),
             ...(result.field ? { field: result.field } : {}),
           });
@@ -172,8 +177,31 @@ export function ApiKeyManager({
       {!enabled ? (
         <p className="mb-6 text-small text-fg-muted">{t("disabled")}</p>
       ) : null}
-      {!secret && enabled ? (
-        <Section title={t("createTitle")} description={t("createHint")}>
+      {!secret && enabled && gate ? (
+        <Section
+          title={t("createTitle")}
+          description={t("createHint")}
+          anchor="api-keys-create"
+        >
+          <div className="flex flex-col items-start gap-3">
+            <button
+              type="button"
+              disabled
+              aria-describedby={`${id}-gate`}
+              className={buttonVariants({ variant: "primary", size: "md" })}
+            >
+              {t("create")}
+            </button>
+            <PlanGate id={`${id}-gate`} feature="api" plan={gate} />
+          </div>
+        </Section>
+      ) : null}
+      {!secret && enabled && !gate ? (
+        <Section
+          title={t("createTitle")}
+          description={t("createHint")}
+          anchor="api-keys-create"
+        >
           {!creating ? (
             <button
               type="button"

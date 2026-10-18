@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { tourAnchor, type TourAnchor } from "@/lib/tour/anchors";
 import { TabNav, type Tab } from "./tab-nav";
 import { TopBar, type Crumb } from "./top-bar";
 
@@ -11,6 +12,7 @@ export function Page({
   actions,
   tabs,
   tabsLabel,
+  tabsAnchor,
   width = "wide",
   children,
 }: {
@@ -20,6 +22,7 @@ export function Page({
   actions?: ReactNode;
   tabs?: Tab[];
   tabsLabel?: string;
+  tabsAnchor?: TourAnchor;
   width?: "wide" | "form";
   children: ReactNode;
 }) {
@@ -44,7 +47,13 @@ export function Page({
             </div>
           ) : null}
         </div>
-        {tabs ? <TabNav tabs={tabs} label={tabsLabel ?? ""} /> : null}
+        {tabs ? (
+          <TabNav
+            tabs={tabs}
+            label={tabsLabel ?? ""}
+            {...(tabsAnchor ? { anchor: tabsAnchor } : {})}
+          />
+        ) : null}
       </div>
       <div className="flex-1 px-gutter pt-6 pb-16">
         <div className={width === "form" ? "max-w-[560px]" : ""}>
@@ -60,15 +69,20 @@ export function Section({
   title,
   description,
   aside,
+  anchor,
   children,
 }: {
   title: ReactNode;
   description?: ReactNode;
   aside?: ReactNode;
+  anchor?: TourAnchor;
   children: ReactNode;
 }) {
   return (
-    <section className="border-b border-line py-6 first:pt-0 last:border-b-0">
+    <section
+      {...(anchor ? tourAnchor(anchor) : {})}
+      className="border-b border-line py-6 first:pt-0 last:border-b-0"
+    >
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-body font-semibold">{title}</h2>

@@ -267,7 +267,7 @@ export function WebhookManager({
           </form>
         </Section>
       ) : (
-        <Section title={t("endpoints")}>
+        <Section title={t("endpoints")} anchor="webhooks-endpoints">
           <div className="mb-5 flex flex-wrap items-center gap-3">
             <button
               id={`${id}-create`}

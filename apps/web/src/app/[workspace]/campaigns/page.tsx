@@ -14,6 +14,7 @@ import { Page } from "@/components/page/page";
 import { Pagination } from "@/components/page/pagination";
 import { campaignsAccess } from "@/server/campaign-page";
 import { serviceContext } from "@/server/context";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 const pageSize = 25;
 
@@ -91,7 +92,7 @@ export default async function CampaignsPage({
       <CampaignsFilters />
 
       {shown.length === 0 ? (
-        <div className="py-16 text-center">
+        <div className="py-16 text-center" {...tourAnchor("campaigns-list")}>
           <p className="text-body text-fg-muted">
             {search ? t("emptyFiltered") : t("empty")}
           </p>
@@ -118,8 +119,12 @@ export default async function CampaignsPage({
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {shown.map((campaign) => (
-                  <tr key={campaign.id} className="hover:bg-bg-subtle">
+                {shown.map((campaign, index) => (
+                  <tr
+                    key={campaign.id}
+                    className="hover:bg-bg-subtle"
+                    {...(index === 0 ? tourAnchor("campaigns-list") : {})}
+                  >
                     <td className="py-2.5 pr-4">
                       <Link
                         href={`${base}/${campaign.id}`}

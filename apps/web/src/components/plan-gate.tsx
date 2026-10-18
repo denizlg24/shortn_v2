@@ -33,14 +33,17 @@ export function PlanGate({
   feature,
   plan,
   className,
+  id,
 }: {
   feature: ExplainedFeature;
   plan: PlanId;
   className?: string | undefined;
+  /** Lets a disabled control point at its explanation with aria-describedby. */
+  id?: string | undefined;
 }) {
   const t = useTranslations("gate");
   return (
-    <GateNote className={className}>
+    <GateNote className={className} id={id}>
       {t(feature, { plan: t(`plans.${plan}`) })} <UpgradeLink />
     </GateNote>
   );
@@ -48,13 +51,16 @@ export function PlanGate({
 
 export function GateNote({
   className,
+  id,
   children,
 }: {
   className?: string | undefined;
+  id?: string | undefined;
   children: ReactNode;
 }) {
   return (
     <p
+      id={id}
       className={cn(
         "flex items-start gap-2 text-small text-pretty text-fg-muted",
         className,

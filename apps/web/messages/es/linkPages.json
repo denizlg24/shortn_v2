@@ -104,6 +104,7 @@
     "key": "Clave personalizada",
     "keyHint": "Déjalo vacío para una clave aleatoria. Letras, dígitos, - y _.",
     "keyRenamed": "La clave anterior sigue redirigiendo aquí.",
+    "keyRandom": "Clave aleatoria",
     "detailsSection": "Detalles",
     "title": "Título",
     "description": "Descripción",

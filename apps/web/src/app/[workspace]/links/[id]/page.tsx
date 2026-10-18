@@ -130,6 +130,7 @@ export default async function LinkOverviewPage({
       }
       tabs={linkTabs(workspace, id, (key) => t(`tabs.${key}`))}
       tabsLabel={t("tabs.label")}
+      tabsAnchor="link-tabs"
     >
       {created ? (
         <Notice tone="success">

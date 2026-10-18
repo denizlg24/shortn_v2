@@ -1,0 +1,121 @@
+{
+  "label": "Visita guiada",
+  "progress": "{current} de {total}",
+  "next": "Seguinte",
+  "back": "Anterior",
+  "done": "Concluir",
+  "skip": "Saltar visita",
+  "learnMore": "Saber mais",
+  "newTab": "(abre num novo separador)",
+  "upgrade": "Ver planos",
+  "badges": {
+    "planAddon": "{plan} + extra",
+    "addon": "Extra"
+  },
+  "locked": {
+    "plan": "Não está incluído no plano {current}. Está disponível a partir do plano {plan}.",
+    "planAddon": "Não está incluído no plano {current}. Precisa do plano {plan} ou superior e de um extra de domínio.",
+    "addon": "O seu plano permite domínios personalizados assim que adicionar um extra de domínio."
+  },
+  "fallback": {
+    "hidden": "Esta parte não está no ecrã neste momento, por isso explicamos aqui o que faz.",
+    "link": "Ainda não há links neste espaço de trabalho. Crie um e as respetivas páginas funcionam como descrito.",
+    "qr": "Ainda não há códigos QR neste espaço de trabalho. Crie um para o desenhar.",
+    "bio": "Ainda não há páginas bio neste espaço de trabalho. Crie uma para abrir o editor."
+  },
+  "menu": {
+    "start": "Fazer a visita guiada",
+    "resume": "Retomar a visita ({current} de {total})",
+    "restart": "Recomeçar a visita"
+  },
+  "steps": {
+    "links": {
+      "title": "A sua biblioteca de links",
+      "body": "Todos os links curtos deste espaço de trabalho, dos mais recentes para os mais antigos, 25 por página. Os links arquivados e eliminados têm separadores próprios, e os eliminados podem ser restaurados durante 30 dias."
+    },
+    "filters": {
+      "title": "Encontrar links e agir em massa",
+      "body": "Pesquise por chave, destino ou título e filtre por etiqueta, estado e data. Selecione links em várias páginas e filtros para arquivar, etiquetar, mover para uma campanha ou eliminar até 500 de uma vez."
+    },
+    "newLink": {
+      "title": "Criar um link",
+      "body": "Abra o formulário completo aqui ou cole um URL em qualquer ponto desta página para começar. O novo link curto é copiado automaticamente."
+    },
+    "customKey": {
+      "title": "Escolher a chave",
+      "body": "Escolha o que vem depois da barra, como shortn.at/promocao-primavera. Se mudar o nome mais tarde, a chave antiga continua a redirecionar."
+    },
+    "password": {
+      "title": "Proteger um link",
+      "body": "Peça uma palavra-passe antes de redirecionar, com uma dica opcional na página da palavra-passe."
+    },
+    "rules": {
+      "title": "Regras, expiração e links para apps",
+      "body": "Defina quando um link funciona, limite as visitas, encaminhe visitantes por país ou dispositivo, divida o tráfego entre destinos, abra apps diretamente e configure a pré-visualização nas redes sociais."
+    },
+    "linkPages": {
+      "title": "Tudo sobre um link",
+      "body": "Cada link tem as suas próprias páginas: visão geral, estatísticas, código QR, variantes UTM e edição. A visão geral também mostra o estado do destino, verificado todas as semanas."
+    },
+    "qr": {
+      "title": "Códigos QR",
+      "body": "Cada código tem o seu próprio link curto, por isso pode mudar o destino depois de imprimir. As leituras são contadas à parte dos cliques."
+    },
+    "qrDesign": {
+      "title": "Desenhar para impressão",
+      "body": "Defina cores, formas, moldura e legenda enquanto uma verificação em direto confirma que o código continua legível. Exporte em SVG, PNG ou PDF no tamanho de que precisa, na página do código."
+    },
+    "qrLogo": {
+      "title": "Adicionar o seu logótipo",
+      "body": "Coloque o seu logótipo no centro do código. A correção de erros aumenta para que continue legível."
+    },
+    "bio": {
+      "title": "Páginas bio",
+      "body": "Cada página tem o seu próprio endereço handle.shortn.at. Adicione secções, escolha um tema e arraste as secções para as ordenar; as alterações ficam em rascunho até publicar."
+    },
+    "analytics": {
+      "title": "Estatísticas",
+      "body": "Cliques e leituras de todo o espaço de trabalho, comparados com o período anterior. Todos os filtros ficam no endereço, por isso pode guardar ou partilhar uma vista."
+    },
+    "breakdowns": {
+      "title": "Análises detalhadas e exportações",
+      "body": "Veja de onde vêm as visitas por país, referência, dispositivo e etiqueta UTM, filtre por qualquer linha e exporte os eventos em bruto para CSV."
+    },
+    "campaigns": {
+      "title": "Campanhas",
+      "body": "Agrupe links numa campanha, crie links com etiquetas UTM para cada canal e veja os resultados em conjunto."
+    },
+    "imports": {
+      "title": "Importações e exportações",
+      "body": "Importe links ou códigos QR de um ficheiro CSV ou de uma lista colada, com um teste antes de criar o que quer que seja. As exportações de links, estatísticas e do espaço de trabalho também correm em segundo plano."
+    },
+    "domains": {
+      "title": "Domínios personalizados",
+      "body": "Use o seu próprio domínio para links ou para uma página bio. Cada domínio precisa do seu próprio extra de domínio personalizado."
+    },
+    "members": {
+      "title": "Membros e funções",
+      "body": "Convide pessoas como administradores, membros ou leitores. Os convites pendentes contam para os lugares."
+    },
+    "apiKeys": {
+      "title": "Chaves de API",
+      "body": "Ligue os seus sistemas à API REST com chaves limitadas ao que precisam. Os assistentes de IA podem ligar-se através do servidor MCP."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "body": "Receba um evento no seu endpoint quando os links e outros recursos mudam, com histórico de entregas e reenvio."
+    },
+    "security": {
+      "title": "Segurança",
+      "body": "Ative aqui a autenticação de dois fatores e adicione chaves de acesso em Métodos de início de sessão. Os espaços de trabalho Enterprise também podem configurar o SSO da organização."
+    },
+    "billing": {
+      "title": "Faturação",
+      "body": "O seu plano, a utilização e as faturas. As subidas de plano aplicam-se de imediato e são proporcionais; as descidas entram em vigor no fim do período."
+    },
+    "finish": {
+      "title": "A visita terminou",
+      "body": "Pode repeti-la, ou ver as novidades, a qualquer momento no menu de ajuda."
+    }
+  }
+}

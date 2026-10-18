@@ -1,0 +1,121 @@
+{
+  "label": "Recorrido guiado",
+  "progress": "{current} de {total}",
+  "next": "Siguiente",
+  "back": "Atrás",
+  "done": "Terminar",
+  "skip": "Saltar recorrido",
+  "learnMore": "Más información",
+  "newTab": "(se abre en una pestaña nueva)",
+  "upgrade": "Ver planes",
+  "badges": {
+    "planAddon": "{plan} + complemento",
+    "addon": "Complemento"
+  },
+  "locked": {
+    "plan": "No está incluido en el plan {current}. Está disponible a partir del plan {plan}.",
+    "planAddon": "No está incluido en el plan {current}. Necesita el plan {plan} o superior y un complemento de dominio.",
+    "addon": "Tu plan admite dominios personalizados en cuanto añadas un complemento de dominio."
+  },
+  "fallback": {
+    "hidden": "Esta parte no está en pantalla ahora mismo, así que te explicamos aquí lo que hace.",
+    "link": "Todavía no hay enlaces en este espacio de trabajo. Crea uno y sus páginas funcionan como se describe.",
+    "qr": "Todavía no hay códigos QR en este espacio de trabajo. Crea uno para diseñarlo.",
+    "bio": "Todavía no hay páginas bio en este espacio de trabajo. Crea una para abrir el editor."
+  },
+  "menu": {
+    "start": "Hacer el recorrido",
+    "resume": "Reanudar el recorrido ({current} de {total})",
+    "restart": "Empezar el recorrido de nuevo"
+  },
+  "steps": {
+    "links": {
+      "title": "Tu biblioteca de enlaces",
+      "body": "Todos los enlaces cortos de este espacio de trabajo, de los más recientes a los más antiguos, 25 por página. Los enlaces archivados y eliminados tienen sus propias pestañas, y los eliminados se pueden restaurar durante 30 días."
+    },
+    "filters": {
+      "title": "Encontrar enlaces y actuar en bloque",
+      "body": "Busca por clave, destino o título y filtra por etiqueta, estado y fecha. Selecciona enlaces en varias páginas y filtros para archivarlos, etiquetarlos, moverlos a una campaña o eliminar hasta 500 a la vez."
+    },
+    "newLink": {
+      "title": "Crear un enlace",
+      "body": "Abre el formulario completo aquí o pega una URL en cualquier parte de esta página para empezar. El nuevo enlace corto se copia automáticamente."
+    },
+    "customKey": {
+      "title": "Elegir la clave",
+      "body": "Elige lo que va después de la barra, como shortn.at/rebajas-primavera. Si la cambias más adelante, la clave antigua sigue redirigiendo."
+    },
+    "password": {
+      "title": "Proteger un enlace",
+      "body": "Pide una contraseña antes de redirigir, con una pista opcional en la página de la contraseña."
+    },
+    "rules": {
+      "title": "Reglas, caducidad y enlaces a apps",
+      "body": "Programa cuándo funciona un enlace, limita sus visitas, dirige a los visitantes según el país o el dispositivo, reparte el tráfico entre destinos, abre apps directamente y configura la vista previa en redes sociales."
+    },
+    "linkPages": {
+      "title": "Todo sobre un enlace",
+      "body": "Cada enlace tiene sus propias páginas: resumen, estadísticas, código QR, variantes UTM y edición. El resumen también muestra el estado del destino, que se comprueba cada semana."
+    },
+    "qr": {
+      "title": "Códigos QR",
+      "body": "Cada código tiene su propio enlace corto, así que puedes cambiar adónde lleva después de imprimirlo. Los escaneos se cuentan aparte de los clics."
+    },
+    "qrDesign": {
+      "title": "Diseñar para imprimir",
+      "body": "Elige colores, formas, marco y texto mientras una comprobación en directo confirma que el código se sigue leyendo. Exporta en SVG, PNG o PDF al tamaño que necesites desde la página del código."
+    },
+    "qrLogo": {
+      "title": "Añadir tu logotipo",
+      "body": "Coloca tu logotipo en el centro del código. La corrección de errores aumenta para que siga siendo legible."
+    },
+    "bio": {
+      "title": "Páginas bio",
+      "body": "Cada página tiene su propia dirección handle.shortn.at. Añade secciones, elige un tema y arrastra las secciones para ordenarlas; los cambios quedan en borrador hasta que publiques."
+    },
+    "analytics": {
+      "title": "Estadísticas",
+      "body": "Clics y escaneos de todo el espacio de trabajo, comparados con el periodo anterior. Todos los filtros están en la dirección, así que puedes guardar o compartir una vista."
+    },
+    "breakdowns": {
+      "title": "Desgloses y exportaciones",
+      "body": "Mira de dónde vienen las visitas por país, referente, dispositivo y etiqueta UTM, filtra por cualquier fila y exporta los eventos sin procesar a CSV."
+    },
+    "campaigns": {
+      "title": "Campañas",
+      "body": "Agrupa enlaces en una campaña, crea enlaces con etiquetas UTM para cada canal y consulta sus resultados juntos."
+    },
+    "imports": {
+      "title": "Importaciones y exportaciones",
+      "body": "Importa enlaces o códigos QR desde un archivo CSV o una lista pegada, con una prueba antes de crear nada. Las exportaciones de enlaces, estadísticas y del espacio de trabajo también se hacen en segundo plano."
+    },
+    "domains": {
+      "title": "Dominios personalizados",
+      "body": "Usa tu propio dominio para enlaces o para una página bio. Cada dominio necesita su propio complemento de dominio personalizado."
+    },
+    "members": {
+      "title": "Miembros y roles",
+      "body": "Invita a personas como administradores, miembros o lectores. Las invitaciones pendientes cuentan para las plazas."
+    },
+    "apiKeys": {
+      "title": "Claves de API",
+      "body": "Conecta tus propios sistemas a la API REST con claves limitadas a lo que necesitan. Los asistentes de IA pueden conectarse a través del servidor MCP."
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "body": "Recibe un evento en tu endpoint cuando cambian los enlaces y otros recursos, con historial de entregas y reenvío."
+    },
+    "security": {
+      "title": "Seguridad",
+      "body": "Activa aquí la autenticación en dos pasos y añade llaves de acceso en Métodos de inicio de sesión. Los espacios de trabajo Enterprise también pueden configurar el SSO de la organización."
+    },
+    "billing": {
+      "title": "Facturación",
+      "body": "Tu plan, el uso y las facturas. Las mejoras de plan se aplican al momento y se prorratean; los cambios a un plan inferior se aplican al final del periodo."
+    },
+    "finish": {
+      "title": "Fin del recorrido",
+      "body": "Puedes repetirlo, o ver las novedades, cuando quieras desde el menú de ayuda."
+    }
+  }
+}
