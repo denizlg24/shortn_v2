@@ -1,4 +1,6 @@
 .bio-page { color-scheme: light; position: relative; isolation: isolate; width: 100%; min-height: 100%; background: var(--bio-bg); color: var(--bio-text); font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+/* Public pages fill the viewport with their background; previews keep their container's size. */
+.bio-page:not([data-preview]) { min-height: 100vh; min-height: 100dvh; }
 .bio-page ::selection { background: var(--bio-accent); color: var(--bio-button-text); }
 .bio-page a, .bio-page button { -webkit-tap-highlight-color: transparent; text-underline-offset: 4px; }
 .bio-page a:focus-visible, .bio-page button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }

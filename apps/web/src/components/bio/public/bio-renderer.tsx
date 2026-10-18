@@ -276,6 +276,7 @@ export function BioRenderer({
   return (
     <article
       className="bio-page"
+      data-preview={preview || undefined}
       data-density={theme.density}
       data-button-style={theme.buttonStyle}
       style={style}
