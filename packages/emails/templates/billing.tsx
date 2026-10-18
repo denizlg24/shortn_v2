@@ -1,4 +1,11 @@
 import {
+  formatCard,
+  formatDate,
+  formatMoney,
+  plainLine,
+  type Card,
+} from "../format";
+import {
   Action,
   DetailRows,
   Heading,
@@ -7,22 +14,27 @@ import {
   Paragraph,
   type Detail,
 } from "../layout";
-import { messages, type Locale } from "../messages";
+import { isDeclineCode, messages, type Locale } from "../messages";
 
+/** What Polar knows about the latest failed charge, amounts in minor units. */
+export interface PaymentFailure {
+  currency: string;
+  amountDue: number;
+  card?: Card | undefined;
+  declineReason?: string | null | undefined;
+  declineMessage?: string | null | undefined;
+  nextAttemptAt?: Date | null | undefined;
+}
+
+// Paid starts and plan changes are covered by the receipt for their order.
 export type BillingNotice =
-  | { kind: "started"; plan: string }
-  | { kind: "changed"; plan: string }
   | { kind: "scheduled"; plan: string; date: string }
   | { kind: "canceled"; date: string }
-  | { kind: "payment_failed" };
+  | { kind: "payment_failed"; failure?: PaymentFailure | undefined };
 
 export function billingSubject(locale: Locale, notice: BillingNotice) {
   const t = messages[locale].billing;
   switch (notice.kind) {
-    case "started":
-      return t.startedSubject(notice.plan);
-    case "changed":
-      return t.changedSubject(notice.plan);
     case "scheduled":
       return t.scheduledSubject;
     case "canceled":
@@ -32,22 +44,44 @@ export function billingSubject(locale: Locale, notice: BillingNotice) {
   }
 }
 
+/**
+ * Known decline codes are translated. Otherwise the processor's own message
+ * is shown, but only in English since that is the language it comes in.
+ */
+function declineText(locale: Locale, failure: PaymentFailure) {
+  const t = messages[locale].billing;
+  const code = failure.declineReason?.trim().toLowerCase();
+  if (code && isDeclineCode(code)) return t.declines[code];
+  const message = plainLine(failure.declineMessage);
+  return locale === "en" && message ? message : t.declined;
+}
+
+function failureRows(locale: Locale, failure: PaymentFailure): Detail[] {
+  const t = messages[locale].billing;
+  return [
+    {
+      label: t.amountDue,
+      value: formatMoney(failure.amountDue, failure.currency, locale),
+    },
+    ...(failure.card
+      ? [{ label: t.card, value: formatCard(failure.card, t.cardFallback) }]
+      : []),
+    { label: t.reason, value: declineText(locale, failure) },
+    ...(failure.nextAttemptAt
+      ? [
+          {
+            label: t.nextAttempt,
+            value: formatDate(failure.nextAttemptAt, locale),
+          },
+        ]
+      : []),
+  ];
+}
+
 function content(locale: Locale, workspace: string, notice: BillingNotice) {
   const t = messages[locale].billing;
   const workspaceRow: Detail = { label: t.workspace, value: workspace };
   switch (notice.kind) {
-    case "started":
-      return {
-        heading: t.startedHeading(notice.plan),
-        body: t.startedBody,
-        rows: [workspaceRow, { label: t.plan, value: notice.plan }],
-      };
-    case "changed":
-      return {
-        heading: t.changedSubject(notice.plan),
-        body: t.changedBody,
-        rows: [workspaceRow, { label: t.plan, value: notice.plan }],
-      };
     case "scheduled":
       return {
         heading: t.scheduledSubject,
@@ -72,11 +106,13 @@ function content(locale: Locale, workspace: string, notice: BillingNotice) {
       return {
         heading: t.paymentFailedSubject,
         body: t.paymentFailedBody,
-        rows: [
-          workspaceRow,
-          { label: t.status, value: t.paymentFailed },
-          { label: t.gracePeriod, value: t.gracePeriodValue },
-        ],
+        rows: notice.failure
+          ? [workspaceRow, ...failureRows(locale, notice.failure)]
+          : [
+              workspaceRow,
+              { label: t.status, value: t.paymentFailed },
+              { label: t.gracePeriod, value: t.gracePeriodValue },
+            ],
       };
   }
 }

@@ -1,5 +1,11 @@
 import { Body, Button, Head, Html, Preview } from "@react-email/components";
-import { Fragment, type CSSProperties, type ReactNode } from "react";
+import {
+  createContext,
+  Fragment,
+  useContext,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { messages, type Locale } from "./messages";
 
 // Hex approximations of the DESIGN.md tokens: mail clients don't parse oklch.
@@ -51,7 +57,19 @@ function Block({
   );
 }
 
+/** Absolute URL of the hosted brand mark; unset renders the text mark. */
+export const LogoContext = createContext<string | undefined>(undefined);
+
 function Brand() {
+  const logo = useContext(LogoContext);
+  const mark: CSSProperties = {
+    color: palette.onInk,
+    fontFamily: fonts.display,
+    fontSize: 23,
+    fontWeight: 900,
+    lineHeight: "26px",
+    textAlign: "center",
+  };
   return (
     <table
       role="presentation"
@@ -68,19 +86,34 @@ function Brand() {
             align="center"
             valign="middle"
             style={{
+              ...mark,
               backgroundColor: palette.ink,
               borderRadius: 4,
-              color: palette.onInk,
-              fontFamily: fonts.display,
-              fontSize: 23,
-              fontWeight: 900,
               height: 26,
-              lineHeight: "26px",
-              textAlign: "center",
               width: 26,
             }}
           >
-            S
+            {logo ? (
+              // With images blocked, the styled alt text on the navy cell
+              // still reads as the mark.
+              <img
+                src={logo}
+                width={26}
+                height={26}
+                alt="S"
+                aria-hidden="true"
+                style={{
+                  ...mark,
+                  border: 0,
+                  borderRadius: 4,
+                  display: "block",
+                  height: 26,
+                  width: 26,
+                }}
+              />
+            ) : (
+              "S"
+            )}
           </td>
           <td
             style={{
@@ -300,8 +333,18 @@ export interface Detail {
   wide?: boolean;
 }
 
-export function DetailRows({ rows }: { rows: readonly Detail[] }) {
-  return (
+/**
+ * Label/value rows. Inside a Panel they need no outer rules; `ruled` frames
+ * them with hairlines for use on the white page.
+ */
+export function DetailRows({
+  rows,
+  ruled = false,
+}: {
+  rows: readonly Detail[];
+  ruled?: boolean;
+}) {
+  const table = (
     <table
       role="presentation"
       className="details"
@@ -312,8 +355,10 @@ export function DetailRows({ rows }: { rows: readonly Detail[] }) {
     >
       <tbody>
         {rows.map((row, index) => {
+          const rule = `1px solid ${palette.line}`;
           const cell: CSSProperties = {
-            borderTop: index === 0 ? "none" : `1px solid ${palette.line}`,
+            borderBottom: ruled && index === rows.length - 1 ? rule : "none",
+            borderTop: index === 0 && !ruled ? "none" : rule,
             fontSize: 14,
             lineHeight: "20px",
             padding: "12px 0",
@@ -352,6 +397,115 @@ export function DetailRows({ rows }: { rows: readonly Detail[] }) {
             </tr>
           );
         })}
+      </tbody>
+    </table>
+  );
+  return ruled ? <Block padding="8px 0 24px">{table}</Block> : table;
+}
+
+export interface LedgerLine {
+  label: string;
+  amount: string;
+}
+
+/**
+ * Receipt arithmetic: line items, then the adjustments that lead from the
+ * subtotal to the total. Sits inside a Panel.
+ */
+export function Ledger({
+  items,
+  adjustments,
+  total,
+}: {
+  items: readonly LedgerLine[];
+  adjustments: readonly LedgerLine[];
+  total: LedgerLine;
+}) {
+  const rule = `1px solid ${palette.line}`;
+  const base: CSSProperties = {
+    fontSize: 14,
+    lineHeight: "20px",
+    verticalAlign: "top",
+  };
+  const amount: CSSProperties = {
+    color: palette.ink,
+    fontVariantNumeric: "tabular-nums",
+    paddingLeft: 16,
+    textAlign: "right",
+    whiteSpace: "nowrap",
+  };
+  const adjustmentPadding = (index: number) => {
+    const top = index === 0 ? 12 : 4;
+    const bottom = index === adjustments.length - 1 ? 12 : 4;
+    return `${top}px 0 ${bottom}px`;
+  };
+  return (
+    <table
+      role="presentation"
+      className="details"
+      width="100%"
+      cellPadding={0}
+      cellSpacing={0}
+      border={0}
+    >
+      <tbody>
+        {items.map((item, index) => {
+          const cell: CSSProperties = {
+            ...base,
+            borderTop: index === 0 ? "none" : rule,
+            padding: "12px 0",
+          };
+          return (
+            <tr key={`item-${index}`}>
+              <td style={{ ...cell, color: palette.ink }}>{item.label}</td>
+              <td align="right" style={{ ...cell, ...amount }}>
+                {item.amount}
+              </td>
+            </tr>
+          );
+        })}
+        {adjustments.map((line, index) => {
+          const cell: CSSProperties = {
+            ...base,
+            borderTop: index === 0 ? rule : "none",
+            padding: adjustmentPadding(index),
+          };
+          return (
+            <tr key={`adjustment-${index}`}>
+              <td style={{ ...cell, color: palette.muted }}>{line.label}</td>
+              <td align="right" style={{ ...cell, ...amount }}>
+                {line.amount}
+              </td>
+            </tr>
+          );
+        })}
+        <tr>
+          <td
+            style={{
+              ...base,
+              borderTop: rule,
+              color: palette.ink,
+              fontSize: 15,
+              fontWeight: 600,
+              padding: "12px 0",
+            }}
+          >
+            {total.label}
+          </td>
+          <td
+            align="right"
+            style={{
+              ...base,
+              ...amount,
+              borderTop: rule,
+              fontSize: 16,
+              fontWeight: 700,
+              padding: "12px 0 12px 16px",
+            }}
+          >
+            {total.amount}
+          </td>
+        </tr>
       </tbody>
     </table>
   );

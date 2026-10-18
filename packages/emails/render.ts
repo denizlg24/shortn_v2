@@ -1,8 +1,20 @@
 import { render } from "@react-email/components";
-import type { ReactElement } from "react";
+import { createElement, type ReactElement } from "react";
+import { LogoContext } from "./layout";
 
-/** The HTML and plain-text bodies exactly as the mailer sends them. */
-export async function renderEmail(element: ReactElement) {
+/**
+ * The HTML and plain-text bodies exactly as the mailer sends them. `logoUrl`
+ * is the hosted brand mark; without it the header uses the text mark.
+ */
+export async function renderEmail(
+  email: ReactElement,
+  options: { logoUrl?: string | undefined } = {},
+) {
+  const element = createElement(
+    LogoContext.Provider,
+    { value: options.logoUrl },
+    email,
+  );
   const [html, text] = await Promise.all([
     render(element),
     render(element, {

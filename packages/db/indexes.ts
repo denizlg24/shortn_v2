@@ -399,6 +399,14 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       expireAfterSeconds: 400 * 86_400,
     },
   ],
+  // Outlives the billing_events it guards, so a replayed event never resends.
+  [physicalNames.billing_mail]: [
+    {
+      name: "v2_billing_mail_ttl",
+      key: { createdAt: 1 },
+      expireAfterSeconds: 400 * 86_400,
+    },
+  ],
   [physicalNames.workspace_invites]: [
     { name: "v2_invite_token", key: { tokenHash: 1 }, unique: true },
     { name: "v2_invite_workspace", key: { workspaceId: 1, email: 1 } },

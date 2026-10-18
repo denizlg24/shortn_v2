@@ -6,6 +6,17 @@ export const isLocale = (value: unknown): value is Locale =>
 
 type Role = "admin" | "member" | "viewer";
 
+export const declineCodes = [
+  "insufficient_funds",
+  "expired_card",
+  "incorrect_cvc",
+  "authentication_required",
+  "processing_error",
+] as const;
+export type DeclineCode = (typeof declineCodes)[number];
+export const isDeclineCode = (value: string): value is DeclineCode =>
+  (declineCodes as readonly string[]).includes(value);
+
 interface Messages {
   footer: {
     account: string;
@@ -49,11 +60,6 @@ interface Messages {
   };
   billing: {
     plans: Record<"free" | "basic" | "plus" | "pro" | "enterprise", string>;
-    startedSubject: (plan: string) => string;
-    startedHeading: (plan: string) => string;
-    startedBody: string;
-    changedSubject: (plan: string) => string;
-    changedBody: string;
     scheduledSubject: string;
     scheduledBody: string;
     canceledSubject: string;
@@ -61,7 +67,6 @@ interface Messages {
     paymentFailedSubject: string;
     paymentFailedBody: string;
     workspace: string;
-    plan: string;
     newPlan: string;
     startsOn: string;
     endsOn: string;
@@ -70,8 +75,51 @@ interface Messages {
     paymentFailed: string;
     gracePeriod: string;
     gracePeriodValue: string;
+    amountDue: string;
+    card: string;
+    cardFallback: string;
+    reason: string;
+    nextAttempt: string;
+    declined: string;
+    declines: Record<DeclineCode, string>;
     action: string;
     paymentAction: string;
+  };
+  receipt: {
+    subject: (total: string) => string;
+    createHeading: (plan: string) => string;
+    updateHeading: (plan: string) => string;
+    cycleHeading: (plan: string) => string;
+    purchaseHeading: (product: string) => string;
+    createBody: (plan: string) => string;
+    updateBody: string;
+    cycleBody: string;
+    purchaseBody: string;
+    subtotal: string;
+    discount: string;
+    tax: string;
+    balance: string;
+    total: string;
+    workspace: string;
+    paidWith: string;
+    invoice: string;
+    receipt: string;
+    period: string;
+    nextRenewal: string;
+    action: string;
+  };
+  refund: {
+    subject: (amount: string) => string;
+    heading: string;
+    toCard: (amount: string) => string;
+    toOriginalMethod: (amount: string) => string;
+    refunded: string;
+    includesTax: string;
+    originalTotal: string;
+    product: string;
+    refundedTo: string;
+    reference: string;
+    action: string;
   };
   invite: {
     subject: (workspace: string) => string;
@@ -125,7 +173,8 @@ interface Messages {
     preview: string;
     heading: string;
     intro: (name: string) => string;
-    changes: readonly { title: string; body: string }[];
+    changes: (bioHost: string) => readonly { title: string; body: string }[];
+    bioPlaceholder: string;
     action: string;
     note: string;
   };
@@ -189,12 +238,6 @@ const en: Messages = {
       pro: "Pro",
       enterprise: "Enterprise",
     },
-    startedSubject: (plan) => `Your Shortn ${plan} plan is active`,
-    startedHeading: (plan) => `Your ${plan} plan is active`,
-    startedBody:
-      "Thanks for subscribing. The new limits and features are available now.",
-    changedSubject: (plan) => `Your plan is now ${plan}`,
-    changedBody: "The change applies now, along with the new plan's limits.",
     scheduledSubject: "Your plan change is scheduled",
     scheduledBody: "Nothing changes until the date below.",
     canceledSubject: "Your subscription will end",
@@ -204,7 +247,6 @@ const en: Messages = {
     paymentFailedBody:
       "The last payment didn't go through. Everything keeps working for 7 days while you update your payment method.",
     workspace: "Workspace",
-    plan: "Plan",
     newPlan: "New plan",
     startsOn: "Starts on",
     endsOn: "Ends on",
@@ -213,8 +255,62 @@ const en: Messages = {
     paymentFailed: "Payment failed",
     gracePeriod: "Grace period",
     gracePeriodValue: "7 days",
+    amountDue: "Amount due",
+    card: "Card",
+    cardFallback: "Card",
+    reason: "Reason",
+    nextAttempt: "Next attempt",
+    declined: "The card was declined",
+    declines: {
+      insufficient_funds: "Insufficient funds",
+      expired_card: "The card has expired",
+      incorrect_cvc: "Incorrect security code",
+      authentication_required: "Your bank asked for authentication",
+      processing_error: "A processing error at the bank",
+    },
     action: "Open billing",
     paymentAction: "Update payment method",
+  },
+  receipt: {
+    subject: (total) => `Your Shortn receipt for ${total}`,
+    createHeading: (plan) => `You're on ${plan}`,
+    updateHeading: (plan) => `You've moved to ${plan}`,
+    cycleHeading: (plan) => `Your ${plan} plan renewed`,
+    purchaseHeading: (product) => `Receipt for ${product}`,
+    createBody: (plan) =>
+      `Thanks for subscribing. Your workspace has the ${plan} limits and features now.`,
+    updateBody:
+      "The new plan applies now. This receipt covers the prorated difference for the rest of the billing period.",
+    cycleBody:
+      "Thanks for staying with Shortn. Here's the receipt for the new billing period.",
+    purchaseBody: "Thanks for your purchase. Here's your receipt.",
+    subtotal: "Subtotal",
+    discount: "Discount",
+    tax: "Tax",
+    balance: "Balance applied",
+    total: "Total",
+    workspace: "Workspace",
+    paidWith: "Paid with",
+    invoice: "Invoice",
+    receipt: "Receipt",
+    period: "Billing period",
+    nextRenewal: "Next renewal",
+    action: "View billing",
+  },
+  refund: {
+    subject: (amount) => `Your Shortn refund of ${amount}`,
+    heading: "We've refunded your payment",
+    toCard: (amount) =>
+      `${amount} is on its way back to your card. Banks usually take 5 to 10 working days to show it.`,
+    toOriginalMethod: (amount) =>
+      `${amount} is on its way back to your original payment method. Banks usually take 5 to 10 working days to show it.`,
+    refunded: "Refunded",
+    includesTax: "Includes tax",
+    originalTotal: "Original total",
+    product: "For",
+    refundedTo: "Refunded to",
+    reference: "Reference",
+    action: "View billing",
   },
   invite: {
     subject: (workspace) => `You're invited to ${workspace} on Shortn`,
@@ -275,20 +371,21 @@ const en: Messages = {
     heading: "The new Shortn is here",
     intro: (name) =>
       `${name ? `${name}, we` : "We"} rebuilt Shortn from the ground up. Same account, same links, and a better place to manage them.`,
-    changes: [
+    changes: (bioHost) => [
       {
         title: "A new dashboard at app.shortn.at",
         body: "Sign in with your existing account.",
       },
       {
         title: "Bio pages on their own address",
-        body: "Your page now lives at yourname.shortn.at. Old shortn.at/b/ links redirect there.",
+        body: `Your page now lives at ${bioHost}. Old shortn.at/b/ links redirect there.`,
       },
       {
         title: "An API, webhooks and an MCP server",
         body: "Connect Shortn to your own systems and AI assistants.",
       },
     ],
+    bioPlaceholder: "yourname.shortn.at",
     action: "Open the new dashboard",
     note: "Nothing breaks. Every short link, QR code and bio page you've shared keeps working, and there's nothing you need to do.",
   },
@@ -351,12 +448,6 @@ const pt: Messages = {
       pro: "Pro",
       enterprise: "Enterprise",
     },
-    startedSubject: (plan) => `O seu plano ${plan} do Shortn está ativo`,
-    startedHeading: (plan) => `O seu plano ${plan} está ativo`,
-    startedBody:
-      "Obrigado pela subscrição. Os novos limites e funcionalidades já estão disponíveis.",
-    changedSubject: (plan) => `O seu plano é agora ${plan}`,
-    changedBody: "A alteração já está em vigor, com os limites do novo plano.",
     scheduledSubject: "A alteração de plano está agendada",
     scheduledBody: "Nada muda até à data indicada abaixo.",
     canceledSubject: "A sua subscrição vai terminar",
@@ -366,7 +457,6 @@ const pt: Messages = {
     paymentFailedBody:
       "O último pagamento não foi aceite. Tudo continua a funcionar durante 7 dias enquanto atualiza o método de pagamento.",
     workspace: "Espaço de trabalho",
-    plan: "Plano",
     newPlan: "Novo plano",
     startsOn: "Começa a",
     endsOn: "Termina a",
@@ -375,8 +465,62 @@ const pt: Messages = {
     paymentFailed: "Pagamento falhado",
     gracePeriod: "Período de tolerância",
     gracePeriodValue: "7 dias",
+    amountDue: "Valor em dívida",
+    card: "Cartão",
+    cardFallback: "Cartão",
+    reason: "Motivo",
+    nextAttempt: "Próxima tentativa",
+    declined: "O cartão foi recusado",
+    declines: {
+      insufficient_funds: "Saldo insuficiente",
+      expired_card: "O cartão expirou",
+      incorrect_cvc: "Código de segurança incorreto",
+      authentication_required: "O banco pediu uma autenticação",
+      processing_error: "Erro de processamento no banco",
+    },
     action: "Abrir faturação",
     paymentAction: "Atualizar método de pagamento",
+  },
+  receipt: {
+    subject: (total) => `O seu recibo Shortn de ${total}`,
+    createHeading: (plan) => `Está no plano ${plan}`,
+    updateHeading: (plan) => `Mudou para o plano ${plan}`,
+    cycleHeading: (plan) => `O seu plano ${plan} foi renovado`,
+    purchaseHeading: (product) => `Recibo de ${product}`,
+    createBody: (plan) =>
+      `Obrigado pela subscrição. O seu espaço de trabalho já tem os limites e funcionalidades do plano ${plan}.`,
+    updateBody:
+      "O novo plano já está em vigor. Este recibo cobre a diferença proporcional até ao fim do período de faturação.",
+    cycleBody:
+      "Obrigado por continuar com o Shortn. Aqui está o recibo do novo período de faturação.",
+    purchaseBody: "Obrigado pela compra. Aqui está o seu recibo.",
+    subtotal: "Subtotal",
+    discount: "Desconto",
+    tax: "Imposto",
+    balance: "Saldo aplicado",
+    total: "Total",
+    workspace: "Espaço de trabalho",
+    paidWith: "Pago com",
+    invoice: "Fatura",
+    receipt: "Recibo",
+    period: "Período de faturação",
+    nextRenewal: "Próxima renovação",
+    action: "Ver faturação",
+  },
+  refund: {
+    subject: (amount) => `O seu reembolso Shortn de ${amount}`,
+    heading: "Reembolsámos o seu pagamento",
+    toCard: (amount) =>
+      `${amount} está a caminho do seu cartão. Os bancos costumam demorar 5 a 10 dias úteis a mostrá-lo.`,
+    toOriginalMethod: (amount) =>
+      `${amount} está a caminho do método de pagamento original. Os bancos costumam demorar 5 a 10 dias úteis a mostrá-lo.`,
+    refunded: "Reembolsado",
+    includesTax: "Inclui imposto",
+    originalTotal: "Total original",
+    product: "Relativo a",
+    refundedTo: "Reembolsado para",
+    reference: "Referência",
+    action: "Ver faturação",
   },
   invite: {
     subject: (workspace) => `Foi convidado para ${workspace} no Shortn`,
@@ -439,20 +583,21 @@ const pt: Messages = {
     heading: "O novo Shortn chegou",
     intro: (name) =>
       `${name ? `${name}, reconstruímos` : "Reconstruímos"} o Shortn de raiz. A mesma conta, os mesmos links e um sítio melhor para os gerir.`,
-    changes: [
+    changes: (bioHost) => [
       {
         title: "Um novo painel em app.shortn.at",
         body: "Inicie sessão com a conta que já tem.",
       },
       {
         title: "Páginas bio com endereço próprio",
-        body: "A sua página está agora em o\u2011seu\u2011nome.shortn.at. Os links antigos shortn.at/b/ redirecionam para lá.",
+        body: `A sua página está agora em ${bioHost}. Os links antigos shortn.at/b/ redirecionam para lá.`,
       },
       {
         title: "API, webhooks e servidor MCP",
         body: "Ligue o Shortn aos seus sistemas e a assistentes de IA.",
       },
     ],
+    bioPlaceholder: "o\u2011seu\u2011nome.shortn.at",
     action: "Abrir o novo painel",
     note: "Nada deixa de funcionar. Todos os links curtos, códigos QR e páginas bio que partilhou continuam ativos, e não precisa de fazer nada.",
   },
@@ -514,12 +659,6 @@ const es: Messages = {
       pro: "Pro",
       enterprise: "Enterprise",
     },
-    startedSubject: (plan) => `Tu plan ${plan} de Shortn está activo`,
-    startedHeading: (plan) => `Tu plan ${plan} está activo`,
-    startedBody:
-      "Gracias por suscribirte. Los nuevos límites y funciones ya están disponibles.",
-    changedSubject: (plan) => `Tu plan ahora es ${plan}`,
-    changedBody: "El cambio ya está en vigor, con los límites del nuevo plan.",
     scheduledSubject: "El cambio de plan está programado",
     scheduledBody: "No cambia nada hasta la fecha indicada abajo.",
     canceledSubject: "Tu suscripción terminará",
@@ -529,7 +668,6 @@ const es: Messages = {
     paymentFailedBody:
       "El último pago no se ha completado. Todo sigue funcionando durante 7 días mientras actualizas tu método de pago.",
     workspace: "Espacio de trabajo",
-    plan: "Plan",
     newPlan: "Nuevo plan",
     startsOn: "Empieza el",
     endsOn: "Termina el",
@@ -538,8 +676,62 @@ const es: Messages = {
     paymentFailed: "Pago fallido",
     gracePeriod: "Periodo de gracia",
     gracePeriodValue: "7 días",
+    amountDue: "Importe pendiente",
+    card: "Tarjeta",
+    cardFallback: "Tarjeta",
+    reason: "Motivo",
+    nextAttempt: "Próximo intento",
+    declined: "La tarjeta fue rechazada",
+    declines: {
+      insufficient_funds: "Fondos insuficientes",
+      expired_card: "La tarjeta ha caducado",
+      incorrect_cvc: "Código de seguridad incorrecto",
+      authentication_required: "El banco ha pedido una autenticación",
+      processing_error: "Error de procesamiento en el banco",
+    },
     action: "Abrir facturación",
     paymentAction: "Actualizar método de pago",
+  },
+  receipt: {
+    subject: (total) => `Tu recibo de Shortn por ${total}`,
+    createHeading: (plan) => `Ya tienes el plan ${plan}`,
+    updateHeading: (plan) => `Te has cambiado al plan ${plan}`,
+    cycleHeading: (plan) => `Tu plan ${plan} se ha renovado`,
+    purchaseHeading: (product) => `Recibo de ${product}`,
+    createBody: (plan) =>
+      `Gracias por suscribirte. Tu espacio de trabajo ya tiene los límites y funciones del plan ${plan}.`,
+    updateBody:
+      "El nuevo plan ya está en vigor. Este recibo cubre la diferencia proporcional hasta el final del periodo de facturación.",
+    cycleBody:
+      "Gracias por seguir con Shortn. Aquí tienes el recibo del nuevo periodo de facturación.",
+    purchaseBody: "Gracias por tu compra. Aquí tienes tu recibo.",
+    subtotal: "Subtotal",
+    discount: "Descuento",
+    tax: "Impuestos",
+    balance: "Saldo aplicado",
+    total: "Total",
+    workspace: "Espacio de trabajo",
+    paidWith: "Pagado con",
+    invoice: "Factura",
+    receipt: "Recibo",
+    period: "Periodo de facturación",
+    nextRenewal: "Próxima renovación",
+    action: "Ver facturación",
+  },
+  refund: {
+    subject: (amount) => `Tu reembolso de Shortn de ${amount}`,
+    heading: "Hemos reembolsado tu pago",
+    toCard: (amount) =>
+      `${amount} está de camino a tu tarjeta. Los bancos suelen tardar entre 5 y 10 días hábiles en mostrarlo.`,
+    toOriginalMethod: (amount) =>
+      `${amount} está de camino a tu método de pago original. Los bancos suelen tardar entre 5 y 10 días hábiles en mostrarlo.`,
+    refunded: "Reembolsado",
+    includesTax: "Incluye impuestos",
+    originalTotal: "Total original",
+    product: "Por",
+    refundedTo: "Reembolsado a",
+    reference: "Referencia",
+    action: "Ver facturación",
   },
   invite: {
     subject: (workspace) => `Te han invitado a ${workspace} en Shortn`,
@@ -601,20 +793,21 @@ const es: Messages = {
     heading: "El nuevo Shortn ya está aquí",
     intro: (name) =>
       `${name ? `${name}, hemos reconstruido` : "Hemos reconstruido"} Shortn desde cero. La misma cuenta, los mismos enlaces y un sitio mejor para gestionarlos.`,
-    changes: [
+    changes: (bioHost) => [
       {
         title: "Un nuevo panel en app.shortn.at",
         body: "Inicia sesión con tu cuenta de siempre.",
       },
       {
         title: "Páginas bio con dirección propia",
-        body: "Tu página ahora está en tu\u2011nombre.shortn.at. Los enlaces antiguos shortn.at/b/ redirigen allí.",
+        body: `Tu página ahora está en ${bioHost}. Los enlaces antiguos shortn.at/b/ redirigen allí.`,
       },
       {
         title: "API, webhooks y servidor MCP",
         body: "Conecta Shortn con tus propios sistemas y con asistentes de IA.",
       },
     ],
+    bioPlaceholder: "tu\u2011nombre.shortn.at",
     action: "Abrir el nuevo panel",
     note: "No se rompe nada. Todos los enlaces cortos, códigos QR y páginas bio que has compartido siguen funcionando, y no tienes que hacer nada.",
   },

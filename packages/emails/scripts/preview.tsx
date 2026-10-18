@@ -2,13 +2,17 @@
 // review in a browser: `bun run --cwd packages/emails preview`. English plus
 // the announcement in every locale by default; `-- --all` renders every
 // email in every locale.
-import { mkdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { catalog, type CatalogEntry } from "../catalog";
 import { locales, type Locale } from "../messages";
 import { renderEmail } from "../render";
 
 const outDir = fileURLToPath(new URL("../.preview/", import.meta.url));
+// The mark the mailer links to on the dashboard origin, copied alongside.
+const mark = fileURLToPath(
+  new URL("../../../apps/web/public/email/mark@2x.png", import.meta.url),
+);
 
 const everyLocale = process.argv.includes("--all");
 
@@ -17,7 +21,9 @@ const selection: { locale: Locale; entries: CatalogEntry[] }[] = locales.map(
     locale,
     entries: catalog(locale).filter(
       (entry) =>
-        everyLocale || locale === "en" || entry.slug === "product-announcement",
+        everyLocale ||
+        locale === "en" ||
+        entry.slug.startsWith("product-announcement"),
     ),
   }),
 );
@@ -31,13 +37,16 @@ const escape = (value: string) =>
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
+await copyFile(mark, `${outDir}mark@2x.png`);
 
 const rows: string[] = [];
 const frames: string[] = [];
 for (const { locale, entries } of selection)
   for (const entry of entries) {
     const file = `${entry.slug}.${locale}`;
-    const { html, text } = await renderEmail(entry.element);
+    const { html, text } = await renderEmail(entry.element, {
+      logoUrl: "mark@2x.png",
+    });
     await writeFile(`${outDir}${file}.html`, html);
     await writeFile(
       `${outDir}${file}.txt`,

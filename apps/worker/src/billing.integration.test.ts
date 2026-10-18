@@ -1,9 +1,19 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { applyFetched, products, type SubscriptionLike } from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
+import type { Mailer } from "@shortn/emails";
 import { MongoClient, ObjectId, type Db } from "mongodb";
+import {
+  cardPaymentFixture,
+  paidOrderFixture,
+  productFixture,
+} from "../../../packages/billing/test-fixtures/receipts";
 import { processBillingEvents, type BillingDeps } from "./billing";
+import { mongoMailLedger, sendOnce } from "./billing-mail-ledger";
 import { noticesFor } from "./billing-notices";
+import { orderMailer } from "./billing-receipts";
+import { billingRecipients } from "./billing-recipients";
+import { polarServing } from "./billing-test-polar";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 
@@ -148,12 +158,12 @@ const mongoUrl = process.env.MONGO_TEST_URL;
     ).toBe("free");
   });
 
-  test("concurrent duplicates report only one plan transition", async () => {
+  test("concurrent duplicates report only one failed payment", async () => {
     const { state } = await setup();
     await applyFetched(db, "sandbox", state.current);
-    const next = {
+    const next: SubscriptionLike = {
       ...state.current,
-      productId: products.sandbox.checkout.pro,
+      status: "past_due",
       modifiedAt: new Date("2026-10-02"),
     };
     const gate = delayedWrite();
@@ -173,7 +183,7 @@ const mongoUrl = process.env.MONGO_TEST_URL;
         ? noticesFor(outcome.before, outcome.after)
         : [],
     );
-    expect(notices).toEqual([{ kind: "changed", plan: "pro" }]);
+    expect(notices).toEqual([{ kind: "payment_failed" }]);
     expect(
       await collection(db, "subscriptions").countDocuments({
         polarSubscriptionId: state.current.id,
@@ -255,5 +265,97 @@ const mongoUrl = process.env.MONGO_TEST_URL;
     expect(event?.error).toContain("polar down");
     expect(event?.lockedUntil?.getTime()).toBeGreaterThan(Date.now());
     expect(await processBillingEvents(deps)).toBe(0);
+  });
+
+  test("the mail ledger sends once, frees failed sends and expires stuck claims", async () => {
+    const ledger = mongoMailLedger(db);
+    const key = `receipt:${crypto.randomUUID()}`;
+    const now = new Date("2026-10-01T12:00:00Z");
+    let sends = 0;
+    await expect(
+      sendOnce(ledger, key, now, async () => {
+        throw new Error("provider down");
+      }),
+    ).rejects.toThrow("provider down");
+    expect(
+      await sendOnce(ledger, key, now, async () => {
+        sends++;
+      }),
+    ).toBe(true);
+    expect(await sendOnce(ledger, key, now, async () => {})).toBe(false);
+    expect(sends).toBe(1);
+
+    const stuck = `receipt:${crypto.randomUUID()}`;
+    expect(await ledger.claim(stuck, now)).toBe(true);
+    expect(await ledger.claim(stuck, now)).toBe(false);
+    expect(
+      await ledger.claim(stuck, new Date(now.getTime() + 11 * 60_000)),
+    ).toBe(true);
+    expect(
+      await collection(db, "billing_mail").findOne({ _id: key }),
+    ).toMatchObject({ sentAt: now });
+  });
+
+  test("live order events mail one receipt to the owner; replays and shadow mode send none", async () => {
+    const { userId, workspaceId, state, deps } = await setup();
+    await db
+      .collection(physicalNames.user)
+      .insertOne({ _id: new ObjectId(userId), email: "owner@example.test" });
+    await applyFetched(db, "sandbox", state.current);
+    const product = productFixture(
+      products.sandbox.checkout.plus,
+      "Shortn Plus",
+    );
+    const order = paidOrderFixture(`ord_${userId}`, {
+      subscription_id: state.current.id,
+      billing_reason: "subscription_cycle",
+      product_id: product.id,
+      product,
+    });
+    const { polar } = polarServing({
+      orders: [order],
+      payments: [cardPaymentFixture(order.id)],
+    });
+    const receipts: Parameters<Mailer["billingReceipt"]>[0][] = [];
+    const onOrder = orderMailer({
+      polar,
+      server: "sandbox",
+      log: () => {},
+      ledger: mongoMailLedger(db),
+      recipients: billingRecipients(db, "https://app.example/"),
+      mailer: {
+        async billingReceipt(input) {
+          receipts.push(input);
+        },
+        async billingRefund() {},
+      },
+    });
+    const deliver = (webhookId: string) =>
+      collection(db, "billing_events").insertOne({
+        _id: webhookId,
+        type: "order.paid",
+        subscriptionIds: [state.current.id],
+        orderId: order.id,
+        receivedAt: new Date(),
+      });
+
+    await deliver(`msg_${userId}_shadow`);
+    await processBillingEvents({ ...deps, onOrder });
+    expect(receipts).toHaveLength(0);
+
+    const live: BillingDeps = { ...deps, mode: "live", onOrder };
+    for (let i = 0; i < 3; i++) await deliver(`msg_${userId}_paid_${i}`);
+    await processBillingEvents(live);
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0]).toMatchObject({
+      to: "owner@example.test",
+      workspace: "W",
+      url: `https://app.example/w-${userId}/settings/billing`,
+      idempotencyKey: `receipt:${order.id}`,
+      receipt: { plan: "Plus", card: { brand: "visa", last4: "4242" } },
+    });
+    expect(
+      await collection(db, "workspaces").findOne({ _id: workspaceId }),
+    ).toMatchObject({ plan: "plus" });
   });
 });
