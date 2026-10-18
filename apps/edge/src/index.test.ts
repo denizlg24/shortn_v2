@@ -456,3 +456,32 @@ test("without handle subdomains, subdomain hosts keep the normal routing", async
   expect(response.status).toBe(302);
   expect(seen.redirect).toHaveLength(1);
 });
+
+test("web asset-prefix paths reach web on the root host and on handle hosts", async () => {
+  const webSeen: string[] = [];
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      webSeen.push(request.url);
+      return new Response("css");
+    },
+  );
+  const live: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    BIO_DELIVERY_ENABLED: "1",
+    BIO_SUBDOMAINS: "1",
+    BIO_INTERNAL_SECRET: "bio-secret",
+  };
+  for (const url of [
+    "https://shortn.at/_web/_next/static/chunks/a.css",
+    "https://denizlg24.shortn.at/_web/_next/static/chunks/a.css",
+  ])
+    expect(await (await handler(new Request(url), live)).text()).toBe("css");
+  expect(webSeen).toEqual([
+    "https://app.shortn.at/_web/_next/static/chunks/a.css",
+    "https://app.shortn.at/_web/_next/static/chunks/a.css",
+  ]);
+});

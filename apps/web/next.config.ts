@@ -24,11 +24,11 @@ const config: NextConfig = {
   ],
   serverExternalPackages: ["mongodb", "ioredis"],
   poweredByHeader: false,
-  // Pages the edge Worker serves on shortn.at (password, safety) load their
-  // assets from the web origin itself; legacy owns shortn.at/_next until P7.
-  ...(process.env.WEB_ASSET_ORIGIN
-    ? { assetPrefix: process.env.WEB_ASSET_ORIGIN }
-    : {}),
+  // Same-origin on every host the web app answers for (app, shortn.at through
+  // the edge, handles, custom domains), which route /_web/* here; legacy owns
+  // shortn.at/_next until P7. A path, not an origin: builds are shared between
+  // environments, so nothing baked in may vary per environment.
+  assetPrefix: "/_web",
   typedRoutes: true,
   // The redirect sends flagged links to /{locale}/safety/{key}; the page
   // lives at /safety/{key} so it can't collide with /[workspace].
@@ -43,16 +43,11 @@ const config: NextConfig = {
   async headers() {
     return [
       {
-        source: "/_bio/:path*",
-        headers: [
-          {
-            key: "Content-Security-Policy",
-            value: `default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com ${process.env.WEB_ASSET_ORIGIN ?? ""}; font-src 'self' https://fonts.gstatic.com ${process.env.WEB_ASSET_ORIGIN ?? ""}; script-src 'self' 'unsafe-inline' ${process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""} ${process.env.WEB_ASSET_ORIGIN ?? ""}; connect-src 'self' ${process.env.BIO_API_ORIGIN ?? ""}; frame-src https://www.youtube-nocookie.com https://open.spotify.com https://player.vimeo.com https://w.soundcloud.com https://embed.music.apple.com; form-action 'none'`,
-          },
-        ],
+        source: "/_next/static/:path*",
+        headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
       },
       {
-        source: "/_next/static/:path*",
+        source: "/_web/_next/static/:path*",
         headers: [{ key: "Access-Control-Allow-Origin", value: "*" }],
       },
       {
