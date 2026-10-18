@@ -6,12 +6,17 @@
     "pro": "Pro",
     "enterprise": "Enterprise"
   },
-  "customKeys": "As chaves personalizadas estão incluídas a partir do plano {plan}. Deixe a chave vazia para obter uma aleatória.",
+  "customKeys": "As chaves personalizadas estão incluídas a partir do plano {plan}. Até lá, cada link novo recebe uma chave aleatória.",
   "passwords": "A proteção por palavra-passe está incluída a partir do plano {plan}.",
   "campaigns": "As variantes UTM e as campanhas estão incluídas a partir do plano {plan}.",
   "analyticsBreakdowns": "As análises detalhadas e os filtros estão incluídos a partir do plano {plan}.",
   "qrLogo": "Os logótipos estão incluídos a partir do plano {plan}.",
   "csvExport": "A exportação para CSV está incluída a partir do plano {plan}.",
   "cta": "Ver planos",
-  "campaignExport": "A exportação de campanhas para CSV está incluída a partir do plano {plan}."
+  "campaignExport": "A exportação de campanhas para CSV está incluída a partir do plano {plan}.",
+  "api": "As chaves de API estão incluídas a partir do plano {plan}. As chaves que já tem continuam a funcionar.",
+  "sso": "O SSO da organização está incluído no plano {plan}.",
+  "bioBadge": "O selo de perfil pago está incluído a partir do plano {plan}.",
+  "bioSchedule": "O agendamento de secções está incluído a partir do plano {plan}.",
+  "bioBranding": "Ocultar a marca Shortn está incluído a partir do plano {plan}."
 }

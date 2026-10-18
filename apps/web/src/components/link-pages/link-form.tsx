@@ -200,21 +200,33 @@ export function LinkForm({
         ) : null}
       </Section>
 
-      <Section title={t("keySection")}>
-        {gates.customKeys ? (
-          <PlanGate feature="customKeys" plan={gates.customKeys} />
-        ) : (
-          <FormField
-            id={`${id}-key`}
-            label={t("key")}
-            optional={t("optional")}
-            hint={mode === "edit" ? t("keyRenamed") : t("keyHint")}
-            error={fieldError("key")}
-          >
-            <div className="flex items-stretch">
-              <span className="flex items-center rounded-l-control border border-r-0 border-line-strong bg-bg-subtle px-3 text-body text-fg-muted">
-                {domain}/
-              </span>
+      <Section title={t("keySection")} anchor="link-key">
+        <FormField
+          id={`${id}-key`}
+          label={t("key")}
+          {...(gates.customKeys
+            ? {}
+            : {
+                optional: t("optional"),
+                hint: mode === "edit" ? t("keyRenamed") : t("keyHint"),
+              })}
+          error={fieldError("key")}
+        >
+          <div className="flex items-stretch">
+            <span className="flex items-center rounded-l-control border border-r-0 border-line-strong bg-bg-subtle px-3 text-body text-fg-muted">
+              {domain}/
+            </span>
+            {gates.customKeys ? (
+              <input
+                id={`${id}-key`}
+                value={mode === "edit" ? key : ""}
+                placeholder={mode === "edit" ? undefined : t("keyRandom")}
+                disabled
+                aria-describedby={`${id}-key-gate`}
+                className={`${inputClass} rounded-l-none disabled:cursor-not-allowed disabled:opacity-50`}
+                readOnly
+              />
+            ) : (
               <input
                 id={`${id}-key`}
                 name="key"
@@ -230,22 +242,30 @@ export function LinkForm({
                 aria-describedby={describe("key", true)}
                 className={`${inputClass} rounded-l-none`}
               />
-            </div>
-            {mode === "create" && keyEdited && lookup.key ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  setKey(lookup.key!);
-                  setKeyEdited(false);
-                }}
-              >
-                {creation("useKey")}
-              </Button>
-            ) : null}
-          </FormField>
-        )}
+            )}
+          </div>
+          {mode === "create" && !gates.customKeys && keyEdited && lookup.key ? (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setKey(lookup.key!);
+                setKeyEdited(false);
+              }}
+            >
+              {creation("useKey")}
+            </Button>
+          ) : null}
+        </FormField>
+        {gates.customKeys ? (
+          <PlanGate
+            id={`${id}-key-gate`}
+            feature="customKeys"
+            plan={gates.customKeys}
+            className="mt-3"
+          />
+        ) : null}
       </Section>
 
       <Section title={t("detailsSection")}>
@@ -306,9 +326,24 @@ export function LinkForm({
         />
       </Section>
 
-      <Section title={t("passwordSection")}>
+      <Section title={t("passwordSection")} anchor="link-password">
         {gates.passwords ? (
-          <PlanGate feature="passwords" plan={gates.passwords} />
+          <div className="flex flex-col gap-3">
+            <FormField id={`${id}-password`} label={t("password")}>
+              <input
+                id={`${id}-password`}
+                type="password"
+                disabled
+                aria-describedby={`${id}-password-gate`}
+                className={`${inputClass} disabled:cursor-not-allowed disabled:opacity-50`}
+              />
+            </FormField>
+            <PlanGate
+              id={`${id}-password-gate`}
+              feature="passwords"
+              plan={gates.passwords}
+            />
+          </div>
         ) : (
           <div className="flex flex-col gap-4">
             {mode === "edit" && initial.hasPassword ? (
@@ -376,7 +411,7 @@ export function LinkForm({
         )}
       </Section>
 
-      <Section title={advanced("title")}>
+      <Section title={advanced("title")} anchor="link-advanced">
         <LinkAdvancedFields
           {...(initial.rules ? { initial: initial.rules } : {})}
           {...(initial.og ? { preview: initial.og } : {})}

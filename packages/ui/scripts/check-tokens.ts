@@ -12,7 +12,7 @@ const source = readFileSync(
 );
 
 const SECTION_HEADING: Record<Exclude<CheckSection, "gamut">, string> = {
-  text: "text (AA 4.5:1)",
+  text: "text (AA 4.5:1, body fg 7:1)",
   "non-text": "non-text (AA 3:1)",
   series: `chart series, closest pair in OKLab under simulated vision (min ${MIN_SERIES_DELTA})`,
 };

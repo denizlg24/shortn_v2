@@ -6,12 +6,17 @@
     "pro": "Pro",
     "enterprise": "Enterprise"
   },
-  "customKeys": "Custom keys come with the {plan} plan and up. Leave the key empty for a random one.",
+  "customKeys": "Custom keys come with the {plan} plan and up. Until then, every new link gets a random key.",
   "passwords": "Password protection comes with the {plan} plan and up.",
   "campaigns": "UTM variants and campaigns come with the {plan} plan and up.",
   "analyticsBreakdowns": "Breakdowns and filters come with the {plan} plan and up.",
   "qrLogo": "Logos come with the {plan} plan and up.",
   "csvExport": "CSV export comes with the {plan} plan and up.",
   "cta": "See plans",
-  "campaignExport": "Campaign CSV export comes with the {plan} plan and up."
+  "campaignExport": "Campaign CSV export comes with the {plan} plan and up.",
+  "api": "API keys come with the {plan} plan and up. Keys you already have keep working.",
+  "sso": "Workplace SSO comes with the {plan} plan.",
+  "bioBadge": "The paid profile badge comes with the {plan} plan and up.",
+  "bioSchedule": "Scheduling sections comes with the {plan} plan and up.",
+  "bioBranding": "Hiding Shortn branding comes with the {plan} plan and up."
 }

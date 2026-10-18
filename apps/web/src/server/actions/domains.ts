@@ -10,7 +10,11 @@ import {
   removeDomain,
   retryDomain,
 } from "@shortn/core";
-import { createPolar, domainAddonCheckout } from "@shortn/billing";
+import {
+  createPolar,
+  domainAddonCheckout,
+  loadEntitlements,
+} from "@shortn/billing";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { serviceContext } from "../context";
@@ -64,11 +68,15 @@ export async function buyDomainAddonAction(workspace: string) {
     e.DOMAIN_WRITES !== "1"
   )
     return;
-  const [allowance, domains] = await Promise.all([
+  const [allowance, domains, entitlements] = await Promise.all([
     domainAllowance(ctx.db, ctx.workspace._id),
     listDomains(ctx),
+    loadEntitlements(ctx.db, ctx.workspace._id),
   ]);
+  // Free workspaces get no domains from an add-on (domainAllowance), so
+  // selling them one would charge for nothing.
   if (
+    entitlements.plan === "free" ||
     allowance > domains.filter((domain) => domain.status !== "disabled").length
   )
     return;

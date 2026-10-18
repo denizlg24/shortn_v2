@@ -104,6 +104,7 @@
     "key": "Custom key",
     "keyHint": "Leave empty for a random key. Letters, digits, - and _.",
     "keyRenamed": "The old key keeps redirecting here.",
+    "keyRandom": "Random key",
     "detailsSection": "Details",
     "title": "Title",
     "description": "Description",

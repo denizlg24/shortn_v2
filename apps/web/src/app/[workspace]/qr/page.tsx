@@ -16,6 +16,7 @@ import { qrName } from "@/server/qr-page";
 import { createdBounds } from "@/components/page/created-range";
 import { requestTime } from "@/server/time";
 import { env } from "@/server/env";
+import { tourAnchor } from "@/lib/tour/anchors";
 
 const pageSize = 24;
 
@@ -166,7 +167,7 @@ export default async function QrCodesPage({
       <QrFilters tags={tags.map((item) => item.name)} />
 
       {result.items.length === 0 ? (
-        <div className="py-16 text-center">
+        <div className="py-16 text-center" {...tourAnchor("qr-library")}>
           <p className="text-body text-fg-muted">
             {filtered ? t("emptyFiltered") : t("empty")}
           </p>
@@ -219,9 +220,10 @@ export default async function QrCodesPage({
         >
           {view === "grid" ? (
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] border-t border-l border-line">
-              {result.items.map((qr) => (
+              {result.items.map((qr, index) => (
                 <li
                   key={qr.id}
+                  {...(index === 0 ? tourAnchor("qr-library") : {})}
                   className="relative flex min-w-0 flex-col gap-3 border-r border-b border-line px-4 pt-5 pb-3.5 hover:bg-bg-subtle has-[a:focus-visible]:outline-2 has-[a:focus-visible]:-outline-offset-2 has-[a:focus-visible]:outline-signal"
                 >
                   <QrImage
@@ -291,8 +293,12 @@ export default async function QrCodesPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {result.items.map((qr) => (
-                    <tr key={qr.id} className="hover:bg-bg-subtle">
+                  {result.items.map((qr, index) => (
+                    <tr
+                      key={qr.id}
+                      className="hover:bg-bg-subtle"
+                      {...(index === 0 ? tourAnchor("qr-library") : {})}
+                    >
                       {exportsEnabled || anyDeletable ? (
                         <td className="py-2.5 pr-2">{checkbox(qr)}</td>
                       ) : null}

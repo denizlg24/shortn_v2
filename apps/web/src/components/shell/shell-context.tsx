@@ -13,6 +13,7 @@ export interface ShellValue {
   navigate: (section: Section) => void;
   switchWorkspace: (slug: string) => void;
   openDrawer: () => void;
+  closeDrawer: () => void;
   openShortcuts: () => void;
 }
 

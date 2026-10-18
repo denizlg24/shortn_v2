@@ -1,0 +1,230 @@
+{
+  "title": "Novedades",
+  "description": "Lo que ha cambiado en Shortn, de lo más reciente a lo más antiguo.",
+  "released": "Publicado el {date}",
+  "unseen": "Nuevo",
+  "addon": "Complemento",
+  "menu": "Novedades",
+  "contents": "En esta versión",
+  "dialog": {
+    "takeTour": "Hacer el recorrido",
+    "later": "Más tarde",
+    "seeAll": "Ver todo"
+  },
+  "entries": {
+    "2026-10-new-shortn": {
+      "title": "El nuevo Shortn",
+      "summary": "Hemos reconstruido Shortn desde cero: un panel más rápido, con una página para cada tarea, pensado para bibliotecas con miles de enlaces. Tu cuenta, tus enlaces, códigos QR y páginas bio se han venido contigo, y todo lo que has compartido sigue funcionando.",
+      "highlights": {
+        "dashboard": {
+          "title": "Un nuevo panel en app.shortn.at",
+          "body": "Más rápido, con una página para cada tarea y búsqueda, filtros y acciones en bloque que aguantan miles de enlaces."
+        },
+        "links": {
+          "title": "Más control sobre cada enlace",
+          "body": "Claves personalizadas, etiquetas, variantes UTM, contraseñas, programación, reglas de redirección, enlaces a apps y comprobación semanal de destinos."
+        },
+        "qr": {
+          "title": "Códigos QR pensados para imprimir",
+          "body": "Diseños con logotipo y marco, exportación en SVG, PNG y PDF, y escaneos contados aparte de los clics."
+        },
+        "bio": {
+          "title": "Páginas bio con dirección propia",
+          "body": "Cada página está ahora en handle.shortn.at, con temas y bloques. Los enlaces antiguos shortn.at/b/ redirigen allí."
+        },
+        "developers": {
+          "title": "API, webhooks y servidor MCP",
+          "body": "Conecta Shortn con tus propios sistemas y con asistentes de IA."
+        }
+      },
+      "sections": {
+        "dashboard": "Panel",
+        "links": "Enlaces",
+        "qr": "Códigos QR",
+        "bio": "Páginas bio",
+        "analytics": "Estadísticas",
+        "campaigns": "Campañas",
+        "domains": "Dominios personalizados",
+        "team": "Equipo",
+        "developers": "Desarrolladores",
+        "data": "Importaciones y exportaciones",
+        "security": "Seguridad",
+        "billing": "Facturación"
+      },
+      "items": {
+        "home": {
+          "title": "Una nueva casa en app.shortn.at",
+          "body": "Inicia sesión con tu cuenta de siempre; tus espacios de trabajo, enlaces y códigos QR ya están ahí."
+        },
+        "pages": {
+          "title": "Una página para cada tarea",
+          "body": "Crear, editar y eliminar tienen cada uno su propia página y dirección, así que el botón de volver, los marcadores y los enlaces compartidos funcionan."
+        },
+        "library": {
+          "title": "Pensado para bibliotecas grandes",
+          "body": "La búsqueda y los filtros por etiqueta, estado y fecha, con paginación en el servidor, mantienen miles de enlaces rápidos. Selecciona en varias páginas y filtros y archiva, etiqueta, mueve a una campaña o elimina hasta 500 a la vez."
+        },
+        "keyboard": {
+          "title": "Atajos de teclado y paleta de comandos",
+          "body": "Pulsa ? para ver los atajos y ⌘K o Ctrl+K para ir a cualquier sitio."
+        },
+        "languages": {
+          "title": "Claro u oscuro, en tres idiomas",
+          "body": "Elige un tema claro, oscuro o el del sistema, en español, inglés o portugués."
+        },
+        "customKeys": {
+          "title": "Claves personalizadas",
+          "body": "Elige tú lo que va después de la barra. Las claves renombradas siguen redirigiendo."
+        },
+        "tags": {
+          "title": "Etiquetas",
+          "body": "Organiza los enlaces con etiquetas y filtra la biblioteca por ellas."
+        },
+        "utm": {
+          "title": "Variantes UTM",
+          "body": "Versiones etiquetadas de un enlace para cada canal, contadas por fuente, medio y campaña."
+        },
+        "password": {
+          "title": "Protección con contraseña",
+          "body": "Pide una contraseña antes de redirigir, con una pista opcional."
+        },
+        "rules": {
+          "title": "Programación, límites y redirección",
+          "body": "Define cuándo empieza y deja de funcionar un enlace, limita sus visitas, envía a los visitantes a destinos distintos según el país o el dispositivo, o reparte el tráfico por pesos."
+        },
+        "appLinks": {
+          "title": "Enlaces a apps",
+          "body": "Abre directamente la app de iOS o Android, con la web o la tienda de apps como alternativa."
+        },
+        "preview": {
+          "title": "Vista previa en redes sociales",
+          "body": "Define el título, la descripción y la imagen que muestran las vistas previas de enlaces."
+        },
+        "health": {
+          "title": "Estado del destino",
+          "body": "Una comprobación semanal marca los destinos que siguen devolviendo errores, en la lista y en la página del enlace."
+        },
+        "archive": {
+          "title": "Archivo y papelera",
+          "body": "Archiva enlaces para despejar la lista sin eliminarlos. Los enlaces eliminados se pueden restaurar durante 30 días."
+        },
+        "dynamic": {
+          "title": "Cambia el destino después de imprimir",
+          "body": "Cada código tiene su propio enlace corto, así que las copias impresas siguen el cambio de destino."
+        },
+        "design": {
+          "title": "Diseños",
+          "body": "Colores, formas de puntos y esquinas, marcos y textos, con una comprobación en directo de que el código se sigue leyendo."
+        },
+        "logo": {
+          "title": "Logotipos",
+          "body": "Coloca tu logotipo en el centro del código."
+        },
+        "qrExports": {
+          "title": "Exportación para imprimir",
+          "body": "SVG, PNG o PDF al tamaño que necesites, un código cada vez o varios en un ZIP."
+        },
+        "scans": {
+          "title": "Escaneos contados aparte",
+          "body": "Los escaneos tienen sus propias cifras, separadas de los clics. Los escaneos de códigos QR antiguos que se habían registrado como clics ahora cuentan como escaneos."
+        },
+        "address": {
+          "title": "Dirección propia",
+          "body": "Cada página bio está en handle.shortn.at. Los enlaces antiguos shortn.at/b/ redirigen allí."
+        },
+        "blocks": {
+          "title": "Temas y bloques",
+          "body": "Empieza con un tema y añade enlaces, iconos sociales, texto, imágenes, contenido insertado y códigos QR, arrastrando las secciones para ordenarlas."
+        },
+        "collections": {
+          "title": "Colecciones de enlaces",
+          "body": "Muestra listas largas de enlaces en lista, cuadrados o tarjetas con imagen, divididas en páginas para los visitantes."
+        },
+        "drafts": {
+          "title": "Borradores e historial",
+          "body": "Los cambios quedan en borrador hasta que publiques, y puedes restaurar versiones anteriores."
+        },
+        "overview": {
+          "title": "Clics y escaneos en una sola vista",
+          "body": "Estadísticas del espacio de trabajo, de un enlace, de un código QR o de una campaña, comparadas con el periodo anterior. Los filtros están en la dirección, así que puedes guardar y compartir vistas."
+        },
+        "breakdowns": {
+          "title": "Desgloses y filtros",
+          "body": "Países, ciudades, referentes, dispositivos, navegadores, sistemas operativos y etiquetas UTM. Haz clic en una fila para filtrar por ella."
+        },
+        "analyticsExports": {
+          "title": "Exportación de estadísticas",
+          "body": "Exporta los eventos sin procesar a CSV en segundo plano y descárgalos cuando estén listos."
+        },
+        "campaigns": {
+          "title": "Campañas",
+          "body": "Agrupa enlaces en una campaña, crea enlaces con etiquetas UTM para cada canal y consulta los resultados juntos."
+        },
+        "campaignExports": {
+          "title": "Exportación de campañas",
+          "body": "Exporta los eventos de una campaña a CSV."
+        },
+        "domains": {
+          "title": "Dominios personalizados",
+          "body": "Usa tu propio dominio para enlaces o para una página bio. Cada complemento de dominio personalizado incluye un dominio."
+        },
+        "workspaces": {
+          "title": "Espacios de trabajo",
+          "body": "Separa marcas o clientes en espacios de trabajo distintos y cambia entre ellos."
+        },
+        "roles": {
+          "title": "Miembros y roles",
+          "body": "Invita a personas como administradores, miembros o lectores y elige qué puede hacer cada una."
+        },
+        "api": {
+          "title": "API REST",
+          "body": "Gestiona enlaces, códigos QR, páginas bio, etiquetas, campañas y estadísticas desde tu propio código, con claves de API limitadas."
+        },
+        "webhooks": {
+          "title": "Webhooks",
+          "body": "Recibe eventos en tu endpoint cuando cambian los enlaces y otros recursos, con historial de entregas y reenvío."
+        },
+        "mcp": {
+          "title": "Servidor MCP",
+          "body": "Deja que los asistentes de IA trabajen con tus enlaces a través del Model Context Protocol."
+        },
+        "imports": {
+          "title": "Importaciones",
+          "body": "Importa enlaces o códigos QR desde un archivo CSV o una lista pegada, con una prueba antes de crear nada."
+        },
+        "linkExports": {
+          "title": "Exportación de enlaces",
+          "body": "Exporta enlaces filtrados a CSV y vuelve a importarlos más adelante."
+        },
+        "workspaceExport": {
+          "title": "Exportación del espacio de trabajo",
+          "body": "Descarga una copia privada de todo lo que hay en un espacio de trabajo."
+        },
+        "twoFactor": {
+          "title": "Autenticación en dos pasos y llaves de acceso",
+          "body": "Añade una app de autenticación o una llave de acceso a tu cuenta. Se están activando espacio de trabajo por espacio de trabajo."
+        },
+        "sso": {
+          "title": "SSO de la organización",
+          "body": "Permite que los miembros inicien sesión con el proveedor de identidad de tu empresa, por OIDC o SAML."
+        },
+        "sessions": {
+          "title": "Sesiones",
+          "body": "Consulta dónde tienes la sesión iniciada y cierra la sesión en otros dispositivos."
+        },
+        "plans": {
+          "title": "Cambios de plan",
+          "body": "Cambia a un plan superior o inferior desde Facturación. Las mejoras se aplican al momento y se prorratean; los cambios a un plan inferior se aplican al final del periodo."
+        },
+        "invoices": {
+          "title": "Facturas y recibos",
+          "body": "Descarga las facturas desde Facturación. Los recibos, reembolsos y detalles de pagos fallidos llegan por correo electrónico."
+        },
+        "currency": {
+          "title": "Estimaciones en euros",
+          "body": "Los planes se cobran en dólares estadounidenses, con una estimación en euros basada en los tipos de referencia del BCE."
+        }
+      }
+    }
+  }
+}

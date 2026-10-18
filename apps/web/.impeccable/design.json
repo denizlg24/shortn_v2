@@ -124,9 +124,9 @@
         "displayName": "Paper",
         "canonical": "oklch(1 0 0)",
         "tonalRamp": [
-          "oklch(0.155 0.03 265)",
-          "oklch(0.185 0.03 265)",
-          "oklch(0.225 0.03 265)",
+          "oklch(0.165 0.004 265)",
+          "oklch(0.193 0.005 265)",
+          "oklch(0.245 0.006 265)",
           "oklch(0.46 0.03 265)",
           "oklch(0.54 0.025 265)",
           "oklch(0.87 0.014 265)",
@@ -186,28 +186,28 @@
       },
       "dark-bg": {
         "role": "neutral",
-        "displayName": "Night Desk",
-        "canonical": "oklch(0.155 0.03 265)"
+        "displayName": "Graphite Desk",
+        "canonical": "oklch(0.165 0.004 265)"
       },
       "dark-bg-subtle": {
         "role": "neutral",
-        "displayName": "Night Desk Raised",
-        "canonical": "oklch(0.185 0.03 265)"
+        "displayName": "Graphite Desk Raised",
+        "canonical": "oklch(0.193 0.005 265)"
       },
       "dark-bg-muted": {
         "role": "neutral",
-        "displayName": "Night Desk Pressed",
-        "canonical": "oklch(0.225 0.03 265)"
+        "displayName": "Graphite Desk Pressed",
+        "canonical": "oklch(0.245 0.006 265)"
       },
       "dark-fg": {
         "role": "neutral",
-        "displayName": "Night Ink",
-        "canonical": "oklch(0.975 0.004 265)"
+        "displayName": "Graphite Ink",
+        "canonical": "oklch(0.968 0.002 265)"
       },
       "dark-fg-muted": {
         "role": "neutral",
-        "displayName": "Night Muted Ink",
-        "canonical": "oklch(0.74 0.025 265)"
+        "displayName": "Graphite Muted Ink",
+        "canonical": "oklch(0.755 0.006 265)"
       },
       "dark-signal": {
         "role": "secondary",
@@ -439,9 +439,9 @@
   ],
   "narrative": {
     "northStar": "The Newsroom Link Desk",
-    "overview": "Shortn is the category standard executed at full craft, with Linear and Dub.co as the bar. It's a quiet, dense working surface for editors who create dozens of links a day. Brand navy is the ink and the primary fill, the neutrals are tinted with the same navy hue (265), and one signal blue marks whatever is interactive or in focus. Structure comes from 1px hairlines and space rather than boxes. The table is the product: 44px rows, tabular figures, and actions that apply instantly. Light mode is the default (a daylit desk) and dark mode is navy-black, not grey.\n\nThe marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, the proof strip, and the closing call to action. White or dark-navy reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's \"S\", is used only for marketing display type. Everything else is Geist.\n\nThe system explicitly rejects KPI card mosaics, decorative gradients, glassmorphism and glows, icon-in-rounded-square tiles, nested boxes, and the centred-slogan-over-floating-dashboard hero.",
+    "overview": "Shortn is the category standard executed at full craft, with Linear and Dub.co as the bar. It's a quiet, dense working surface for editors who create dozens of links a day. Brand navy is the ink and the primary fill, the neutrals are tinted with the same navy hue (265), and one signal blue marks whatever is interactive or in focus. Structure comes from 1px hairlines and space rather than boxes. The table is the product: 44px rows, tabular figures, and actions that apply instantly. Light mode is the default (a daylit desk). Dark mode is a near-neutral graphite with a faint cool tint, so navy and signal blue stay meaningful instead of tinting every surface.\n\nThe marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, the proof strip, and the closing call to action. White (graphite in dark mode) reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's \"S\", is used only for marketing display type. Everything else is Geist.\n\nThe system explicitly rejects KPI card mosaics, decorative gradients, glassmorphism and glows, icon-in-rounded-square tiles, nested boxes, and the centred-slogan-over-floating-dashboard hero.",
     "keyCharacteristics": [
-      "Navy-tinted neutrals on white (navy-black in dark mode). Brand navy is used for ink and primary fills.",
+      "Navy-tinted neutrals on white; near-neutral graphite in dark mode. Brand navy is used for ink and primary fills.",
       "One signal blue, reserved for focus, text links, selection and chart series 1.",
       "1px hairlines instead of cards. The only shadow belongs to floating overlays.",
       "Geist for UI, Geist Mono for figures. Schibsted Grotesk 800 for marketing display only.",

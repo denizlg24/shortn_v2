@@ -4,6 +4,7 @@ import { Button, cn } from "@shortn/ui";
 import { Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
+import { tourAnchor } from "@/lib/tour/anchors";
 import { useShell } from "./shell-context";
 
 /** 12 §App shell: title + count · search · filters · primary action, sticky. */
@@ -33,6 +34,7 @@ export function PageHeader({
         className="-ml-2 md:hidden"
         aria-label={t("openMenu")}
         onClick={openDrawer}
+        {...tourAnchor("help-menu")}
       >
         <Menu aria-hidden />
       </Button>

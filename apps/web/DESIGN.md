@@ -28,11 +28,11 @@ colors:
   chart-4: "oklch(0.67 0.13 80)"
   chart-5: "oklch(0.46 0.15 297)"
   chart-6: "oklch(0.47 0.12 52)"
-  dark-bg: "oklch(0.155 0.03 265)"
-  dark-bg-subtle: "oklch(0.185 0.03 265)"
-  dark-bg-muted: "oklch(0.225 0.03 265)"
-  dark-fg: "oklch(0.975 0.004 265)"
-  dark-fg-muted: "oklch(0.74 0.025 265)"
+  dark-bg: "oklch(0.165 0.004 265)"
+  dark-bg-subtle: "oklch(0.193 0.005 265)"
+  dark-bg-muted: "oklch(0.245 0.006 265)"
+  dark-fg: "oklch(0.968 0.002 265)"
+  dark-fg-muted: "oklch(0.755 0.006 265)"
   dark-signal: "oklch(0.7 0.15 262)"
   band-bg-subtle: "oklch(0.245 0.045 265)"
   band-field: "oklch(0.25 0.045 265)"
@@ -214,15 +214,15 @@ components:
 
 **Creative North Star: "The Newsroom Link Desk"**
 
-Shortn is the category standard executed at full craft, with Linear and Dub.co as the bar. It's a quiet, dense working surface for editors who create dozens of links a day. Brand navy is the ink and the primary fill, the neutrals are tinted with the same navy hue (265), and one signal blue marks whatever is interactive or in focus. Structure comes from 1px hairlines and space rather than boxes. The table is the product: 44px rows, tabular figures, and actions that apply instantly. Light mode is the default (a daylit desk) and dark mode is navy-black, not grey.
+Shortn is the category standard executed at full craft, with Linear and Dub.co as the bar. It's a quiet, dense working surface for editors who create dozens of links a day. Brand navy is the ink and the primary fill, the neutrals are tinted with the same navy hue (265), and one signal blue marks whatever is interactive or in focus. Structure comes from 1px hairlines and space rather than boxes. The table is the product: 44px rows, tabular figures, and actions that apply instantly. Light mode is the default (a daylit desk). Dark mode is a near-neutral graphite with a faint cool tint, so navy and signal blue stay meaningful instead of tinting every surface.
 
-The marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, the proof strip, and the closing call to action. White or dark-navy reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's "S", is used only for marketing display type. Everything else is Geist.
+The marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, the proof strip, and the closing call to action. White (graphite in dark mode) reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's "S", is used only for marketing display type. Everything else is Geist.
 
 The system explicitly rejects KPI card mosaics, decorative gradients, glassmorphism and glows, icon-in-rounded-square tiles, nested boxes, and the centred-slogan-over-floating-dashboard hero.
 
 **Key Characteristics:**
 
-- Navy-tinted neutrals on white (navy-black in dark mode). Brand navy is used for ink and primary fills.
+- Navy-tinted neutrals on white; near-neutral graphite in dark mode. Brand navy is used for ink and primary fills.
 - One signal blue, reserved for focus, text links, selection and chart series 1.
 - 1px hairlines instead of cards. The only shadow belongs to floating overlays.
 - Geist for UI, Geist Mono for figures. Schibsted Grotesk 800 for marketing display only.
@@ -254,11 +254,11 @@ The palette is a single hue with one accent: navy at every lightness, white, and
 - **Pressed Grey** (`bg-muted`): selected row, ghost-button hover and highlighted menu item.
 - **Hairline** (`line`) / **Firm Hairline** (`line-strong`): every divider and table rule, and the borders of inputs and secondary buttons.
 - **Muted Ink** (`fg-muted`): secondary text, at least 4.5:1 on `bg`. **Faint Ink** (`fg-subtle`): placeholders, meta, the muted domain in a short link.
-- **Night Desk** (`dark-bg`, `dark-bg-subtle`, `dark-bg-muted`, `dark-fg`, `dark-fg-muted`): the dark-mode remap applied under `.dark`. In dark mode the primary fill inverts to near-white, with navy text on it.
+- **Graphite Desk** (`dark-bg`, `dark-bg-subtle`, `dark-bg-muted`, `dark-fg`, `dark-fg-muted`): the dark-mode remap applied under `.dark`. Surfaces carry chroma 0.004–0.006 at hue 265, just enough cool to avoid mud, and step up in lightness: `bg` → `bg-subtle` → `overlay` → `bg-muted` (so a highlighted menu item still reads on a popover). Text greys are near-neutral: body `fg` holds 7:1 on every surface, `fg-muted` and `fg-subtle` hold 4.5:1. Navy appears only where it carries brand meaning: the primary fill inverts to near-white with brand-navy text on it, and the marketing band stays a navy field.
 
 ### Band remap (marketing)
 
-A `.band` section sets `color-scheme: dark` and remaps the semantic tokens over a `brand-navy` field: `band-bg-subtle` and `band-field` for raised areas and inputs, `band-fg` for text, `band-fg-muted` for secondary text, white-alpha hairlines (12% / 22%), and a lighter `band-signal`. The primary fill becomes near-white with navy text, so the main CTA on navy is a white button. In dark mode the band lifts slightly to `band-dark-bg`, so it stays distinct from the navy-black page.
+A `.band` section sets `color-scheme: dark` and remaps the semantic tokens over a `brand-navy` field: `band-bg-subtle` and `band-field` for raised areas and inputs, `band-fg` for text, `band-fg-muted` for secondary text, white-alpha hairlines (12% / 22%), and a lighter `band-signal`. The primary fill becomes near-white with navy text, so the main CTA on navy is a white button. In dark mode the band sits at `band-dark-bg`, a navy field that reads clearly against the graphite page.
 
 ### Named Rules
 
@@ -319,7 +319,7 @@ The system is flat, with depth expressed through tonal steps (`bg` → `bg-subtl
 ### Shadow Vocabulary
 
 - **Overlay** (`box-shadow: 0 8px 24px -8px oklch(0.2 0.04 265 / 18%)`, dark `oklch(0 0 0 / 55%)`): popovers, menus, dialogs, tooltips and the command palette. Always paired with a 1px `line` border and `overlay` background.
-- **Scrim** (`scrim`, 16% navy, or 55% near-black in dark mode): behind dialogs only.
+- **Scrim** (`scrim`, 16% navy, or 60% near-black graphite in dark mode): behind dialogs only.
 
 ### Named Rules
 

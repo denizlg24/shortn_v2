@@ -1,0 +1,230 @@
+{
+  "title": "What's new",
+  "description": "What changed in Shortn, newest first.",
+  "released": "Released {date}",
+  "unseen": "New",
+  "addon": "Add-on",
+  "menu": "What's new",
+  "contents": "In this release",
+  "dialog": {
+    "takeTour": "Take the tour",
+    "later": "Later",
+    "seeAll": "See everything"
+  },
+  "entries": {
+    "2026-10-new-shortn": {
+      "title": "The new Shortn",
+      "summary": "We rebuilt Shortn from the ground up: a faster dashboard with a page for every task, built for libraries with thousands of links. Your account, links, QR codes and bio pages came with you, and everything you've shared keeps working.",
+      "highlights": {
+        "dashboard": {
+          "title": "A new dashboard at app.shortn.at",
+          "body": "Faster, with a page for every task, and search, filters and bulk actions that hold up with thousands of links."
+        },
+        "links": {
+          "title": "More control over every link",
+          "body": "Custom keys, tags, UTM variants, passwords, schedules, targeting rules, app links and weekly destination checks."
+        },
+        "qr": {
+          "title": "QR codes made for print",
+          "body": "Designs with logos and frames, SVG, PNG and PDF exports, and scans counted separately from clicks."
+        },
+        "bio": {
+          "title": "Bio pages at their own address",
+          "body": "Each page now lives at handle.shortn.at, with themes and blocks. Old shortn.at/b/ links redirect there."
+        },
+        "developers": {
+          "title": "An API, webhooks and an MCP server",
+          "body": "Connect Shortn to your own systems and to AI assistants."
+        }
+      },
+      "sections": {
+        "dashboard": "Dashboard",
+        "links": "Links",
+        "qr": "QR codes",
+        "bio": "Bio pages",
+        "analytics": "Analytics",
+        "campaigns": "Campaigns",
+        "domains": "Custom domains",
+        "team": "Team",
+        "developers": "Developers",
+        "data": "Imports and exports",
+        "security": "Security",
+        "billing": "Billing"
+      },
+      "items": {
+        "home": {
+          "title": "A new home at app.shortn.at",
+          "body": "Sign in with your existing account; your workspaces, links and QR codes are already there."
+        },
+        "pages": {
+          "title": "A page for every task",
+          "body": "Creating, editing and deleting each have their own page and address, so the back button, bookmarks and shared links all work."
+        },
+        "library": {
+          "title": "Built for large libraries",
+          "body": "Search plus tag, status and date filters, with server-side pages, keep thousands of links quick. Select across pages and filters, then archive, tag, move to a campaign or delete up to 500 at once."
+        },
+        "keyboard": {
+          "title": "Keyboard shortcuts and a command palette",
+          "body": "Press ? for the shortcuts and ⌘K or Ctrl+K to jump anywhere."
+        },
+        "languages": {
+          "title": "Light or dark, in three languages",
+          "body": "Choose a light, dark or system theme, in English, Portuguese or Spanish."
+        },
+        "customKeys": {
+          "title": "Custom keys",
+          "body": "Choose the part after the slash yourself. Renamed keys keep redirecting."
+        },
+        "tags": {
+          "title": "Tags",
+          "body": "File links under tags and filter the library by them."
+        },
+        "utm": {
+          "title": "UTM variants",
+          "body": "Tagged versions of a link for each channel, counted by source, medium and campaign."
+        },
+        "password": {
+          "title": "Password protection",
+          "body": "Ask for a password before redirecting, with an optional hint."
+        },
+        "rules": {
+          "title": "Schedules, limits and targeting",
+          "body": "Set when a link starts and stops working, cap its visits, send visitors to different destinations by country or device, or split traffic by weight."
+        },
+        "appLinks": {
+          "title": "App links",
+          "body": "Open the iOS or Android app directly, falling back to the web or the app store."
+        },
+        "preview": {
+          "title": "Social previews",
+          "body": "Set the title, description and image that link previews show."
+        },
+        "health": {
+          "title": "Destination health",
+          "body": "Weekly checks flag destinations that keep returning errors, in the list and on the link's page."
+        },
+        "archive": {
+          "title": "Archive and trash",
+          "body": "Archive links to clear the list without deleting them. Deleted links can be restored for 30 days."
+        },
+        "dynamic": {
+          "title": "Change destinations after printing",
+          "body": "Every code has its own short link, so printed copies follow when you change where it goes."
+        },
+        "design": {
+          "title": "Designs",
+          "body": "Colours, dot and corner shapes, frames and captions, with a live check that the code still scans."
+        },
+        "logo": {
+          "title": "Logos",
+          "body": "Put your logo in the centre of the code."
+        },
+        "qrExports": {
+          "title": "Print exports",
+          "body": "SVG, PNG or PDF at the size you need, one code at a time or many as a ZIP."
+        },
+        "scans": {
+          "title": "Scans counted separately",
+          "body": "Scans have their own numbers, apart from clicks. Scans of older QR codes that were recorded as clicks now count as scans."
+        },
+        "address": {
+          "title": "Your own address",
+          "body": "Each bio page lives at handle.shortn.at. Old shortn.at/b/ links redirect there."
+        },
+        "blocks": {
+          "title": "Themes and blocks",
+          "body": "Start from a theme, then add links, social icons, text, images, embeds and QR codes, and drag sections into order."
+        },
+        "collections": {
+          "title": "Link collections",
+          "body": "Show long lists of links as a list, squares or image cards, split into pages for visitors."
+        },
+        "drafts": {
+          "title": "Drafts and history",
+          "body": "Edits stay in a draft until you publish, and earlier versions can be restored."
+        },
+        "overview": {
+          "title": "Clicks and scans in one view",
+          "body": "Analytics for the workspace, a link, a QR code or a campaign, compared with the previous period. Filters live in the address, so views can be bookmarked and shared."
+        },
+        "breakdowns": {
+          "title": "Breakdowns and filters",
+          "body": "Countries, cities, referrers, devices, browsers, operating systems and UTM tags. Click a row to filter by it."
+        },
+        "analyticsExports": {
+          "title": "Analytics exports",
+          "body": "Export the raw events as CSV in the background and download them when they're ready."
+        },
+        "campaigns": {
+          "title": "Campaigns",
+          "body": "Group links under a campaign, build UTM-tagged links for each channel and read the results together."
+        },
+        "campaignExports": {
+          "title": "Campaign exports",
+          "body": "Export a campaign's events as CSV."
+        },
+        "domains": {
+          "title": "Custom domains",
+          "body": "Use your own domain for links or a bio page. Each custom-domain add-on includes one domain."
+        },
+        "workspaces": {
+          "title": "Workspaces",
+          "body": "Keep brands or clients apart in separate workspaces and switch between them."
+        },
+        "roles": {
+          "title": "Members and roles",
+          "body": "Invite people as admins, members or viewers, and choose what each person can do."
+        },
+        "api": {
+          "title": "REST API",
+          "body": "Manage links, QR codes, bio pages, tags, campaigns and analytics from your own code with scoped API keys."
+        },
+        "webhooks": {
+          "title": "Webhooks",
+          "body": "Receive events at your endpoint when links and other resources change, with delivery history and redelivery."
+        },
+        "mcp": {
+          "title": "MCP server",
+          "body": "Let AI assistants work with your links through the Model Context Protocol."
+        },
+        "imports": {
+          "title": "Imports",
+          "body": "Bring in links or QR codes from a CSV file or a pasted list, with a dry run before anything is created."
+        },
+        "linkExports": {
+          "title": "Link exports",
+          "body": "Export filtered links as CSV and import them back later."
+        },
+        "workspaceExport": {
+          "title": "Workspace export",
+          "body": "Download a private copy of everything in a workspace."
+        },
+        "twoFactor": {
+          "title": "Two-factor authentication and passkeys",
+          "body": "Add an authenticator app or a passkey to your account. Both are being switched on workspace by workspace."
+        },
+        "sso": {
+          "title": "Workplace SSO",
+          "body": "Let members sign in through your company's identity provider over OIDC or SAML."
+        },
+        "sessions": {
+          "title": "Sessions",
+          "body": "See where you're signed in and sign out other devices."
+        },
+        "plans": {
+          "title": "Plan changes",
+          "body": "Upgrade or downgrade from Billing. Upgrades apply right away and are prorated; downgrades take effect at the end of the period."
+        },
+        "invoices": {
+          "title": "Invoices and receipts",
+          "body": "Download invoices from Billing. Receipts, refunds and failed-payment details arrive by email."
+        },
+        "currency": {
+          "title": "Euro estimates",
+          "body": "Plans are billed in US dollars, with a euro estimate based on ECB reference rates."
+        }
+      }
+    }
+  }
+}

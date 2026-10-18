@@ -7,6 +7,8 @@ import { Notice } from "@/components/page/notice";
 import { Page, Section } from "@/components/page/page";
 import { canManageMembers } from "@/components/settings/members/roles";
 import { UserAvatar } from "@/components/shell/avatars";
+import { GateNote, UpgradeLink } from "@/components/plan-gate";
+import { can } from "@shortn/core";
 import { revokeInvitePageAction } from "@/server/actions/settings-pages";
 import { membersAction } from "@/server/actions/workspace";
 import { db } from "@/server/db";
@@ -43,6 +45,7 @@ export default async function MembersSettingsPage({
     used: members.length + invites.length,
     limit: entitlements.limits.seats,
   };
+  const seatsFull = seats.limit !== null && seats.used >= seats.limit;
   const inviter = (userId: string) => {
     const member = members.find((item) => item.userId === userId);
     return member ? member.name || member.email : "—";
@@ -59,15 +62,37 @@ export default async function MembersSettingsPage({
       description={t("members.description", { workspace: workspace.name })}
       actions={
         manage ? (
-          <Link
-            href={`${base}/invite`}
-            className={buttonVariants({ variant: "primary", size: "lg" })}
-          >
-            {t("members.inviteAction")}
-          </Link>
+          seatsFull ? (
+            <button
+              type="button"
+              disabled
+              aria-describedby="members-seats-gate"
+              className={buttonVariants({ variant: "primary", size: "lg" })}
+            >
+              {t("members.inviteAction")}
+            </button>
+          ) : (
+            <Link
+              href={`${base}/invite`}
+              className={buttonVariants({ variant: "primary", size: "lg" })}
+            >
+              {t("members.inviteAction")}
+            </Link>
+          )
         ) : null
       }
     >
+      {manage && seatsFull ? (
+        <GateNote id="members-seats-gate" className="mb-5">
+          {t(
+            can(actor, "billing.manage")
+              ? "invite.errors.seatsExhausted"
+              : "invite.errors.seatsExhaustedAskOwner",
+            { seats: seats.limit ?? 0 },
+          )}{" "}
+          {can(actor, "billing.manage") ? <UpgradeLink /> : null}
+        </GateNote>
+      ) : null}
       {query.invited ? (
         <Notice tone="success">{t("members.notices.invited")}</Notice>
       ) : null}
@@ -88,6 +113,7 @@ export default async function MembersSettingsPage({
 
       <Section
         title={t("members.list.title", { count: members.length })}
+        anchor="members-list"
         description={
           seats.limit === null
             ? undefined

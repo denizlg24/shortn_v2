@@ -137,6 +137,10 @@ export const planRank: Record<PlanId, number> = {
   enterprise: 4,
 };
 
+/** The cheapest plan that includes a feature. */
+export const minimumPlanFor = (feature: Feature): PlanId =>
+  planIds.find((id) => plans[id].features.includes(feature)) ?? "enterprise";
+
 export type PolarServer = "sandbox" | "production";
 
 // Every product id that can appear on a non-terminal subscription (06
