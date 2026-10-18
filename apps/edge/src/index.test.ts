@@ -425,3 +425,34 @@ test("the form rate limiter answers 429 before web sees the post", async () => {
       .status,
   ).toBe(200);
 });
+
+test("with handle subdomains on, reserved and invalid subdomains pass through untouched", async () => {
+  const { handler, seen } = setup(redirected);
+  const subdomains: Env = { ...env, BIO_SUBDOMAINS: "1" };
+  for (const url of [
+    "https://admin.shortn.at/login",
+    "https://www.shortn.at/abc",
+    "https://staging.shortn.at/abc",
+    "https://bad_label.shortn.at/abc",
+  ]) {
+    const response = await handler(new Request(url), subdomains);
+    expect(await response.text()).toBe("legacy");
+  }
+  expect(seen.redirect).toHaveLength(0);
+  expect(seen.legacy.map((request) => new URL(request.url).host)).toEqual([
+    "admin.shortn.at",
+    "www.shortn.at",
+    "staging.shortn.at",
+    "bad_label.shortn.at",
+  ]);
+});
+
+test("without handle subdomains, subdomain hosts keep the normal routing", async () => {
+  const { handler, seen } = setup(redirected);
+  const response = await handler(
+    new Request("https://staging.shortn.at/abc"),
+    env,
+  );
+  expect(response.status).toBe(302);
+  expect(seen.redirect).toHaveLength(1);
+});
