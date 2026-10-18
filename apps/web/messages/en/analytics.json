@@ -1,0 +1,163 @@
+{
+  "title": "Analytics",
+  "description": "Clicks and QR scans across this workspace. Every filter is in the address, so a view can be shared or bookmarked.",
+  "range": "Date range",
+  "rangeLabels": {
+    "7d": "Last 7 days",
+    "30d": "Last 30 days",
+    "90d": "Last 90 days",
+    "12m": "Last 12 months"
+  },
+  "customRange": "Custom range",
+  "from": "From",
+  "to": "To",
+  "interval": "Interval",
+  "intervals": {
+    "hour": "By hour",
+    "day": "By day",
+    "week": "By week",
+    "month": "By month"
+  },
+  "filters": {
+    "link": "Link",
+    "kind": "Type",
+    "country": "Country",
+    "device": "Device",
+    "browser": "Browser",
+    "os": "OS",
+    "referrer": "Referrer",
+    "utmSource": "UTM source",
+    "utmMedium": "UTM medium",
+    "utmCampaign": "UTM campaign",
+    "branch": "Routing branch"
+  },
+  "allLinks": "All links",
+  "any": "Any",
+  "kinds": {
+    "all": "Clicks and scans",
+    "click": "Clicks",
+    "scan": "QR scans"
+  },
+  "stats": {
+    "clicks": "Clicks",
+    "scans": "QR scans",
+    "uniques": "Unique visitors",
+    "topCountry": "Top country"
+  },
+  "series": "Clicks and scans",
+  "noActivity": "No clicks or scans in this period.",
+  "clamped": "Data before {date} is outside your plan's analytics window.",
+  "empty": "No data for this period.",
+  "breakdowns": {
+    "links": {
+      "title": "Links",
+      "column": "Link",
+      "description": "Clicks and scans per short link."
+    },
+    "countries": {
+      "title": "Countries",
+      "column": "Country",
+      "description": "Where visitors were when they clicked or scanned."
+    },
+    "cities": {
+      "title": "Cities",
+      "column": "City",
+      "description": "The nearest city we could place each visit in."
+    },
+    "referrers": {
+      "title": "Referrers",
+      "column": "Referrer",
+      "description": "The site a visit came from. Direct means no referring site, such as a typed address, an app or a QR scan."
+    },
+    "devices": {
+      "title": "Devices",
+      "column": "Device",
+      "description": "Desktop, mobile, tablet and other device types."
+    },
+    "browsers": {
+      "title": "Browsers",
+      "column": "Browser",
+      "description": "The browser each visit was made with."
+    },
+    "os": {
+      "title": "Operating systems",
+      "column": "Operating system",
+      "description": "The operating system each visit was made on."
+    },
+    "utm-source": {
+      "title": "UTM sources",
+      "column": "UTM source",
+      "description": "The utm_source tag of tagged links, such as newsletter or facebook."
+    },
+    "utm-medium": {
+      "title": "UTM mediums",
+      "column": "UTM medium",
+      "description": "The utm_medium tag of tagged links, such as email or cpc."
+    },
+    "utm-campaign": {
+      "title": "UTM campaigns",
+      "column": "UTM campaign",
+      "description": "The utm_campaign tag of tagged links."
+    },
+    "branches": {
+      "title": "Routing branches",
+      "column": "Routing branch",
+      "description": "Visits by the rule that selected their destination. Targets are numbered in each link’s rule order at visit time. Filter to one link to compare its targets; changes to rule order can combine different destinations in historical counts."
+    }
+  },
+  "table": {
+    "seeAll": "See all",
+    "seeAllLabel": "See all {title}",
+    "clicks": "Clicks",
+    "scans": "Scans",
+    "total": "Clicks and scans",
+    "share": "Share",
+    "value": "Value",
+    "filterBy": "Filter by {value}",
+    "clearFilter": "Remove this filter",
+    "summary": "{count, plural, one {# row} other {# rows}} · {total, plural, one {# click or scan} other {# clicks and scans}}",
+    "capped": "Showing the top {count, number} rows."
+  },
+  "gated": {
+    "title": "Breakdowns",
+    "body": "Routing branches, countries, cities, referrers, devices, browsers, operating systems and UTM tags, and filtering by them, come with the {plan} plan and up.",
+    "withExport": "Routing branches, countries, cities, referrers, devices, browsers, operating systems and UTM tags, filtering by them and CSV export come with the {plan} plan and up."
+  },
+  "error": {
+    "title": "Analytics didn't load",
+    "body": "Your data is safe; this is a connection problem. Try again in a moment.",
+    "refresh": "These numbers didn't refresh.",
+    "retry": "Retry"
+  },
+  "values": {
+    "unknown": "Unknown",
+    "direct": "Direct",
+    "click": "Click",
+    "scan": "QR scan",
+    "deleted": "Deleted link",
+    "selectedLink": "Selected link",
+    "devices": {
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "tablet": "Tablet",
+      "console": "Console",
+      "smarttv": "Smart TV",
+      "wearable": "Wearable",
+      "xr": "XR headset",
+      "embedded": "Embedded"
+    },
+    "branches": {
+      "unrecorded": "Not recorded",
+      "destination": "Default destination",
+      "ios": "iOS app",
+      "android": "Android app",
+      "rotation": "Rotation target {target}",
+      "device": "Device target {target}",
+      "geo": "Country target {target}"
+    }
+  },
+  "export": {
+    "label": "Export CSV",
+    "failed": "The export failed. Try again."
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "brand": "Shortn",
+  "language": "Language",
+  "languages": {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "terms": "Terms",
+  "privacy": "Privacy",
+  "copied": "Copied to the clipboard",
+  "copyFailed": "Couldn't copy to the clipboard.",
+  "error": {
+    "title": "This page didn't load",
+    "body": "Your data is safe; this is a connection problem. Try again in a moment.",
+    "retry": "Retry"
+  },
+  "linkPicker": {
+    "add": "Add link",
+    "search": "Search by key, title or URL",
+    "searching": "Searching…",
+    "empty": "No links match.",
+    "failed": "Links didn't load. Close this and try again.",
+    "allLinks": "All links"
+  },
+  "tags": {
+    "placeholder": "Add tags",
+    "search": "Search or create a tag",
+    "empty": "No tags yet. Type to create one.",
+    "create": "Create “{tag}”"
+  },
+  "suggestions": {
+    "open": "Suggestions for {field}",
+    "search": "Search suggestions…",
+    "empty": "No matching suggestions."
+  },
+  "imageUpload": {
+    "choose": "Upload image",
+    "replace": "Replace image",
+    "remove": "Remove",
+    "uploading": "Uploading…",
+    "hint": "PNG, JPEG, WebP, GIF or SVG · up to 5 MB.",
+    "size": "Choose an image smaller than 5 MB.",
+    "type": "This image could not be read. Choose a PNG, JPEG, WebP, GIF or SVG.",
+    "forbidden": "You do not have permission to upload images here.",
+    "unauthenticated": "Sign in again to upload an image.",
+    "plan": "Your plan does not include QR logos.",
+    "unavailable": "Image uploads are not configured yet.",
+    "failed": "The image did not upload. Try again."
+  }
+}

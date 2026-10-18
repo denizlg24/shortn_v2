@@ -27,6 +27,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - **Parity check (replaces shadow mode):** on staging, against the restored prod snapshot, a script resolves **every** link and QR key through apps/redirect and through the legacy resolution logic, and compares status + `Location`. Mismatches are fixed or documented as intentional. This covers every key in minutes instead of waiting a week for ~400 real requests.
 - **Cutover:** deploy the Worker with single-segment paths and `/qr/{key}` routed to apps/redirect at 100%. `CANARY_PERCENT` stays as the kill switch, not a ramp; at this volume a 5% slice carries no signal.
 - Exit gate: 48 h at 100% with no alert, and the dual-write counts match for that window (`click_events` vs legacy `clicks` with `src:"v2"`, per link).
+- **Done 2026-10-10:** apps/redirect, apps/worker and the edge Worker are live in production (#424–#431, #433). Parity was 3,214/3,214 on staging and on prod. The Worker routes attach to the `denizlg24.com` zone, because Forge hostnames are Cloudflare-for-SaaS custom hostnames. The owner manually verified a link and a QR code, and signed off the gate.
 - Rollback: set `CANARY_PERCENT=0` (one Worker config deploy, seconds). The Worker's retry-to-legacy on 5xx is the automatic version of the same thing. The worker's dual-write means legacy analytics never had a gap.
 
 ## P3 · Data expansion (≈ 2 weeks, runs in parallel with P2)
@@ -34,20 +35,22 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 - Work: M2 (workspaces), M5 (tags), M6 (campaigns/UTM), M8 (bio v2), M9, M10, M11 (shadow only), M12 (assets). All of these are additive and continuous while legacy runs.
 - **Entry:** P1 done; starts alongside P2. Same backup floor as P2 before the first prod run.
 - Exit gate: every migration's `verify` is green on staging (prod snapshot) and then on prod after two consecutive continuous runs.
+- **Done 2026-10-10:** migrations 0001–0012 applied and verified on prod after a full backup (`~/shortn-prod-backups/prod-before-p2p3-20261010T044241Z.archive.gz` on pi-cloud). 0001–0008 re-run every minute in apps/worker. 0012 targets the self-hosted S3, not R2.
 - Rollback: each migration's `down` (additive fields only, so legacy is unaffected either way).
 
 ## P4 · New dashboard + billing (≈ 5–7 weeks)
 
 - Work: apps/web dashboard at parity (links, analytics, QR, bio editor, campaigns, settings, members, billing), apps/api webhooks for Polar in shadow, session handoff (05), and email templates.
 - **Beta:** an opt-in "Try the new Shortn" banner in legacy, with feedback collected in-app. Internal + Vida Económica first (with their consent), then all users opt-in. Both UIs operate on the **same data**. That's safe because new code writes legacy-compatible fields until contract (the new services also set `sub`, `urlCode`, `longUrl`, … on create/update during coexistence).
-- **Billing switch:** move the Polar webhook URL to the new handler after 7 days of zero-diff shadow processing (06), then retire the scheduler.
+- **Billing switch:** move the Polar webhook URL to the new handler after verified zero-diff shadow processing (06), then retire the scheduler. The owner waived the fixed seven-day P4 observation duration on 2026-10-11.
 - **Default switch:** `shortn.at/{locale}/dashboard*` → 302 to `app.shortn.at` with handoff. Legacy marketing is replaced by the new marketing on root at the same time or shortly after.
-- Exit gate: parity checklist (every legacy feature mapped and checked), e2e suite green, no P1 bugs open for 7 days, billing reconciler at zero drift.
+- Exit gate: parity checklist (every legacy feature mapped and checked), e2e suite green, no known P1 blockers, billing reconciler at zero drift (with documented staging-only data exceptions). OAuth configuration/callback checks were explicitly deferred to production setup by the owner.
+- **Staging accepted 2026-10-11:** implementation and deployment fixes are merged to staging; automated parity and real provider checks are recorded in [16](16-p4-breakdown.md) and its audit. Visual review is approved, the seven-day P4 duration is waived, and OAuth is deferred to production setup. Production promotion, beta/default routing and billing switches remain separate operator steps.
 - Rollback: remove the 302 (legacy dashboard is still deployed and still reads the same data). For billing, point the webhook back at legacy, since the mirror rebuilds from Polar.
 
 ## P5 · Bio subdomains + custom domains (≈ 2–3 weeks)
 
-- Work: `{handle}.shortn.at` routing, `/b/` 301s, owner notification emails, the custom domain add-on in Polar, Cloudflare for SaaS, and the domain UI.
+- Work: new public bio renderer and visual redesign (08), including typed blocks, preset themes, and responsive layouts that remain usable with many links; `{handle}.shortn.at` routing, `/b/` 301s, owner notification emails, the custom domain add-on in Polar, Cloudflare for SaaS, and the domain UI.
 - Exit gate: 100% of bio slugs resolve via the 301 in the URL sample; one real custom domain in production for ≥ 7 days.
 - Rollback: `/b/{slug}` served by the new web app directly (no 301) while the subdomain issue is fixed.
 
@@ -68,7 +71,7 @@ Each phase has **entry criteria**, **work**, an **exit gate**, and a **rollback*
 | --------------------------------------------------------------- | ------------------- | ------------------- | ------------------------------------------------------------------- | ------------------------- | -------------- |
 | `/{key}`, `/qr/{key}` (+ trailing `/`)                          | legacy              | **redirect** (100%) | redirect                                                            | redirect                  | redirect       |
 | `/b/{slug}`                                                     | legacy              | legacy              | legacy                                                              | **redirect → 301 handle** | redirect       |
-| `/`, marketing pages, `/{locale}/*` marketing                   | legacy              | legacy              | **web**                                                             | web                       | web            |
+| `/`, marketing pages, `/{locale}/*` marketing                   | legacy              | legacy              | legacy (D7; **web** at the marketing-phase cutover, [20](20-marketing-breakdown.md)) | legacy until PM cutover   | web            |
 | `/{locale}/dashboard*`                                          | legacy              | legacy              | 302 → `app.` handoff                                                | same                      | same           |
 | `/authenticate/*`, `/api/verify-link-password`                  | legacy              | legacy              | **web** (bcrypt + new secret, 02 M9)                                | web                       | web            |
 | `/{locale}/safety/*`, `/abuse`, report endpoints                | legacy              | legacy              | web                                                                 | web                       | web            |

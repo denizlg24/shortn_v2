@@ -251,6 +251,16 @@ test("click messages round-trip and request fields are bounded", () => {
   expect(
     requestClickFields(new Headers({ "cf-connecting-ip": "evil" })).ip,
   ).toBeUndefined();
+  const proxied = new Headers({
+    "cf-connecting-ip": "2a06:98c0:3600::103",
+    "x-shortn-client-ip": "203.0.113.7",
+  });
+  expect(requestClickFields(proxied, true).ip).toBe("203.0.113.7");
+  expect(requestClickFields(proxied).ip).toBe("2a06:98c0:3600::103");
+  expect(
+    requestClickFields(new Headers({ "cf-connecting-ip": "203.0.113.9" }), true)
+      .ip,
+  ).toBe("203.0.113.9");
   const query = new URLSearchParams(
     Array.from({ length: 60 }, (_, i): [string, string] => [
       `k${i}`,
@@ -296,4 +306,32 @@ test("enrichment hashes IPs, truncates prefixes and extracts UTM and referrer do
   expect(enriched.utm).toEqual({ source: "news", medium: "email" });
   expect(ipPrefix("2001:db8:abcd:12::1")).toBe("2001:db8:abcd::/48");
   expect(ipPrefix(undefined)).toBe("");
+});
+
+test("custom domain access tokens are bound to both hostname and key", async () => {
+  const token = await new SignJWT({ urlCode: "go.example.com:abc" })
+    .setProtectedHeader({ alg: "HS256" })
+    .setExpirationTime("5m")
+    .sign(secrets.legacy);
+  const cached = link({ passwordProtected: true });
+  expect(
+    (
+      await decide(
+        input(cached, { tokenKey: "go.example.com:abc", accessCookie: token }),
+      )
+    ).location,
+  ).toBe("https://example.com/x");
+  expect(
+    (
+      await decide(
+        input(cached, {
+          tokenKey: "other.example.com:abc",
+          accessCookie: token,
+        }),
+      )
+    ).location,
+  ).toBe(`${origin}/authenticate/abc`);
+  expect((await decide(input(cached, { accessCookie: token }))).location).toBe(
+    `${origin}/authenticate/abc`,
+  );
 });

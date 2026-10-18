@@ -1,0 +1,28 @@
+{
+  "metaTitle": "Convite para espaço de trabalho",
+  "title": "Entrar em {workspace}",
+  "body": "<strong>{inviter}</strong> convidou-o para entrar como {role}.",
+  "bodyNoInviter": "Foi convidado para entrar como {role}.",
+  "roleAs": {
+    "admin": "administrador",
+    "member": "membro",
+    "viewer": "leitor"
+  },
+  "accept": "Aceitar convite",
+  "signedInAs": "Sessão iniciada como {email}",
+  "goHome": "Ir para o meu espaço de trabalho",
+  "invalid": {
+    "title": "Este convite já não é válido",
+    "body": "Os convites só podem ser usados uma vez e expiram ao fim de 7 dias. Peça à pessoa que o convidou para enviar um novo."
+  },
+  "mismatch": {
+    "title": "Este convite é para outra conta",
+    "body": "Foi enviado para <strong>{invited}</strong>, mas tem sessão iniciada como <strong>{email}</strong>.",
+    "switch": "Iniciar sessão com outra conta"
+  },
+  "errors": {
+    "invalid": "Este convite já não é válido. Peça um novo.",
+    "mismatch": "Este convite foi enviado para outro endereço de e-mail.",
+    "generic": "Algo correu mal do nosso lado. Tente novamente."
+  }
+}

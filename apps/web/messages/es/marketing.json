@@ -1,0 +1,455 @@
+{
+  "meta": {
+    "siteName": "Shortn",
+    "home": {
+      "title": "Shortn: enlaces cortos, códigos QR y páginas bio",
+      "description": "Crea enlaces cortos, códigos QR dinámicos y páginas bio, y cuenta cada clic y cada escaneo en un solo panel. Plan gratuito, sin tarjeta."
+    },
+    "features": {
+      "title": "Funciones",
+      "description": "Enlaces cortos, códigos QR dinámicos para impresión, páginas bio, campañas, estadísticas, seguridad de enlaces y una API pública con servidor MCP."
+    },
+    "pricing": {
+      "title": "Precios",
+      "description": "Planes Free, Basic, Plus, Pro y Enterprise. Empieza gratis y cambia de plan cuando necesites más enlaces, plazas o historial."
+    },
+    "about": {
+      "title": "Quiénes somos",
+      "description": "Shortn es una plataforma de enlaces independiente hecha en Portugal, usada en producción por Vida Económica desde 2023."
+    },
+    "contact": {
+      "title": "Contacto",
+      "description": "Dudas sobre planes, Enterprise, facturas o tu cuenta. Envíanos un mensaje y te respondemos por correo."
+    },
+    "abuse": {
+      "title": "Política de abuso",
+      "description": "Cómo detecta y gestiona Shortn los enlaces dañinos, y cómo denunciar uno."
+    },
+    "privacy": {
+      "title": "Política de privacidad",
+      "description": "Qué recoge Shortn, por qué, cuánto tiempo lo conserva y cómo ejercer tus derechos."
+    },
+    "terms": {
+      "title": "Términos del servicio",
+      "description": "Los términos que se aplican cuando usas Shortn."
+    },
+    "notFound": {
+      "title": "Página no encontrada"
+    }
+  },
+  "nav": {
+    "label": "Principal",
+    "home": "Inicio de Shortn",
+    "features": "Funciones",
+    "pricing": "Precios",
+    "docs": "Documentación",
+    "about": "Quiénes somos",
+    "contact": "Contacto",
+    "signIn": "Iniciar sesión",
+    "getStarted": "Empezar gratis",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "skipToContent": "Saltar al contenido"
+  },
+  "footer": {
+    "label": "Pie de página",
+    "tagline": "Enlaces cortos, códigos QR y páginas bio para equipos que publican en papel y en internet.",
+    "product": "Producto",
+    "company": "Empresa",
+    "resources": "Recursos",
+    "legal": "Legal",
+    "guides": "Guías",
+    "apiReference": "Referencia de la API",
+    "status": "Estado del servicio",
+    "reportLink": "Denunciar un enlace",
+    "abuse": "Política de abuso",
+    "privacy": "Privacidad",
+    "terms": "Términos",
+    "copyright": "© {year} Shortn"
+  },
+  "locale": {
+    "label": "Idioma",
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "home": {
+    "hero": {
+      "title": "Todos los enlaces que publicas, en papel y en internet",
+      "body": "Shortn crea enlaces cortos, códigos QR dinámicos y páginas bio, y cuenta cada clic y cada escaneo en un solo lugar.",
+      "primary": "Empezar gratis",
+      "secondary": "Ver precios",
+      "reassurance": "Plan gratuito. Sin tarjeta."
+    },
+    "demo": {
+      "label": "Pega un enlace largo",
+      "placeholder": "https://ejemplo.es/una-direccion-muy-larga",
+      "submit": "Acortar",
+      "submitting": "Acortando…",
+      "resultLabel": "Tu enlace corto",
+      "example": "Ejemplo",
+      "destination": "Destino",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "open": "Abrir",
+      "qrAlt": "Código QR de {url}",
+      "downloadQr": "Descargar código QR",
+      "expiry": "Este enlace de prueba deja de funcionar en 24 horas. Crea una cuenta gratuita para guardar tus enlaces y ver sus clics.",
+      "keep": "Crear una cuenta gratuita",
+      "another": "Acortar otro enlace",
+      "report": "Denunciar este enlace",
+      "errors": {
+        "invalid": "Escribe una dirección completa que empiece por https:// o http://.",
+        "blocked": "No podemos acortar esta dirección porque nuestra comprobación de seguridad la ha marcado.",
+        "rateLimited": "Has creado varios enlaces de prueba en poco tiempo. Espera unos minutos o crea una cuenta gratuita.",
+        "capReached": "La prueba ha llegado al límite de hoy. Crea una cuenta gratuita para seguir acortando enlaces.",
+        "challenge": "No hemos podido confirmar que eres una persona. Recarga la página e inténtalo de nuevo.",
+        "unavailable": "La prueba no funciona en este momento. Tu cuenta gratuita funciona con normalidad."
+      }
+    },
+    "proof": {
+      "title": "Los enlaces de Vida Económica pasan por Shortn desde 2023",
+      "body": "El grupo editorial portugués usa Shortn en su web, en su librería online y en los códigos QR de sus agendas impresas.",
+      "stats": {
+        "clicks": "clics y escaneos contados",
+        "links": "enlaces cortos creados",
+        "qrCodes": "códigos QR creados",
+        "scans": "escaneos de QR desde {month}"
+      },
+      "source": "Espacio de trabajo de Vida Económica, datos de {date}. Compartidos con su permiso."
+    },
+    "print": {
+      "title": "Imprime el código QR una vez. Cambia su destino cuando quieras.",
+      "body": "Cada código QR apunta a un enlace corto, así que puedes cambiar el destino después de imprimir la agenda, el cartel o el envase. Los escaneos y los clics se cuentan por separado.",
+      "points": {
+        "formats": "Exporta en SVG, PNG o PDF para imprenta, con indicaciones de tamaño y margen.",
+        "style": "Añade tus colores, un marco, un texto o un logotipo.",
+        "bulk": "Descarga una selección entera de códigos en un solo archivo ZIP."
+      }
+    },
+    "manage": {
+      "title": "Pensado para bibliotecas de miles de enlaces",
+      "body": "Busca, filtra por etiqueta y campaña, selecciona entre páginas y cambia cientos de enlaces a la vez. Los enlaces eliminados esperan 30 días en la papelera y puedes restaurarlos con la misma clave hasta entonces.",
+      "cta": "Ver todas las funciones"
+    },
+    "analytics": {
+      "title": "Sabe qué ha hecho cada enlace",
+      "body": "Clics y escaneos por día, país, dispositivo, navegador y origen, para un enlace, una campaña o todo el espacio de trabajo. Exporta los datos en CSV cuando los necesites."
+    },
+    "developers": {
+      "title": "Una API para tu código, un servidor MCP para tus agentes",
+      "body": "Crea y gestiona enlaces desde tus propios sistemas con la API REST y los webhooks, o deja que un asistente de IA trabaje a través del servidor MCP con los permisos que le des.",
+      "cta": "Leer la documentación",
+      "codeLabel": "Crear un enlace con la API REST"
+    },
+    "pricing": {
+      "title": "Empieza gratis. Paga cuando necesites más.",
+      "body": "El plan Free incluye {links} enlaces y {qrCodes} códigos QR al mes. Los planes de pago empiezan en {price} al mes.",
+      "cta": "Comparar planes"
+    },
+    "cta": {
+      "title": "Crea tu primer enlace corto",
+      "body": "Tardas menos de un minuto. Tus enlaces siguen funcionando si cambias de plan.",
+      "primary": "Empezar gratis",
+      "secondary": "Hablar con nosotros"
+    }
+  },
+  "features": {
+    "title": "Todo lo que hace Shortn",
+    "intro": "Los enlaces cortos, los códigos QR, las páginas bio y las campañas comparten la misma biblioteca y las mismas estadísticas.",
+    "toc": "En esta página",
+    "links": {
+      "nav": "Enlaces cortos",
+      "title": "Enlaces cortos que se pueden decir en voz alta",
+      "body": "Elige tu propia clave o usa una aleatoria. Cambia después el destino, el título y las etiquetas sin cambiar el enlace.",
+      "points": {
+        "keys": "Claves personalizadas, con sugerencias a partir del título de la página",
+        "rules": "Fechas de caducidad, horarios, límites de clics y una dirección alternativa",
+        "targeting": "Destinos distintos según el dispositivo o el país del visitante",
+        "rotation": "Tráfico repartido entre varios destinos",
+        "deepLinks": "Apertura en la aplicación en lugar del navegador, en el móvil",
+        "passwords": "Enlaces protegidos con contraseña",
+        "utm": "Parámetros UTM y reenvío de parámetros",
+        "trash": "Papelera de 30 días que reserva cada clave hasta vaciarse"
+      }
+    },
+    "qr": {
+      "nav": "Códigos QR",
+      "title": "Códigos QR dinámicos pensados para imprimir",
+      "body": "Cada código apunta a un enlace corto que puedes editar después de imprimirlo. Shortn cuenta los escaneos aparte de los clics.",
+      "points": {
+        "formats": "Exportación en SVG, PNG y PDF",
+        "print": "Indicaciones de impresión sobre tamaño, contraste y margen",
+        "style": "Colores, marcos, textos y logotipos",
+        "bulk": "Exportación en ZIP de cualquier selección"
+      }
+    },
+    "bio": {
+      "nav": "Páginas bio",
+      "title": "Una página bio en tu propia dirección",
+      "body": "Reúne todos los enlaces que compartes en una página con tu nombre, como tunombre.shortn.at, o en tu propio dominio.",
+      "points": {
+        "blocks": "Enlaces, texto, imágenes y contenido insertado",
+        "themes": "Temas con contraste comprobado para leer bien",
+        "drafts": "Borradores, publicación programada y las últimas 20 versiones",
+        "domains": "Tu dominio con el complemento de dominio personalizado"
+      }
+    },
+    "campaigns": {
+      "nav": "Campañas",
+      "title": "Agrupa enlaces por campaña",
+      "body": "Reúne los enlaces de un lanzamiento, un número o un evento en una campaña y consulta sus resultados juntos.",
+      "points": {
+        "utm": "Ajustes UTM compartidos",
+        "results": "Totales de la campaña y resultados por enlace",
+        "export": "Exportación de la campaña"
+      }
+    },
+    "analytics": {
+      "nav": "Estadísticas",
+      "title": "Clics y escaneos, al detalle",
+      "body": "Consulta los clics y escaneos de un enlace, una campaña o todo el espacio de trabajo, en cualquier periodo que cubra el historial de tu plan.",
+      "points": {
+        "breakdowns": "País, ciudad, dispositivo, navegador, sistema operativo y origen",
+        "scans": "Escaneos de QR contados aparte de los clics",
+        "exports": "Exportaciones CSV de totales y de eventos individuales",
+        "privacy": "Las direcciones IP de los visitantes se guardan como hash y las direcciones originales se eliminan a los 90 días"
+      }
+    },
+    "teams": {
+      "nav": "Equipos",
+      "title": "Espacios de trabajo para todo el equipo",
+      "body": "Invita a tus compañeros, da a cada uno un rol y mantén espacios de trabajo separados para marcas o clientes distintos.",
+      "points": {
+        "roles": "Roles de propietario, administrador, miembro y lector",
+        "security": "Autenticación en dos pasos y llaves de acceso",
+        "sso": "Inicio de sesión único SAML y OIDC en Enterprise",
+        "imports": "Importación CSV de hasta 50 000 enlaces y exportación completa del espacio de trabajo"
+      }
+    },
+    "developers": {
+      "nav": "API y MCP",
+      "title": "Hecho para automatizarse",
+      "body": "Todo lo que haces en el panel, tu código lo puede hacer a través de la API.",
+      "points": {
+        "api": "API REST con referencia OpenAPI y claves de API con permisos",
+        "webhooks": "Webhooks firmados para eventos de enlaces, clics, escaneos y publicación",
+        "mcp": "Servidor MCP para asistentes de IA, con autorización OAuth por espacio de trabajo",
+        "llms": "llms.txt para que los asistentes puedan leer la documentación"
+      },
+      "cta": "Leer la documentación de la API"
+    },
+    "safety": {
+      "nav": "Seguridad",
+      "title": "Seguro para quien hace clic",
+      "body": "Shortn comprueba los destinos frente a amenazas conocidas, avisa a los visitantes antes de páginas sospechosas y permite que cualquiera denuncie un enlace.",
+      "points": {
+        "scanning": "Comprobación automática de los destinos frente a amenazas conocidas",
+        "interstitial": "Una página de aviso que muestra el destino completo",
+        "reports": "Cualquiera puede denunciar un enlace, y tres denuncias lo desactivan hasta que se revisa"
+      }
+    },
+    "cta": {
+      "title": "Pruébalo con tus propios enlaces",
+      "body": "Empieza con el plan Free. Cambia de plan cuando necesites claves personalizadas, campañas o más historial.",
+      "primary": "Empezar gratis",
+      "secondary": "Comparar planes"
+    }
+  },
+  "pricing": {
+    "title": "Planes para una persona o para toda una redacción",
+    "intro": "Empieza gratis. Sube, baja o cancela tu plan desde los ajustes de facturación cuando quieras.",
+    "currencyNote": "Los precios están en dólares estadounidenses y se cobran cada mes. Mostramos una estimación en euros al último tipo de cambio del Banco Central Europeo. Pueden aplicarse impuestos.",
+    "eurEstimate": "≈ {eur} al mes",
+    "perMonth": "{price} / mes",
+    "custom": "Precio a medida",
+    "recommended": "Recomendado",
+    "plans": {
+      "free": {
+        "name": "Free",
+        "summary": "Para probar Shortn con pocos enlaces.",
+        "cta": "Empezar gratis"
+      },
+      "basic": {
+        "name": "Basic",
+        "summary": "Para una persona que comparte enlaces cada semana.",
+        "cta": "Elegir Basic"
+      },
+      "plus": {
+        "name": "Plus",
+        "summary": "Para equipos pequeños que hacen campañas.",
+        "cta": "Elegir Plus"
+      },
+      "pro": {
+        "name": "Pro",
+        "summary": "Para editoriales y equipos de marketing con bibliotecas grandes.",
+        "cta": "Elegir Pro"
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "summary": "Para organizaciones que necesitan inicio de sesión único y ningún límite.",
+        "cta": "Contactar"
+      }
+    },
+    "limits": {
+      "links": "{count, plural, one {# enlace} other {# enlaces}} al mes",
+      "qrCodes": "{count, plural, one {# código QR} other {# códigos QR}} al mes",
+      "bioPages": "{count, plural, one {# página bio} other {# páginas bio}}",
+      "seats": "{count, plural, one {# plaza} other {# plazas}}",
+      "workspaces": "{count, plural, one {# espacio de trabajo} other {# espacios de trabajo}}",
+      "analyticsDays": "{count, plural, one {# día} other {# días}} de historial de estadísticas",
+      "apiPerMinute": "{count, plural, one {# petición a la API} other {# peticiones a la API}} por minuto",
+      "unlimitedLinks": "Enlaces ilimitados",
+      "unlimitedQrCodes": "Códigos QR ilimitados",
+      "unlimitedBioPages": "Páginas bio ilimitadas",
+      "unlimitedSeats": "Plazas ilimitadas",
+      "unlimitedWorkspaces": "Espacios de trabajo ilimitados",
+      "unlimitedAnalytics": "Historial de estadísticas completo",
+      "unlimitedApi": "Límites de API a medida",
+      "noApi": "Sin acceso a la API"
+    },
+    "featureNames": {
+      "customKeys": "Claves personalizadas",
+      "passwords": "Enlaces protegidos con contraseña",
+      "campaigns": "Campañas",
+      "campaignExport": "Exportación de campañas",
+      "analyticsBreakdowns": "Estadísticas detalladas",
+      "csvExport": "Exportación CSV",
+      "qrLogo": "Logotipo en los códigos QR",
+      "api": "API REST",
+      "mcp": "Servidor MCP",
+      "sso": "Inicio de sesión único (SAML, OIDC)"
+    },
+    "compare": {
+      "title": "Comparar planes",
+      "feature": "Función",
+      "included": "Incluido",
+      "notIncluded": "No incluido",
+      "scrollHint": "Desliza hacia el lado para comparar los cinco planes."
+    },
+    "addon": {
+      "title": "Complemento de dominio personalizado",
+      "body": "Sirve enlaces cortos y páginas bio desde tu propio dominio. Cada complemento cubre un dominio y se cobra aparte del plan."
+    },
+    "faq": {
+      "title": "Preguntas",
+      "limits": {
+        "question": "¿Qué pasa cuando llego al límite mensual?",
+        "answer": "Los enlaces que ya tienes siguen funcionando. Puedes volver a crear enlaces y códigos QR cuando empiece el nuevo periodo de facturación, o cambiar de plan en ese momento."
+      },
+      "downgrade": {
+        "question": "¿Mis enlaces dejan de funcionar si bajo de plan o cancelo?",
+        "answer": "No. Los enlaces y códigos QR que ya has creado siguen redirigiendo en cualquier plan."
+      },
+      "currency": {
+        "question": "¿Por qué los precios están en dólares?",
+        "answer": "Nuestro proveedor de pagos cobra en dólares estadounidenses. Tu banco hace la conversión, así que el importe en euros que mostramos es una estimación."
+      },
+      "invoices": {
+        "question": "¿Puedo recibir facturas con los datos de mi empresa?",
+        "answer": "Sí. Añade el nombre de la empresa y el NIF al pagar y tus facturas los incluirán."
+      },
+      "enterprise": {
+        "question": "¿Qué incluye Enterprise?",
+        "answer": "Sin límites de enlaces, plazas ni espacios de trabajo, inicio de sesión único, límites de API a medida y un precio acordado. Contáctanos para configurarlo."
+      }
+    }
+  },
+  "about": {
+    "title": "Una plataforma de enlaces independiente, hecha en Portugal",
+    "intro": "Shortn nació en 2023 para gestionar los enlaces de Vida Económica, un grupo editorial portugués de economía y negocios. Desde entonces se encarga de sus enlaces en internet y en papel.",
+    "principles": {
+      "title": "Cómo lo construimos",
+      "honest": {
+        "title": "Honesto por defecto",
+        "body": "Los precios están en la página, puedes cancelar desde los ajustes de facturación y no hay trampas al pagar."
+      },
+      "durable": {
+        "title": "Enlaces que duran",
+        "body": "Un código QR impreso puede pasar años en una estantería, así que los enlaces siguen funcionando cuando cambias de plan y un enlace eliminado conserva su clave durante 30 días por si lo necesitas de nuevo."
+      },
+      "private": {
+        "title": "Cuidado con los datos de los visitantes",
+        "body": "Guardamos las direcciones IP de los visitantes como hash y eliminamos las direcciones originales a los 90 días. No vendemos datos."
+      },
+      "open": {
+        "title": "Abierto a tus herramientas",
+        "body": "Una API pública, webhooks y un servidor MCP, con documentación abierta."
+      }
+    },
+    "languages": "Shortn está disponible en español, portugués e inglés.",
+    "cta": "Hablar con nosotros"
+  },
+  "contact": {
+    "title": "Contacto",
+    "intro": "Pregunta sobre planes, Enterprise, facturas o tu cuenta. Te respondemos por correo.",
+    "abuse": "Para denunciar un enlace dañino, usa el <link>formulario de denuncia</link>. Llega directamente a la cola de revisión.",
+    "form": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "company": "Empresa",
+      "optional": "Opcional",
+      "topic": "Tema",
+      "topics": {
+        "sales": "Planes y Enterprise",
+        "billing": "Pagos y facturas",
+        "account": "Mi cuenta",
+        "other": "Otro tema"
+      },
+      "message": "Mensaje",
+      "messageHint": "{count} de {max} caracteres",
+      "submit": "Enviar mensaje",
+      "submitting": "Enviando…",
+      "errors": {
+        "nameRequired": "Escribe tu nombre.",
+        "emailInvalid": "Escribe un correo como nombre@ejemplo.es.",
+        "messageShort": "Escribe al menos {min} caracteres para que podamos ayudarte.",
+        "messageLong": "Acorta el mensaje a {max} caracteres o menos.",
+        "challenge": "No hemos podido confirmar que eres una persona. Recarga la página e inténtalo de nuevo.",
+        "rateLimited": "Has enviado varios mensajes en poco tiempo. Espera unos minutos e inténtalo de nuevo.",
+        "failed": "El mensaje no se ha enviado. Inténtalo de nuevo o escríbenos a {email}."
+      },
+      "success": {
+        "title": "Mensaje enviado",
+        "body": "Hemos enviado una copia a {email}. Tu referencia es {reference}.",
+        "another": "Enviar otro mensaje"
+      }
+    }
+  },
+  "abuse": {
+    "authoritative": "Esta política se publica en inglés. El texto en inglés es la versión que se aplica.",
+    "report": "Denunciar un enlace",
+    "reportForm": {
+      "body": "Pega el enlace corto que quieres denunciar. Verás adónde lleva y podrás contarnos qué le pasa.",
+      "label": "Enlace corto",
+      "placeholder": "{domain}/abc123",
+      "submit": "Continuar",
+      "invalid": "Introduce un enlace corto de {domain}, por ejemplo {domain}/abc123."
+    }
+  },
+  "legal": {
+    "updated": "Última actualización: {date}",
+    "authoritative": "Este documento se publica en inglés. El texto en inglés es la versión que se aplica.",
+    "contents": "Índice"
+  },
+  "notFound": {
+    "title": "No hemos encontrado esa página",
+    "body": "Puede que la dirección tenga un error o que la página se haya movido.",
+    "home": "Ir a la página de inicio",
+    "shortLink": "¿Buscas un enlace corto? Comprueba que la clave después de shortn.at/ esté bien escrita."
+  },
+  "shots": {
+    "links": "La lista de enlaces con un filtro de etiqueta aplicado y enlaces seleccionados en varias páginas",
+    "analytics": "Estadísticas de un enlace en 90 días, con clics y escaneos por día y desglose por país y dispositivo",
+    "linkRules": "Edición de las reglas de un enlace: programación, segmentación por dispositivo y reparto del tráfico entre destinos",
+    "qrDesign": "Diseño de un código QR con marco y leyenda, con indicaciones de impresión junto a la vista previa",
+    "bioEditor": "El editor de la página bio con vista previa de la página publicada",
+    "bioPhone": "Una página bio publicada en un móvil",
+    "campaign": "Estadísticas de una campaña con totales y resultados de cada enlace",
+    "members": "Miembros del espacio de trabajo con los roles propietario, administrador, miembro y lector",
+    "webhooks": "Un webhook con sus entregas recientes y sus códigos de respuesta",
+    "imports": "Asignación de las columnas de un CSV antes de importar enlaces",
+    "safety": "La página de aviso que ven los visitantes antes de un destino sospechoso",
+    "sample": "Pantallas de un espacio de trabajo de ejemplo"
+  }
+}

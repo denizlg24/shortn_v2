@@ -1,3 +1,5 @@
+"use client";
+
 import { Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { cn } from "../lib/cn";
@@ -22,6 +24,7 @@ export interface ComboboxProps {
   options: ComboboxOption[];
   value: string[];
   onValueChange: (value: string[]) => void;
+  onSearchChange?: ((query: string) => void) | undefined;
   multiple?: boolean;
   placeholder: string;
   searchPlaceholder: string;
@@ -31,6 +34,8 @@ export interface ComboboxProps {
   onCreate?: (query: string) => void;
   /** Replaces the default field-styled trigger. Must be a single focusable element. */
   trigger?: ReactNode;
+  /** Optional content below results, such as server pagination. */
+  footer?: ReactNode;
   id?: string;
   className?: string;
   contentClassName?: string;
@@ -43,6 +48,7 @@ export function Combobox({
   options,
   value,
   onValueChange,
+  onSearchChange,
   multiple = false,
   placeholder,
   searchPlaceholder,
@@ -50,6 +56,7 @@ export function Combobox({
   createLabel,
   onCreate,
   trigger,
+  footer,
   id,
   className,
   contentClassName,
@@ -60,26 +67,35 @@ export function Combobox({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selected = new Set(value);
-  const labels = options
+  // A value identifies an option in both React and the selection model.
+  // Keep the first label when sources contain overlapping choices.
+  const seen = new Set<string>();
+  const uniqueOptions = options.filter((option) => {
+    if (seen.has(option.value)) return false;
+    seen.add(option.value);
+    return true;
+  });
+  const labels = uniqueOptions
     .filter((option) => selected.has(option.value))
     .map((option) => option.label);
   const trimmedQuery = query.trim();
   const canCreate =
     Boolean(createLabel && onCreate && trimmedQuery) &&
-    !options.some(
+    !uniqueOptions.some(
       (option) => option.label.toLowerCase() === trimmedQuery.toLowerCase(),
     );
 
   const toggle = (next: string) => {
     if (!multiple) {
       onValueChange([next]);
+      setQuery("");
       setOpen(false);
       return;
     }
     onValueChange(
       selected.has(next)
         ? value.filter((item) => item !== next)
-        : [...value, next],
+        : [...selected, next],
     );
   };
 
@@ -88,6 +104,7 @@ export function Combobox({
       open={open}
       onOpenChange={(nextOpen) => {
         setOpen(nextOpen);
+        if (nextOpen) onSearchChange?.("");
         if (!nextOpen) setQuery("");
       }}
     >
@@ -131,7 +148,10 @@ export function Combobox({
         <Command>
           <CommandInput
             value={query}
-            onValueChange={setQuery}
+            onValueChange={(value) => {
+              setQuery(value);
+              onSearchChange?.(value);
+            }}
             placeholder={searchPlaceholder}
             frameClassName="h-10 px-3"
             className="text-small"
@@ -141,7 +161,7 @@ export function Combobox({
               {canCreate ? null : emptyText}
             </CommandEmpty>
             <CommandGroup>
-              {options.map((option) => {
+              {uniqueOptions.map((option) => {
                 const isSelected = selected.has(option.value);
                 return (
                   <CommandItem
@@ -192,6 +212,7 @@ export function Combobox({
             </CommandGroup>
           </CommandList>
         </Command>
+        {footer}
       </PopoverContent>
     </Popover>
   );

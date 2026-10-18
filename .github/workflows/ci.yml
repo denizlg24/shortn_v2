@@ -16,6 +16,10 @@ jobs:
         with:
           bun-version: 1.3.14
       - run: bun install --frozen-lockfile
+      - name: Validate OpenAPI and reject generated client drift
+        run: bun run --cwd apps/api check:contracts
+      - name: Reject generated documentation drift
+        run: bun run check:llms
       - run: bunx turbo run lint typecheck test
 
   integration:
@@ -35,6 +39,7 @@ jobs:
           --health-interval 2s --health-timeout 5s --health-retries 30
     env:
       REQUIRE_INTEGRATION: "1"
+      LEGACY_QUOTA_INTEGRATION: "1"
       MONGO_TEST_URL: mongodb://127.0.0.1:27017/?replicaSet=rs0
       REDIS_TEST_URL: redis://127.0.0.1:6380
       REDIS_DURABLE_TEST_URL: redis://127.0.0.1:6379
@@ -64,13 +69,29 @@ jobs:
         run: |
           bun -e 'import {Redis} from "ioredis"; for (const [port, policy] of [[6380,"allkeys-lru"],[6379,"noeviction"]]) { const client = new Redis({host:"127.0.0.1",port}); await client.config("SET","maxmemory-policy",policy); if (port === 6379) await client.config("SET","appendonly","yes"); client.disconnect(); }'
       - name: Test migrations, indexes, Redis isolation and the click pipeline on real services
-        run: bunx turbo run test --filter=@shortn/db --filter=@shortn/redis --filter=@shortn/core --filter=@shortn/redirect --filter=@shortn/worker --force
+        run: bunx turbo run test --filter=@shortn/db --filter=@shortn/redis --filter=@shortn/core --filter=@shortn/redirect --filter=@shortn/worker --filter=@shortn/api --filter=@shortn/auth --filter=@shortn/legacy --force
       - name: Mongo service logs
         if: failure()
         run: docker logs shortn-test-mongo
       - name: Remove Mongo service
         if: always()
         run: docker rm -f shortn-test-mongo
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+      # No env and no database: runtime config is parsed on first request.
+      - name: Build web
+        working-directory: apps/web
+        run: bun run build
 
   legacy:
     runs-on: ubuntu-latest

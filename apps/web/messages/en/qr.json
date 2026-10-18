@@ -1,0 +1,229 @@
+{
+  "list": {
+    "title": "QR codes",
+    "count": "{count, plural, one {# QR code} other {# QR codes}}",
+    "new": "New QR code",
+    "layout": "Layout",
+    "layouts": {
+      "grid": "Grid",
+      "list": "List"
+    },
+    "search": "Search",
+    "searchPlaceholder": "Title, destination or code",
+    "tag": "Tag",
+    "anyTag": "Any tag",
+    "created": "Created",
+    "anyTime": "Any time",
+    "createdOptions": {
+      "7": "Last 7 days",
+      "30": "Last 30 days",
+      "90": "Last 90 days",
+      "365": "Last 12 months"
+    },
+    "columns": {
+      "select": "Select",
+      "code": "QR code",
+      "link": "Short link",
+      "destination": "Destination",
+      "scans": "Scans",
+      "created": "Created"
+    },
+    "scans": "{count, plural, one {{formatted} scan} other {{formatted} scans}}",
+    "selectRow": "Select {name}",
+    "deleteSelected": "Delete selected",
+    "empty": "No QR codes yet. Each code gets its own short link, so you can change where it goes after printing.",
+    "emptyFiltered": "No QR codes match these filters.",
+    "deleted": "{count, plural, one {# QR code deleted.} other {# QR codes deleted.}}"
+  },
+  "tabs": {
+    "label": "QR code sections",
+    "overview": "Overview",
+    "design": "Design",
+    "analytics": "Scans",
+    "edit": "Details"
+  },
+  "overview": {
+    "created": "QR code created. Download it below, or adjust the design first.",
+    "saved": "Changes saved.",
+    "copy": "Copy short link",
+    "copied": "Copied",
+    "editDesign": "Edit design",
+    "download": "Download",
+    "downloadHint": "Exactly as shown, at the size you pick. SVG scales to any print size.",
+    "last30": "Last 30 days",
+    "seeAll": "See all scans",
+    "scans": "Scans",
+    "visitors": "Visitors",
+    "allTime": "All-time scans",
+    "lastScan": "Last scan",
+    "never": "Never",
+    "details": "Details",
+    "destination": "Destination",
+    "shortLink": "Short link",
+    "code": "Code",
+    "attached": "Attached to link",
+    "tags": "Tags",
+    "createdAt": "Created",
+    "none": "None",
+    "delete": "Delete QR code",
+    "deleteHint": "Printed copies stop working."
+  },
+  "form": {
+    "newTitle": "New QR code",
+    "newDescription": "Point it at a URL or one of your links, then design it. The destination can change after printing.",
+    "editDescription": "Where the code goes and how it's filed. The pattern never changes, so printed copies follow.",
+    "destinationSection": "Destination",
+    "url": "Destination URL",
+    "urlHint": "Where a scan takes people.",
+    "urlEditHint": "Printed copies follow the new destination on the next scan.",
+    "orLink": "Or use one of your links:",
+    "pickLink": "Choose a link",
+    "usingLink": "The code opens the link <key>{link}</key>.",
+    "opens": "Destination: {url}",
+    "attachHint": "It's attached to that link, so you'll find it on the link's QR code tab.",
+    "replacesCode": "This link already has a QR code; the new one becomes its code. The old code keeps scanning.",
+    "useUrl": "Use a URL instead",
+    "detailsSection": "Details",
+    "title": "Title",
+    "titleHint": "Helps you find the code later.",
+    "optional": "Optional",
+    "tags": "Tags",
+    "existingTags": "Existing tags",
+    "noTags": "No tags in this workspace yet.",
+    "newTags": "New tags",
+    "newTagsHint": "Separate with commas.",
+    "applyToLink": "Also update the link <key>{link}</key>",
+    "applyToLinkHint": "Copies a new destination or title to the link this code is attached to.",
+    "previewHint": "The preview uses a sample short link; your code gets its own when you create it.",
+    "create": "Create QR code",
+    "save": "Save details",
+    "cancel": "Cancel"
+  },
+  "design": {
+    "description": "Colours, shapes and logo. The link inside the code stays the same.",
+    "save": "Save design",
+    "unsaved": "The preview includes unsaved changes.",
+    "printed": "This is the code as it prints today."
+  },
+  "deletePage": {
+    "title": "{count, plural, one {Delete QR code} other {Delete # QR codes}}",
+    "titleSelected": "Delete selected QR codes",
+    "description": "This can't be undone.",
+    "notAllowed": "You can only delete QR codes you created; the others are left out.",
+    "stopsScanning": "{count, plural, one {The code stops scanning right away, because its short link is deleted with it.} other {The codes stop scanning right away, because their short links are deleted with them.}}",
+    "history": "Scan history is archived and no longer shown.",
+    "attached": "Attached links keep working; they just lose their QR code.",
+    "permanent": "Printed copies can't be brought back.",
+    "confirm": "{count, plural, one {Delete QR code} other {Delete # QR codes}}"
+  },
+  "preview": {
+    "label": "Preview",
+    "alt": "QR code for {link}",
+    "size": "{width} × {height} px",
+    "altNew": "Preview of the new QR code",
+    "unavailable": "Preview unavailable"
+  },
+  "colors": {
+    "title": "Colours",
+    "presets": "Presets",
+    "preset": "Use {color} on white",
+    "foreground": "Code",
+    "background": "Background",
+    "pickForeground": "Choose the code colour",
+    "pickBackground": "Choose the background colour",
+    "pickCorner": "Choose the corner colour",
+    "corners": "Corners",
+    "cornersSame": "Same as code",
+    "cornersCustom": "Own colour",
+    "cornerColor": "Corner colour",
+    "gradients": "This code uses colour gradients from the previous editor. They're kept as printed and take priority over the colours below."
+  },
+  "pattern": {
+    "title": "Pattern",
+    "description": "Shapes change the look; the link inside stays the same.",
+    "dots": "Dots",
+    "cornerSquares": "Corner squares",
+    "cornerDots": "Corner dots",
+    "styles": {
+      "square": "Square",
+      "dots": "Dots",
+      "rounded": "Rounded",
+      "extra-rounded": "Extra rounded",
+      "classy": "Classy",
+      "classy-rounded": "Classy rounded",
+      "dot": "Circle"
+    }
+  },
+  "errorLevel": {
+    "title": "Error correction",
+    "description": "Higher levels let a code survive scuffs and a logo, at the cost of a denser pattern.",
+    "label": "Level",
+    "option": "{level} · {share}%"
+  },
+  "logo": {
+    "title": "Logo",
+    "description": "Drawn in the middle of the code.",
+    "url": "Logo",
+    "urlHint": "Upload an image, then save the design to use it.",
+    "urlPlaceholder": "https://example.com/logo.png",
+    "remove": "Remove",
+    "size": "Logo size",
+    "sizeHint": "How much of the error correction the logo takes up. Keep it at 50% or less.",
+    "hideDots": "Hide the pattern behind the logo",
+    "gatedExisting": "Your plan no longer includes logos. You can keep this one or remove it."
+  },
+  "check": {
+    "title": "Scan check",
+    "contrastOk": "Good contrast ({value}). Phones read it easily.",
+    "contrastLow": "Low contrast ({value}). Test it with a few phones before printing.",
+    "contrastFail": "Too little contrast ({value}). Many phones won't read it: darken the code or lighten the background.",
+    "unknownColor": "These colours can't be checked automatically. Test the code before printing.",
+    "inverted": "Light code on a dark background. Some older scanner apps can't read inverted codes.",
+    "transparent": "The background is see-through, so contrast depends on what it's printed on.",
+    "logoLarge": "The logo takes up {value} of the error correction. Keep it at 50% or less so a scuffed print still reads.",
+    "logoSmall": "With error correction L or M the logo is drawn small. Choose Q or H for a larger logo.",
+    "logoUnavailable": "The logo didn't load, so the preview leaves it out. Check the URL and that its server allows cross-origin requests."
+  },
+  "download": {
+    "size": "Size",
+    "pixels": "{size} px",
+    "formats": {
+      "svg": "SVG (vector)",
+      "png": "PNG",
+      "jpeg": "JPEG"
+    },
+    "logoFailed": "The logo couldn't be loaded, so the download would be missing it.",
+    "failed": "The download failed. Try again."
+  },
+  "errors": {
+    "invalidUrl": "Enter a full URL, like https://example.com/page.",
+    "unsafeDestination": "This destination can't be used. It points to a private or unsafe address.",
+    "logoGated": "Your plan doesn't include logos.",
+    "limitReached": "You've created all {limit} QR codes your plan includes this month.",
+    "forbidden": "You don't have permission to do this in this workspace.",
+    "notFound": "This QR code no longer exists. It may have been deleted.",
+    "invalidInput": "Some fields are too long or not valid. Check them and try again.",
+    "generic": "Something went wrong on our side. Try again.",
+    "urlRequired": "Enter the URL the code should open.",
+    "logoUrl": "Enter the logo's full URL, starting with https://.",
+    "color": "Every colour needs a value of up to 32 characters, like #0f172b.",
+    "caption": "Use up to 64 printable characters for the caption. Some symbols are not supported; remove them or use a different caption."
+  },
+  "treatment": {
+    "title": "Shape and caption",
+    "description": "Frames and captions stay outside the clear space around the code. Circle keeps the square QR matrix inside a circular badge.",
+    "shape": "Shape",
+    "shapes": {
+      "square": "Square",
+      "circle": "Circle"
+    },
+    "frame": "Frame",
+    "frames": {
+      "none": "None",
+      "outline": "Outline",
+      "solid": "Solid"
+    },
+    "caption": "Caption",
+    "captionHint": "Optional, up to 64 characters. Captions are included in previews and downloads. Caption colour adjusts for legibility."
+  }
+}

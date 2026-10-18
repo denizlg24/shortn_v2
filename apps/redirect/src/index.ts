@@ -1,3 +1,4 @@
+import { readHotClickCount, incrementUntrackedClickCount } from "@shortn/redis";
 import { encodeSecret } from "@shortn/core";
 import { closeMongoClient, getDb } from "@shortn/db";
 import { parseEnv, redirectEnv } from "@shortn/env";
@@ -14,7 +15,7 @@ const db = await getDb({
   maxPoolSize: env.MONGODB_POOL_SIZE,
 });
 const { cache, durable } = await createRedisClients(env);
-const resolver = createResolver(cache, mongoLinkLoader(db));
+const resolver = createResolver(cache, mongoLinkLoader(db, env.LINK_DOMAIN));
 metrics.gauge("l1_entries", () => resolver.memory.size);
 
 const subscriber = cache.duplicate({ enableOfflineQueue: true });
@@ -49,6 +50,10 @@ const health = async () => {
 
 const app = createApp({
   resolver,
+  clickCounter: {
+    read: (id, base) => readHotClickCount(durable, id, base),
+    untracked: (id, base) => incrementUntrackedClickCount(durable, id, base),
+  },
   enqueue: clicks.enqueue,
   health,
   secrets: {
@@ -62,6 +67,14 @@ const app = createApp({
   },
   origin: new URL(env.PUBLIC_ORIGIN).origin,
   linkDomain: env.LINK_DOMAIN,
+  db,
+  bio: {
+    enabled: env.BIO_DELIVERY_ENABLED === "1",
+    subdomains: env.BIO_SUBDOMAINS === "1",
+    redirects: env.BIO_LEGACY_REDIRECTS === "1",
+    webOrigin: env.BIO_WEB_ORIGIN,
+    secret: env.BIO_INTERNAL_SECRET,
+  },
   edgeAuthSecret: env.EDGE_AUTH_SECRET,
   log: (message, error) => console.error(message, error),
 });

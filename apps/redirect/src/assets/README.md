@@ -1,0 +1,1 @@
+Geist Latin variable font is copied from @fontsource-variable/geist 5.3.0, under the accompanying SIL Open Font License. The Shortn mark reproduces packages/ui/src/components/shortn-mark.tsx. Keep this dependency-free public response aligned with the shared PublicFrame brand lockup and tokens.

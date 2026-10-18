@@ -31,6 +31,15 @@ export function getMongoClient(config: MongoConfig): Promise<MongoClient> {
   singleton = { config, client, connecting };
   return connecting;
 }
+// For consumers that need handles at construction time (better-auth's
+// adapter). The driver connects on first operation; the connect promise is
+// shared with getMongoClient so a failure resets the singleton.
+export function getMongoHandles(config: MongoConfig) {
+  void getMongoClient(config).catch(() => undefined);
+  if (!singleton) throw new Error("Mongo singleton missing after connect");
+  return { client: singleton.client, db: singleton.client.db(config.database) };
+}
+
 export async function getDb(config: MongoConfig) {
   return (await getMongoClient(config)).db(config.database);
 }

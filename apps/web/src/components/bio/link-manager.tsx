@@ -1,0 +1,872 @@
+"use client";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  ArrowDown,
+  ArrowUp,
+  GripVertical,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+  ChevronsUpDown,
+} from "lucide-react";
+import type { BioLinkItem, BioResolvedLink } from "@shortn/core/bio-content";
+import {
+  bioLinkFiltersAction,
+  searchBioLinksAction,
+  selectBioLinksAction,
+  shortenBioContentAction,
+} from "@/server/actions/bio-publishing";
+import { buttonVariants, Combobox } from "@shortn/ui";
+import { FilterField } from "../page/filters";
+import { ImageUpload } from "../page/image-upload";
+const input =
+  "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small";
+type LibraryLink = Awaited<
+  ReturnType<typeof searchBioLinksAction>
+>["links"][number];
+const button = buttonVariants({ variant: "secondary", size: "md" });
+const filterControl =
+  "h-8 min-w-0 w-full rounded-control border border-line-strong bg-field px-2.5 text-small text-fg focus-visible:outline-2 focus-visible:outline-signal";
+function LinkRow({
+  item,
+  title,
+  children,
+}: {
+  item: BioLinkItem;
+  title: string;
+  children: React.ReactNode;
+}) {
+  const t = useTranslations("bio.editor");
+  const { setNodeRef, attributes, listeners, transform, transition } =
+    useSortable({ id: item.id });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Translate.toString(transform), transition }}
+      className="studio-link-row flex min-w-0 flex-wrap items-center gap-2 border-b border-line py-3"
+    >
+      <button
+        type="button"
+        className="min-h-10 min-w-10 touch-none text-fg-muted"
+        aria-label={t("reorder", { title })}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="mx-auto size-4" />
+      </button>
+      <span className="min-w-0 flex-1 truncate text-small">{title}</span>
+      <div className="studio-link-actions">{children}</div>
+    </div>
+  );
+}
+export function LinkManager({
+  workspace,
+  bioId,
+  items,
+  links,
+  onChange,
+  onResolve,
+  onBusyChange,
+  uploading,
+  chooseOnly = false,
+}: {
+  workspace: string;
+  bioId: string;
+  items: BioLinkItem[];
+  links: Record<string, BioResolvedLink>;
+  onChange: (items: BioLinkItem[]) => void;
+  onResolve: (id: string, link: BioResolvedLink) => void;
+  onBusyChange: (busy: boolean) => void;
+  uploading: boolean;
+  chooseOnly?: boolean;
+}) {
+  const t = useTranslations("bio.editor");
+  const [mode, setMode] = useState<"manage" | "existing" | "create">(
+    chooseOnly ? "existing" : "manage",
+  );
+  const [search, setSearch] = useState(""),
+    [page, setPage] = useState(1),
+    [editing, setEditing] = useState<string | null>(null);
+  const [library, setLibrary] = useState<Awaited<
+    ReturnType<typeof searchBioLinksAction>
+  > | null>(null);
+  const [pending, setPending] = useState(false),
+    [error, setError] = useState("");
+  const [tags, setTags] = useState<string[]>([]),
+    [groupBy, setGroupBy] = useState("tag");
+  const [tagOptions, setTagOptions] = useState<Awaited<
+    ReturnType<typeof bioLinkFiltersAction>
+  > | null>(null);
+  const [filterError, setFilterError] = useState(false),
+    [filterRetry, setFilterRetry] = useState(0);
+  const [selection, setSelection] = useState<Record<string, LibraryLink>>({});
+  const [selecting, setSelecting] = useState(false);
+  useEffect(() => {
+    let live = true;
+    void bioLinkFiltersAction(workspace)
+      .then((value) => {
+        if (live) {
+          setTagOptions(value);
+          setFilterError(false);
+        }
+      })
+      .catch(() => {
+        if (live) setFilterError(true);
+      });
+    return () => {
+      live = false;
+    };
+  }, [workspace, filterRetry]);
+  const [url, setUrl] = useState(""),
+    [title, setTitle] = useState("");
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+  useEffect(() => {
+    if (mode !== "existing") return;
+    let live = true;
+    const timer = setTimeout(() => {
+      setPending(true);
+      setError("");
+      void searchBioLinksAction(workspace, search, page, tags)
+        .then((value) => {
+          if (live) setLibrary(value);
+        })
+        .catch(() => {
+          if (live) setError(t("libraryFailed"));
+        })
+        .finally(() => {
+          if (live) setPending(false);
+        });
+    }, 250);
+    return () => {
+      live = false;
+      clearTimeout(timer);
+    };
+  }, [workspace, search, page, mode, tags, t]);
+  function navigate(next: typeof mode) {
+    setMode(next);
+    setSearch("");
+    setPage(1);
+    setEditing(null);
+    setError("");
+    setLibrary(null);
+    setTags([]);
+    setSelection({});
+  }
+  function add(link: { id: string; title: string; href: string }) {
+    onResolve(link.id, { title: link.title, href: link.href });
+    onChange([
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        linkId: link.id,
+        title: link.title,
+        visible: true,
+        image: "",
+        highlight: false,
+      },
+    ]);
+    if (!chooseOnly) navigate("manage");
+  }
+  const alreadyAdded = new Set(items.map((item) => item.linkId));
+  const selectedLinks = Object.values(selection).filter(
+    (link) => !alreadyAdded.has(link.id),
+  );
+  const capacity = Math.max(0, 1000 - items.length - selectedLinks.length);
+  function toggleLinks(candidates: LibraryLink[], checked: boolean) {
+    setSelection((current) => {
+      const next = { ...current };
+      for (const link of candidates) {
+        if (!checked) delete next[link.id];
+        else if (
+          !alreadyAdded.has(link.id) &&
+          Object.keys(next).length < 1000 - items.length
+        )
+          next[link.id] = link;
+      }
+      return next;
+    });
+  }
+  async function selectAll() {
+    setSelecting(true);
+    setError("");
+    onBusyChange(true);
+    try {
+      const matches = await selectBioLinksAction(
+        workspace,
+        search,
+        tags,
+        [...alreadyAdded, ...Object.keys(selection)],
+        capacity,
+      );
+      toggleLinks(matches, true);
+    } catch {
+      setError(t("libraryFailed"));
+    } finally {
+      setSelecting(false);
+      onBusyChange(false);
+    }
+  }
+  function addSelected() {
+    const additions = selectedLinks.slice(0, Math.max(0, 1000 - items.length));
+    for (const link of additions)
+      onResolve(link.id, { title: link.title, href: link.href });
+    onChange([
+      ...items,
+      ...additions.map((link) => ({
+        id: crypto.randomUUID(),
+        linkId: link.id,
+        title: link.title,
+        visible: true,
+        image: "",
+        highlight: false,
+      })),
+    ]);
+    navigate("manage");
+  }
+  async function create() {
+    setPending(true);
+    setError("");
+    onBusyChange(true);
+    try {
+      const result = await shortenBioContentAction(
+        workspace,
+        bioId,
+        url,
+        title,
+      );
+      if (!result.ok) {
+        setError(t("status.shortenFailed"));
+        return;
+      }
+      const link = result.value,
+        protocol = Object.values(links)[0]?.href.startsWith("http:")
+          ? "http:"
+          : window.location.protocol;
+      add({
+        id: link.id,
+        title: link.title || link.key,
+        href: `${protocol}//${link.domain}/${link.key}`,
+      });
+      setUrl("");
+      setTitle("");
+    } catch {
+      setError(t("status.shortenFailed"));
+    } finally {
+      setPending(false);
+      onBusyChange(false);
+    }
+  }
+  const filtered = items.filter((item) =>
+    `${item.title} ${links[item.linkId]?.title ?? ""}`
+      .toLocaleLowerCase()
+      .includes(search.toLocaleLowerCase()),
+  );
+  const pages =
+    mode === "existing"
+      ? (library?.pages ?? 1)
+      : Math.max(1, Math.ceil(filtered.length / 20));
+  const current = Math.min(page, pages),
+    visible = filtered.slice((current - 1) * 20, current * 20);
+  const selected = items.find((item) => item.id === editing);
+  const update = (patch: Partial<BioLinkItem>) =>
+    onChange(
+      items.map((item) => (item.id === editing ? { ...item, ...patch } : item)),
+    );
+  function move(id: string, delta: number) {
+    const at = items.findIndex((i) => i.id === id),
+      to = at + delta;
+    if (to >= 0 && to < items.length) onChange(arrayMove(items, at, to));
+  }
+  const groups = new Map<string, LibraryLink[]>();
+  for (const link of library?.links ?? []) {
+    const name =
+      groupBy === "tag"
+        ? ((link.tags ?? []).find((tag) => tags.includes(tag)) ??
+          link.tags?.[0] ??
+          t("untagged"))
+        : "";
+    groups.set(name, [...(groups.get(name) ?? []), link]);
+  }
+  return (
+    <div className="studio-link-manager grid min-w-0 gap-5">
+      <div className="flex flex-wrap items-center gap-2">
+        {mode !== "manage" && !chooseOnly ? (
+          <button
+            className={button}
+            type="button"
+            disabled={pending || uploading}
+            onClick={() => navigate("manage")}
+          >
+            {t("backToLinks")}
+          </button>
+        ) : null}
+        {mode === "manage" ? (
+          <>
+            <p className="flex-1 text-small text-fg-muted">
+              {t("linkTotal", { count: items.length })}
+            </p>
+            <button
+              className={button}
+              type="button"
+              disabled={items.length >= 1000 || uploading}
+              onClick={() => navigate("existing")}
+            >
+              <Plus className="size-4" />
+              {t("addLink")}
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              className={button}
+              type="button"
+              disabled={uploading || pending}
+              aria-pressed={mode === "existing"}
+              onClick={() => navigate("existing")}
+            >
+              {t("existingLink")}
+            </button>
+            <button
+              className={button}
+              type="button"
+              disabled={uploading || pending}
+              aria-pressed={mode === "create"}
+              onClick={() => navigate("create")}
+            >
+              {t("newLink")}
+            </button>
+          </>
+        )}
+      </div>
+      {error ? (
+        <p role="alert" className="text-small text-danger">
+          {error}
+        </p>
+      ) : null}
+      {mode === "create" ? (
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void create();
+          }}
+        >
+          <label className="grid gap-1 text-small">
+            {t("inlineUrl")}
+            <input
+              required
+              type="url"
+              className={input}
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+          </label>
+          <label className="grid gap-1 text-small">
+            {t("title")}
+            <input
+              maxLength={120}
+              className={input}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          <button className={button} disabled={pending || !url} type="submit">
+            {pending ? t("working") : t("shorten")}
+          </button>
+        </form>
+      ) : (
+        <>
+          <FilterField label={t("searchLinks")} className="w-full min-w-0">
+            {(id) => (
+              <input
+                id={id}
+                type="search"
+                maxLength={200}
+                className={filterControl}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                  setLibrary(null);
+                }}
+              />
+            )}
+          </FilterField>
+          {mode === "existing" ? (
+            <>
+              <div className="studio-library-filters flex min-w-0 flex-wrap items-end gap-3">
+                <FilterField
+                  label={t("filterTags")}
+                  className="min-w-0 w-full sm:flex-1"
+                >
+                  {(id) => (
+                    <Combobox
+                      id={id}
+                      multiple
+                      options={(tagOptions ?? []).map((tag) => ({
+                        value: tag.name,
+                        label: tag.name,
+                      }))}
+                      value={tags}
+                      placeholder={t("anyTag")}
+                      searchPlaceholder={t("searchTags")}
+                      emptyText={t("noTags")}
+                      disabled={!tagOptions || selecting}
+                      trigger={
+                        <button
+                          id={id}
+                          role="combobox"
+                          type="button"
+                          className={`${filterControl} flex items-center justify-between gap-2`}
+                        >
+                          <span className="min-w-0 flex-1 truncate text-left">
+                            {tags.length > 1
+                              ? t("tagCount", { count: tags.length })
+                              : (tags[0] ?? t("anyTag"))}
+                          </span>
+                          <ChevronsUpDown
+                            aria-hidden
+                            className="size-4 shrink-0"
+                          />
+                        </button>
+                      }
+                      onValueChange={(value) => {
+                        setTags(value.slice(0, 50));
+                        setPage(1);
+                        setLibrary(null);
+                      }}
+                    />
+                  )}
+                </FilterField>
+                <FilterField
+                  label={t("groupBy")}
+                  className="min-w-0 w-full sm:w-36"
+                >
+                  {(id) => (
+                    <select
+                      id={id}
+                      className={filterControl}
+                      value={groupBy}
+                      onChange={(e) => setGroupBy(e.target.value)}
+                    >
+                      <option value="tag">{t("byTag")}</option>
+                      <option value="none">{t("noGrouping")}</option>
+                    </select>
+                  )}
+                </FilterField>
+              </div>
+              {filterError ? (
+                <p role="alert" className="text-small">
+                  {t("filtersFailed")}{" "}
+                  <button
+                    type="button"
+                    className="text-signal underline"
+                    onClick={() => setFilterRetry((value) => value + 1)}
+                  >
+                    {t("retry")}
+                  </button>
+                </p>
+              ) : null}
+              {tags.length ? (
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-chip bg-bg-muted px-1.5 py-1 text-meta text-fg hover:bg-bg-subtle"
+                      disabled={selecting}
+                      aria-label={t("removeTag", { tag })}
+                      onClick={() => {
+                        setTags((current) =>
+                          current.filter((value) => value !== tag),
+                        );
+                        setPage(1);
+                        setLibrary(null);
+                      }}
+                    >
+                      <span className="truncate">{tag}</span>
+                      <X aria-hidden className="size-3 shrink-0" />
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    className="text-small text-signal hover:underline"
+                    disabled={selecting}
+                    onClick={() => {
+                      setTags([]);
+                      setSearch("");
+                      setPage(1);
+                      setLibrary(null);
+                    }}
+                  >
+                    {t("clearFilters")}
+                  </button>
+                </div>
+              ) : null}
+              {!chooseOnly ? (
+                <div className="flex flex-wrap items-center gap-2 border-y border-line py-3">
+                  <p className="basis-full text-small text-fg-muted">
+                    {t("libraryTotal", { count: library?.total ?? 0 })} ·{" "}
+                    {t("selectedTotal", { count: selectedLinks.length })}
+                  </p>
+                  <button
+                    type="button"
+                    className={button}
+                    disabled={pending || !library || !capacity || selecting}
+                    onClick={() => toggleLinks(library?.links ?? [], true)}
+                  >
+                    {t("selectPage")}
+                  </button>
+                  <button
+                    type="button"
+                    className={button}
+                    disabled={
+                      pending || !library?.total || !capacity || selecting
+                    }
+                    onClick={() => void selectAll()}
+                  >
+                    {selecting ? t("working") : t("selectResults")}
+                  </button>
+                  {selectedLinks.length ? (
+                    <>
+                      <button
+                        type="button"
+                        className={button}
+                        disabled={selecting}
+                        onClick={() => setSelection({})}
+                      >
+                        {t("clearSelection")}
+                      </button>
+                      <button
+                        type="button"
+                        className="studio-primary"
+                        disabled={selecting}
+                        onClick={addSelected}
+                      >
+                        {t("addSelected", { count: selectedLinks.length })}
+                      </button>
+                    </>
+                  ) : null}
+                  <p className="basis-full text-small text-fg-muted">
+                    {t("selectionHint", {
+                      count: Math.max(0, 1000 - items.length),
+                    })}
+                  </p>
+                </div>
+              ) : null}
+            </>
+          ) : null}
+          {selected && mode === "manage" ? (
+            <fieldset
+              disabled={uploading}
+              className="grid gap-4 border-b border-line pb-5"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">{t("editLink")}</h3>
+                <button
+                  className={button}
+                  type="button"
+                  onClick={() => setEditing(null)}
+                >
+                  {t("done")}
+                </button>
+              </div>
+              <label className="grid gap-1 text-small">
+                {t("title")}
+                <input
+                  className={input}
+                  value={selected.title}
+                  maxLength={120}
+                  onChange={(e) => update({ title: e.target.value })}
+                />
+              </label>
+              <ImageUpload
+                key={selected.id}
+                label={t("image")}
+                value={selected.image}
+                onChange={(image) => update({ image })}
+                onBusyChange={onBusyChange}
+              />
+              <label className="text-small">
+                <input
+                  type="checkbox"
+                  checked={selected.highlight}
+                  onChange={(e) => update({ highlight: e.target.checked })}
+                />{" "}
+                {t("highlight")}
+              </label>
+              <label className="text-small">
+                <input
+                  type="checkbox"
+                  checked={selected.visible}
+                  onChange={(e) => update({ visible: e.target.checked })}
+                />{" "}
+                {t("visible")}
+              </label>
+            </fieldset>
+          ) : null}
+          {mode === "existing" ? (
+            <div aria-busy={pending || selecting}>
+              {pending || (!library && !error) ? (
+                <p role="status" className="py-6 text-small text-fg-muted">
+                  {t("working")}
+                </p>
+              ) : library?.links.length ? (
+                [...groups].map(([name, group]) => (
+                  <section key={name} aria-label={name || undefined}>
+                    {name ? (
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line py-3">
+                        <h3 className="text-small font-medium">{name}</h3>
+                        {!chooseOnly ? (
+                          <button
+                            type="button"
+                            className={button}
+                            disabled={selecting || !capacity}
+                            onClick={() => toggleLinks(group, true)}
+                          >
+                            {t("selectGroupPage")}
+                          </button>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <table className="studio-library-table w-full table-fixed text-left text-small">
+                      <thead className="border-b border-line text-meta text-fg-muted">
+                        <tr>
+                          {!chooseOnly ? (
+                            <th className="w-8 py-2">
+                              <span className="sr-only">{t("selectPage")}</span>
+                            </th>
+                          ) : null}
+                          <th scope="col" className="py-2 pr-3 font-medium">
+                            {t("types.link")}
+                          </th>
+                          <th
+                            scope="col"
+                            className="studio-library-tags w-32 py-2 font-medium"
+                          >
+                            {t("tagColumn")}
+                          </th>
+                          <th className="w-16 py-2">
+                            <span className="sr-only">{t("addLink")}</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-line">
+                        {group.map((link) => (
+                          <tr key={link.id} className="hover:bg-bg-subtle">
+                            {!chooseOnly ? (
+                              <td className="py-2.5 pr-2">
+                                <input
+                                  type="checkbox"
+                                  className="size-4 shrink-0 accent-[var(--color-signal)]"
+                                  aria-label={t("selectLink", {
+                                    title: link.title,
+                                  })}
+                                  checked={
+                                    alreadyAdded.has(link.id) ||
+                                    Boolean(selection[link.id])
+                                  }
+                                  disabled={
+                                    alreadyAdded.has(link.id) ||
+                                    selecting ||
+                                    (!selection[link.id] && !capacity)
+                                  }
+                                  onChange={(e) =>
+                                    toggleLinks([link], e.target.checked)
+                                  }
+                                />
+                              </td>
+                            ) : null}
+                            <td className="min-w-0 py-2.5 pr-3">
+                              <p
+                                className="truncate font-medium"
+                                title={link.title}
+                              >
+                                {link.title}
+                              </p>
+                              <p
+                                className="truncate text-meta text-fg-muted"
+                                title={link.href}
+                              >
+                                {link.href}
+                              </p>
+                            </td>
+                            <td className="studio-library-tags py-2.5 pr-2">
+                              <div className="flex min-w-0 flex-wrap gap-1">
+                                {(link.tags ?? []).map((tag) => (
+                                  <span
+                                    key={tag}
+                                    className="max-w-full truncate rounded-chip bg-bg-muted px-1.5 py-0.5 text-meta"
+                                    title={tag}
+                                  >
+                                    {tag}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-2.5 text-right">
+                              {alreadyAdded.has(link.id) ? (
+                                <span className="text-meta text-fg-muted">
+                                  {t("added")}
+                                </span>
+                              ) : chooseOnly ? (
+                                <button
+                                  className={button}
+                                  type="button"
+                                  onClick={() => add(link)}
+                                >
+                                  {t("addLink")}
+                                </button>
+                              ) : null}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </section>
+                ))
+              ) : !error ? (
+                <p className="py-6 text-small text-fg-muted">{t("noLinks")}</p>
+              ) : null}
+            </div>
+          ) : (
+            <DndContext
+              id={`bio-link-manager-${bioId}`}
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={({ active, over }) => {
+                if (over && active.id !== over.id)
+                  onChange(
+                    arrayMove(
+                      items,
+                      items.findIndex((i) => i.id === active.id),
+                      items.findIndex((i) => i.id === over.id),
+                    ),
+                  );
+              }}
+            >
+              <SortableContext
+                items={visible.map((i) => i.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div>
+                  {visible.map((item) => (
+                    <LinkRow
+                      key={item.id}
+                      item={item}
+                      title={
+                        item.title ||
+                        links[item.linkId]?.title ||
+                        t("types.link")
+                      }
+                    >
+                      <button
+                        className={button}
+                        aria-label={t("editLink")}
+                        disabled={uploading}
+                        type="button"
+                        onClick={() => setEditing(item.id)}
+                      >
+                        <Pencil className="size-4" />
+                      </button>
+                      <button
+                        className={button}
+                        aria-label={t("up")}
+                        disabled={items[0]?.id === item.id || uploading}
+                        type="button"
+                        onClick={() => move(item.id, -1)}
+                      >
+                        <ArrowUp className="size-4" />
+                      </button>
+                      <button
+                        className={button}
+                        aria-label={t("down")}
+                        disabled={items.at(-1)?.id === item.id || uploading}
+                        type="button"
+                        onClick={() => move(item.id, 1)}
+                      >
+                        <ArrowDown className="size-4" />
+                      </button>
+                      <button
+                        className={button}
+                        aria-label={t("remove")}
+                        disabled={uploading}
+                        type="button"
+                        onClick={() => {
+                          onChange(items.filter((i) => i.id !== item.id));
+                          if (editing === item.id) setEditing(null);
+                        }}
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </LinkRow>
+                  ))}
+                  {!visible.length ? (
+                    <p className="py-6 text-small text-fg-muted">
+                      {t("noLinks")}
+                    </p>
+                  ) : null}
+                </div>
+              </SortableContext>
+            </DndContext>
+          )}
+          {pages > 1 ? (
+            <nav
+              className="flex items-center justify-between gap-2 text-small"
+              aria-label={t("linkPages")}
+            >
+              <button
+                className={button}
+                type="button"
+                disabled={current <= 1 || pending || uploading}
+                onClick={() => {
+                  setPage(current - 1);
+                  if (mode === "existing") setLibrary(null);
+                }}
+              >
+                {t("previous")}
+              </button>
+              <span className="tabular-nums">
+                {current} / {pages}
+              </span>
+              <button
+                className={button}
+                type="button"
+                disabled={current >= pages || pending || uploading}
+                onClick={() => {
+                  setPage(current + 1);
+                  if (mode === "existing") setLibrary(null);
+                }}
+              >
+                {t("next")}
+              </button>
+            </nav>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}

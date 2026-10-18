@@ -1,0 +1,11 @@
+{
+  "idle": "Cole uma URL de destino. Os detalhes da página podem sugerir um título e uma chave; pode editar ambos.",
+  "loading": "A procurar os detalhes da página… Pode criar o link enquanto a procura termina.",
+  "ready": "As sugestões da página estão prontas. As suas alterações são mantidas.",
+  "unavailable": "Não foi possível obter os detalhes da página. Introduza um título ou crie o link sem título.",
+  "retry": "Tentar novamente",
+  "useKey": "Usar chave sugerida",
+  "useTitle": "Usar título da página",
+  "copied": "Link criado e copiado para a área de transferência.",
+  "copyDenied": "Link criado. A cópia automática não estava disponível; use Copiar para copiar o endereço."
+}

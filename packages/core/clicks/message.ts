@@ -14,6 +14,18 @@ export const clickMessageSchema = z.object({
   domain: z.string(),
   key: z.string(),
   bot: z.boolean(),
+  counterBase: z
+    .number()
+    .int()
+    .nonnegative()
+    .max(Number.MAX_SAFE_INTEGER)
+    .optional(),
+  branch: z
+    .string()
+    .regex(
+      /^(?:destination|deep:(?:ios|android)|(?:device|geo|rotation):\d{1,2})$/,
+    )
+    .optional(),
   ip: z.string().max(45).optional(),
   ua: z.string().max(2000).optional(),
   referrer: z.string().max(4000).optional(),
@@ -99,13 +111,21 @@ type RequestField =
   | "requestId";
 
 // Cloudflare is the only ingress (tunnel → Caddy), so its headers are trusted.
+// Behind the edge Worker, CF-Connecting-IP is the Worker's egress address; the
+// edge's x-shortn-client-ip is honoured only once the caller proved edge auth.
 export function requestClickFields(
   headers: HeaderReader,
+  edgeAuthenticated = false,
 ): Partial<Record<RequestField, string>> {
   const entries: [RequestField, string | undefined][] = [
     [
       "ip",
-      normalizeIp(first(headers, "cf-connecting-ipv6", "cf-connecting-ip")),
+      normalizeIp(
+        (edgeAuthenticated
+          ? first(headers, "x-shortn-client-ip")
+          : undefined) ??
+          first(headers, "cf-connecting-ipv6", "cf-connecting-ip"),
+      ),
     ],
     ["ua", cut(first(headers, "user-agent"), 2000)],
     ["referrer", cut(first(headers, "referer"), 4000)],

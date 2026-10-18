@@ -1,0 +1,198 @@
+{
+  "list": {
+    "title": "Campanhas",
+    "count": "{count, plural, one {# campanha} other {# campanhas}}",
+    "new": "Nova campanha",
+    "deleted": "Campanha eliminada.",
+    "search": "Pesquisar",
+    "searchPlaceholder": "Título ou descrição",
+    "sort": "Ordenar por",
+    "sorts": {
+      "newest": "Mais recentes",
+      "oldest": "Mais antigas",
+      "links": "Mais links",
+      "title": "Título (A–Z)"
+    },
+    "columns": {
+      "campaign": "Campanha",
+      "links": "Links",
+      "created": "Criada"
+    },
+    "empty": "Ainda não há campanhas. Uma campanha agrupa as variantes etiquetadas dos seus links para ler os cliques em conjunto.",
+    "emptyFiltered": "Nenhuma campanha corresponde a esta pesquisa."
+  },
+  "gated": {
+    "title": "Leia todos os canais de uma campanha num só lugar",
+    "body": "As campanhas agrupam as variantes etiquetadas dos seus links: os cliques numa só página, um construtor de UTM com as suas predefinições e exportação para CSV."
+  },
+  "tabs": {
+    "label": "Secções da campanha",
+    "overview": "Resumo",
+    "analytics": "Estatísticas",
+    "builder": "Construtor de UTM",
+    "edit": "Definições"
+  },
+  "overview": {
+    "copyParam": "Copiar utm_campaign",
+    "copied": "Copiado",
+    "build": "Construir um URL etiquetado",
+    "created": "Campanha criada. Etiquete um link para ela no construtor de UTM.",
+    "saved": "Alterações guardadas.",
+    "variantSaved": "Variante guardada em {link}.",
+    "last30": "Últimos 30 dias",
+    "seeAll": "Ver estatísticas completas",
+    "clicks": "Cliques",
+    "scans": "Leituras",
+    "visitors": "Visitantes",
+    "links": "Links",
+    "visits": "Cliques e leituras",
+    "noData": "Sem visitas nos últimos 30 dias.",
+    "linksTitle": "Links e variantes",
+    "linksHint": "Um link entra na campanha quando uma das suas variantes UTM a usa.",
+    "noLinks": "Ainda não há links nesta campanha. Construa um URL etiquetado e guarde-o como variante.",
+    "linkClicks": "{count, plural, one {{formatted} clique} other {{formatted} cliques}}",
+    "taggedUrl": "URL etiquetado",
+    "copyUrl": "Copiar URL",
+    "details": "Detalhes",
+    "param": "utm_campaign",
+    "createdAt": "Criada",
+    "none": "Nenhum",
+    "delete": "Eliminar campanha",
+    "deleteHint": "As variantes são removidas dos links; os links continuam a funcionar.",
+    "variantsSaved": "{count, plural, one {# variante guardada} other {# variantes guardadas}}. {skipped} variantes já guardadas ignoradas."
+  },
+  "form": {
+    "newTitle": "Nova campanha",
+    "newDescription": "Dê-lhe o nome que deve aparecer como utm_campaign nas suas estatísticas. A seguir etiqueta links para ela.",
+    "editDescription": "Título, descrição e os valores que o construtor de UTM sugere.",
+    "detailsSection": "Detalhes",
+    "optional": "Opcional",
+    "create": "Criar campanha",
+    "save": "Guardar alterações",
+    "cancel": "Cancelar",
+    "title": "Título",
+    "titleHint": "Usado como utm_campaign nos URL que etiquetar.",
+    "renameHint": "As variantes guardadas passam a usar o novo título. Os URL que já partilhou mantêm o antigo e os respetivos cliques deixam de contar aqui.",
+    "description": "Descrição",
+    "descriptionPlaceholder": "Para que serve esta campanha (opcional)"
+  },
+  "defaults": {
+    "title": "Predefinições UTM",
+    "description": "Valores que o construtor sugere para esta campanha. São guardados em minúsculas.",
+    "lists": {
+      "sources": "Origens",
+      "mediums": "Meios",
+      "terms": "Termos",
+      "contents": "Conteúdos"
+    },
+    "hints": {
+      "sources": "De onde vem o tráfego, como newsletter ou instagram.",
+      "mediums": "O tipo de canal, como email ou social.",
+      "terms": "Palavras-chave de pesquisa paga.",
+      "contents": "O que distingue links no mesmo sítio, como cabeçalho ou rodapé."
+    },
+    "placeholders": {
+      "sources": "Escreva uma origem e prima Enter",
+      "mediums": "Escreva um meio e prima Enter",
+      "terms": "Escreva um termo e prima Enter",
+      "contents": "Escreva um valor e prima Enter"
+    }
+  },
+  "chips": {
+    "remove": "Remover {value}"
+  },
+  "builder": {
+    "description": "Aplique um canal às ligações curtas selecionadas. utm_campaign é sempre o título desta campanha.",
+    "pickLink": "Escolha um link",
+    "campaignLinks": "Nesta campanha",
+    "notInCampaign": "Este link ainda não está na campanha. Guardar a variante adiciona-o; até lá, os cliques não contam aqui.",
+    "fields": {
+      "source": "Origem",
+      "medium": "Meio",
+      "term": "Termo",
+      "content": "Conteúdo"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "term": "sapatilhas de corrida",
+      "content": "banner-topo"
+    },
+    "suggestions": "Valores sugeridos para {field}",
+    "campaignParam": "O utm_campaign é <code>{title}</code>.",
+    "result": "URL etiquetado",
+    "pickLinkFirst": "Escolha um link para construir o URL.",
+    "copy": "Copiar URL",
+    "save": "Guardar como variante",
+    "saveHint": "Guardar adiciona os mesmos valores UTM a cada ligação selecionada e inclui os seus cliques nesta campanha.",
+    "viewerReason": "Os leitores não podem alterar links.",
+    "linkSection": "Ligações",
+    "linkHint": "Explore por etiquetas ou pesquise e escolha uma ou mais ligações curtas.",
+    "noLink": "Ainda não escolheu um link.",
+    "changeLink": "Escolher outro link",
+    "paramsSection": "Parâmetros",
+    "optional": "Opcional",
+    "copied": "Copiado",
+    "cancel": "Cancelar",
+    "selectedLinks": "{count} ligações selecionadas",
+    "previewMany": "Pré-visualização da primeira ligação. Estes valores UTM aplicam-se a todas as ligações selecionadas.",
+    "saveMany": "Guardar variantes em {count} ligações"
+  },
+  "deletePage": {
+    "title": "Eliminar campanha",
+    "description": "Não é possível anular.",
+    "variants": "{count, plural, =0 {Ainda nenhum link tem variantes UTM desta campanha.} one {As variantes UTM são removidas de # link.} other {As variantes UTM são removidas de # links.}}",
+    "links": "Os links continuam a funcionar.",
+    "analytics": "Os URL já partilhados com este utm_campaign mantêm os cliques, mas nenhuma página de campanha os mostra.",
+    "permanent": "As predefinições UTM são eliminadas com ela.",
+    "confirm": "Eliminar campanha"
+  },
+  "errors": {
+    "titleTaken": "Já existe outra campanha com este título.",
+    "titleRequired": "Dê um título à campanha.",
+    "gated": "O seu plano não inclui campanhas.",
+    "forbidden": "Não tem permissão para fazer isto neste espaço de trabalho.",
+    "notFound": "Esta campanha ou link já não existe. Pode ter sido eliminado.",
+    "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
+    "generic": "Algo correu mal do nosso lado. Tente novamente.",
+    "linkRequired": "Escolha um link para etiquetar.",
+    "duplicate": "Esta variante já está guardada no link.",
+    "full": "Este link já tem {max} variantes.",
+    "partial": "Foram guardadas variantes em {count} ligações antes de as restantes falharem. Tente novamente para continuar; as variantes já guardadas são ignoradas."
+  },
+  "library": {
+    "browse": "Explorar ligações",
+    "title": "Escolher ligações da campanha",
+    "search": "Pesquisar ligações",
+    "tags": "Filtrar por etiquetas",
+    "anyTag": "Qualquer etiqueta",
+    "searchTags": "Pesquisar etiquetas",
+    "noTags": "Nenhuma etiqueta encontrada",
+    "tagCount": "{count} etiquetas",
+    "groupBy": "Agrupar resultados",
+    "byTag": "Por etiqueta",
+    "noGrouping": "Sem agrupamento",
+    "untagged": "Sem etiqueta",
+    "tagsFailed": "Não foi possível carregar as etiquetas.",
+    "retry": "Tentar novamente",
+    "removeTag": "Remover etiqueta {tag}",
+    "clearFilters": "Limpar filtros",
+    "loading": "A carregar…",
+    "results": "{count, plural, one {# ligação correspondente} other {# ligações correspondentes}}",
+    "selected": "{count} selecionadas",
+    "selectPage": "Selecionar esta página",
+    "selectResults": "Selecionar todos os resultados",
+    "clearSelection": "Limpar seleção",
+    "hint": "A seleção mantém-se entre páginas e filtros. Escolha até 500 ligações por gravação.",
+    "failed": "Não foi possível carregar as ligações. Tente novamente sem perder a seleção.",
+    "empty": "Nenhuma ligação correspondente. Altere os filtros ou a pesquisa.",
+    "selectGroup": "Selecionar grupo nesta página",
+    "link": "Ligação",
+    "selectLink": "Selecionar {title}",
+    "pages": "Páginas da biblioteca",
+    "previous": "Anterior",
+    "next": "Seguinte",
+    "use": "Usar {count} ligações selecionadas",
+    "cancel": "Cancelar seleção"
+  }
+}

@@ -50,6 +50,7 @@ test("single-segment keys and /qr/ paths go to apps/redirect with edge headers",
   );
   expect(forwarded?.headers.get("x-edge-auth")).toBe("edge-secret");
   expect(forwarded?.headers.get("cf-connecting-ip")).toBe("203.0.113.1");
+  expect(forwarded?.headers.get("x-shortn-client-ip")).toBe("203.0.113.1");
   expect(forwarded?.headers.get("x-request-id")).toBe("ray1");
   await handler(new Request("https://shortn.at/qr/abc"), env);
   expect(seen.redirect[1]?.url).toBe(
@@ -98,4 +99,329 @@ test("CANARY_PERCENT=0 is the kill switch", async () => {
   });
   expect(seen.redirect).toHaveLength(0);
   expect(bucket("anything")).toBeLessThan(100);
+});
+
+test("P4 column is off until WEB_ORIGIN and DASHBOARD_HANDOFF are set", async () => {
+  const { handler, seen } = setup(redirected);
+  await handler(new Request("https://shortn.at/authenticate/abc"), env);
+  const dashboard = await handler(
+    new Request("https://shortn.at/en/dashboard/links"),
+    env,
+  );
+  expect(seen.legacy).toHaveLength(2);
+  expect(dashboard.status).toBe(200);
+});
+
+test("with the P4 column, public link pages go to web and dashboards to the handoff", async () => {
+  const p4: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    DASHBOARD_HANDOFF: "1",
+  };
+  const webSeen: Request[] = [];
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      webSeen.push(request);
+      return new Response(null, { status: 303, headers: { location: "/abc" } });
+    },
+  );
+  const post = await handler(
+    new Request("https://shortn.at/authenticate/abc", {
+      method: "POST",
+      body: "password=x",
+      headers: {
+        "content-type": "application/x-www-form-urlencoded",
+        cookie: "a=b",
+      },
+    }),
+    p4,
+  );
+  expect(post.status).toBe(303);
+  expect(webSeen[0]?.url).toBe("https://app.shortn.at/authenticate/abc");
+  expect(webSeen[0]?.headers.get("x-forwarded-host")).toBe("shortn.at");
+  expect(webSeen[0]?.headers.get("x-shortn-forwarded-host")).toBe("shortn.at");
+  expect(await webSeen[0]?.text()).toBe("password=x");
+  await handler(new Request("https://shortn.at/pt/safety/abc"), p4);
+  expect(webSeen[1]?.url).toBe("https://app.shortn.at/pt/safety/abc");
+  const dashboard = await handler(
+    new Request("https://shortn.at/pt/dashboard/qr-codes"),
+    p4,
+  );
+  expect(dashboard.status).toBe(302);
+  expect(dashboard.headers.get("location")).toBe(
+    "https://shortn.at/api/handoff?from=%2Fpt%2Fdashboard%2Fqr-codes",
+  );
+});
+
+test("public link and documentation routes match the web paths", async () => {
+  const { isWebPath } = await import("./index");
+  for (const path of [
+    "/auth/mcp/workspace",
+    "/auth/mcp/consent",
+    "/.well-known/oauth-authorization-server/api/auth",
+    "/docs",
+    "/docs.md",
+    "/docs/api",
+    "/docs/webhooks.md",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
+    "/authenticate/abc",
+    "/authenticate/abc/verify",
+    "/pt/safety/abc",
+    "/en/safety/abc/token",
+    "/es/safety/abc/report",
+  ])
+    expect(isWebPath(path)).toBe(true);
+  for (const path of [
+    "/auth/mcp/private",
+    "/.well-known/oauth-authorization-server/untrusted",
+    "/docs-private",
+    "/llms-other.txt",
+    "/abc",
+    "/authenticate",
+    "/de/safety/abc",
+    "/en/safety/abc/other",
+    "/en/dashboard",
+  ])
+    expect(isWebPath(path)).toBe(false);
+});
+
+test("a failing web origin falls back to legacy for the same request", async () => {
+  const p4: Env = { ...env, WEB_ORIGIN: "https://app.shortn.at" };
+  let legacyBody = "";
+  const handler = createHandler(
+    redirected,
+    async (request) => {
+      legacyBody = await request.text();
+      return new Response("legacy");
+    },
+    50,
+    async () => new Response("down", { status: 502 }),
+  );
+  const response = await handler(
+    new Request("https://shortn.at/authenticate/abc", {
+      method: "POST",
+      body: "password=x",
+    }),
+    p4,
+  );
+  expect(await response.text()).toBe("legacy");
+  expect(legacyBody).toBe("password=x");
+});
+
+test("docs reach web even with short-link rollout disabled", async () => {
+  const seen: string[] = [];
+  const handler = createHandler(
+    async () => {
+      throw new Error("Docs reached redirect service");
+    },
+    async () => {
+      throw new Error("Docs reached legacy");
+    },
+    50,
+    async (request) => {
+      seen.push(request.url);
+      return new Response("docs");
+    },
+  );
+  for (const path of [
+    "/docs",
+    "/docs/api",
+    "/docs.md",
+    "/llms.txt",
+    "/llms-full.txt",
+    "/openapi.json",
+    "/robots.txt",
+  ]) {
+    expect(
+      (
+        await handler(new Request(`https://shortn.at${path}`), {
+          ...env,
+          CANARY_PERCENT: "0",
+          WEB_ORIGIN: "https://app.shortn.at",
+        })
+      ).status,
+    ).toBe(200);
+    expect(seen.at(-1)).toBe(`https://app.shortn.at${path}`);
+  }
+});
+
+test("the redirect origin receives the visitor address, never a client-supplied one", async () => {
+  const { handler, seen } = setup(redirected);
+  await handler(
+    new Request("https://shortn.at/abc", {
+      headers: {
+        "cf-connecting-ip": "203.0.113.7",
+        "x-shortn-client-ip": "192.0.2.99",
+      },
+    }),
+    env,
+  );
+  await handler(
+    new Request("https://shortn.at/abc", {
+      headers: { "x-shortn-client-ip": "192.0.2.99" },
+    }),
+    env,
+  );
+  expect(seen.redirect[0]?.headers.get("x-shortn-client-ip")).toBe(
+    "203.0.113.7",
+  );
+  expect(seen.redirect[1]?.headers.has("x-shortn-client-ip")).toBe(false);
+});
+
+test("edge-proxied web pages receive a proven visitor address", async () => {
+  const webSeen: Request[] = [];
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      webSeen.push(request);
+      return new Response("ok");
+    },
+  );
+  const spoofed = {
+    "cf-connecting-ip": "203.0.113.7",
+    "x-shortn-client-ip": "192.0.2.99",
+    "x-shortn-web-auth": "forged",
+  };
+  const p4: Env = { ...env, WEB_ORIGIN: "https://app.shortn.at" };
+  await handler(
+    new Request("https://shortn.at/authenticate/abc", { headers: spoofed }),
+    { ...p4, WEB_EDGE_AUTH_SECRET: "web-edge-secret" },
+  );
+  expect(webSeen[0]?.headers.get("x-shortn-web-auth")).toBe("web-edge-secret");
+  expect(webSeen[0]?.headers.get("x-shortn-client-ip")).toBe("203.0.113.7");
+  await handler(
+    new Request("https://shortn.at/pt/safety/abc", { headers: spoofed }),
+    p4,
+  );
+  expect(webSeen[1]?.headers.has("x-shortn-web-auth")).toBe(false);
+  expect(webSeen[1]?.headers.has("x-shortn-client-ip")).toBe(false);
+});
+
+test("the root site moves to web only with MARKETING_ENABLED, and falls back on 5xx", async () => {
+  const p4: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    DASHBOARD_HANDOFF: "1",
+  };
+  const seen: string[] = [];
+  let webStatus = 200;
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      seen.push(new URL(request.url).pathname);
+      return new Response("web", { status: webStatus });
+    },
+  );
+  const paths = [
+    "/",
+    "/en",
+    "/pt/pricing",
+    "/es/help/articles/x",
+    "/sitemap.xml",
+  ];
+  for (const path of paths)
+    expect(
+      await (await handler(new Request(`https://shortn.at${path}`), p4)).text(),
+    ).toBe("legacy");
+  expect(seen).toHaveLength(0);
+
+  const marketing: Env = { ...p4, MARKETING_ENABLED: "1" };
+  for (const path of paths)
+    expect(
+      await (
+        await handler(new Request(`https://shortn.at${path}`), marketing)
+      ).text(),
+    ).toBe("web");
+  expect(seen).toEqual(paths);
+
+  const dashboard = await handler(
+    new Request("https://shortn.at/en/dashboard/links"),
+    marketing,
+  );
+  expect(dashboard.status).toBe(302);
+  expect(dashboard.headers.get("location")).toContain("/api/handoff");
+  expect(
+    await (
+      await handler(new Request("https://shortn.at/abc"), marketing)
+    ).status,
+  ).toBe(302);
+
+  webStatus = 503;
+  expect(
+    await (
+      await handler(new Request("https://shortn.at/en"), marketing)
+    ).text(),
+  ).toBe("legacy");
+});
+
+test("contact and demo posts keep their bodies on the way to web", async () => {
+  let body = "";
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      body = await request.text();
+      return new Response("ok");
+    },
+  );
+  await handler(
+    new Request("https://shortn.at/en/demo", {
+      method: "POST",
+      body: '{"url":"https://example.com"}',
+    }),
+    { ...env, WEB_ORIGIN: "https://app.shortn.at", MARKETING_ENABLED: "1" },
+  );
+  expect(body).toBe('{"url":"https://example.com"}');
+});
+
+test("the form rate limiter answers 429 before web sees the post", async () => {
+  let webCalls = 0;
+  let allowed = 2;
+  const handler = createHandler(
+    redirected,
+    async () => new Response("legacy"),
+    50,
+    async () => {
+      webCalls++;
+      return new Response("ok");
+    },
+  );
+  const limited: Env = {
+    ...env,
+    WEB_ORIGIN: "https://app.shortn.at",
+    MARKETING_ENABLED: "1",
+    FORM_RATE_LIMITER: {
+      limit: async () => ({ success: allowed-- > 0 }),
+    },
+  };
+  const post = () =>
+    handler(
+      new Request("https://shortn.at/pt/contact/send", {
+        method: "POST",
+        headers: { "cf-connecting-ip": "203.0.113.5" },
+        body: "{}",
+      }),
+      limited,
+    );
+  expect((await post()).status).toBe(200);
+  expect((await post()).status).toBe(200);
+  const blocked = await post();
+  expect(blocked.status).toBe(429);
+  expect(await blocked.json()).toEqual({ error: "rateLimited" });
+  expect(webCalls).toBe(2);
+  expect(
+    (await handler(new Request("https://shortn.at/en/pricing"), limited))
+      .status,
+  ).toBe(200);
 });

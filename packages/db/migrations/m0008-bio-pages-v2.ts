@@ -153,6 +153,7 @@ export const bioPagesV2: Migration = {
       name: names.bio_pages,
       operations: (docs) =>
         docs.flatMap((doc): AnyBulkWriteOperation<Document>[] => {
+          if (doc.publicationManaged === true) return [];
           const built = buildBio(doc, assets);
           const bioHash = stableHash({ built, slug: doc.slug });
           let handle = str(doc.handle);
@@ -168,7 +169,7 @@ export const bioPagesV2: Migration = {
           return [
             {
               updateOne: {
-                filter: { _id: doc._id },
+                filter: { _id: doc._id, publicationManaged: { $ne: true } },
                 update: {
                   $set: {
                     handle,
@@ -226,6 +227,7 @@ export const bioPagesV2: Migration = {
       aliases.map((alias) => [str(alias.slug), String(alias.bioPageId)]),
     );
     for (const page of pages) {
+      if (page.publicationManaged === true) continue;
       const id = String(page._id);
       if (!up) {
         if (page.handle || page.blocks)
@@ -270,7 +272,7 @@ export const bioPagesV2: Migration = {
       operations: (docs) =>
         docs.map((doc) => ({
           updateOne: {
-            filter: { _id: doc._id },
+            filter: { _id: doc._id, publicationManaged: { $ne: true } },
             update: {
               $unset: {
                 handle: "",

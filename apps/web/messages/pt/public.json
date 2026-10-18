@@ -1,0 +1,71 @@
+{
+  "goHome": "Ir para o Shortn",
+  "linkNotFound": {
+    "title": "Este link não existe",
+    "body": "Verifique se o endereço tem erros. O proprietário também pode tê-lo eliminado."
+  },
+  "blocked": {
+    "title": "Este link foi desativado",
+    "body": "O Shortn desativou-o por poder ser perigoso, por isso não leva a lado nenhum.",
+    "reported": "Vários visitantes denunciaram este link, por isso está desativado até o analisarmos."
+  },
+  "authenticate": {
+    "metaTitle": "Palavra-passe necessária",
+    "title": "Este link está protegido por palavra-passe",
+    "body": "Introduza a palavra-passe que lhe deram para continuar.",
+    "password": "Palavra-passe",
+    "hint": "Dica: {hint}",
+    "submit": "Continuar",
+    "errors": {
+      "wrongPassword": "Essa palavra-passe não está correta. Tente novamente.",
+      "missing": "Introduza a palavra-passe.",
+      "rateLimited": "Demasiadas tentativas. Aguarde um minuto e tente novamente."
+    },
+    "notProtected": {
+      "title": "Este link não precisa de palavra-passe",
+      "body": "Pode abri-lo diretamente.",
+      "action": "Abrir link"
+    }
+  },
+  "safety": {
+    "metaTitle": "Verifique este link",
+    "leaving": "Este link curto leva-o para",
+    "fullUrl": "Endereço de destino completo",
+    "createdBy": "Criado por",
+    "createdOn": "Criado em",
+    "status": "Verificação de segurança",
+    "statuses": {
+      "pending": "Ainda não verificado",
+      "safe": "Nenhuma ameaça encontrada",
+      "suspicious": "Assinalado como suspeito",
+      "malicious": "Assinalado como perigoso",
+      "blocked": "Bloqueado"
+    },
+    "unknownCreator": "Um utilizador do Shortn",
+    "wait": "Continuar dentro de {seconds, plural, one {# segundo} other {# segundos}}",
+    "continue": "Continuar para {host}",
+    "preparing": "A preparar o link…",
+    "ready": "Já pode continuar.",
+    "tokenFailed": "Não foi possível preparar este link.",
+    "retry": "Tentar novamente",
+    "noscript": "Ative o JavaScript para continuar para este link.",
+    "trust": "Continue apenas se confiar no destino.",
+    "suspiciousNote": "As nossas verificações assinalaram este destino como suspeito. Não introduza palavras-passe nem dados de pagamento a não ser que tenha a certeza de que é legítimo.",
+    "report": {
+      "toggle": "Denunciar este link",
+      "reason": "Qual é o problema?",
+      "reasons": {
+        "phishing": "Phishing ou burla",
+        "malware": "Malware ou software indesejado",
+        "spam": "Spam",
+        "inappropriate": "Conteúdo impróprio",
+        "other": "Outro motivo"
+      },
+      "details": "Detalhes (opcional)",
+      "submit": "Enviar denúncia",
+      "sent": "Obrigado pela denúncia. Vamos analisar este link.",
+      "invalid": "Escolha qual é o problema do link.",
+      "rateLimited": "Já enviou várias denúncias hoje. Tente novamente amanhã."
+    }
+  }
+}

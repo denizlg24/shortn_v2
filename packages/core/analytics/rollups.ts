@@ -4,6 +4,7 @@ import type { AnyBulkWriteOperation, Db, Document, ObjectId } from "mongodb";
 const day = { $dateTrunc: { date: "$ts", unit: "day", timezone: "UTC" } };
 
 const dimensions = [
+  ["byBranch", { $ifNull: ["$m.branch", "unknown"] }],
   ["byCountry", { $ifNull: ["$country", "unknown"] }],
   ["byDevice", { $ifNull: ["$device", "unknown"] }],
   ["byBrowser", { $ifNull: ["$browser", "unknown"] }],
@@ -64,6 +65,7 @@ export function rollupPipeline(from: Date, to: Date, linkIds?: ObjectId[]) {
         clicks: { $ifNull: ["$maps.kind.click", 0] },
         scans: { $ifNull: ["$maps.kind.scan", 0] },
         byCountry: "$maps.byCountry",
+        byBranch: "$maps.byBranch",
         byDevice: "$maps.byDevice",
         byBrowser: "$maps.byBrowser",
         byOs: "$maps.byOs",

@@ -1,3 +1,5 @@
+"use client";
+
 import { useUILocale } from "../i18n/provider";
 import { cn } from "../lib/cn";
 import { Tooltip } from "./tooltip";

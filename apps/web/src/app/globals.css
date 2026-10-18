@@ -1,0 +1,133 @@
+@import "tailwindcss";
+@import "@shortn/ui/theme.css";
+
+@source "../";
+
+html,
+body {
+  height: 100%;
+}
+
+/* Marketing display scale (12: display sizes are marketing-only). */
+@theme inline {
+  --font-display: var(--font-display-face), var(--font-ui);
+  --text-display: clamp(2.375rem, 1.55rem + 3.4vw, 4.5rem);
+  --text-display--line-height: 1.02;
+  --text-headline: clamp(1.875rem, 1.45rem + 1.7vw, 3rem);
+  --text-headline--line-height: 1.06;
+  --text-subhead: clamp(1.25rem, 1.12rem + 0.5vw, 1.625rem);
+  --text-subhead--line-height: 1.2;
+  --text-lede: 1.125rem;
+  --text-lede--line-height: 1.6;
+  --text-figure: clamp(2rem, 1.55rem + 1.8vw, 3.25rem);
+  --text-figure--line-height: 1;
+}
+
+/* A brand-navy field that owns a whole band of the marketing page. It remaps
+   the tokens, so controls inside read correctly without variants. */
+.band {
+  color-scheme: dark;
+  --bg: var(--brand-navy);
+  --bg-subtle: oklch(0.245 0.045 265);
+  --bg-muted: oklch(0.28 0.045 265);
+  --field: oklch(0.25 0.045 265);
+  --line: oklch(1 0 0 / 12%);
+  --line-strong: oklch(1 0 0 / 22%);
+  --fg: oklch(0.985 0.003 265);
+  --fg-muted: oklch(0.82 0.025 265);
+  --fg-subtle: oklch(0.72 0.03 265);
+  --primary: oklch(0.985 0.003 265);
+  --primary-hover: oklch(0.9 0.012 265);
+  --primary-fg: var(--brand-navy);
+  --signal: oklch(0.78 0.12 262);
+  --signal-fg: var(--brand-navy);
+  --selection: oklch(0.78 0.12 262 / 35%);
+  --danger: oklch(0.8 0.13 32);
+  --success: oklch(0.8 0.15 150);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+.dark .band {
+  --bg: oklch(0.205 0.04 265);
+  --field: oklch(0.17 0.032 265);
+}
+
+@keyframes key-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+}
+
+@keyframes qr-resolve {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0.4;
+  }
+}
+
+/* The demo's signature moment: the new key writes itself in, then its code
+   resolves top to bottom like a scanner pass. */
+@media (prefers-reduced-motion: no-preference) {
+  .key-reveal {
+    display: inline-block;
+    animation: key-reveal 420ms steps(12, end) both;
+  }
+
+  .qr-resolve {
+    animation: qr-resolve 520ms cubic-bezier(0.16, 1, 0.3, 1) 260ms both;
+  }
+}
+
+/* Long-form legal text ported verbatim from legacy markup. */
+.legal {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--fg-muted);
+  max-width: 70ch;
+}
+.legal > section + section {
+  margin-top: 2.75rem;
+}
+.legal h2 {
+  scroll-margin-top: 1.5rem;
+  margin-bottom: 0.875rem;
+  font-family: var(--font-display);
+  font-size: var(--text-subhead);
+  line-height: var(--text-subhead--line-height);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  text-wrap: balance;
+}
+.legal h3 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--fg);
+}
+.legal p + p,
+.legal p + ul,
+.legal ul + p,
+.legal div + p {
+  margin-top: 0.875rem;
+}
+.legal ul {
+  margin-top: 0.625rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.legal li + li {
+  margin-top: 0.375rem;
+}
+.legal li::marker {
+  color: var(--fg-subtle);
+}
+.legal strong {
+  font-weight: 600;
+  color: var(--fg);
+}
+.legal a {
+  color: var(--signal);
+  text-decoration: underline;
+}

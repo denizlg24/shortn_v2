@@ -15,7 +15,22 @@ import { PlanProvider } from "@/hooks/use-plan";
 import { SubscriptionStatusBanner } from "@/components/subscription-status-banner";
 import { ImpersonationBanner } from "@/components/impersonation-banner";
 import { RedesignNotice } from "@/components/redesign-notice";
+import { NewDashboardNotice } from "@/components/new-dashboard-notice";
+import env from "@/utils/env";
 import { redirect } from "@/i18n/navigation";
+
+function betaIncludes(email: string) {
+  const list = env.NEW_DASHBOARD_BETA?.split(",").map((e) =>
+    e.trim().toLowerCase(),
+  );
+  if (!list?.length) return false;
+  const address = email.toLowerCase();
+  return list.some(
+    (entry) =>
+      entry === "*" ||
+      (entry.startsWith("@") ? address.endsWith(entry) : address === entry),
+  );
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -76,6 +91,7 @@ export default async function RootLayout({
   }
 
   const isImpersonating = Boolean(session.session.impersonatedBy);
+  const inBeta = Boolean(env.NEW_APP_URL) && betaIncludes(session.user.email);
 
   return (
     <html lang={locale}>
@@ -94,7 +110,7 @@ export default async function RootLayout({
                 {children}
                 <Toaster position="top-center" />
               </SidebarProvider>
-              <RedesignNotice />
+              {inBeta ? <NewDashboardNotice /> : <RedesignNotice />}
             </PlanProvider>
           </NextIntlClientProvider>
         </AbortControllerProvider>

@@ -1,4 +1,9 @@
 {
+  "new-dashboard": {
+    "message": "O novo painel do Shortn já pode ser experimentado. Os mesmos links e dados — pode voltar a qualquer momento.",
+    "open": "Experimentar o novo painel",
+    "dismiss": "Ocultar por agora"
+  },
   "redesign-notice": {
     "message": "Estamos a redesenhar o Shortn. Poderão ocorrer breves períodos de indisponibilidade planeada mais para o final deste trimestre (4.º trimestre de 2026). Os seus links e dados não serão perdidos.",
     "dismiss": "Fechar aviso"
@@ -631,7 +636,8 @@
       "verify-email-toast": "Por favor verifique o seu endereço de e-mail antes de iniciar sessão.",
       "resend-verification": "Reenviar e-mail de verificação.",
       "verification-resent": "E-mail de verificação reenviado com sucesso.",
-      "not-verified-username": "A sua conta não está verificada. Por favor inicie sessão com o seu e-mail para receber um e-mail de verificação."
+      "not-verified-username": "A sua conta não está verificada. Por favor inicie sessão com o seu e-mail para receber um e-mail de verificação.",
+      "two-factor-new-app": "Esta conta exige um código de autenticador. Continue no novo painel ou contacte o suporte se estiver indisponível."
     }
   },
   "register": {

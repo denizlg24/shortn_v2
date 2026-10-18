@@ -50,6 +50,22 @@ export function planInvalidation(
     collection !== physicalNames.qr_codes
   )
     return { type: "none" };
+  if (collection === physicalNames.links && change.operationType === "update") {
+    const description = change.updateDescription;
+    const paths = [
+      ...Object.keys(description.updatedFields ?? {}),
+      ...(description.removedFields ?? []),
+      ...(description.truncatedArrays ?? []).map((array) => array.field),
+    ];
+    // Job leases/checkpoints do not change the cached redirect projection.
+    if (
+      paths.length &&
+      paths.every((path) =>
+        /^(?:ruleSchedule|safetyScan|health)(?:\.|$)/.test(path),
+      )
+    )
+      return { type: "none" };
+  }
   const after = "fullDocument" in change ? change.fullDocument : undefined;
   const before =
     "fullDocumentBeforeChange" in change

@@ -1,0 +1,92 @@
+name: shortn-dev
+services:
+  mongo:
+    image: mongo:8.2
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--port", "27020"]
+    ports: ["127.0.0.1:27020:27020"]
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mongosh",
+          "--port",
+          "27020",
+          "--quiet",
+          "--eval",
+          "quit(db.adminCommand('ping').ok ? 0 : 1)",
+        ]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  mongo-init:
+    image: mongo:8.2
+    depends_on:
+      mongo: { condition: service_healthy }
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - >-
+        mongosh "mongodb://mongo:27020/?directConnection=true" --quiet --eval
+        'try { rs.status() } catch { rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27020"}]}) }';
+        for attempt in {1..60}; do
+          mongosh "mongodb://mongo:27020/?directConnection=true" --quiet --eval 'quit(db.hello().isWritablePrimary ? 0 : 1)' && exit 0;
+          sleep 1;
+        done;
+        exit 1
+  redis-cache:
+    image: redis:7
+    command: ["redis-server", "--maxmemory-policy", "allkeys-lru"]
+    ports: ["127.0.0.1:16380:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  redis-durable:
+    image: redis:7
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory-policy",
+        "noeviction",
+      ]
+    ports: ["127.0.0.1:16379:6379"]
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  storage:
+    image: rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: shortn-local
+      RUSTFS_SECRET_KEY: shortn-local-development-secret
+      RUSTFS_VOLUMES: /data
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports: ["127.0.0.1:19000:9000", "127.0.0.1:19001:9001"]
+    volumes: ["object-data:/data"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  storage-init:
+    image: amazon/aws-cli:latest
+    depends_on:
+      storage: { condition: service_healthy }
+    environment:
+      AWS_ACCESS_KEY_ID: shortn-local
+      AWS_SECRET_ACCESS_KEY: shortn-local-development-secret
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - >-
+        aws --endpoint-url http://storage:9000 s3api head-bucket --bucket shortn-dev
+        || aws --endpoint-url http://storage:9000 s3api create-bucket --bucket shortn-dev
+volumes:
+  mongo-data:
+  redis-data:
+  object-data:

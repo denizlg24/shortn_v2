@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { encodeSecret } from "@shortn/core";
+import { flushWebhookClicks } from "./webhook-clicks";
+import { encodeSecret, encodeClickMessage } from "@shortn/core";
 import { physicalNames as names, syncIndexes } from "@shortn/db";
 import { invalidateLinks, keys } from "@shortn/redis";
 import { Redis } from "ioredis";
@@ -8,7 +9,7 @@ import type { Db } from "mongodb";
 import { createApp } from "../../redirect/src/app";
 import { createClickQueue } from "../../redirect/src/clicks";
 import { createResolver, mongoLinkLoader } from "../../redirect/src/resolver";
-import { createIngest, ingestGroup } from "./ingest";
+import { createIngest, ensureGroup, ingestGroup } from "./ingest";
 import { createInvalidator } from "./invalidator";
 import {
   fillEventWorkspaces,
@@ -16,7 +17,7 @@ import {
   runContinuousMigrations,
   trimStream,
 } from "./jobs";
-import type { Migration, MigrationState } from "@shortn/db";
+import type { Migration, MigrationState } from "@shortn/db/migrations";
 
 const mongoUrl = process.env.MONGO_TEST_URL;
 const cacheUrl = process.env.REDIS_TEST_URL;
@@ -85,9 +86,23 @@ const browser =
 
   test("clicks and scans reach click_events, the legacy dual-write and rollups exactly once", async () => {
     const workspaceId = new ObjectId();
+    await db.collection(names.workspaces).insertOne({
+      _id: workspaceId,
+      slug: workspaceId.toHexString(),
+      personal: true,
+      legacySub: "google|pipe",
+      platformFeatures: { webhooks: true },
+    });
+    await db.collection(names.webhook_endpoints).insertOne({
+      workspaceId,
+      enabled: true,
+      events: ["link.clicked", "qr.scanned"],
+      createdAt: new Date(0),
+    });
     const { insertedId: linkId } = await db.collection(names.links).insertOne({
       urlCode: `pipe${Date.now()}`,
       longUrl: "https://example.com/dest",
+      og: { title: "Pipeline preview" },
       sub: "google|pipe",
       workspaceId,
       clicks: { total: 10, lastClick: null },
@@ -140,9 +155,11 @@ const browser =
       const response = await app.request(path, { headers });
       expect(response.status).toBe(302);
     }
-    await app.request(`/${code}`, {
-      headers: { "user-agent": "Googlebot/2.1" },
+    const preview = await app.request(`/${code}`, {
+      headers: { "user-agent": "WhatsApp/2.24" },
     });
+    expect(preview.status).toBe(200);
+    expect(await preview.text()).toContain("Pipeline preview");
     await Bun.sleep(50);
     expect(await durable.xlen(stream)).toBe(4);
 
@@ -151,6 +168,7 @@ const browser =
       db,
       ipSecret: "ip-hash-fixture-secret-0123456789abcdef",
       consumer: "test",
+      webhooks: { enabled: true },
       blockMs: 100,
       log: () => {},
     });
@@ -164,6 +182,27 @@ const browser =
     ingest.stop();
     await run;
     expect(ingest.stats).toMatchObject({ processed: 3, bots: 1, rejected: 0 });
+    expect(
+      await db.collection(names.webhook_clicks).countDocuments({ workspaceId }),
+    ).toBe(3);
+    await flushWebhookClicks(
+      db,
+      { enabled: true },
+      new Date(Date.now() + 10000),
+    );
+    const hookEvents = await db
+      .collection(names.webhook_events)
+      .find({ workspaceId })
+      .toArray();
+    expect(hookEvents).toHaveLength(2);
+    expect(
+      hookEvents.find((row) => row.event.type === "link.clicked")?.event.data
+        .count,
+    ).toBe(2);
+    expect(
+      hookEvents.find((row) => row.event.type === "qr.scanned")?.event.data
+        .count,
+    ).toBe(1);
 
     const events = await db.collection(names.click_events).find({}).toArray();
     expect(events).toHaveLength(3);
@@ -238,6 +277,80 @@ const browser =
     const pending = await durable.xpending(stream, ingestGroup);
     expect(Array.isArray(pending) ? pending[0] : -1).toBe(0);
   }, 30_000);
+
+  test("receipt failure keeps the Redis entry pending and replay recovers without duplicating analytics", async () => {
+    const workspaceId = new ObjectId(),
+      linkId = new ObjectId();
+    await db
+      .collection(names.workspaces)
+      .insertOne({ _id: workspaceId, platformFeatures: { webhooks: true } });
+    await db.collection(names.links).insertOne({
+      _id: linkId,
+      workspaceId,
+      sub: "replay-owner",
+      urlCode: "receipt-replay",
+    });
+    await db.collection(names.webhook_endpoints).insertOne({
+      workspaceId,
+      enabled: true,
+      events: ["link.clicked"],
+      createdAt: new Date(0),
+    });
+    await ensureGroup(durable);
+    const fields = encodeClickMessage({
+      v: 1,
+      ts: Date.now(),
+      linkId: linkId.toHexString(),
+      domain: "shortn.at",
+      key: "receipt-replay",
+      bot: false,
+    });
+    const sid = await durable.xadd(stream, "*", ...fields);
+    if (!sid) throw new Error("Fixture stream insert failed");
+    await durable.xreadgroup(
+      "GROUP",
+      ingestGroup,
+      "receipt-replay",
+      "COUNT",
+      100,
+      "STREAMS",
+      stream,
+      ">",
+    );
+    const ingest = createIngest({
+      stream: durable,
+      db,
+      consumer: "receipt-replay",
+      ipSecret: "fixture",
+      webhooks: { enabled: true },
+    });
+    await db.command({
+      collMod: names.webhook_clicks,
+      validator: { workspaceId: { $ne: workspaceId } },
+      validationLevel: "strict",
+      validationAction: "error",
+    });
+    try {
+      await expect(ingest.handle([[sid, fields]], false)).rejects.toThrow();
+      const pending = await durable.xpending(stream, ingestGroup, sid, sid, 10);
+      expect(pending).toHaveLength(1);
+      expect(
+        await db.collection(names.click_events).countDocuments({ sid }),
+      ).toBe(1);
+    } finally {
+      await db.command({ collMod: names.webhook_clicks, validator: {} });
+    }
+    await ingest.handle([[sid, fields]], true);
+    expect(
+      await db.collection(names.click_events).countDocuments({ sid }),
+    ).toBe(1);
+    expect(
+      await db.collection(names.webhook_clicks).countDocuments({ sid }),
+    ).toBe(1);
+    expect(
+      await durable.xpending(stream, ingestGroup, sid, sid, 10),
+    ).toHaveLength(0);
+  });
 
   test("legacy writes invalidate cached resolutions through the change stream", async () => {
     const code = `inv${Date.now()}`;

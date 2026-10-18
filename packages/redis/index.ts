@@ -186,3 +186,4 @@ export function createCache<T>(
     },
   };
 }
+export * from "./click-count";

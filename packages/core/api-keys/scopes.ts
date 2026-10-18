@@ -1,0 +1,23 @@
+export const apiScopes = [
+  "links:read",
+  "links:write",
+  "analytics:read",
+  "qr:read",
+  "qr:write",
+  "qr:*",
+  "bio:read",
+  "bio:write",
+  "bio:*",
+  "domains:read",
+  "domains:write",
+  "domains:*",
+  "webhooks:read",
+  "webhooks:write",
+  "webhooks:*",
+  "tags:read",
+  "tags:write",
+  "campaigns:read",
+  "campaigns:write",
+  "workspace:read",
+] as const;
+export type ApiScope = (typeof apiScopes)[number];

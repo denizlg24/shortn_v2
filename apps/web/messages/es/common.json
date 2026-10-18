@@ -1,0 +1,51 @@
+{
+  "brand": "Shortn",
+  "language": "Idioma",
+  "languages": {
+    "en": "English",
+    "pt": "Português",
+    "es": "Español"
+  },
+  "terms": "Términos",
+  "privacy": "Privacidad",
+  "copied": "Copiado al portapapeles",
+  "copyFailed": "No se pudo copiar al portapapeles.",
+  "error": {
+    "title": "Esta página no se ha cargado",
+    "body": "Tus datos están a salvo; es un problema de conexión. Vuelve a intentarlo en un momento.",
+    "retry": "Reintentar"
+  },
+  "linkPicker": {
+    "add": "Añadir enlace",
+    "search": "Buscar por clave, título o URL",
+    "searching": "Buscando…",
+    "empty": "Ningún enlace coincide.",
+    "failed": "No se pudieron cargar los enlaces. Cierra y vuelve a intentarlo.",
+    "allLinks": "Todos los enlaces"
+  },
+  "tags": {
+    "placeholder": "Añadir etiquetas",
+    "search": "Buscar o crear una etiqueta",
+    "empty": "Aún no hay etiquetas. Escribe para crear una.",
+    "create": "Crear “{tag}”"
+  },
+  "suggestions": {
+    "open": "Sugerencias para {field}",
+    "search": "Buscar sugerencias…",
+    "empty": "No hay sugerencias coincidentes."
+  },
+  "imageUpload": {
+    "choose": "Subir imagen",
+    "replace": "Reemplazar imagen",
+    "remove": "Eliminar",
+    "uploading": "Subiendo…",
+    "hint": "PNG, JPEG, WebP, GIF o SVG · hasta 5 MB.",
+    "size": "Elige una imagen de menos de 5 MB.",
+    "type": "No se pudo leer esta imagen. Elige un PNG, JPEG, WebP, GIF o SVG.",
+    "forbidden": "No tienes permiso para subir imágenes aquí.",
+    "unauthenticated": "Vuelve a iniciar sesión para subir una imagen.",
+    "plan": "Tu plan no incluye logotipos en los códigos QR.",
+    "unavailable": "La subida de imágenes aún no está configurada.",
+    "failed": "La imagen no se ha subido. Inténtalo de nuevo."
+  }
+}

@@ -1,4 +1,6 @@
-import type { Locale } from "@shortn/ui";
+import type { Locale as UILocale } from "@shortn/ui";
+
+export type Locale = Exclude<UILocale, "es">;
 
 const pluralize = (
   locale: string,

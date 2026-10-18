@@ -11,24 +11,9 @@ import {
   workspaceMaps,
 } from "./helpers";
 import type { Migration, MigrationContext } from "./runner";
+import { personalWorkspaceSlug } from "../workspace-slug";
 
 const createdBy = "migration:0002-workspaces";
-
-function slugFor(user: Document): string {
-  const source =
-    str(user.username) ??
-    str(user.name) ??
-    str(user.email)?.split("@")[0] ??
-    "workspace";
-  const base =
-    source
-      .normalize("NFKD")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 40) || "workspace";
-  return `${base}-${String(user._id).slice(-6)}`;
-}
 
 // Owned by `sub` (BioPage.userId also stores the sub, bioPageActions.ts:42).
 const bySubCollections = [
@@ -100,7 +85,7 @@ export const workspaces: Migration = {
             filter: { ownerUserId: String(user._id), personal: true },
             update: {
               $setOnInsert: {
-                slug: slugFor(user),
+                slug: personalWorkspaceSlug(user),
                 name: str(user.name) ?? str(user.username) ?? "Personal",
                 ownerUserId: String(user._id),
                 personal: true,
@@ -228,6 +213,12 @@ export const workspaces: Migration = {
       discrepancies.push(
         `${users.length - maps.byUserId.size} users without a personal workspace`,
       );
+    // Native records can intentionally have no legacy sub/userId. Their
+    // explicit, existing workspace is authority; only unassigned/actual orphan
+    // records belong in the legacy orphan reconciliation.
+    const canonicalWorkspaceIds = await ctx
+      .read(names.workspaces)
+      .distinct("_id", { slug: { $ne: orphanWorkspaceSlug } });
     let expectedOrphans = 0;
     let actualOrphans = 0;
     for (const [collection, field] of bySubCollections) {
@@ -241,7 +232,15 @@ export const workspaces: Migration = {
       for (const owner of owners) {
         const sub = owner._id ?? "";
         if (!subs.has(sub)) {
-          expectedOrphans += owner.n;
+          const nativeAssigned = !sub
+            ? await ctx.read(collection).countDocuments({
+                [field]: owner._id ?? null,
+                workspaceId: { $in: canonicalWorkspaceIds },
+              })
+            : 0;
+          expectedOrphans += owner.n - nativeAssigned;
+          counts[`${collection}.nativeWorkspaceDocs`] =
+            (counts[`${collection}.nativeWorkspaceDocs`] ?? 0) + nativeAssigned;
           continue;
         }
         const workspaceId = maps.bySub.get(sub);

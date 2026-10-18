@@ -1,0 +1,33 @@
+{
+  "selection": "{count, plural, one {# ligação selecionada entre páginas e filtros.} other {# ligações selecionadas entre páginas e filtros.}}",
+  "review": "Rever ligações selecionadas",
+  "reviewHelp": "Consulte abaixo as {count} ligações selecionadas. Os filtros alteram apenas esta revisão; a operação aplica-se à seleção completa.",
+  "matching": "{count} de {total} ligações selecionadas correspondem a esta vista.",
+  "untagged": "Sem etiquetas",
+  "emptyReview": "Nenhuma ligação selecionada corresponde a estes filtros.",
+  "back": "Voltar às ligações",
+  "cancel": "Cancelar",
+  "entry": "Arquivar",
+  "title": "Arquivar links selecionados",
+  "unarchiveTitle": "Desarquivar links selecionados",
+  "limits": "Até 500 links por operação. Os links arquivados continuam a redirecionar.",
+  "operation": "Confirmar operação",
+  "effect": "Retirar os {count} links selecionados da biblioteca ativa. Os redirecionamentos, códigos QR, análises e campanhas são preservados. Não há eliminação automática.",
+  "unarchiveEffect": "Devolver os {count} links selecionados à biblioteca ativa. Os destinos e definições são preservados.",
+  "confirm": "Arquivar os {count} links selecionados.",
+  "unarchiveConfirm": "Desarquivar os {count} links selecionados.",
+  "apply": "Arquivar links",
+  "unarchive": "Desarquivar",
+  "success": "Arquivados {updated} de {selected} links selecionados. Os links já arquivados não foram alterados.",
+  "unarchiveSuccess": "Desarquivados {updated} de {selected} links selecionados. Os links ativos não foram alterados.",
+  "viewArchived": "Ver links arquivados",
+  "libraryTitle": "Arquivados",
+  "libraryHelp": "Os links arquivados continuam a redirecionar e permanecem nas campanhas e páginas de bio existentes. Desarquive-os para os devolver à biblioteca ativa.",
+  "emptyLibrary": "Nenhum link arquivado.",
+  "errors": {
+    "forbidden": "Não tem permissão para editar estas ligações. Peça ajuda a um administrador.",
+    "not_found": "A seleção expirou ou contém ligações que já não estão disponíveis. Nada foi alterado. Volte a Ligações e selecione novamente.",
+    "invalid_input": "Selecione entre 1 e 500 links e confirme a operação.",
+    "failed": "Não foi possível concluir a operação de arquivo. A seleção foi mantida. Tente novamente."
+  }
+}

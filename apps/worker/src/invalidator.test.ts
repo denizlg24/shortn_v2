@@ -59,3 +59,48 @@ test("deletes without a pre-image flush everything; other collections are ignore
   };
   expect(planInvalidation(unrelated)).toEqual({ type: "none" });
 });
+
+test("job metadata-only updates preserve cached payloads even without pre-images", () => {
+  const change: ChangeStreamUpdateDocument = {
+    ...base,
+    operationType: "update",
+    ns: ns(physicalNames.links),
+    updateDescription: {
+      updatedFields: {
+        "ruleSchedule.publishedAt": new Date(),
+        "safetyScan.leaseUntil": new Date(),
+        "health.nextAt": new Date(),
+      },
+      removedFields: ["ruleSchedule.token", "health.token"],
+      truncatedArrays: [{ field: "ruleSchedule.remaining", newSize: 0 }],
+    },
+  };
+  expect(planInvalidation(change)).toEqual({ type: "none" });
+  expect(
+    planInvalidation({
+      ...change,
+      updateDescription: {
+        updatedFields: { ruleSchedule: { generation: "next" } },
+      },
+    }),
+  ).toEqual({ type: "none" });
+  for (const field of [
+    "rules",
+    "longUrl",
+    "safetyStatus",
+    "disabled",
+    "safetyScanner",
+  ]) {
+    expect(
+      planInvalidation({
+        ...change,
+        updateDescription: {
+          updatedFields: {
+            ...change.updateDescription.updatedFields,
+            [field]: "changed",
+          },
+        },
+      }),
+    ).toEqual({ type: "flush" });
+  }
+});

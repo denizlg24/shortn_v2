@@ -1,0 +1,28 @@
+{
+  "metaTitle": "Workspace invite",
+  "title": "Join {workspace}",
+  "body": "<strong>{inviter}</strong> invited you to join as {role}.",
+  "bodyNoInviter": "You're invited to join as {role}.",
+  "roleAs": {
+    "admin": "an admin",
+    "member": "a member",
+    "viewer": "a viewer"
+  },
+  "accept": "Accept invite",
+  "signedInAs": "Signed in as {email}",
+  "goHome": "Go to my workspace",
+  "invalid": {
+    "title": "This invite no longer works",
+    "body": "Invites work once and expire after 7 days. Ask the person who invited you to send a new one."
+  },
+  "mismatch": {
+    "title": "This invite is for another account",
+    "body": "It was sent to <strong>{invited}</strong>, but you're signed in as <strong>{email}</strong>.",
+    "switch": "Sign in with another account"
+  },
+  "errors": {
+    "invalid": "This invite no longer works. Ask for a new one.",
+    "mismatch": "This invite was sent to a different email address.",
+    "generic": "Something went wrong on our side. Try again."
+  }
+}

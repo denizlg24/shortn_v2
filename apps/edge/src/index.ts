@@ -1,9 +1,27 @@
 import { parseRedirectPath } from "@shortn/core/routing";
+import { bioHandleFromHost } from "@shortn/core/bio-hosts";
 
 export interface Env {
   REDIRECT_ORIGIN: string;
   CANARY_PERCENT: string;
   EDGE_AUTH_SECRET?: string;
+  // P4 column (14): unset keeps these paths on legacy, which is the rollback.
+  WEB_ORIGIN?: string;
+  DASHBOARD_HANDOFF?: string;
+  BIO_DELIVERY_ENABLED?: string;
+  BIO_SUBDOMAINS?: string;
+  BIO_LEGACY_REDIRECTS?: string;
+  BIO_INTERNAL_SECRET?: string;
+  PUBLIC_HOST?: string;
+  API_PUBLIC_HOST?: string;
+  API_EDGE_AUTH_SECRET?: string;
+  WEB_EDGE_AUTH_SECRET?: string;
+  // PM cutover (20 M.9): "1" serves the root site from web; unset is the rollback.
+  MARKETING_ENABLED?: string;
+  // Workers rate limiting on anonymous marketing form posts (20 M.5).
+  FORM_RATE_LIMITER?: {
+    limit(options: { key: string }): Promise<{ success: boolean }>;
+  };
 }
 
 type Fetch = (request: Request) => Promise<Response>;
@@ -23,6 +41,7 @@ const forwardedHeaders = [
   "user-agent",
   "accept-language",
   "referer",
+  "content-type",
   "cookie",
 ];
 
@@ -47,9 +66,79 @@ export function toRedirectOrigin(request: Request, env: Env): Request {
   const ray = request.headers.get("cf-ray");
   if (ray) headers.set("x-request-id", ray);
   if (env.EDGE_AUTH_SECRET) headers.set("x-edge-auth", env.EDGE_AUTH_SECRET);
+  // Cloudflare rewrites CF-Connecting-IP on the Worker's subrequest to its own
+  // egress address, so the visitor's address travels in a dedicated header.
+  const clientIp =
+    request.headers.get("cf-connecting-ipv6") ??
+    request.headers.get("cf-connecting-ip");
+  if (clientIp) headers.set("x-shortn-client-ip", clientIp);
+  headers.set("x-forwarded-host", source.host);
+  headers.set("x-shortn-forwarded-host", source.host);
   return new Request(target.toString(), {
     method: request.method,
     headers,
+    ...(request.method !== "GET" && request.method !== "HEAD"
+      ? { body: request.body }
+      : {}),
+    redirect: "manual",
+  });
+}
+
+// Public link pages that apps/web owns from P4: password prompt and safety
+// interstitial (the redirect sends visitors to exactly these paths).
+const webPaths = [
+  /^\/auth\/mcp\/(?:workspace|consent)\/?$/,
+  /^\/\.well-known\/oauth-authorization-server\/api\/auth\/?$/,
+  /^\/docs(?:\.md|\/.*)?\/?$/,
+  /^\/(?:llms(?:-full)?\.txt|openapi\.json|robots\.txt)\/?$/,
+  /^\/authenticate\/[^/]+(?:\/verify)?\/?$/,
+  /^\/(?:en|pt|es)\/safety\/[^/]+(?:\/report|\/token)?\/?$/,
+];
+export const isWebPath = (pathname: string) =>
+  webPaths.some((pattern) => pattern.test(pathname));
+
+const dashboardPath = /^\/(?:en|pt|es)\/dashboard(?:\/|$)/;
+
+const formPost = /^\/(?:en|pt|es)\/(?:demo|contact\/send)\/?$/;
+
+// The root site: home, /{locale}/… pages and their redirects, and the sitemap.
+export const isMarketingPath = (pathname: string) =>
+  pathname === "/" ||
+  pathname === "/sitemap.xml" ||
+  pathname === "/favicon.ico" ||
+  /^\/(?:en|pt|es)(?:\/.*)?$/.test(pathname);
+
+export function toWebOrigin(
+  request: Request,
+  origin: string,
+  body: ArrayBuffer | null,
+  edgeAuthSecret?: string,
+): Request {
+  const source = new URL(request.url);
+  const target = new URL(origin);
+  target.pathname = source.pathname;
+  target.search = source.search;
+  const headers = new Headers(request.headers);
+  headers.delete("x-shortn-bio-handle");
+  headers.delete("x-shortn-bio-domain");
+  headers.delete("x-bio-auth");
+  headers.delete("x-shortn-public-bio");
+  headers.delete("x-shortn-web-auth");
+  headers.delete("x-shortn-client-ip");
+  const clientIp =
+    request.headers.get("cf-connecting-ipv6") ??
+    request.headers.get("cf-connecting-ip");
+  if (edgeAuthSecret && clientIp) {
+    headers.set("x-shortn-web-auth", edgeAuthSecret);
+    headers.set("x-shortn-client-ip", clientIp);
+  }
+  headers.set("x-forwarded-host", source.host);
+  headers.set("x-shortn-forwarded-host", source.host);
+  headers.delete("host");
+  return new Request(target.toString(), {
+    method: request.method,
+    headers,
+    body,
     redirect: "manual",
   });
 }
@@ -61,10 +150,140 @@ export function createHandler(
   upstream: Fetch,
   legacy: Fetch,
   timeoutMs = 3000,
+  web: Fetch = upstream,
 ) {
   return async (request: Request, env: Env): Promise<Response> => {
     const method = request.method.toUpperCase();
-    const path = parseRedirectPath(new URL(request.url).pathname);
+    const url = new URL(request.url);
+    if (env.API_PUBLIC_HOST && url.hostname === env.API_PUBLIC_HOST) {
+      if (!env.API_EDGE_AUTH_SECRET)
+        return new Response("API edge authentication unavailable", {
+          status: 503,
+        });
+      const headers = new Headers(request.headers);
+      headers.set("x-shortn-api-auth", env.API_EDGE_AUTH_SECRET);
+      headers.set(
+        "x-shortn-client-ip",
+        request.headers.get("cf-connecting-ip") ?? "",
+      );
+      return legacy(new Request(request, { headers }));
+    }
+    const publicHost = env.PUBLIC_HOST ?? "shortn.at";
+    const handle =
+      env.BIO_SUBDOMAINS === "1"
+        ? bioHandleFromHost(url.hostname, publicHost)
+        : null;
+    const customHost =
+      url.hostname !== publicHost && !url.hostname.endsWith(`.${publicHost}`);
+    if (
+      env.BIO_DELIVERY_ENABLED === "1" &&
+      env.WEB_ORIGIN &&
+      env.BIO_INTERNAL_SECRET
+    ) {
+      if (handle && (method === "GET" || method === "HEAD")) {
+        if (url.pathname === "/") {
+          const targetUrl = new URL(`/_bio/${handle}`, env.WEB_ORIGIN);
+          const target = new Request(
+            targetUrl.toString(),
+            toWebOrigin(
+              request,
+              env.WEB_ORIGIN,
+              null,
+              env.WEB_EDGE_AUTH_SECRET,
+            ),
+          );
+          for (const name of [
+            "rsc",
+            "next-router-state-tree",
+            "next-router-prefetch",
+            "next-url",
+          ])
+            target.headers.delete(name);
+          target.headers.set("x-shortn-bio-handle", handle);
+          target.headers.set("x-bio-auth", env.BIO_INTERNAL_SECRET);
+          target.headers.delete("cookie");
+          const response = await web(target);
+          const headers = new Headers(response.headers);
+          headers.delete("set-cookie");
+          // Scheduling is evaluated at origin, so the HTML TTL is deliberately short.
+          if (response.ok)
+            headers.set(
+              "cache-control",
+              "public, s-maxage=60, stale-while-revalidate=86400",
+            );
+          return new Response(response.body, {
+            status: response.status,
+            headers,
+          });
+        }
+        if (
+          url.pathname.startsWith("/_next/") ||
+          /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(url.pathname)
+        )
+          return web(
+            toWebOrigin(
+              request,
+              env.WEB_ORIGIN,
+              null,
+              env.WEB_EDGE_AUTH_SECRET,
+            ),
+          );
+        return new Response("Not found", { status: 404 });
+      }
+      if (customHost) return upstream(toRedirectOrigin(request, env));
+      if (
+        /^\/b\/[^/]+\/?$/.test(url.pathname) &&
+        (method === "GET" || method === "HEAD")
+      )
+        return upstream(toRedirectOrigin(request, env));
+      if (url.pathname.startsWith("/_bio/"))
+        return web(
+          toWebOrigin(request, env.WEB_ORIGIN, null, env.WEB_EDGE_AUTH_SECRET),
+        );
+    }
+    // Legacy mints a one-time token there and sends the user on to app.
+    if (env.DASHBOARD_HANDOFF === "1" && dashboardPath.test(url.pathname))
+      return Response.redirect(
+        new URL(
+          `/api/handoff?from=${encodeURIComponent(url.pathname)}`,
+          url,
+        ).toString(),
+        302,
+      );
+    if (
+      env.WEB_ORIGIN &&
+      (isWebPath(url.pathname) ||
+        (env.MARKETING_ENABLED === "1" && isMarketingPath(url.pathname)))
+    ) {
+      if (
+        method === "POST" &&
+        env.FORM_RATE_LIMITER &&
+        formPost.test(url.pathname)
+      ) {
+        const { success } = await env.FORM_RATE_LIMITER.limit({
+          key: request.headers.get("cf-connecting-ip") ?? "unknown",
+        });
+        if (!success)
+          return Response.json(
+            { error: "rateLimited" },
+            { status: 429, headers: { "Retry-After": "60" } },
+          );
+      }
+      const body =
+        method === "GET" || method === "HEAD"
+          ? null
+          : await request.arrayBuffer();
+      try {
+        const response = await web(
+          toWebOrigin(request, env.WEB_ORIGIN, body, env.WEB_EDGE_AUTH_SECRET),
+        );
+        if (response.status < 500) return response;
+      } catch {
+        /* Fall through to legacy, which still serves these pages. */
+      }
+      return legacy(body === null ? request : new Request(request, { body }));
+    }
+    const path = parseRedirectPath(url.pathname);
     const percent = Number(env.CANARY_PERCENT);
     const ray = request.headers.get("cf-ray") ?? crypto.randomUUID();
     if (
@@ -92,8 +311,28 @@ export function createHandler(
 }
 
 const handler = createHandler(
+  (request) =>
+    new URL(request.url).pathname === "/" && request.method === "GET"
+      ? fetch(request, {
+          cf: {
+            cacheEverything: true,
+            cacheTtlByStatus: { "200-299": 60, "300-599": 0 },
+            cacheKey: `https://${request.headers.get("x-forwarded-host")}/`,
+          },
+        } as RequestInit)
+      : fetch(request),
   (request) => fetch(request),
-  (request) => fetch(request),
+  3000,
+  (request) =>
+    request.headers.has("x-shortn-bio-handle") && !request.headers.has("rsc")
+      ? fetch(request, {
+          cf: {
+            cacheEverything: true,
+            cacheTtlByStatus: { "200-299": 60, "300-599": 0 },
+            cacheKey: `https://${request.headers.get("x-forwarded-host")}/`,
+          },
+        } as RequestInit)
+      : fetch(request),
 );
 
 export default {

@@ -1,3 +1,4 @@
+import type { Locale } from "../i18n";
 import {
   Button,
   cn,
@@ -15,7 +16,6 @@ import {
   ShortnMark,
   Tooltip,
   UsageMeter,
-  type Locale,
 } from "@shortn/ui";
 import {
   Check,

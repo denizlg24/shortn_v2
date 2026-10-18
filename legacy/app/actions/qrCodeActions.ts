@@ -2,6 +2,7 @@
 
 import { getServerSession } from "@/lib/session";
 import { connectDB } from "@/lib/mongodb";
+import { withLegacyCreation } from "@/lib/import-quota";
 import QRCodeV2 from "@/models/url/QRCodeV2";
 import UrlV3 from "@/models/url/UrlV3";
 import { nanoid } from "nanoid";
@@ -120,15 +121,6 @@ export async function createQrCode({
       }
     }
 
-    const newUrl = await UrlV3.create({
-      sub,
-      urlCode,
-      longUrl,
-      qrCodeId: qrShortCode,
-      isQrCode: true,
-      title: resolvedTitle,
-    });
-
     const finalTags: ITag[] = [];
 
     if (tags && tags.length > 0) {
@@ -142,35 +134,67 @@ export async function createQrCode({
       });
     }
 
-    const newQrCode = await QRCodeV2.create({
+    const created = await withLegacyCreation(
       sub,
-      urlId: urlCode,
-      attachedUrl,
-      qrCodeId: qrShortCode,
-      longUrl,
-      title: resolvedTitle,
-      tags: finalTags,
-      options: options
-        ? { ...options, data: `${BASEURL}/${newUrl.urlCode}` }
-        : {
-            width: 300,
-            height: 300,
-            type: "svg",
-            data: `${BASEURL}/${newUrl.urlCode}`,
-            dotsOptions: {
-              color: "#1e90ff",
-              type: "square",
+      "qrCodes",
+      async (writeSession) => {
+        const [newUrl] = await UrlV3.create(
+          [
+            {
+              sub,
+              urlCode,
+              longUrl,
+              qrCodeId: qrShortCode,
+              isQrCode: true,
+              title: resolvedTitle,
             },
-            backgroundOptions: {
-              color: "#ffffff",
+          ],
+          { session: writeSession },
+        );
+        if (!newUrl)
+          throw new Error("Legacy QR backing creation returned no document");
+        const [newQrCode] = await QRCodeV2.create(
+          [
+            {
+              sub,
+              urlId: urlCode,
+              attachedUrl,
+              qrCodeId: qrShortCode,
+              longUrl,
+              title: resolvedTitle,
+              tags: finalTags,
+              options: options
+                ? { ...options, data: `${BASEURL}/${newUrl.urlCode}` }
+                : {
+                    width: 300,
+                    height: 300,
+                    type: "svg",
+                    data: `${BASEURL}/${newUrl.urlCode}`,
+                    dotsOptions: {
+                      color: "#1e90ff",
+                      type: "square",
+                    },
+                    backgroundOptions: {
+                      color: "#ffffff",
+                    },
+                    image: "",
+                    imageOptions: {
+                      crossOrigin: "anonymous",
+                      margin: 5,
+                    },
+                  },
             },
-            image: "",
-            imageOptions: {
-              crossOrigin: "anonymous",
-              margin: 5,
-            },
-          },
-    });
+          ],
+          { session: writeSession },
+        );
+        if (!newQrCode)
+          throw new Error("Legacy QR creation returned no document");
+        return newQrCode;
+      },
+    );
+    if (!created.ok)
+      return { success: false, message: "plan-limit", quota: created.detail };
+    const newQrCode = created.value;
     await invalidateLinkCache([newQrCode.urlId]);
 
     await ingestUsageEvent({

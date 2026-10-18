@@ -222,3 +222,9 @@ export const normalizeCampaignsUtm: Migration = {
       });
   },
 };
+
+/** The same canonical representation used by the continuous migration and live writers. */
+export function deriveLinkUtm(doc: Document) {
+  const variants = utmVariants(doc);
+  return { variants, hash: stableHash(variants) };
+}

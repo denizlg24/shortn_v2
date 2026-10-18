@@ -1,0 +1,61 @@
+{
+  "workspace": {
+    "title": "Elige un espacio de trabajo",
+    "label": "Espacio de trabajo",
+    "placeholder": "Selecciona un espacio",
+    "description": "La aplicación solo tendrá acceso al espacio de trabajo que elijas.",
+    "empty": "No hay espacios disponibles para esta conexión. Cancela y contacta con el administrador de tu espacio."
+  },
+  "consent": {
+    "title": "Conectar una aplicación"
+  },
+  "invalid": {
+    "title": "Solicitud de conexión no disponible",
+    "description": "Esta solicitud ha caducado o no es válida. Vuelve a la aplicación e inicia la conexión de nuevo."
+  },
+  "callback": "Dirección de retorno",
+  "permissions": "Permisos solicitados",
+  "roleLimit": "Tu rol actual en el espacio limita lo que puede hacer esta aplicación.",
+  "viewerLimit": "Tu rol solo permite consultar. Los cambios que solicite la aplicación se rechazarán.",
+  "sessionLimit": "El acceso termina al desconectar la aplicación o cerrar esta sesión.",
+  "continue": "Continuar",
+  "allow": "Permitir acceso",
+  "cancel": "Cancelar",
+  "change": "Cambiar",
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "member": "Miembro",
+    "viewer": "Lector"
+  },
+  "errors": {
+    "invalid": "Esta solicitud ya no es válida. Vuelve a la aplicación y conecta de nuevo.",
+    "workspaceChanged": "La selección del espacio ha cambiado. Recarga la página para revisarla de nuevo.",
+    "unavailable": "Este espacio ya no está disponible. Vuelve atrás y elige otro.",
+    "failed": "No se pudo completar la conexión. Inténtalo de nuevo."
+  },
+  "scopes": {
+    "links_read": "Consultar enlaces",
+    "links_write": "Crear, editar y enviar enlaces a la papelera",
+    "analytics_read": "Consultar estadísticas",
+    "qr_read": "Consultar códigos QR",
+    "qr_write": "Gestionar códigos QR",
+    "qr_all": "Gestionar códigos QR",
+    "bio_read": "Consultar páginas bio",
+    "bio_write": "Gestionar páginas bio",
+    "bio_all": "Gestionar páginas bio",
+    "domains_read": "Consultar dominios",
+    "domains_write": "Gestionar dominios",
+    "domains_all": "Gestionar dominios",
+    "webhooks_read": "Consultar webhooks",
+    "webhooks_write": "Gestionar webhooks",
+    "webhooks_all": "Gestionar webhooks",
+    "tags_read": "Consultar etiquetas",
+    "tags_write": "Gestionar etiquetas",
+    "campaigns_read": "Consultar campañas",
+    "campaigns_write": "Gestionar campañas",
+    "workspace_read": "Consultar uso del espacio",
+    "offline_access": "Renovar el acceso sin volver a preguntar"
+  },
+  "fullAddress": "Ver dirección completa"
+}

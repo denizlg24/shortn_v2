@@ -1,0 +1,166 @@
+{
+  "title": "Faturação",
+  "description": "Plano, utilização e faturas de {workspace}.",
+  "plans": {
+    "free": "Gratuito",
+    "basic": "Basic",
+    "plus": "Plus",
+    "pro": "Pro",
+    "enterprise": "Enterprise"
+  },
+  "price": "{price}/mês",
+  "priceCustom": "Preço personalizado",
+  "current": {
+    "title": "Plano",
+    "renews": "Renova a {date}",
+    "ends": "Termina a {date}",
+    "freeResets": "A utilização é reposta a {date}",
+    "manage": "Faturação e faturas",
+    "ownerOnly": "Só o proprietário do espaço de trabalho pode alterar o plano ou ver as faturas.",
+    "cancel": "Cancelar plano",
+    "cancelConfirm": "Cancelar o {plan}? Mantém-no até {date} e depois este espaço de trabalho passa para o Gratuito.",
+    "cancelConfirmAction": "Cancelar plano",
+    "keepPlan": "Manter o {plan}",
+    "cancelled": "O {plan} vai terminar a {date}. Esta página atualiza assim que a Polar confirmar, normalmente em segundos.",
+    "resumed": "O {plan} volta a renovar normalmente.",
+    "legacy": "As alterações de plano e o cancelamento continuam a fazer-se em shortn.at enquanto a faturação passa para o novo painel.",
+    "legacyAction": "Gerir plano em shortn.at",
+    "comparePlans": "Comparar planos"
+  },
+  "status": {
+    "checkoutPending": "Pagamento recebido. O novo plano aparece aqui dentro de segundos, assim que a Polar o confirmar.",
+    "checkoutDone": "Pagamento confirmado. {workspace} está agora no {plan}.",
+    "refresh": "Atualizar",
+    "pastDue": "O último pagamento não foi concluído. Atualize o método de pagamento para manter o {plan}.",
+    "updatePayment": "Atualizar método de pagamento",
+    "cancelling": "O {plan} termina a {date}. Depois disso, este espaço de trabalho passa para o Gratuito.",
+    "scheduled": "O seu plano muda para {plan} a {date}."
+  },
+  "usage": {
+    "title": "Utilização",
+    "period": "Período atual: {start} – {end}",
+    "links": "Links criados",
+    "qrCodes": "Códigos QR criados",
+    "bioPages": "Páginas bio",
+    "linksUnit": "links",
+    "qrUnit": "códigos QR",
+    "bioUnit": "páginas bio",
+    "perPeriod": "Neste período",
+    "total": "No total",
+    "unlimited": "Ilimitado",
+    "atLimit": "Atingiu um limite do seu plano. Faça upgrade para continuar a criar.",
+    "atLimitAskOwner": "Este espaço de trabalho atingiu um limite do plano. Peça ao proprietário para fazer upgrade.",
+    "seePlans": "Comparar planos"
+  },
+  "compare": {
+    "title": "Planos",
+    "description": "Planos mensais cobrados em dólares americanos. Os valores em euros são estimativas. Os limites de ligações e códigos QR são repostos em cada período de faturação.",
+    "caption": "Comparação de planos",
+    "current": "Atual",
+    "upgrade": "Fazer upgrade",
+    "downgrade": "Fazer downgrade",
+    "confirmUpgrade": "Mudar para o {plan} já? Recebe hoje a fatura da diferença proporcional.",
+    "confirmDowngrade": "Mudar para o {plan} a {date}? Mantém o {current} até lá.",
+    "confirmAction": "Mudar para o {plan}",
+    "keep": "Manter o {plan}",
+    "changedNow": "Está agora no {plan}. Esta página atualiza assim que a Polar confirmar, normalmente em segundos.",
+    "changedLater": "O seu plano muda para {plan} a {date}.",
+    "enterprise": "O seu plano Enterprise tem condições acordadas com o Shortn. Contacte-nos para o alterar.",
+    "included": "Incluído",
+    "notIncluded": "Não incluído",
+    "unlimited": "Ilimitado",
+    "days": "{days, plural, one {# dia} other {# dias}}",
+    "years": "{years, plural, one {# ano} other {# anos}}",
+    "rows": {
+      "links": "Links por período",
+      "qrCodes": "Códigos QR por período",
+      "bioPages": "Páginas bio",
+      "seats": "Membros",
+      "workspaces": "Espaços de trabalho",
+      "analyticsDays": "Histórico de estatísticas",
+      "apiPerMinute": "Pedidos à API por minuto"
+    },
+    "features": {
+      "customKeys": "Chaves personalizadas",
+      "passwords": "Links protegidos por palavra-passe",
+      "campaigns": "Campanhas",
+      "campaignExport": "Exportação de campanhas",
+      "analyticsBreakdowns": "Análise detalhada de estatísticas",
+      "csvExport": "Exportação em CSV",
+      "qrLogo": "Logótipo nos códigos QR",
+      "api": "Acesso à API",
+      "mcp": "Servidor MCP"
+    },
+    "upgradeTo": "Mudar para {plan}",
+    "switchTo": "Mudar para {plan}"
+  },
+  "errors": {
+    "alreadySubscribed": "Este espaço de trabalho já tem uma subscrição. Atualize a página para a ver.",
+    "writesDisabled": "Por agora, as alterações de plano continuam a fazer-se em shortn.at.",
+    "notSubscribed": "Este espaço de trabalho não tem nenhuma subscrição ativa para alterar.",
+    "samePlan": "Já está neste plano.",
+    "customPriced": "A sua subscrição tem um preço personalizado. Contacte-nos para a alterar.",
+    "forbidden": "Só o proprietário do espaço de trabalho pode gerir a faturação.",
+    "generic": "Algo correu mal do nosso lado. Tente novamente.",
+    "network": "Não foi possível contactar o Shortn. Verifique a ligação e tente novamente.",
+    "portal": "Não foi possível abrir a faturação. Tente novamente."
+  },
+  "invoices": {
+    "title": "Faturas",
+    "description": "Histórico de pagamentos deste espaço de trabalho. Atualize os dados de faturação e os métodos de pagamento no portal de faturação.",
+    "open": "Abrir portal de faturação",
+    "date": "Data",
+    "invoice": "Fatura",
+    "status": "Estado",
+    "amount": "Valor",
+    "download": "Descarregar",
+    "empty": "Ainda não existem pagamentos neste espaço de trabalho.",
+    "unavailable": "O histórico de pagamentos está temporariamente indisponível.",
+    "retry": "Tentar novamente",
+    "awaitingNumber": "A aguardar número de fatura",
+    "notReady": "Indisponível",
+    "downloadInvoice": "Descarregar fatura {number}",
+    "downloadFailed": "Não foi possível descarregar a fatura. Tente novamente ou abra o portal de faturação.",
+    "refundedAmount": "{amount} reembolsados",
+    "statuses": {
+      "draft": "Rascunho",
+      "pending": "Pendente",
+      "paid": "Pago",
+      "refunded": "Reembolsado",
+      "partiallyRefunded": "Parcialmente reembolsado",
+      "void": "Anulado",
+      "unknown": "Desconhecido"
+    },
+    "prepare": "Preparar fatura",
+    "prepareInvoice": "Preparar fatura {number}",
+    "generating": "A tua fatura está a ser preparada. Tenta novamente dentro de alguns segundos."
+  },
+  "plansPage": {
+    "title": "Comparar planos"
+  },
+  "confirm": {
+    "whatHappens": "O que acontece"
+  },
+  "change": {
+    "upgradeTitle": "Mudar para {plan}",
+    "downgradeTitle": "Mudar para {plan}",
+    "upgradeNow": "O plano {plan} começa assim que o fornecedor de pagamentos confirmar.",
+    "upgradeInvoice": "Será cobrada a diferença proporcional deste período de faturação.",
+    "downgradeLater": "Mantém o plano {current} até {date} e depois muda para {plan}.",
+    "downgradeLimits": "Os limites e funcionalidades de {plan} aplicam-se quando a mudança entrar em vigor."
+  },
+  "cancelPage": {
+    "title": "Cancelar plano",
+    "heading": "Cancelar {plan}?",
+    "keepUntil": "Mantém o plano {plan} até {date}.",
+    "thenFree": "Depois, o espaço de trabalho muda para Free, com {links} ligações e {qrCodes} códigos QR por período.",
+    "undo": "Pode manter {plan} retomando a subscrição antes do fim do período.",
+    "sectionTitle": "Cancelamento",
+    "sectionDescription": "Cancele {plan} no fim do período atual, em {date}."
+  },
+  "priceEstimate": "≈ {eur}/mês, cobrados como {usd}/mês",
+  "exchangeRate": {
+    "note": "As estimativas em EUR usam as taxas de referência do BCE de {date}. O pagamento é cobrado em USD.",
+    "unavailable": "As estimativas em EUR estão temporariamente indisponíveis. O pagamento é cobrado em USD."
+  }
+}

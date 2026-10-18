@@ -1,0 +1,198 @@
+{
+  "list": {
+    "title": "Campaigns",
+    "count": "{count, plural, one {# campaign} other {# campaigns}}",
+    "new": "New campaign",
+    "deleted": "Campaign deleted.",
+    "search": "Search",
+    "searchPlaceholder": "Title or description",
+    "sort": "Sort by",
+    "sorts": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "links": "Most links",
+      "title": "Title (A–Z)"
+    },
+    "columns": {
+      "campaign": "Campaign",
+      "links": "Links",
+      "created": "Created"
+    },
+    "empty": "No campaigns yet. A campaign groups the tagged variants of your links so you can read their clicks together.",
+    "emptyFiltered": "No campaigns match this search."
+  },
+  "gated": {
+    "title": "Read every channel of a campaign in one place",
+    "body": "Campaigns group the tagged variants of your links: their clicks on one page, a UTM builder with your defaults, and CSV export."
+  },
+  "tabs": {
+    "label": "Campaign sections",
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "builder": "UTM builder",
+    "edit": "Settings"
+  },
+  "overview": {
+    "copyParam": "Copy utm_campaign",
+    "copied": "Copied",
+    "build": "Build a tagged URL",
+    "created": "Campaign created. Tag a link for it in the UTM builder.",
+    "saved": "Changes saved.",
+    "variantSaved": "Variant saved on {link}.",
+    "last30": "Last 30 days",
+    "seeAll": "See full analytics",
+    "clicks": "Clicks",
+    "scans": "Scans",
+    "visitors": "Visitors",
+    "links": "Links",
+    "visits": "Clicks and scans",
+    "noData": "No visits in the last 30 days.",
+    "linksTitle": "Links and variants",
+    "linksHint": "A link joins when one of its UTM variants uses this campaign.",
+    "noLinks": "No links in this campaign yet. Build a tagged URL and save it as a variant.",
+    "linkClicks": "{count, plural, one {{formatted} click} other {{formatted} clicks}}",
+    "taggedUrl": "Tagged URL",
+    "copyUrl": "Copy URL",
+    "details": "Details",
+    "param": "utm_campaign",
+    "createdAt": "Created",
+    "none": "None",
+    "delete": "Delete campaign",
+    "deleteHint": "Its variants are removed from the links; the links keep working.",
+    "variantsSaved": "{count, plural, one {# variant saved} other {# variants saved}}. {skipped} already saved variants skipped."
+  },
+  "form": {
+    "newTitle": "New campaign",
+    "newDescription": "Name it the way it should read as utm_campaign in your analytics. You'll tag links for it next.",
+    "editDescription": "Title, description and the values the UTM builder suggests.",
+    "detailsSection": "Details",
+    "optional": "Optional",
+    "create": "Create campaign",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "title": "Title",
+    "titleHint": "Used as utm_campaign in the URLs you tag.",
+    "renameHint": "Saved variants switch to the new title. URLs you've already shared keep the old one, and their clicks stop counting here.",
+    "description": "Description",
+    "descriptionPlaceholder": "What this campaign is for (optional)"
+  },
+  "defaults": {
+    "title": "UTM defaults",
+    "description": "Values the builder suggests for this campaign. They're saved in lowercase.",
+    "lists": {
+      "sources": "Sources",
+      "mediums": "Mediums",
+      "terms": "Terms",
+      "contents": "Contents"
+    },
+    "hints": {
+      "sources": "Where the traffic comes from, like newsletter or instagram.",
+      "mediums": "The kind of channel, like email or social.",
+      "terms": "Paid search keywords.",
+      "contents": "What tells links in the same place apart, like header or footer."
+    },
+    "placeholders": {
+      "sources": "Type a source and press Enter",
+      "mediums": "Type a medium and press Enter",
+      "terms": "Type a term and press Enter",
+      "contents": "Type a value and press Enter"
+    }
+  },
+  "chips": {
+    "remove": "Remove {value}"
+  },
+  "builder": {
+    "description": "Tag selected short links for one channel. utm_campaign is always this campaign's title.",
+    "pickLink": "Choose a link",
+    "campaignLinks": "In this campaign",
+    "notInCampaign": "This link isn't in the campaign yet. Saving the variant adds it; until then its clicks don't count here.",
+    "fields": {
+      "source": "Source",
+      "medium": "Medium",
+      "term": "Term",
+      "content": "Content"
+    },
+    "placeholders": {
+      "source": "newsletter",
+      "medium": "email",
+      "term": "running shoes",
+      "content": "header-banner"
+    },
+    "suggestions": "Suggested values for {field}",
+    "campaignParam": "utm_campaign is set to <code>{title}</code>.",
+    "result": "Tagged URL",
+    "pickLinkFirst": "Choose a link to build its URL.",
+    "copy": "Copy URL",
+    "save": "Save as variant",
+    "saveHint": "Saving adds the same UTM values to each selected link and includes its clicks in this campaign.",
+    "viewerReason": "Viewers can't change links.",
+    "linkSection": "Links",
+    "linkHint": "Browse by tags or search, then choose one or more short links to tag.",
+    "noLink": "No link chosen yet.",
+    "changeLink": "Choose another link",
+    "paramsSection": "Parameters",
+    "optional": "Optional",
+    "copied": "Copied",
+    "cancel": "Cancel",
+    "selectedLinks": "{count} links selected",
+    "previewMany": "Preview for the first selected link. These UTM values apply to every selected link.",
+    "saveMany": "Save variants on {count} links"
+  },
+  "deletePage": {
+    "title": "Delete campaign",
+    "description": "This can't be undone.",
+    "variants": "{count, plural, =0 {No link carries its UTM variants yet.} one {Its UTM variants are removed from # link.} other {Its UTM variants are removed from # links.}}",
+    "links": "The links themselves keep working.",
+    "analytics": "URLs already shared with its utm_campaign keep their clicks, but no campaign page shows them.",
+    "permanent": "The UTM defaults are deleted with it.",
+    "confirm": "Delete campaign"
+  },
+  "errors": {
+    "titleTaken": "Another campaign already has this title.",
+    "titleRequired": "Give the campaign a title.",
+    "gated": "Your plan doesn't include campaigns.",
+    "forbidden": "You don't have permission to do this in this workspace.",
+    "notFound": "This campaign or link no longer exists. It may have been deleted.",
+    "invalidInput": "Some fields are too long or not valid. Check them and try again.",
+    "generic": "Something went wrong on our side. Try again.",
+    "linkRequired": "Choose a link to tag.",
+    "duplicate": "This variant is already saved on the link.",
+    "full": "This link already has {max} variants.",
+    "partial": "Saved variants on {count} links before the remaining saves failed. Retry to continue; already saved variants are skipped."
+  },
+  "library": {
+    "browse": "Browse links",
+    "title": "Choose campaign links",
+    "search": "Search links",
+    "tags": "Filter by tags",
+    "anyTag": "Any tag",
+    "searchTags": "Search tags",
+    "noTags": "No tags found",
+    "tagCount": "{count} tags",
+    "groupBy": "Group results",
+    "byTag": "By tag",
+    "noGrouping": "No grouping",
+    "untagged": "Untagged",
+    "tagsFailed": "Could not load tags.",
+    "retry": "Retry",
+    "removeTag": "Remove tag {tag}",
+    "clearFilters": "Clear filters",
+    "loading": "Loading…",
+    "results": "{count, plural, one {# matching link} other {# matching links}}",
+    "selected": "{count} selected",
+    "selectPage": "Select this page",
+    "selectResults": "Select all results",
+    "clearSelection": "Clear selection",
+    "hint": "Selections stay across pages and filters. Choose up to 500 links per save.",
+    "failed": "Could not load links. Retry without losing your selection.",
+    "empty": "No matching links. Change your filters or search.",
+    "selectGroup": "Select group on this page",
+    "link": "Link",
+    "selectLink": "Select {title}",
+    "pages": "Library pages",
+    "previous": "Previous",
+    "next": "Next",
+    "use": "Use {count} selected links",
+    "cancel": "Cancel selection"
+  }
+}

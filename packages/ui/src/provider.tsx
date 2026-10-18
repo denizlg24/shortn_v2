@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 import { TooltipProvider } from "./components/tooltip";
 import { UILocaleProvider } from "./i18n/provider";
