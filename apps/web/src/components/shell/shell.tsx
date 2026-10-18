@@ -103,7 +103,10 @@ export function Shell({
       >
         {t("skipToContent")}
       </a>
-      <div className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
+      {/* `relative` keeps absolutely positioned descendants (sr-only labels,
+          hidden inputs) inside the scroll container; otherwise they resolve
+          against the viewport and give the page a second, empty scrollbar. */}
+      <div className="relative flex h-dvh flex-col overflow-hidden bg-bg text-fg">
         {impersonating ? <ImpersonationBanner /> : null}
         <div className="flex min-h-0 flex-1">
           <Sidebar
@@ -113,7 +116,7 @@ export function Shell({
           <main
             id="main"
             tabIndex={-1}
-            className="flex min-w-0 flex-1 flex-col overflow-y-auto outline-none max-md:pb-14"
+            className="relative flex min-w-0 flex-1 flex-col overflow-y-auto outline-none max-md:pb-14"
           >
             {children}
           </main>
