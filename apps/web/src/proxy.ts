@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { bioHandleFromHost } from "@shortn/core/bio-hosts";
+import { bioCsp } from "@/lib/bio-csp";
 import { workspaceExportReturnPath } from "@/lib/workspace-export";
 import { localeCookie, resolveLocale, routedLocaleHeader } from "@/i18n/locale";
 import {
@@ -45,11 +46,12 @@ export function proxy(request: NextRequest) {
     headers.delete("cookie");
     const url = request.nextUrl.clone();
     url.pathname = handle ? `/_bio/${handle}` : `/_bio/by-domain/${domain}`;
-    return NextResponse.rewrite(url, { request: { headers } });
+    return withBioCsp(NextResponse.rewrite(url, { request: { headers } }));
   }
   if (internal) {
     headers.set("x-shortn-public-bio", "1");
     headers.delete("cookie");
+    return withBioCsp(NextResponse.next({ request: { headers } }));
   }
   return (
     marketing(request, headers) ?? NextResponse.next({ request: { headers } })
@@ -112,6 +114,11 @@ function marketing(request: NextRequest, headers: Headers) {
   return response;
 }
 
+function withBioCsp(response: NextResponse) {
+  response.headers.set("Content-Security-Policy", bioCsp(process.env));
+  return response;
+}
+
 // Redirects on the root host must name that host, not the web origin the edge
 // Worker forwarded to.
 function publicBase(request: NextRequest) {
@@ -121,5 +128,7 @@ function publicBase(request: NextRequest) {
     : request.nextUrl.origin;
 }
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|_web/_next/static|_web/_next/image|favicon.ico).*)",
+  ],
 };
