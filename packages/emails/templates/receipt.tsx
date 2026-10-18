@@ -15,6 +15,7 @@ import {
   Paragraph,
   type Detail,
   type LedgerLine,
+  type Branded,
 } from "../layout";
 import { messages, type Locale } from "../messages";
 
@@ -169,7 +170,8 @@ export function BillingReceipt({
   workspace,
   receipt,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   workspace: string;
   receipt: Receipt;
@@ -179,6 +181,7 @@ export function BillingReceipt({
   const { heading, body } = headline(locale, receipt);
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${receiptSubject(locale, receipt)} · ${workspace}`}
       footer={t.footer.workspace}
@@ -199,7 +202,8 @@ export function BillingRefund({
   workspace,
   refund,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   workspace: string;
   refund: Refund;
@@ -231,7 +235,12 @@ export function BillingRefund({
     { label: t.receipt.workspace, value: workspace },
   ];
   return (
-    <Layout locale={locale} preview={body} footer={t.footer.workspace}>
+    <Layout
+      logoUrl={logoUrl}
+      locale={locale}
+      preview={body}
+      footer={t.footer.workspace}
+    >
       <Heading>{t.refund.heading}</Heading>
       <Paragraph>{body}</Paragraph>
       <Panel>

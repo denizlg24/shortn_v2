@@ -1,11 +1,5 @@
 import { Body, Button, Head, Html, Preview } from "@react-email/components";
-import {
-  createContext,
-  Fragment,
-  useContext,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import { messages, type Locale } from "./messages";
 
 // Hex approximations of the DESIGN.md tokens: mail clients don't parse oklch.
@@ -57,11 +51,16 @@ function Block({
   );
 }
 
-/** Absolute URL of the hosted brand mark; unset renders the text mark. */
-export const LogoContext = createContext<string | undefined>(undefined);
+/**
+ * Every template takes the hosted brand mark's absolute URL from the mailer.
+ * A prop, not context: apps/web renders these on the React server build,
+ * which has no createContext.
+ */
+export interface Branded {
+  logoUrl?: string | undefined;
+}
 
-function Brand() {
-  const logo = useContext(LogoContext);
+function Brand({ logoUrl }: Branded) {
   const mark: CSSProperties = {
     color: palette.onInk,
     fontFamily: fonts.display,
@@ -93,11 +92,11 @@ function Brand() {
               width: 26,
             }}
           >
-            {logo ? (
+            {logoUrl ? (
               // With images blocked, the styled alt text on the navy cell
               // still reads as the mark.
               <img
-                src={logo}
+                src={logoUrl}
                 width={26}
                 height={26}
                 alt="S"
@@ -167,8 +166,9 @@ export function Layout({
   locale,
   preview,
   footer,
+  logoUrl,
   children,
-}: {
+}: Branded & {
   locale: Locale;
   preview: string;
   footer: string;
@@ -210,7 +210,7 @@ export function Layout({
           <tbody>
             <tr>
               <td style={{ padding: "40px 24px 48px" }}>
-                <Brand />
+                <Brand logoUrl={logoUrl} />
                 <Block padding="40px 0 0">
                   {children}
                   <Footer locale={locale} reason={footer} />

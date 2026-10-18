@@ -19,7 +19,7 @@ const everyLocale = process.argv.includes("--all");
 const selection: { locale: Locale; entries: CatalogEntry[] }[] = locales.map(
   (locale) => ({
     locale,
-    entries: catalog(locale).filter(
+    entries: catalog(locale, "mark@2x.png").filter(
       (entry) =>
         everyLocale ||
         locale === "en" ||
@@ -44,9 +44,7 @@ const frames: string[] = [];
 for (const { locale, entries } of selection)
   for (const entry of entries) {
     const file = `${entry.slug}.${locale}`;
-    const { html, text } = await renderEmail(entry.element, {
-      logoUrl: "mark@2x.png",
-    });
+    const { html, text } = await renderEmail(entry.element);
     await writeFile(`${outDir}${file}.html`, html);
     await writeFile(
       `${outDir}${file}.txt`,

@@ -6,6 +6,7 @@ import {
   Panel,
   Paragraph,
   type Detail,
+  type Branded,
 } from "../layout";
 import { messages, type Locale } from "../messages";
 
@@ -17,7 +18,8 @@ export function WebhookDisabled({
   name,
   endpoint,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   name: string;
   endpoint?: string | undefined;
@@ -33,6 +35,7 @@ export function WebhookDisabled({
   ];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${name} · ${t.webhook.body}`}
       footer={t.footer.workspace}

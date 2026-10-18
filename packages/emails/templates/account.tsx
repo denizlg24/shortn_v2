@@ -7,6 +7,7 @@ import {
   Muted,
   Panel,
   Paragraph,
+  type Branded,
 } from "../layout";
 import { messages, type Locale } from "../messages";
 
@@ -23,12 +24,19 @@ export function VerifyEmail({
   name,
   url,
   reason,
-}: Base & { name: string; url: string; reason: "signup" | "change" }) {
+  logoUrl,
+}: Branded &
+  Base & { name: string; url: string; reason: "signup" | "change" }) {
   const t = messages[locale];
   const change = reason === "change";
   const body = change ? t.verify.changeBody : t.verify.body(greetingName(name));
   return (
-    <Layout locale={locale} preview={body} footer={t.footer.account}>
+    <Layout
+      logoUrl={logoUrl}
+      locale={locale}
+      preview={body}
+      footer={t.footer.account}
+    >
       <Heading>{change ? t.verify.changeHeading : t.verify.heading}</Heading>
       <Paragraph>{body}</Paragraph>
       <Action href={url}>{t.verify.action}</Action>
@@ -39,10 +47,19 @@ export function VerifyEmail({
   );
 }
 
-export function EmailVerified({ locale, url }: Base & { url: string }) {
+export function EmailVerified({
+  locale,
+  url,
+  logoUrl,
+}: Branded & Base & { url: string }) {
   const t = messages[locale];
   return (
-    <Layout locale={locale} preview={t.verified.body} footer={t.footer.account}>
+    <Layout
+      logoUrl={logoUrl}
+      locale={locale}
+      preview={t.verified.body}
+      footer={t.footer.account}
+    >
       <Heading>{t.verified.heading}</Heading>
       <Paragraph>{t.verified.body}</Paragraph>
       <Action href={url}>{t.verified.action}</Action>
@@ -50,10 +67,19 @@ export function EmailVerified({ locale, url }: Base & { url: string }) {
   );
 }
 
-export function ResetPassword({ locale, url }: Base & { url: string }) {
+export function ResetPassword({
+  locale,
+  url,
+  logoUrl,
+}: Branded & Base & { url: string }) {
   const t = messages[locale];
   return (
-    <Layout locale={locale} preview={t.reset.body} footer={t.footer.account}>
+    <Layout
+      logoUrl={logoUrl}
+      locale={locale}
+      preview={t.reset.body}
+      footer={t.footer.account}
+    >
       <Heading>{t.reset.heading}</Heading>
       <Paragraph>{t.reset.body}</Paragraph>
       <Action href={url}>{t.reset.action}</Action>
@@ -68,10 +94,12 @@ export function ConfirmEmailChange({
   locale,
   newEmail,
   url,
-}: Base & { newEmail: string; url: string }) {
+  logoUrl,
+}: Branded & Base & { newEmail: string; url: string }) {
   const t = messages[locale];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={t.emailChange.body}
       footer={t.footer.account}
@@ -96,16 +124,23 @@ export function WorkspaceInvite({
   workspace,
   role,
   url,
-}: Base & {
-  inviter: string;
-  workspace: string;
-  role: "admin" | "member" | "viewer";
-  url: string;
-}) {
+  logoUrl,
+}: Branded &
+  Base & {
+    inviter: string;
+    workspace: string;
+    role: "admin" | "member" | "viewer";
+    url: string;
+  }) {
   const t = messages[locale];
   const body = t.invite.body(inviter, t.invite.roles[role]);
   return (
-    <Layout locale={locale} preview={body} footer={t.footer.invite}>
+    <Layout
+      logoUrl={logoUrl}
+      locale={locale}
+      preview={body}
+      footer={t.footer.invite}
+    >
       <Heading>{t.invite.heading(workspace)}</Heading>
       <Paragraph>
         {body} {t.invite.roleDescriptions[role]}

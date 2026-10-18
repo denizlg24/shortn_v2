@@ -8,6 +8,7 @@ import {
   Paragraph,
   Quote,
   type Detail,
+  type Branded,
 } from "../layout";
 import { messages, operatorMessages, type Locale } from "../messages";
 
@@ -18,7 +19,8 @@ export function ContactReceived({
   locale,
   reference,
   message,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   reference: string;
   message: string;
@@ -26,6 +28,7 @@ export function ContactReceived({
   const t = messages[locale];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${t.contact.heading}. ${t.contact.body}`}
       footer={t.footer.contact}
@@ -48,7 +51,8 @@ export function ContactNotification({
   topic,
   locale,
   message,
-}: {
+  logoUrl,
+}: Branded & {
   reference: string;
   name: string;
   email: string;
@@ -76,6 +80,7 @@ export function ContactNotification({
   ];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale="en"
       preview={`${name}: ${message.slice(0, 80)}`}
       footer={t.footer}

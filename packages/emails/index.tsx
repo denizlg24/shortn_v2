@@ -98,7 +98,7 @@ export function createMailer(config: MailerConfig) {
       console.info("mail dropped by allowlist", { subject });
       return;
     }
-    const { html, text } = await renderEmail(element, { logoUrl: logo });
+    const { html, text } = await renderEmail(element);
     const { error } = await resend.emails.send(
       {
         from: config.from,
@@ -125,7 +125,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         contactReceivedSubject(input.locale, input.reference),
-        <ContactReceived {...input} />,
+        <ContactReceived {...input} logoUrl={logo} />,
         { idempotencyKey: `contact-received-${input.reference}` },
       );
     },
@@ -143,7 +143,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         contactNotificationSubject(input.topic, input.reference),
-        <ContactNotification {...input} />,
+        <ContactNotification {...input} logoUrl={logo} />,
         {
           idempotencyKey: `contact-notification-${input.reference}`,
           replyTo: input.replyTo,
@@ -160,7 +160,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         workspaceExportSubject(input.locale),
-        <WorkspaceExportReady {...input} />,
+        <WorkspaceExportReady {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -175,7 +175,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         webhookDisabledSubject(input.locale),
-        <WebhookDisabled {...input} />,
+        <WebhookDisabled {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -189,7 +189,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         domainReadySubject(input.locale),
-        <DomainReady {...input} />,
+        <DomainReady {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -204,21 +204,21 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         input.reason === "change" ? t.changeSubject : t.subject,
-        <VerifyEmail {...input} />,
+        <VerifyEmail {...input} logoUrl={logo} />,
       );
     },
     emailVerified(input: { to: string; locale: Locale; url: string }) {
       return send(
         input.to,
         messages[input.locale].verified.subject,
-        <EmailVerified {...input} />,
+        <EmailVerified {...input} logoUrl={logo} />,
       );
     },
     resetPassword(input: { to: string; locale: Locale; url: string }) {
       return send(
         input.to,
         messages[input.locale].reset.subject,
-        <ResetPassword {...input} />,
+        <ResetPassword {...input} logoUrl={logo} />,
       );
     },
     confirmEmailChange(input: {
@@ -230,7 +230,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         messages[input.locale].emailChange.subject,
-        <ConfirmEmailChange {...input} />,
+        <ConfirmEmailChange {...input} logoUrl={logo} />,
       );
     },
     billing(input: {
@@ -244,7 +244,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         billingSubject(input.locale, input.notice),
-        <BillingEmail {...input} />,
+        <BillingEmail {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -259,7 +259,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         receiptSubject(input.locale, input.receipt),
-        <BillingReceipt {...input} />,
+        <BillingReceipt {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -274,7 +274,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         refundSubject(input.locale, input.refund),
-        <BillingRefund {...input} />,
+        <BillingRefund {...input} logoUrl={logo} />,
         { idempotencyKey: input.idempotencyKey },
       );
     },
@@ -289,7 +289,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         messages[input.locale].invite.subject(input.workspace),
-        <WorkspaceInvite {...input} />,
+        <WorkspaceInvite {...input} logoUrl={logo} />,
       );
     },
     productAnnouncement(input: {
@@ -303,7 +303,7 @@ export function createMailer(config: MailerConfig) {
       return send(
         input.to,
         announcementSubject(input.locale),
-        <ProductAnnouncement {...input} />,
+        <ProductAnnouncement {...input} logoUrl={logo} />,
         {
           idempotencyKey: input.idempotencyKey,
           headers: announcementHeaders,

@@ -1,4 +1,11 @@
-import { Action, Heading, Layout, List, Paragraph } from "../layout";
+import {
+  Action,
+  Heading,
+  Layout,
+  List,
+  Paragraph,
+  type Branded,
+} from "../layout";
 import { messages, type Locale } from "../messages";
 
 export const announcementSubject = (locale: Locale) =>
@@ -19,7 +26,8 @@ export function ProductAnnouncement({
   name,
   handle,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   name?: string | undefined;
   handle?: string | undefined;
@@ -28,6 +36,7 @@ export function ProductAnnouncement({
   const t = messages[locale];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={t.announcement.preview}
       footer={t.footer.announcement}

@@ -165,7 +165,8 @@ const sampleRefund: Refund = {
   reference: "SHORTN-2026-0042",
 };
 
-export function catalog(locale: Locale): CatalogEntry[] {
+/** `logoUrl` is the hosted brand mark; omitted, emails use the text mark. */
+export function catalog(locale: Locale, logoUrl?: string): CatalogEntry[] {
   const t = messages[locale];
   const plans = t.billing.plans;
   const billingUrl = at("/vida-economica/settings/billing");
@@ -177,6 +178,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
     urls: [billingUrl],
     element: (
       <BillingEmail
+        logoUrl={logoUrl}
         locale={locale}
         workspace={sample.workspace}
         notice={notice}
@@ -191,6 +193,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
     urls: [billingUrl],
     element: (
       <BillingReceipt
+        logoUrl={logoUrl}
         locale={locale}
         workspace={sample.workspace}
         receipt={data}
@@ -215,6 +218,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [verifyUrl],
       element: (
         <VerifyEmail
+          logoUrl={logoUrl}
           locale={locale}
           name={sample.name}
           url={verifyUrl}
@@ -229,6 +233,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [verifyUrl],
       element: (
         <VerifyEmail
+          logoUrl={logoUrl}
           locale={locale}
           name={sample.name}
           url={verifyUrl}
@@ -241,14 +246,18 @@ export function catalog(locale: Locale): CatalogEntry[] {
       title: "Email verified",
       subject: t.verified.subject,
       urls: [sample.app],
-      element: <EmailVerified locale={locale} url={sample.app} />,
+      element: (
+        <EmailVerified logoUrl={logoUrl} locale={locale} url={sample.app} />
+      ),
     },
     {
       slug: "reset-password",
       title: "Reset password",
       subject: t.reset.subject,
       urls: [resetUrl],
-      element: <ResetPassword locale={locale} url={resetUrl} />,
+      element: (
+        <ResetPassword logoUrl={logoUrl} locale={locale} url={resetUrl} />
+      ),
     },
     {
       slug: "confirm-email-change",
@@ -257,6 +266,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [changeUrl],
       element: (
         <ConfirmEmailChange
+          logoUrl={logoUrl}
           locale={locale}
           newEmail={sample.newEmail}
           url={changeUrl}
@@ -270,6 +280,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [inviteUrl],
       element: (
         <WorkspaceInvite
+          logoUrl={logoUrl}
           locale={locale}
           inviter={sample.inviter}
           workspace={sample.workspace}
@@ -302,6 +313,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [billingUrl],
       element: (
         <BillingRefund
+          logoUrl={logoUrl}
           locale={locale}
           workspace={sample.workspace}
           refund={sampleRefund}
@@ -341,6 +353,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [],
       element: (
         <ContactReceived
+          logoUrl={logoUrl}
           locale={locale}
           reference={sample.reference}
           message={sample.message}
@@ -354,6 +367,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [`mailto:${sample.newEmail}`],
       element: (
         <ContactNotification
+          logoUrl={logoUrl}
           reference={sample.reference}
           name={sample.name}
           email={sample.newEmail}
@@ -371,6 +385,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [domainsUrl],
       element: (
         <DomainReady
+          logoUrl={logoUrl}
           locale={locale}
           hostname={sample.hostname}
           url={domainsUrl}
@@ -384,6 +399,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [settingsUrl],
       element: (
         <WebhookDisabled
+          logoUrl={logoUrl}
           locale={locale}
           name={sample.webhook}
           endpoint={sample.endpoint}
@@ -398,6 +414,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [exportUrl],
       element: (
         <WorkspaceExportReady
+          logoUrl={logoUrl}
           locale={locale}
           workspace={sample.workspace}
           url={exportUrl}
@@ -411,6 +428,7 @@ export function catalog(locale: Locale): CatalogEntry[] {
       urls: [sample.app],
       element: (
         <ProductAnnouncement
+          logoUrl={logoUrl}
           locale={locale}
           name="Ana"
           handle="vidaeconomica"
@@ -423,7 +441,13 @@ export function catalog(locale: Locale): CatalogEntry[] {
       title: "Product announcement (no name or handle)",
       subject: announcementSubject(locale),
       urls: [sample.app],
-      element: <ProductAnnouncement locale={locale} url={sample.app} />,
+      element: (
+        <ProductAnnouncement
+          logoUrl={logoUrl}
+          locale={locale}
+          url={sample.app}
+        />
+      ),
     },
   ];
 }

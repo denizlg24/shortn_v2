@@ -5,6 +5,7 @@ import {
   Layout,
   Panel,
   Paragraph,
+  type Branded,
 } from "../layout";
 import { messages, type Locale } from "../messages";
 
@@ -15,7 +16,8 @@ export function WorkspaceExportReady({
   locale,
   workspace,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   workspace: string;
   url: string;
@@ -23,6 +25,7 @@ export function WorkspaceExportReady({
   const t = messages[locale];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${workspace} · ${t.workspaceExport.body}`}
       footer={t.footer.workspace}

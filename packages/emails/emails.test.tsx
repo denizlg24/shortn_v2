@@ -420,8 +420,11 @@ describe("brand mark", () => {
   test("a hosted mark keeps a styled text fallback", async () => {
     const logo = "https://app.shortn.at/email/mark@2x.png";
     const { html, text } = await renderEmail(
-      <ProductAnnouncement locale="en" url="https://app.shortn.at" />,
-      { logoUrl: logo },
+      <ProductAnnouncement
+        locale="en"
+        url="https://app.shortn.at"
+        logoUrl={logo}
+      />,
     );
     expect(html).toContain(`src="${logo}"`);
     expect(html).toMatch(/<img[^>]+alt="S"/);
@@ -430,6 +433,14 @@ describe("brand mark", () => {
       <ProductAnnouncement locale="en" url="https://app.shortn.at" />,
     );
     expect(plain.html).not.toContain("<img");
+  });
+
+  test("every catalogued email carries the mark it is given", async () => {
+    const logo = "https://app.shortn.at/email/mark@2x.png";
+    for (const entry of catalog("en", logo))
+      expect((await renderEmail(entry.element)).html).toContain(
+        `src="${logo}"`,
+      );
   });
 
   test("only an https origin serves the mark", () => {

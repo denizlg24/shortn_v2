@@ -13,6 +13,7 @@ import {
   Panel,
   Paragraph,
   type Detail,
+  type Branded,
 } from "../layout";
 import { isDeclineCode, messages, type Locale } from "../messages";
 
@@ -122,7 +123,8 @@ export function BillingEmail({
   workspace,
   notice,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   workspace: string;
   notice: BillingNotice;
@@ -132,6 +134,7 @@ export function BillingEmail({
   const { heading, body, rows } = content(locale, workspace, notice);
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${workspace} · ${body}`}
       footer={t.footer.workspace}

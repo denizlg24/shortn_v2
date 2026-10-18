@@ -5,6 +5,7 @@ import {
   Layout,
   Panel,
   Paragraph,
+  type Branded,
 } from "../layout";
 import { messages, type Locale } from "../messages";
 
@@ -15,7 +16,8 @@ export function DomainReady({
   locale,
   hostname,
   url,
-}: {
+  logoUrl,
+}: Branded & {
   locale: Locale;
   hostname: string;
   url: string;
@@ -23,6 +25,7 @@ export function DomainReady({
   const t = messages[locale];
   return (
     <Layout
+      logoUrl={logoUrl}
       locale={locale}
       preview={`${hostname} · ${t.domain.body}`}
       footer={t.footer.workspace}
