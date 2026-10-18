@@ -37,6 +37,9 @@ CANARY_PERCENT = "100"
 WEB_ORIGIN = "https://app-staging.shortn.at"
 DASHBOARD_HANDOFF = "1"
 MARKETING_ENABLED = "1"
+# P5 renderer through the edge; /b/{slug} renders in place (no wildcard on staging).
+BIO_DELIVERY_ENABLED = "1"
+BIO_LEGACY_REDIRECTS = "0"
 
 # Cloudflare-side limit on the demo shortener and contact posts, per visitor
 # address, in front of the app's own per-visitor and daily limits.
