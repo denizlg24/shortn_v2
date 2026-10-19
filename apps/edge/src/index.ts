@@ -229,6 +229,7 @@ export function createHandler(
           });
         }
         if (
+          url.pathname === "/favicon.ico" ||
           url.pathname.startsWith("/_next/") ||
           url.pathname.startsWith("/_web/") ||
           /^\/_bio\/[^/]+\/(?:opengraph-image|qr\/[^/]+)$/.test(url.pathname)

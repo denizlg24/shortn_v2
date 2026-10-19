@@ -46,12 +46,14 @@ export function proxy(request: NextRequest) {
     headers.delete("cookie");
     const url = request.nextUrl.clone();
     url.pathname = handle ? `/_bio/${handle}` : `/_bio/by-domain/${domain}`;
-    return withBioCsp(NextResponse.rewrite(url, { request: { headers } }));
+    const csp = withBioCsp(headers);
+    return csp(NextResponse.rewrite(url, { request: { headers } }));
   }
   if (internal) {
     headers.set("x-shortn-public-bio", "1");
     headers.delete("cookie");
-    return withBioCsp(NextResponse.next({ request: { headers } }));
+    const csp = withBioCsp(headers);
+    return csp(NextResponse.next({ request: { headers } }));
   }
   return (
     marketing(request, headers) ?? NextResponse.next({ request: { headers } })
@@ -114,9 +116,18 @@ function marketing(request: NextRequest, headers: Headers) {
   return response;
 }
 
-function withBioCsp(response: NextResponse) {
-  response.headers.set("Content-Security-Policy", bioCsp(process.env));
-  return response;
+// Sets the policy on the forwarded request (where Next finds the nonce) and
+// returns a finisher that puts the same policy on the response.
+function withBioCsp(headers: Headers) {
+  const policy = bioCsp(
+    process.env,
+    btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16)))),
+  );
+  headers.set("Content-Security-Policy", policy);
+  return (response: NextResponse) => {
+    response.headers.set("Content-Security-Policy", policy);
+    return response;
+  };
 }
 
 // Redirects on the root host must name that host, not the web origin the edge
