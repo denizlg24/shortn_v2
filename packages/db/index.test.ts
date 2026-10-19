@@ -9,6 +9,7 @@ import {
   qrCodeSchema,
   workspaceSchema,
   tagSchema,
+  schemas,
 } from "./schemas";
 import { exampleMigration } from "./migrations/example.fixture";
 import { assertReadPipeline, validateOptions } from "./migrations/runner";
@@ -287,5 +288,112 @@ test("required Mongo integration fails instead of silently skipping fixtures", a
     ]);
     expect(exit).not.toBe(0);
     expect(stderr).toContain("MONGO_TEST_URL required");
+  }
+});
+
+test("admin schemas accept legacy rows and reject malformed staff fields", () => {
+  const _id = new ObjectId();
+  const at = new Date();
+  expect(
+    schemas.admin_audit_log.safeParse({
+      _id,
+      createdAt: at,
+      actorId: "old",
+      actorEmail: "ops@example.com",
+      action: "user.ban",
+      targetType: "user",
+      targetId: "u",
+      reason: "legacy row without status",
+    }).success,
+  ).toBe(true);
+  expect(
+    schemas.user.safeParse({ _id, email: "a@example.com", role: "root" })
+      .success,
+  ).toBe(false);
+  expect(
+    schemas.session.safeParse({
+      _id,
+      token: "t",
+      userId: new ObjectId(),
+      expiresAt: at,
+    }).success,
+  ).toBe(true);
+  expect(
+    schemas.link_reports.safeParse({
+      _id,
+      urlCode: "abc",
+      reason: "spam",
+      status: "open",
+      createdAt: at,
+    }).success,
+  ).toBe(true);
+  const workspace = {
+    _id,
+    slug: "w",
+    name: "W",
+    ownerUserId: "u",
+    personal: false,
+    plan: "free",
+    addOns: [],
+    defaultDomain: "shortn.at",
+  };
+  expect(
+    workspaceSchema.safeParse({
+      ...workspace,
+      suspension: {
+        level: "suspended",
+        category: "phishing",
+        internalNote: "kit",
+        by: "admin",
+        at,
+      },
+      entitlementOverride: {
+        plan: "pro",
+        limits: { links: null, apiPerMinute: 10 },
+        features: { add: ["api"] },
+        reason: "partner",
+        grantedBy: "admin",
+        grantedAt: at,
+      },
+    }).success,
+  ).toBe(true);
+  expect(
+    workspaceSchema.safeParse({
+      ...workspace,
+      entitlementOverride: {
+        limits: { links: -1 },
+        reason: "r",
+        grantedBy: "a",
+        grantedAt: at,
+      },
+    }).success,
+  ).toBe(false);
+  expect(
+    linkSchema.safeParse({
+      _id,
+      moderation: {
+        state: "taken_down",
+        category: "phishing",
+        by: "admin",
+        at,
+        previous: { disabled: false, safetyStatus: "safe" },
+      },
+    }).success,
+  ).toBe(true);
+  expect(
+    linkSchema.safeParse({
+      _id,
+      moderation: { state: "taken_down", category: "nope", by: "a", at },
+    }).success,
+  ).toBe(false);
+});
+
+test("partial indexes never use a bare _id key, and names are unique per collection", () => {
+  for (const indexes of Object.values(desiredIndexes)) {
+    for (const index of indexes)
+      if (index.partialFilterExpression)
+        expect(Object.keys(index.key)).not.toEqual(["_id"]);
+    const names = indexes.map((index) => index.name);
+    expect(new Set(names).size).toBe(names.length);
   }
 });

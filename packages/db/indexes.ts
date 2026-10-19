@@ -218,6 +218,11 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       name: "webhook_subscribers",
       key: { workspaceId: 1, enabled: 1, events: 1, _id: 1 },
     },
+    {
+      name: "endpoint_failing",
+      key: { failureSince: 1 },
+      partialFilterExpression: { failureSince: { $exists: true } },
+    },
   ],
   [physicalNames.webhook_deliveries]: [
     {
@@ -249,6 +254,8 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       key: { expiresAt: 1 },
       expireAfterSeconds: 0,
     },
+    { name: "attempt_time", key: { createdAt: 1 } },
+    { name: "attempt_endpoint_time", key: { webhookId: 1, createdAt: -1 } },
   ],
   [physicalNames.webhook_notifications]: [
     {
@@ -374,6 +381,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   [physicalNames.click_rollups]: [
     { name: "v2_link_day", key: { linkId: 1, day: 1 }, unique: true },
     { name: "v2_workspace_day", key: { workspaceId: 1, day: 1 } },
+    { name: "rollup_day", key: { day: 1 } },
   ],
   [physicalNames.workspaces]: [
     { name: "v2_workspace_slug", key: { slug: 1 }, unique: true },
@@ -384,6 +392,21 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       partialFilterExpression: { personal: true },
     },
     { name: "v2_legacy_sub", key: { legacySub: 1 } },
+    { name: "admin_plan", key: { plan: 1, _id: -1 } },
+    { name: "admin_type", key: { personal: 1, _id: -1 } },
+    // Also serves the redirect's suspended-set load on `suspension.level`.
+    {
+      name: "admin_suspended",
+      key: { "suspension.level": 1, "suspension.at": -1 },
+      partialFilterExpression: { "suspension.level": { $exists: true } },
+    },
+    {
+      name: "admin_override",
+      key: { "entitlementOverride.grantedAt": -1 },
+      partialFilterExpression: {
+        "entitlementOverride.grantedAt": { $exists: true },
+      },
+    },
   ],
   [physicalNames.workspace_members]: [
     { name: "v2_membership", key: { workspaceId: 1, userId: 1 }, unique: true },
@@ -460,6 +483,7 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
       unique: true,
     },
     { name: "v2_workspace_subscriptions", key: { workspaceId: 1, status: 1 } },
+    { name: "admin_status_plan", key: { status: 1, plan: 1, _id: -1 } },
   ],
   [physicalNames.usage_periods]: [
     {
@@ -471,6 +495,92 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   [physicalNames.api_keys]: [
     { name: "v2_hashed_key", key: { hashedKey: 1 }, unique: true },
     { name: "v2_workspace_api_keys", key: { workspaceId: 1, _id: -1 } },
+  ],
+  // Platform admin (23 §2.12). A bare `{_id: -1}` key can't be partial, so the
+  // flag-filtered facets lead with the flag.
+  [physicalNames.user]: [
+    {
+      name: "admin_role",
+      key: { role: 1, _id: -1 },
+      partialFilterExpression: { role: { $exists: true } },
+    },
+    {
+      name: "admin_banned",
+      key: { banned: 1, _id: -1 },
+      partialFilterExpression: { banned: true },
+    },
+    {
+      name: "admin_deletion",
+      key: { "deletion.purgeAfter": 1 },
+      partialFilterExpression: { "deletion.purgeAfter": { $exists: true } },
+    },
+    {
+      name: "admin_2fa",
+      key: { twoFactorEnabled: 1, _id: -1 },
+      partialFilterExpression: { twoFactorEnabled: true },
+    },
+  ],
+  [physicalNames.session]: [{ name: "session_user", key: { userId: 1 } }],
+  [physicalNames.account]: [{ name: "account_user", key: { userId: 1 } }],
+  [physicalNames.link_reports]: [
+    {
+      name: "report_queue",
+      key: { status: 1, linkId: 1, createdAt: -1 },
+    },
+    { name: "report_link_ip", key: { linkId: 1, reporterIpHash: 1 } },
+    { name: "report_time", key: { createdAt: -1 } },
+  ],
+  [physicalNames.click_rejects]: [
+    { name: "reject_time", key: { at: 1 }, expireAfterSeconds: 90 * 86_400 },
+  ],
+  [physicalNames.billing_reconcile_runs]: [
+    { name: "reconcile_time", key: { at: -1 } },
+  ],
+  [physicalNames.contacts]: [
+    { name: "contact_triage", key: { "triage.status": 1, createdAt: -1 } },
+  ],
+  [physicalNames.admin_audit_log]: [
+    { name: "admin_audit_time", key: { createdAt: -1 } },
+    { name: "admin_audit_actor", key: { actorId: 1, createdAt: -1 } },
+    {
+      name: "admin_audit_target",
+      key: { targetType: 1, targetId: 1, createdAt: -1 },
+    },
+    { name: "admin_audit_workspace", key: { workspaceId: 1, _id: -1 } },
+  ],
+  [physicalNames.admin_sessions]: [
+    {
+      name: "admin_session_expiry",
+      key: { expiresAt: 1 },
+      expireAfterSeconds: 0,
+    },
+    { name: "admin_session_user", key: { userId: 1 } },
+  ],
+  [physicalNames.admin_elevation_tokens]: [
+    {
+      name: "admin_elevation_expiry",
+      key: { expiresAt: 1 },
+      expireAfterSeconds: 0,
+    },
+  ],
+  [physicalNames.workspace_daily]: [
+    {
+      name: "workspace_daily_day",
+      key: { workspaceId: 1, day: 1 },
+      unique: true,
+    },
+    { name: "workspace_daily_top", key: { day: 1, clicks: -1 } },
+  ],
+  [physicalNames.platform_notifications]: [
+    {
+      name: "platform_notification_due",
+      key: { sentAt: 1, nextAttemptAt: 1, _id: 1 },
+    },
+  ],
+  // Raw IPs are kept 90 days (as click_ips), so the whole event expires then.
+  [physicalNames.sign_in_events]: [
+    { name: "sign_in_user", key: { userId: 1, at: -1 } },
+    { name: "sign_in_expiry", key: { at: 1 }, expireAfterSeconds: 90 * 86_400 },
   ],
 };
 export function equivalentIndex(

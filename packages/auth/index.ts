@@ -222,6 +222,21 @@ export function createAuth(config: AuthConfig) {
           input: false,
         },
         lastWorkspaceId: nullableString,
+        // Staff-managed (23 §3.1). input: false makes update-user reject them.
+        role: {
+          type: ["user", "admin", "superadmin"],
+          required: false,
+          input: false,
+        },
+        banned: { type: "boolean", required: false, input: false },
+        banReason: { type: "string", required: false, input: false },
+        banExpires: { type: "date", required: false, input: false },
+        deletion: {
+          type: "json",
+          required: false,
+          input: false,
+          returned: false,
+        },
       },
     },
     databaseHooks: {

@@ -98,9 +98,37 @@ const rules = z.object({
     .optional(),
   deepLinks: z.record(text, z.httpUrl()).optional(),
 });
+export const moderationCategories = [
+  "phishing",
+  "malware",
+  "spam",
+  "illegal",
+  "copyright",
+  "impersonation",
+  "other",
+] as const;
+// A staff takedown. `previous` is restored verbatim; the legacy-visible
+// disabled/safetyStatus fields are what actually stop delivery (23 §3.3).
+export const linkModerationSchema = z.object({
+  state: z.literal("taken_down"),
+  category: z.enum(moderationCategories),
+  publicNote: text.max(500).optional(),
+  internalNote: text.max(2000).optional(),
+  reportIds: z.array(objectId).max(100).optional(),
+  by: text,
+  at: z.date(),
+  previous: z.object({
+    disabled: z.boolean(),
+    safetyStatus: text.optional(),
+    disabledReason: text.optional(),
+  }),
+});
 export const linkSchema = z.looseObject({
   ...base,
   ...legacy,
+  moderation: linkModerationSchema.optional(),
+  disabledReason: text.optional(),
+  reportCount: count.optional(),
   workspaceId: objectId.optional(),
   domain: text.optional(),
   key: text.optional(),
@@ -237,6 +265,59 @@ export const qrCodeSchema = z.looseObject({
   options: z.looseObject({ data: z.httpUrl().optional() }).optional(),
 });
 export const workspaceRoles = ["owner", "admin", "member", "viewer"] as const;
+export const workspacePlans = [
+  "free",
+  "basic",
+  "plus",
+  "pro",
+  "enterprise",
+] as const;
+const plan = z.enum(workspacePlans);
+export const suspensionCategories = [
+  "abuse",
+  "phishing",
+  "malware",
+  "spam",
+  "fraud",
+  "chargeback",
+  "legal",
+  "nonpayment",
+  "other",
+] as const;
+export const workspaceSuspensionSchema = z.object({
+  level: z.enum(["locked", "suspended"]),
+  category: z.enum(suspensionCategories),
+  publicNote: text.max(500).optional(),
+  internalNote: text.max(2000),
+  by: text,
+  at: z.date(),
+});
+const limitOverride = count.nullable();
+// null = unlimited. Feature names are checked against the billing catalog in
+// @shortn/billing, which this package can't import.
+export const entitlementOverrideSchema = z.object({
+  plan: plan.optional(),
+  limits: z
+    .object({
+      links: limitOverride,
+      qrCodes: limitOverride,
+      bioPages: limitOverride,
+      seats: limitOverride,
+      workspaces: limitOverride,
+      analyticsDays: limitOverride,
+      apiPerMinute: limitOverride,
+    })
+    .partial()
+    .optional(),
+  features: z
+    .object({ add: z.array(text), remove: z.array(text) })
+    .partial()
+    .optional(),
+  expiresAt: z.date().optional(),
+  reason: text.max(1000),
+  grantedBy: text,
+  grantedAt: z.date(),
+});
 export const workspaceSchema = z.object({
   importQuotaCoordinated: z.boolean().optional(),
   ...base,
@@ -245,7 +326,7 @@ export const workspaceSchema = z.object({
   logo: z.httpUrl().optional(),
   ownerUserId: text,
   personal: z.boolean(),
-  plan: z.enum(["free", "basic", "plus", "pro", "enterprise"]),
+  plan,
   addOns: z.array(text),
   defaultDomain: text,
   legacySub: text.optional(),
@@ -259,6 +340,8 @@ export const workspaceSchema = z.object({
       advancedAuth: z.boolean().optional(),
     })
     .optional(),
+  suspension: workspaceSuspensionSchema.optional(),
+  entitlementOverride: entitlementOverrideSchema.optional(),
 });
 export const workspaceMemberSchema = z.object({
   ...base,
@@ -489,6 +572,38 @@ export const apiKeySchema = z.object({
   expiresAt: z.date().optional(),
   revokedAt: z.date().optional(),
 });
+export const adminRoles = ["admin", "superadmin"] as const;
+export const userRoles = ["user", ...adminRoles] as const;
+const userRef = z.union([text, objectId]);
+// Subset of better-auth's shared `user` doc; the rest stays loose.
+export const userSchema = z.looseObject({
+  _id: objectId,
+  email: text,
+  name: text.optional(),
+  emailVerified: z.boolean().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  sub: text.optional(),
+  username: text.optional(),
+  twoFactorEnabled: z.boolean().optional(),
+  lastWorkspaceId: text.nullable().optional(),
+  role: z.enum(userRoles).nullable().optional(),
+  banned: z.boolean().nullable().optional(),
+  banReason: text.nullable().optional(),
+  banExpires: z.date().nullable().optional(),
+  bannedAt: z.date().optional(),
+  bannedBy: text.optional(),
+  deletion: z
+    .object({
+      requestedAt: z.date(),
+      by: text,
+      purgeAfter: z.date(),
+      state: z.enum(["scheduled", "purging", "done"]),
+    })
+    .nullable()
+    .optional(),
+  deletedAt: z.date().optional(),
+});
 export const schemas = {
   links: linkSchema,
   // Legacy's mongoose Contact model; admin.shortn.at reads it (D-M7).
@@ -502,6 +617,199 @@ export const schemas = {
     message: text,
     ipAddress: text,
     userAgent: text,
+    // Absent = "new"; the contact form writer never sets it.
+    triage: z
+      .object({
+        status: z.enum(["new", "open", "replied", "closed", "spam"]),
+        assignee: text.optional(),
+        note: text.max(2000).optional(),
+        updatedAt: z.date(),
+        updatedBy: text,
+      })
+      .optional(),
+  }),
+  // better-auth's collections. Ids written by different better-auth versions
+  // and by legacy are a mix of string and ObjectId, so `userId` is either.
+  user: userSchema,
+  session: z.looseObject({
+    _id: objectId,
+    token: text,
+    userId: userRef,
+    expiresAt: z.date(),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
+    ipAddress: text.nullable().optional(),
+    userAgent: text.nullable().optional(),
+    impersonatedBy: text.nullable().optional(),
+    impersonationMode: z.enum(["read", "write"]).nullable().optional(),
+    passkeyId: text.nullable().optional(),
+    mcpWorkspaceId: text.nullable().optional(),
+  }),
+  account: z.looseObject({
+    _id: objectId,
+    userId: userRef,
+    providerId: text,
+    accountId: text,
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
+  }),
+  link_reports: z.looseObject({
+    _id: objectId,
+    // Legacy rows predate linkId and carry only urlCode.
+    linkId: objectId.optional(),
+    workspaceId: objectId.optional(),
+    domain: text.optional(),
+    urlCode: text,
+    reason: text,
+    details: text.max(1000).optional(),
+    reporterIpHash: text.optional(),
+    status: z.enum(["open", "reviewed", "dismissed"]),
+    createdAt: z.date(),
+    resolution: z
+      .object({
+        action: z.enum(["takedown", "no_action", "restored"]),
+        by: text,
+        at: z.date(),
+        note: text.max(1000).optional(),
+      })
+      .optional(),
+  }),
+  // Superset of the old console's rows: rows without `status` are legacy and
+  // count as succeeded.
+  admin_audit_log: z.looseObject({
+    _id: objectId,
+    createdAt: z.date(),
+    actorId: text,
+    actorEmail: text,
+    actorRole: z.enum(adminRoles).optional(),
+    action: text,
+    targetType: z.enum([
+      "user",
+      "workspace",
+      "link",
+      "report",
+      "subscription",
+      "domain",
+      "webhook",
+      "job",
+      "contact",
+      "session",
+    ]),
+    targetId: text,
+    workspaceId: objectId.optional(),
+    status: z.enum(["started", "succeeded", "failed"]).optional(),
+    completedAt: z.date().optional(),
+    error: text.optional(),
+    reason: text.max(1000).optional(),
+    metadata: z.record(text, z.unknown()).optional(),
+    ip: text.optional(),
+    userAgent: text.optional(),
+    adminSessionId: text.optional(),
+    requestId: text.optional(),
+  }),
+  admin_sessions: z.object({
+    // sha256 of the cookie token.
+    _id: text,
+    userId: text,
+    createdAt: z.date(),
+    lastSeenAt: z.date(),
+    expiresAt: z.date(),
+    idleUntil: z.date(),
+    elevatedAt: z.date().optional(),
+    ip: text.optional(),
+    uaHash: text,
+    revokedAt: z.date().optional(),
+  }),
+  admin_elevation_tokens: z.object({
+    _id: text,
+    userId: text,
+    nonceHash: text,
+    purpose: z.enum(["login", "stepup"]),
+    createdAt: z.date(),
+    expiresAt: z.date(),
+  }),
+  // One document per UTC day, `_id` "YYYY-MM-DD".
+  platform_daily: z.looseObject({
+    _id: text.regex(/^\d{4}-\d{2}-\d{2}$/),
+    computedAt: z.date(),
+    users: z.object({ signups: count, verified: count }).optional(),
+    workspaces: z.object({ personal: count, team: count }).optional(),
+    links: z.object({ created: count, demo: count }).optional(),
+    qr: z.object({ created: count }).optional(),
+    clicks: z
+      .object({ human: count, scans: count, bots: count.optional() })
+      .optional(),
+    rejects: count.optional(),
+    bioViews: count.optional(),
+    reports: z.object({ opened: count, resolved: count }).optional(),
+    moderation: z
+      .object({ takedowns: count, suspensions: count, bans: count })
+      .optional(),
+    billing: z
+      .object({
+        mrrListUsd: z.number().nonnegative(),
+        activeByPlan: z.record(text, count),
+        addons: count,
+        newPaid: count,
+        canceled: count,
+      })
+      .optional(),
+    webhooks: z.object({ attempts: count, failures: count }).optional(),
+    jobs: z
+      .record(text, z.object({ created: count, failed: count }))
+      .optional(),
+  }),
+  workspace_daily: z.object({
+    _id: objectId,
+    workspaceId: objectId,
+    day: z.date(),
+    clicks: count,
+    scans: count,
+    linksCreated: count,
+  }),
+  worker_heartbeats: z.object({
+    _id: text,
+    lastRunAt: z.date(),
+    lastDurationMs: count,
+    lastError: text.optional(),
+    lastErrorAt: z.date().optional(),
+  }),
+  platform_notifications: z.object({
+    // Idempotency key, e.g. "workspaceSuspended:<workspaceId>:<at>".
+    _id: text,
+    kind: text,
+    to: text,
+    payload: z.record(text, z.unknown()),
+    createdAt: z.date(),
+    sentAt: z.date().optional(),
+    attempts: count,
+    nextAttemptAt: z.date(),
+    claimedUntil: z.date().optional(),
+    error: text.optional(),
+  }),
+  sign_in_events: z.object({
+    _id: objectId,
+    userId: text,
+    at: z.date(),
+    method: text,
+    ip: text.optional(),
+    country: text.optional(),
+    uaHash: text.optional(),
+  }),
+  click_rejects: z.looseObject({
+    _id: objectId,
+    sid: text,
+    reason: text,
+    fields: z.array(text),
+    at: z.date(),
+  }),
+  billing_reconcile_runs: z.looseObject({
+    _id: objectId,
+    at: z.date(),
+    checked: count,
+    changed: count,
+    unmapped: z.array(text),
+    orphaned: z.array(text),
   }),
   qr_codes: qrCodeSchema,
   click_events: clickEventSchema,
@@ -592,6 +900,10 @@ export const schemas = {
     enabled: z.boolean(),
     secret: text,
     createdBy: text,
+    // Set by staff; while present the owner can't re-enable the endpoint.
+    adminDisabled: z
+      .object({ at: z.date(), by: text, reason: text.max(1000) })
+      .optional(),
   }),
   webhook_deliveries: z.looseObject({
     ...base,

@@ -424,10 +424,10 @@ The overview must not aggregate raw collections on page load. A new worker loop,
 | `links` | `admin_reported {reportCount:-1,_id:-1}` partial `reportCount > 0` | **new** | same |
 | `links` | `admin_dest_host {destHostRev:1,_id:-1}` | **new, phase E only** | needs a backfill (§4 E) |
 | `user` | `email` unique, `sub` unique | legacy mongoose — **verify in prod** | — |
-| `user` | `admin_role {role:1,_id:-1}` partial role exists; `admin_banned {_id:-1}` partial `banned:true`; `admin_deletion {"deletion.purgeAfter":1}` partial; `admin_2fa {_id:-1}` partial `twoFactorEnabled:true` | **new** | small |
+| `user` | `admin_role {role:1,_id:-1}` partial role exists; `admin_banned {banned:1,_id:-1}` partial `banned:true`; `admin_deletion {"deletion.purgeAfter":1}` partial; `admin_2fa {twoFactorEnabled:1,_id:-1}` partial `twoFactorEnabled:true`. (Mongo treats a bare `{_id:-1}` key as an `_id` index spec and rejects a partial filter on it, so the flag leads.) | **new** | small |
 | `session` | `session_user {userId:1}` | **new** (also speeds better-auth `listSessions`) | moderate |
 | `account` | `account_user {userId:1}` | **new** | small |
-| `workspaces` | `admin_plan {plan:1,_id:-1}`, `admin_type {personal:1,_id:-1}`, `admin_suspended {"suspension.at":-1}` partial, `admin_override {"entitlementOverride.grantedAt":-1}` partial | **new** | small |
+| `workspaces` | `admin_plan {plan:1,_id:-1}`, `admin_type {personal:1,_id:-1}`, `admin_suspended {"suspension.level":1,"suspension.at":-1}` partial `suspension.level` exists (the level prefix lets the redirect's `{"suspension.level":"suspended"}` load use it), `admin_override {"entitlementOverride.grantedAt":-1}` partial | **new** | small |
 | `link_reports` | `report_queue {status:1,linkId:1,createdAt:-1}`, `report_link_ip {linkId:1,reporterIpHash:1}`, `report_time {createdAt:-1}` | **new** (legacy has `urlCode`, `status` singles) | small |
 | `click_rollups` | `v2_link_day`, `v2_workspace_day` | yes | — |
 | `click_rollups` | `rollup_day {day:1}` | **new** | moderate (one doc per active link per day) |
@@ -440,7 +440,7 @@ The overview must not aggregate raw collections on page load. A new worker loop,
 | `admin_audit_log` | four compounds (§2.10) | **new** | small |
 | `admin_sessions` | TTL `{expiresAt:1}`, `{userId:1}` | **new collection** | — |
 | `admin_elevation_tokens` | TTL `{expiresAt:1}` | **new collection** | — |
-| `platform_daily`, `workspace_daily`, `worker_heartbeats`, `platform_notifications`, `sign_in_events` | as described | **new collections** | — |
+| `platform_daily`, `workspace_daily`, `worker_heartbeats`, `platform_notifications`, `sign_in_events` | as described; `sign_in_events` has `{userId:1,at:-1}` and a 90-day TTL on `at` that expires the whole event (raw IP retention) | **new collections** | — |
 
 `syncIndexes` refuses to run if a legacy collection is missing (`indexes.ts:503-507`). `admin_audit_log` is listed as legacy (`collections.ts:116`), so it has to exist in every environment. Staging and dev fixtures must create it.
 

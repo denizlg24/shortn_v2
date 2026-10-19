@@ -70,6 +70,13 @@ export const defaultPhysicalNames = {
   account: "account",
   verification: "verification",
   admin_audit_log: "admin_audit_log",
+  admin_sessions: "admin_sessions",
+  admin_elevation_tokens: "admin_elevation_tokens",
+  platform_daily: "platform_daily",
+  workspace_daily: "workspace_daily",
+  worker_heartbeats: "worker_heartbeats",
+  platform_notifications: "platform_notifications",
+  sign_in_events: "sign_in_events",
   meta: "_meta",
   login_records: "loginrecords",
 };
