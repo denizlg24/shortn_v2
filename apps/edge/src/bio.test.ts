@@ -39,6 +39,24 @@ test("bio hosts carry authenticated identity and discard cookies and spoofed hea
   expect(result.headers.get("set-cookie")).toBeNull();
   expect(result.headers.get("cache-control")).toContain("s-maxage=60");
 });
+test("bio hosts serve the default favicon from the web origin", async () => {
+  let seen: Request | undefined;
+  const handler = createHandler(
+    async () => new Response("redirect"),
+    async () => new Response("legacy"),
+    50,
+    async (request) => {
+      seen = request;
+      return new Response("icon");
+    },
+  );
+  const result = await handler(
+    new Request("https://alice.shortn.at/favicon.ico"),
+    env,
+  );
+  expect(result.status).toBe(200);
+  expect(seen?.url).toBe("https://web-origin.shortn.at/favicon.ico");
+});
 test("custom hosts preserve form bodies and authenticated host context", async () => {
   let seen: Request | undefined;
   const handler = createHandler(
