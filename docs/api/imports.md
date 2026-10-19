@@ -147,7 +147,7 @@ It owns loopback private storage and a real BullMQ import worker, checks actual
 conditional browser PUT headers, CSV and pasted URL input, mapping-error recovery,
 dry runs without creation, error CSV download, row/history pagination, tags,
 quota refusal, cancellation, and successful link/QR creation. Captures and
-assertion evidence live in `.impeccable/review/p6-import-ui/`. A separate Mongo
+assertion evidence live in `test-results/captures/p6-import-ui/`. A separate Mongo
 integration check verifies bounded 25-row responses for a 50,000-row result set,
 actor/workspace isolation, expiry, literal searches, tag caps and upload retries.
 These checks do not establish real-provider or staging acceptance.

@@ -12,7 +12,7 @@ const mongo = await new MongoClient(
   ).connect(),
   db = mongo.db("shortn_p6_dev"),
   durable = new Redis("redis://127.0.0.1:16379/6");
-const directory = ".impeccable/review/p6-link-creation",
+const directory = "test-results/captures/p6-link-creation",
   captures: object[] = [],
   errors: string[] = [],
   workspaceId = new ObjectId(),
@@ -136,17 +136,15 @@ try {
     role: "owner",
     createdAt: new Date(),
   });
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      workspaceId,
-      polarSubscriptionId: crypto.randomUUID(),
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    workspaceId,
+    polarSubscriptionId: crypto.randomUUID(),
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
+    cancelAtPeriodEnd: false,
+  });
   const campaigns = Array.from({ length: 1 }, (_, i) => ({
     _id: new ObjectId(),
     workspaceId,
@@ -401,11 +399,9 @@ try {
       form.requestSubmit();
     });
   await page.waitForURL((url) => url.searchParams.get("created") === "1");
-  created = (await db
-    .collection(physicalNames.links)
-    .findOne({
-      _id: new ObjectId(new URL(page.url()).pathname.split("/").pop()!),
-    }))!;
+  created = (await db.collection(physicalNames.links).findOne({
+    _id: new ObjectId(new URL(page.url()).pathname.split("/").pop()!),
+  }))!;
   assert.equal(created.longUrl, "https://example.com/slow-create-immediately");
   assert.equal(
     await db.collection(physicalNames.links).countDocuments({ workspaceId }),

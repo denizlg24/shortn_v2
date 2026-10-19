@@ -23,7 +23,7 @@ try {
       : {}),
   });
   const errors: string[] = [];
-  await mkdir(".impeccable/review/p5", { recursive: true });
+  await mkdir("test-results/captures/p5", { recursive: true });
   for (const width of [390, 1440]) {
     const page = await browser.newPage({ viewport: { width, height: 1000 } });
     await page.route("https://assets.example.test/**", (route) =>
@@ -77,7 +77,7 @@ try {
         );
         if (count === 25 && locale === "pt") {
           await page.screenshot({
-            path: `.impeccable/review/p5/${width === 390 ? "mobile" : "desktop"}.png`,
+            path: `test-results/captures/p5/${width === 390 ? "mobile" : "desktop"}.png`,
             fullPage: true,
           });
           await page.keyboard.press("Tab");

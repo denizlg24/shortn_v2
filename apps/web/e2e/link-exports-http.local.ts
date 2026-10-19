@@ -93,18 +93,16 @@ const ownedTagIds: ObjectId[] = [];
 const foreignId = new ObjectId(),
   foreignSlug = `export-foreign-${crypto.randomUUID().slice(0, 8)}`;
 try {
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      _id: subscriptionId,
-      workspaceId: workspace._id,
-      polarSubscriptionId: marker,
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    _id: subscriptionId,
+    workspaceId: workspace._id,
+    polarSubscriptionId: marker,
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
+    cancelAtPeriodEnd: false,
+  });
   const previousTags = await collection(db, "tags")
     .find({
       workspaceId: workspace._id,
@@ -275,15 +273,13 @@ try {
   };
   delete foreignWorkspace.legacySub;
   await db.collection(physicalNames.workspaces).insertOne(foreignWorkspace);
-  await db
-    .collection(physicalNames.workspace_members)
-    .insertOne({
-      _id: new ObjectId(),
-      workspaceId: foreignId,
-      userId: login.userId,
-      role: "owner",
-      joinedAt: new Date(),
-    });
+  await db.collection(physicalNames.workspace_members).insertOne({
+    _id: new ObjectId(),
+    workspaceId: foreignId,
+    userId: login.userId,
+    role: "owner",
+    joinedAt: new Date(),
+  });
   const foreignAccess = await api.post(
     `${login.origin}/api/link-exports/${foreignSlug}`,
     { headers, data: { format: "csv" } },
@@ -433,7 +429,7 @@ try {
     (await api.get(`${login.origin}${large.statusUrl}`)).status(),
     403,
   );
-  const directory = ".impeccable/review/p6-link-export-http";
+  const directory = "test-results/captures/p6-link-export-http";
   await mkdir(directory, { recursive: true });
   await writeFile(
     `${directory}/evidence.json`,

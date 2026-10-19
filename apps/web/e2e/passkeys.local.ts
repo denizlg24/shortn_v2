@@ -25,7 +25,8 @@ const browser = await chromium.launch({ headless: true }),
   }),
   page = await context.newPage();
 const directory =
-    process.env.PASSKEY_CAPTURE_DIR ?? ".impeccable/review/p6-passkeys/first",
+    process.env.PASSKEY_CAPTURE_DIR ??
+    "test-results/captures/p6-passkeys/first",
   captures: object[] = [],
   errors: string[] = [];
 const workspaceId = new ObjectId(login.workspaceId),

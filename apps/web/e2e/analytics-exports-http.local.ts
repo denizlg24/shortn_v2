@@ -82,18 +82,16 @@ const browser = await chromium.launch({ headless: true }),
 const foreignId = new ObjectId(),
   foreignSlug = `analytics-foreign-${crypto.randomUUID().slice(0, 8)}`;
 try {
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      _id: subscriptionId,
-      workspaceId: workspace._id,
-      polarSubscriptionId: marker,
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    _id: subscriptionId,
+    workspaceId: workspace._id,
+    polarSubscriptionId: marker,
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
+    cancelAtPeriodEnd: false,
+  });
   await collection(db, "workspaces").insertOne({
     _id: foreignId,
     slug: foreignSlug,
@@ -106,23 +104,21 @@ try {
   const ts = new Date(Date.now() - 3600_000),
     from = new Date(ts.getTime() - 60000).toISOString(),
     to = new Date(ts.getTime() + 60000).toISOString();
-  await db
-    .collection(physicalNames.click_events)
-    .insertMany(
-      Array.from({ length: 1005 }, (_, index) => ({
-        ts,
-        m: {
-          workspaceId: workspace._id,
-          linkId: new ObjectId(),
-          key: marker,
-          kind: index % 2 ? "scan" : "click",
-        },
-        country: marker,
-        ipHash: `private-${index % 3}`,
-        ua: "private",
-        rawIp: "private",
-      })),
-    );
+  await db.collection(physicalNames.click_events).insertMany(
+    Array.from({ length: 1005 }, (_, index) => ({
+      ts,
+      m: {
+        workspaceId: workspace._id,
+        linkId: new ObjectId(),
+        key: marker,
+        kind: index % 2 ? "scan" : "click",
+      },
+      country: marker,
+      ipHash: `private-${index % 3}`,
+      ua: "private",
+      rawIp: "private",
+    })),
+  );
   const query = {
     mode: "raw",
     format: "ndjson",
@@ -330,7 +326,7 @@ try {
     (await api.post(base, { data: { query }, headers })).status(),
     403,
   );
-  const dir = ".impeccable/review/p6-analytics-export-backend";
+  const dir = "test-results/captures/p6-analytics-export-backend";
   await mkdir(dir, { recursive: true });
   await writeFile(
     `${dir}/http-evidence.json`,
