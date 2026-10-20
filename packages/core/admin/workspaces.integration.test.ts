@@ -144,8 +144,15 @@ const redisUrl = process.env.REDIS_TEST_URL;
       expect((await publicLink(db, linkKey))?.blocked).toBe(false);
       expect(await resolveBioDocument(db, "suspend-bio")).not.toBeNull();
       expect(await activeDomain(db, "go.suspend.example")).not.toBeNull();
-      // Lock doesn't change delivery, so the redirect isn't told about it.
-      expect(messages).toHaveLength(0);
+      // Lock keeps delivery on; the redirect is told the (unchanged) state.
+      await Bun.sleep(100);
+      expect(messages).toEqual([
+        { workspaceId: ctx.workspace._id.toHexString(), suspended: false },
+      ]);
+      expect(
+        await db.collection(physicalNames.bio_delivery_jobs).countDocuments(),
+      ).toBe(0);
+      messages.length = 0;
     });
 
     test("suspension stops links, bio pages and custom domains; restore brings them back", async () => {
@@ -181,6 +188,45 @@ const redisUrl = process.env.REDIS_TEST_URL;
         { workspaceId: ctx.workspace._id.toHexString(), suspended: true },
         { workspaceId: ctx.workspace._id.toHexString(), suspended: false },
       ]);
+    });
+
+    test("a retry after a failed publish still notifies the redirect and purges bio pages", async () => {
+      await db.collection(physicalNames.bio_delivery_jobs).deleteMany({});
+      messages.length = 0;
+      const down = {
+        publish: async (): Promise<number> => {
+          throw new Error("redis down");
+        },
+      };
+      await expect(
+        setWorkspaceSuspension(
+          { db, cache: down },
+          ctx.workspace._id,
+          suspension("suspended"),
+        ),
+      ).rejects.toThrow("redis down");
+      // The field was written before the publish failed.
+      expect((await context()).actor.readOnly).toBe("suspended");
+      expect(
+        await db.collection(physicalNames.bio_delivery_jobs).countDocuments(),
+      ).toBe(0);
+      expect(
+        (
+          await setWorkspaceSuspension(
+            deps(),
+            ctx.workspace._id,
+            suspension("suspended"),
+          )
+        ).ok,
+      ).toBe(true);
+      await Bun.sleep(100);
+      expect(messages).toEqual([
+        { workspaceId: ctx.workspace._id.toHexString(), suspended: true },
+      ]);
+      expect(
+        await db.collection(physicalNames.bio_delivery_jobs).countDocuments(),
+      ).toBe(1);
+      await setWorkspaceSuspension(deps(), ctx.workspace._id, null);
     });
 
     test("invalid input and unknown workspaces are refused", async () => {

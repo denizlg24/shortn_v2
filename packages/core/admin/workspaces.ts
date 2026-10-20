@@ -42,13 +42,13 @@ export async function setWorkspaceSuspension(
   if (!before) return fail("not_found" as const);
   const was = before.suspension?.level === "suspended";
   const is = next?.level === "suspended";
-  if (was !== is) {
-    await publishWorkspaceSuspension(deps.cache, {
-      workspaceId: workspaceId.toHexString(),
-      suspended: is,
-    });
-    await purgeBioPages(deps, before);
-  }
+  // Both effects are idempotent and run even when the stored level didn't
+  // change, so a retry after a failed publish or purge finishes the job.
+  await publishWorkspaceSuspension(deps.cache, {
+    workspaceId: workspaceId.toHexString(),
+    suspended: is,
+  });
+  if (was || is) await purgeBioPages(deps, before);
   return ok({
     before: before.suspension ?? null,
     after: next ?? null,
