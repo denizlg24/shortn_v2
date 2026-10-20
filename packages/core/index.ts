@@ -9,6 +9,8 @@ export * from "./workspaces/authz";
 export * from "./workspaces/service";
 export * from "./workspaces/status";
 export * from "./admin/workspaces";
+export * from "./admin/links";
+export * from "./links/moderation";
 export * from "./result";
 export * from "./workspaces/context";
 export * from "./tags/service";

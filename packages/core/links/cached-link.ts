@@ -57,6 +57,7 @@ export interface LegacyLinkFields {
   isQrCode?: boolean | undefined;
   qrCodeId?: string | undefined;
   demo?: boolean | undefined;
+  moderation?: { state?: string | undefined } | undefined;
 }
 
 export interface LegacyQrFields {
@@ -85,6 +86,7 @@ export const linkProjection = {
   isQrCode: 1,
   qrCodeId: 1,
   demo: 1,
+  "moderation.state": 1,
 } as const;
 
 export function isLegacyQrBacked(link: LegacyLinkFields): boolean {
@@ -97,10 +99,13 @@ export function toCachedLink(
   qr: LegacyQrFields | null,
 ): CachedLink {
   if (link.deletedAt) return { kind: "deleted" };
+  // A takedown also sets the legacy fields; this keeps it blocked if those
+  // are ever cleared by a writer that doesn't know about moderation.
   const blocked =
     link.disabled ||
     link.safetyStatus === "blocked" ||
-    link.safetyStatus === "malicious";
+    link.safetyStatus === "malicious" ||
+    link.moderation?.state === "taken_down";
   const interstitial =
     link.requiresInterstitial || link.safetyStatus === "suspicious";
   const qrBacked = isLegacyQrBacked(link);

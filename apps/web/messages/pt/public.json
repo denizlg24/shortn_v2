@@ -9,7 +9,18 @@
     "body": "O Shortn desativou-o por poder ser perigoso, por isso não leva a lado nenhum.",
     "reported": "Vários visitantes denunciaram este link, por isso está desativado até o analisarmos.",
     "unavailableTitle": "Este link não está disponível",
-    "suspended": "A conta a que este link pertence foi suspensa, por isso não o leva a lado nenhum."
+    "suspended": "A conta a que este link pertence foi suspensa, por isso não o leva a lado nenhum.",
+    "removedTitle": "Este link foi removido",
+    "removed": "A Shortn removeu este link por violar os seus termos ({category}).",
+    "categories": {
+      "phishing": "phishing",
+      "malware": "malware",
+      "spam": "spam",
+      "illegal": "conteúdo ilegal",
+      "copyright": "violação de direitos de autor",
+      "impersonation": "usurpação de identidade",
+      "other": "uma violação dos termos"
+    }
   },
   "authenticate": {
     "metaTitle": "Palavra-passe necessária",

@@ -10,6 +10,7 @@ import {
   withMutation,
 } from "../webhooks/events";
 import { fail, ok } from "../result";
+import { isTakenDown } from "./moderation";
 
 /** Archive is library organization: redirects and resource associations stay intact. */
 export async function setLinksArchived(
@@ -49,6 +50,7 @@ export async function setLinksArchived(
       )
       .toArray();
     if (selected.length !== ids.length) return fail("not_found" as const);
+    if (selected.some(isTakenDown)) return fail("taken_down" as const);
     const now = nowOf(ctx),
       changed = selected.filter(
         (link) => Boolean(link.archivedAt) !== archived,

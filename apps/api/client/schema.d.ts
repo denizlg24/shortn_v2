@@ -5762,6 +5762,12 @@ export interface components {
         campaign?: components["schemas"]["Campaign"][];
       };
       qrCodeId: string | null;
+      /** @description Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted. */
+      moderation?: {
+        /** @enum {string} */
+        state: "taken_down";
+        category: string;
+      } | null;
       deletedAt?: string | null;
       restoreUntil?: string | null;
       utm: {

@@ -347,6 +347,20 @@
           "qrCodeId": {
             "type": ["string", "null"]
           },
+          "moderation": {
+            "type": ["object", "null"],
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": ["taken_down"]
+              },
+              "category": {
+                "type": "string"
+              }
+            },
+            "required": ["state", "category"],
+            "description": "Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted."
+          },
           "deletedAt": {
             "type": ["string", "null"]
           },

@@ -21,6 +21,8 @@ export interface PublicLink {
   passwordProtected: boolean;
   blocked: boolean;
   disabledReason: string | null;
+  /** Category of a staff takedown, shown to visitors. */
+  moderationCategory: string | null;
   safetyStatus: string;
   createdAt: string;
   creatorName: string | null;
@@ -77,6 +79,7 @@ export async function publicLink(
       passwordProtected: false,
       blocked: true,
       disabledReason: "workspace:suspended",
+      moderationCategory: null,
       safetyStatus: "blocked",
       createdAt: date.toISOString(),
       creatorName: null,
@@ -91,10 +94,18 @@ export async function publicLink(
     blocked: Boolean(
       doc.disabled ||
       doc.safetyStatus === "blocked" ||
-      doc.safetyStatus === "malicious",
+      doc.safetyStatus === "malicious" ||
+      doc.moderation,
     ),
-    disabledReason:
-      typeof doc.disabledReason === "string" ? doc.disabledReason : null,
+    disabledReason: doc.moderation
+      ? "admin:takedown"
+      : typeof doc.disabledReason === "string"
+        ? doc.disabledReason
+        : null,
+    moderationCategory:
+      typeof doc.moderation?.category === "string"
+        ? doc.moderation.category
+        : null,
     safetyStatus:
       typeof doc.safetyStatus === "string" ? doc.safetyStatus : "pending",
     createdAt: date.toISOString(),

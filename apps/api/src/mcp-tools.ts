@@ -98,6 +98,7 @@ export function createMcpTools(
     title: link.title,
     tags: link.tags,
     safety: link.safety,
+    moderation: link.moderation ?? null,
   });
   function tool<S extends z.ZodRawShape>(
     name: string,

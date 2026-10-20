@@ -90,7 +90,9 @@
     "createdBy": "Creado por",
     "unknownCreator": "Creador no disponible",
     "disabledNotice": "Este enlace corto está desactivado y no redirige a los visitantes.",
-    "safetyPage": "Los visitantes ven una página de seguridad antes de continuar."
+    "safetyPage": "Los visitantes ven una página de seguridad antes de continuar.",
+    "takenDownNotice": "Eliminado por el equipo de confianza y seguridad de Shortn: {category}. Ya no redirige y no se puede editar. Escribe a support@shortn.at para recurrir; puedes seguir eliminándolo.",
+    "takenDownLocked": "Shortn ha eliminado este enlace, así que no se puede editar. Escribe a support@shortn.at para recurrir."
   },
   "form": {
     "newTitle": "Nuevo enlace",

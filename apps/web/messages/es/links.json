@@ -73,7 +73,8 @@
     "invalidInput": "Algunos campos son demasiado largos o no son válidos. Revísalos y vuelve a intentarlo.",
     "network": "No se pudo conectar con Shortn. Comprueba tu conexión y vuelve a intentarlo.",
     "generic": "Algo ha fallado por nuestra parte. Vuelve a intentarlo.",
-    "copyFailed": "No se pudo copiar al portapapeles."
+    "copyFailed": "No se pudo copiar al portapapeles.",
+    "takenDown": "Shortn ha eliminado este enlace, así que no se puede modificar."
   },
   "sheet": {
     "overview": "Resumen",

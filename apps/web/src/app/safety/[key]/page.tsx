@@ -1,6 +1,7 @@
 import { publicRequestDomain } from "@/server/public-domain";
 import { env as publicEnv } from "@/server/env";
 import { keyPattern, publicLink, reportReasons } from "@shortn/core";
+import { moderationCategoryKey } from "@/lib/moderation";
 import { buttonVariants, cn, Label, Textarea } from "@shortn/ui";
 import { ChevronRight } from "lucide-react";
 import type { Metadata } from "next";
@@ -38,7 +39,6 @@ const statusTone = {
 } as const;
 const isStatus = (value: string): value is keyof typeof statusTone =>
   value in statusTone;
-
 const reportStates = ["sent", "rate_limited", "invalid"] as const;
 type ReportState = (typeof reportStates)[number];
 const isReportState = (value: unknown): value is ReportState =>
@@ -91,6 +91,16 @@ export default async function SafetyPage({
         <PublicMessage
           title={t("blocked.unavailableTitle")}
           description={t("blocked.suspended")}
+          action={home}
+        />
+      ) : link.disabledReason === "admin:takedown" ? (
+        <PublicMessage
+          title={t("blocked.removedTitle")}
+          description={t("blocked.removed", {
+            category: t(
+              `blocked.categories.${moderationCategoryKey(link.moderationCategory)}`,
+            ),
+          })}
           action={home}
         />
       ) : (

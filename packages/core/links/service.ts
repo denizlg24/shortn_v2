@@ -73,6 +73,7 @@ import {
 import { can } from "../workspaces/authz";
 import { legacySubOf, nowOf, type ServiceContext } from "../workspaces/context";
 import { ownedBy, parseObjectId } from "../workspaces/service";
+import { isTakenDown } from "./moderation";
 
 type Link = Documents["links"];
 type CampaignRefs = { links: ObjectId[]; workspaceId?: ObjectId; sub?: string };
@@ -107,6 +108,8 @@ export interface LinkView {
   password: { hint: string | null } | null;
   safety: { status: string; disabled: boolean; interstitial: boolean };
   qrCodeId: string | null;
+  /** Set when Shortn staff took the link down; owners can't edit it. */
+  moderation?: { state: "taken_down"; category: string } | null;
   deletedAt?: string | null;
   archivedAt?: string | null;
   restoreUntil?: string | null;
@@ -159,6 +162,9 @@ export function toLinkView(link: Link, linkDomain: string): LinkView {
       ),
     },
     qrCodeId: link.qrCodeId || null,
+    moderation: link.moderation
+      ? { state: link.moderation.state, category: link.moderation.category }
+      : null,
     deletedAt: link.deletedAt?.toISOString() ?? null,
     archivedAt: link.archivedAt?.toISOString() ?? null,
     restoreUntil: link.deletedAt
@@ -188,7 +194,8 @@ export type LinkError =
   | "feature_required"
   | "limit_reached"
   | "not_found"
-  | "invalid_input";
+  | "invalid_input"
+  | "taken_down";
 
 function normalizeUrl(input: string): string {
   const trimmed = input.trim();
@@ -1002,6 +1009,7 @@ export async function updateLink(
   if (!can(ctx.actor, "resource.update")) return fail("forbidden");
   const link = await findOwned(ctx, id);
   if (!link) return fail("not_found");
+  if (isTakenDown(link)) return fail("taken_down");
   const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
   const legacy: Document = { ...link };
   const set: Document = {};

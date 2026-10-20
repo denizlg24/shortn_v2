@@ -166,7 +166,8 @@ export type QrError =
   | "unsafe_destination"
   | "feature_required"
   | "limit_reached"
-  | "not_found";
+  | "not_found"
+  | "taken_down";
 
 function checkUrl(input: string) {
   const trimmed = input.trim();
@@ -673,6 +674,32 @@ export async function updateQr(
   }
   if (input.design?.image && !hasFeature(entitlements, "qrLogo"))
     return fail("feature_required", { feature: "qrLogo" });
+  if (Object.keys(linkSet).length) {
+    const targets = [
+      qr.linkId instanceof ObjectId
+        ? { _id: qr.linkId }
+        : typeof qr.urlId === "string" && qr.urlId
+          ? { urlCode: qr.urlId }
+          : null,
+      input.applyToLink && qr.attachedLinkId instanceof ObjectId
+        ? { _id: qr.attachedLinkId }
+        : null,
+    ].filter((target) => target !== null);
+    if (
+      targets.length &&
+      (await collection(ctx.db, "links").findOne(
+        {
+          $and: [
+            { $or: targets },
+            { moderation: { $exists: true } },
+            ownedBy<Link>(ctx.workspace),
+          ],
+        },
+        { projection: { _id: 1 } },
+      ))
+    )
+      return fail("taken_down");
+  }
   const result = await withMutation(ctx.db, async (session) => {
     const current = await collection(ctx.db, "qr_codes").findOne(
       { $and: [{ _id: qr._id }, ownedBy<QrCode>(ctx.workspace)] },
@@ -767,6 +794,7 @@ async function updateBackingLink(
   );
   if (
     !link ||
+    link.moderation ||
     Object.entries(defined).every(([key, value]) =>
       isDeepStrictEqual(link[key], value),
     )

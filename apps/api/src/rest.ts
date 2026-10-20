@@ -256,6 +256,14 @@ const linkSchema = z
       })
       .optional(),
     qrCodeId: z.string().nullable(),
+    moderation: z
+      .object({ state: z.literal("taken_down"), category: z.string() })
+      .nullable()
+      .optional()
+      .openapi({
+        description:
+          "Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted.",
+      }),
     deletedAt: z.string().nullable().optional(),
     restoreUntil: z.string().nullable().optional(),
     utm: z.array(
@@ -2510,7 +2518,8 @@ function serviceErrorStatus(error: string): 400 | 403 | 404 | 409 {
     error === "forbidden" ||
     error === "feature_required" ||
     error === "addon_required" ||
-    error === "feature_disabled"
+    error === "feature_disabled" ||
+    error === "taken_down"
   )
     return 403;
   if (error === "not_found") return 404;

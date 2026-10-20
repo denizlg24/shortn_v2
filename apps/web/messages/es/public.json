@@ -9,7 +9,18 @@
     "body": "Shortn lo desactivó porque puede ser dañino, así que no lleva a ninguna parte.",
     "reported": "Varios visitantes denunciaron este enlace, así que está desactivado hasta que lo revisemos.",
     "unavailableTitle": "Este enlace no está disponible",
-    "suspended": "La cuenta propietaria de este enlace está suspendida, así que no puede llevarte a ningún sitio."
+    "suspended": "La cuenta propietaria de este enlace está suspendida, así que no puede llevarte a ningún sitio.",
+    "removedTitle": "Este enlace se ha eliminado",
+    "removed": "Shortn ha eliminado este enlace por incumplir sus condiciones ({category}).",
+    "categories": {
+      "phishing": "phishing",
+      "malware": "malware",
+      "spam": "spam",
+      "illegal": "contenido ilegal",
+      "copyright": "infracción de derechos de autor",
+      "impersonation": "suplantación de identidad",
+      "other": "un incumplimiento de las condiciones"
+    }
   },
   "authenticate": {
     "metaTitle": "Se necesita contraseña",
