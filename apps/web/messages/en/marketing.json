@@ -118,6 +118,12 @@
       },
       "source": "Our largest customer's workspace, measured {date}. Shared with their permission."
     },
+    "video": {
+      "title": "One link, from poster to analytics",
+      "body": "Shorten a link, print it as a QR code, find it among thousands and see every click and scan. Twenty seconds of the real dashboard.",
+      "label": "Shortn product video: creating a short link, designing its QR code, filtering a large link library and reading its analytics",
+      "caption": "Recorded in a sample workspace. Sound stays off until you turn it on."
+    },
     "print": {
       "title": "Print a QR code once. Change where it goes any time.",
       "body": "Every QR code points to a short link, so you can update the destination after the agenda, poster or packaging is printed. Scans and clicks are counted separately.",
