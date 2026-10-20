@@ -44,6 +44,16 @@
   --chart-5: oklch(0.46 0.15 297);
   --chart-6: oklch(0.47 0.12 52);
 
+  /* Tag dots: a fixed categorical palette. The chart hues are already checked
+     for colour-vision separation; slate and blue sit apart from signal. */
+  --tag-slate: oklch(0.6 0.025 265);
+  --tag-blue: oklch(0.56 0.13 235);
+  --tag-teal: var(--chart-3);
+  --tag-violet: var(--chart-5);
+  --tag-magenta: var(--chart-2);
+  --tag-ochre: var(--chart-4);
+  --tag-rust: var(--chart-6);
+
   --elevation-overlay: 0 8px 24px -8px oklch(0.2 0.04 265 / 18%);
 
   --font-ui: "Geist Variable", "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -131,6 +141,9 @@
   --chart-4: oklch(0.8 0.125 74);
   --chart-5: oklch(0.81 0.1 292);
   --chart-6: oklch(0.66 0.155 51);
+
+  --tag-slate: oklch(0.66 0.012 265);
+  --tag-blue: oklch(0.72 0.11 235);
 
   --elevation-overlay: 0 8px 24px -8px oklch(0 0 0 / 60%);
 }
