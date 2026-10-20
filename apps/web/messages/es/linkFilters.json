@@ -1,0 +1,70 @@
+{
+  "label": "Filtrar enlaces",
+  "search": "Buscar",
+  "searchPlaceholder": "Buscar clave, destino o título…",
+  "clearSearch": "Borrar búsqueda",
+  "filter": "Filtrar",
+  "filterActive": "{count, plural, one {Filtrar, # activo} other {Filtrar, # activos}}",
+  "filterBy": "Filtrar por…",
+  "back": "Volver a los filtros",
+  "editFilter": "Cambiar filtro: {filter}",
+  "remove": "Quitar filtro: {filter}",
+  "clear": "Quitar todo",
+  "results": "{count, plural, one {# enlace} other {# enlaces}}",
+  "loading": "Cargando…",
+  "retry": "Reintentar",
+  "andMore": "{first}, +{count}",
+  "facets": {
+    "tags": "Etiqueta",
+    "status": "Estado",
+    "domain": "Dominio",
+    "campaign": "Campaña",
+    "created": "Creado"
+  },
+  "operators": {
+    "is": "es",
+    "isAnyOf": "es una de",
+    "isAllOf": "incluye todas"
+  },
+  "tagsFacet": {
+    "search": "Buscar etiquetas…",
+    "empty": "Ninguna etiqueta coincide.",
+    "failed": "No se pudieron cargar las etiquetas.",
+    "untagged": "Sin etiqueta",
+    "more": "Cargar más etiquetas",
+    "match": "Coincidir",
+    "any": "Cualquiera",
+    "all": "Todas",
+    "anyHint": "Enlaces con al menos una de las etiquetas seleccionadas",
+    "allHint": "Enlaces con todas las etiquetas seleccionadas",
+    "manage": "Gestionar etiquetas"
+  },
+  "domainFacet": {
+    "search": "Buscar dominios…",
+    "empty": "Ningún dominio coincide.",
+    "default": "Predeterminado"
+  },
+  "campaignFacet": {
+    "search": "Buscar campañas…",
+    "empty": "Ninguna campaña coincide.",
+    "failed": "No se pudieron cargar las campañas.",
+    "more": "Cargar más campañas",
+    "unknown": "Campaña desconocida"
+  },
+  "createdFacet": {
+    "custom": "Intervalo personalizado…",
+    "from": "Desde (UTC)",
+    "to": "Hasta (UTC)",
+    "apply": "Aplicar intervalo",
+    "range": "{from} – {to}",
+    "since": "Desde {from}",
+    "until": "Hasta {to}"
+  },
+  "sort": "Ordenar por",
+  "displayLabel": "Ordenar y mostrar, actualmente {sort}",
+  "group": "Agrupar por",
+  "groups": {
+    "none": "Sin agrupar",
+    "tag": "Etiqueta"
+  }
+}
