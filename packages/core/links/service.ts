@@ -272,7 +272,7 @@ export async function suggestAvailableLinkKey(
 ) {
   if (
     !can(ctx.actor, "resource.create") ||
-    !hasFeature(await loadEntitlements(ctx.db, ctx.workspace._id), "customKeys")
+    !hasFeature(await loadEntitlements(ctx.db, ctx.workspace), "customKeys")
   )
     return null;
   let source = title?.trim() ?? "";
@@ -464,7 +464,7 @@ export async function validateCreateLinks(
 ) {
   if (!inputs.length || inputs.length > 500)
     throw new Error("invalid_batch_size");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const results: Result<CreateLinkInput, LinkError>[] = [];
   for (const input of inputs) {
     const result = await prepareLinkCreation(
@@ -658,7 +658,7 @@ async function createManyAttached(
   };
   const prior = await replay();
   if (prior) return prior;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const prepared: PreparedLinkCreation[] = [];
   const keys = new Set<string>();
   const earlierFailure = async (): Promise<Result<
@@ -1010,7 +1010,7 @@ export async function updateLink(
   const link = await findOwned(ctx, id);
   if (!link) return fail("not_found");
   if (isTakenDown(link)) return fail("taken_down");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const legacy: Document = { ...link };
   const set: Document = {};
   const oldKey = link.urlCode ?? link.key;

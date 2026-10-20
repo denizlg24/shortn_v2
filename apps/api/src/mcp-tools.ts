@@ -449,7 +449,7 @@ export function createMcpTools(
     ["workspace:read"],
     false,
     async () => {
-      const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+      const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
       const consumed = await countUsage(
         ctx.db,
         ctx.workspace,

@@ -34,7 +34,7 @@ export default async function MembersSettingsPage({
   ]);
   const [{ members, invites }, entitlements] = await Promise.all([
     membersAction(slug),
-    loadEntitlements(await db(), workspace._id),
+    loadEntitlements(await db(), workspace),
   ]);
   const manage = canManageMembers({
     userId: session.user.id,

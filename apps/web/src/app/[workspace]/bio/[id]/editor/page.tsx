@@ -24,7 +24,7 @@ export default async function BioEditorPage({
   const [document, versions, entitlements] = await Promise.all([
     ownedBioDocument(ctx, id),
     bioVersions(ctx, id),
-    loadEntitlements(ctx.db, ctx.workspace._id),
+    loadEntitlements(ctx.db, ctx.workspace),
   ]);
   const resolved = await publicBioFromDocument(
     ctx.db,

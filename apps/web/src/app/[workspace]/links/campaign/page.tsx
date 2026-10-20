@@ -31,7 +31,7 @@ export default async function BulkCampaignPage({
     t = await getTranslations("bulkCampaign"),
     base = `/${workspace}/links`;
   const entitled = hasFeature(
-    await loadEntitlements(ctx.db, ctx.workspace._id),
+    await loadEntitlements(ctx.db, ctx.workspace),
     "campaigns",
   );
   const incoming = decodeSelection(query.selection);

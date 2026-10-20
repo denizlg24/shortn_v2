@@ -71,7 +71,7 @@ export async function buyDomainAddonAction(workspace: string) {
   const [allowance, domains, entitlements] = await Promise.all([
     domainAllowance(ctx.db, ctx.workspace._id),
     listDomains(ctx),
-    loadEntitlements(ctx.db, ctx.workspace._id),
+    loadEntitlements(ctx.db, ctx.workspace),
   ]);
   // Free workspaces get no domains from an add-on (domainAllowance), so
   // selling them one would charge for nothing.

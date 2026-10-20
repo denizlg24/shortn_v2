@@ -567,7 +567,7 @@ const linkResponse = z.object({
       if (!created.ok) throw new Error(created.error);
       keyIds.push(created.value.key.id);
       const secret = created.value.secret;
-      const limit = (await loadEntitlements(db, workspace._id)).limits.links!;
+      const limit = (await loadEntitlements(db, workspace)).limits.links!;
       const readonly = await createApiKey(
         bulkCtx,
         { name: "Read", scopes: ["links:read"] },
@@ -3827,6 +3827,44 @@ const linkResponse = z.object({
         expect((await request("/v1/links", created.secret)).status).toBe(200);
       } finally {
         await users.deleteOne({ _id });
+      }
+    });
+    test("a comp and a staff rate override set the API tier", async () => {
+      const created = await key(["links:read"]);
+      const workspaces = collection(db, "workspaces");
+      const grant = {
+        reason: "partner",
+        grantedBy: "staff",
+        grantedAt: new Date(),
+      };
+      try {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $set: { entitlementOverride: { ...grant, plan: "pro" } } },
+        );
+        const comped = await request("/v1/links", created.secret);
+        expect(comped.status).toBe(200);
+        expect(comped.headers.get("RateLimit-Limit")).toBe("1200");
+        await cache.del(`api:rate:${created.key.id}`);
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              entitlementOverride: { ...grant, limits: { apiPerMinute: 2 } },
+            },
+          },
+        );
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        const limited = await request("/v1/links", created.secret);
+        expect(limited.status).toBe(429);
+        expect(limited.headers.get("RateLimit-Limit")).toBe("2");
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { entitlementOverride: "" } },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
       }
     });
     test("a locked workspace reads but can't write; a suspended one gets 403 for everything", async () => {

@@ -152,7 +152,7 @@ export async function inviteMember(
     }))
   )
     return fail("already_member");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const seats = entitlements.limits.seats;
   if (seats !== null && (await seatsUsed(ctx, email)) >= seats)
     return fail("seats_exhausted", { seats });
@@ -346,7 +346,7 @@ export async function createWorkspace(
     personal: true,
   });
   if (!personal) return fail("not_found");
-  const entitlements = await loadEntitlements(db, personal._id);
+  const entitlements = await loadEntitlements(db, personal);
   const limit = entitlements.limits.workspaces;
   if (limit !== null) {
     const owned = await collection(db, "workspaces").countDocuments({

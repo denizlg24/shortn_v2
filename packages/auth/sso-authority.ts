@@ -1,5 +1,9 @@
 import { createHash, randomUUID } from "node:crypto";
-import { physicalNames } from "@shortn/db";
+import {
+  enterpriseComp,
+  entitlementOverrideSchema,
+  physicalNames,
+} from "@shortn/db";
 import type { BetterAuthPlugin } from "better-auth";
 import type {
   SSOUserResolution,
@@ -60,6 +64,7 @@ export const ssoAuthoritySchema: BetterAuthPlugin = {
         ownerUserId: { type: "string", input: false },
         personal: { type: "boolean", input: false },
         platformFeatures: { type: "json", required: false, input: false },
+        entitlementOverride: { type: "json", required: false, input: false },
         authFence: { type: "string", required: false, input: false },
       },
     },
@@ -192,6 +197,7 @@ export async function ssoWorkspaceAuthority(
   database: Database,
   workspaceId: string,
   userId: string,
+  now = new Date(),
 ) {
   const workspace = await find(database, ssoAuthorityModels.workspace, {
     id: workspaceId,
@@ -214,6 +220,13 @@ export async function ssoWorkspaceAuthority(
     !["owner", "admin", "member", "viewer"].includes(String(member.role))
   )
     return null;
+  // A staff comp to Enterprise counts like the subscription (23 §3.4). It
+  // lives on the workspace row, which the authority write already fences.
+  const override = entitlementOverrideSchema.safeParse(
+    workspace.entitlementOverride,
+  );
+  if (override.success && enterpriseComp(override.data, now))
+    return { workspace, member, subscription: null };
   // Match the existing billing entitlement statuses; a stale workspace.plan mirror
   // is not proof of a current Enterprise subscription.
   const subscription = await database.findOne<Row>({
@@ -308,7 +321,12 @@ export async function resolveWorkspaceSsoIdentity(
   }
   if (!userId) return reject("SSO_ACCOUNT_NOT_CONNECTED");
   const user = await find(database, "user", { id: userId });
-  const authority = await ssoWorkspaceAuthority(database, workspaceId, userId);
+  const authority = await ssoWorkspaceAuthority(
+    database,
+    workspaceId,
+    userId,
+    now,
+  );
   if (!user || user.emailVerified !== true || !authority)
     return reject("SSO_MEMBERSHIP_REQUIRED");
   if (
@@ -324,16 +342,18 @@ export async function resolveWorkspaceSsoIdentity(
     return reject("SSO_BINDING_MISMATCH");
   // Writes fence concurrent membership removal, flag changes and entitlement
   // cancellation: a snapshot read alone could otherwise commit a stale decision.
+  // A comp has no subscription row; the workspace fence covers its override.
   for (const [model, row] of [
     [ssoAuthorityModels.workspace, authority.workspace],
     [ssoAuthorityModels.member, authority.member],
     [ssoAuthorityModels.subscription, authority.subscription],
   ] as const)
-    await database.update({
-      model,
-      where: [{ field: "id", value: row.id }],
-      update: { authFence: randomUUID() },
-    });
+    if (row)
+      await database.update({
+        model,
+        where: [{ field: "id", value: row.id }],
+        update: { authFence: randomUUID() },
+      });
   await database.update({
     model: "ssoProvider",
     where: [{ field: "id", value: provider.id }],

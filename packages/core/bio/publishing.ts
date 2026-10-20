@@ -51,7 +51,7 @@ export async function readBioDraft(
 async function validateContent(ctx: ServiceContext, input: unknown) {
   const result = bioContentSchema.safeParse(input);
   if (!result.success) return fail("invalid_input" as const);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   if (
     entitlements.plan === "free" &&
     (result.data.hideBranding ||

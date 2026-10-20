@@ -41,7 +41,7 @@ export async function coordinateLegacyCreation<T>(
         { session, projection: { _id: 1 } },
       );
       if (active || workspace.importQuotaCoordinated === true) {
-        const entitlements = await loadEntitlements(db, workspace._id),
+        const entitlements = await loadEntitlements(db, workspace),
           limit = entitlements.limits[metric];
         if (limit !== null) {
           const used = await countUsage(

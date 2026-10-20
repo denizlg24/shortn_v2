@@ -82,7 +82,7 @@ export function toCampaignView(campaign: Campaign): CampaignView {
 async function gate(ctx: ServiceContext, write: boolean) {
   if (!can(ctx.actor, write ? "resource.update" : "workspace.view"))
     return fail("forbidden");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   if (!hasFeature(entitlements, "campaigns"))
     return fail("feature_required", { feature: "campaigns" });
   return null;

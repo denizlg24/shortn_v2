@@ -38,7 +38,7 @@ export async function POST(
     return failure("forbidden", 403);
   if (
     purpose === "qr-logo" &&
-    !hasFeature(await loadEntitlements(database, ctx.workspace._id), "qrLogo")
+    !hasFeature(await loadEntitlements(database, ctx.workspace), "qrLogo")
   )
     return failure("plan", 403);
   const store = storage();

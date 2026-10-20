@@ -55,7 +55,7 @@ export async function billingOverviewAction(
   workspace: string,
 ): Promise<BillingOverview> {
   const ctx = await serviceContext(workspace);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const usage = await countUsage(ctx.db, ctx.workspace, entitlements.period);
   const mirror = entitlements.subscription
     ? await collection(ctx.db, "subscriptions").findOne({

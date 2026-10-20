@@ -1,4 +1,4 @@
-import { rateScript } from "./rate-limit";
+import { apiRateLimit, rateScript } from "./rate-limit";
 import { workspaceBlock } from "./workspace-access";
 import { bioContentSchema } from "@shortn/core/bio-content";
 import { createHash } from "node:crypto";
@@ -581,18 +581,10 @@ export function createRestApi(deps: RestDeps) {
       actor: principal.actor,
       linkDomain: deps.linkDomain,
     });
-    const entitlements = await loadEntitlements(
-      deps.db,
-      principal.workspace._id,
-    );
+    const entitlements = await loadEntitlements(deps.db, principal.workspace);
     c.set("entitlements", entitlements);
-    const limit = {
-      free: 30,
-      basic: 60,
-      plus: 180,
-      pro: 600,
-      enterprise: 1200,
-    }[entitlements.plan];
+    const limit = apiRateLimit(entitlements, "api");
+    if (limit === null) return next();
     const result = z
       .tuple([z.number(), z.number(), z.number()])
       .parse(

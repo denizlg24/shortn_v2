@@ -98,7 +98,7 @@ export async function reserveImportQuota(
     amount > 50_000
   )
     return fail("invalid_input" as const);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id),
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace),
     now = nowOf(ctx);
   return withQuotaMutation(ctx, async (session) => {
     const prior = await importReservations(ctx.db).findOne(
@@ -182,22 +182,20 @@ export async function heldImportBatch(
 ) {
   if (!validImportBatch(batch) || count < 1 || count > 500) return null;
   if (batch.leaseToken) {
-    const fence = await ctx.db
-      .collection(physicalNames.import_jobs)
-      .updateOne(
-        {
-          _id: new ObjectId(batch.id),
-          workspaceId: ctx.workspace._id,
-          createdBy: ctx.actor.userId,
-          kind: metric === "qrCodes" ? "qr" : "links",
-          state: "committing",
-          leaseToken: batch.leaseToken,
-          leaseUntil: { $gt: nowOf(ctx) },
-          expiresAt: { $gt: nowOf(ctx) },
-        },
-        { $inc: { mutationRevision: 1 } },
-        { session },
-      );
+    const fence = await ctx.db.collection(physicalNames.import_jobs).updateOne(
+      {
+        _id: new ObjectId(batch.id),
+        workspaceId: ctx.workspace._id,
+        createdBy: ctx.actor.userId,
+        kind: metric === "qrCodes" ? "qr" : "links",
+        state: "committing",
+        leaseToken: batch.leaseToken,
+        leaseUntil: { $gt: nowOf(ctx) },
+        expiresAt: { $gt: nowOf(ctx) },
+      },
+      { $inc: { mutationRevision: 1 } },
+      { session },
+    );
     if (fence.matchedCount !== 1) return null;
   }
   return importReservations(ctx.db).findOne(
@@ -240,17 +238,15 @@ export async function finishImportBatch<T>(
   if (result.modifiedCount !== 1)
     throw new Error("Import reservation checkpoint changed");
   if (batch.leaseToken)
-    await ctx.db
-      .collection(physicalNames.import_jobs)
-      .updateOne(
-        {
-          _id: reservation._id,
-          leaseToken: batch.leaseToken,
-          state: "committing",
-        },
-        { $max: { done: batch.offset + values.length } },
-        { session },
-      );
+    await ctx.db.collection(physicalNames.import_jobs).updateOne(
+      {
+        _id: reservation._id,
+        leaseToken: batch.leaseToken,
+        state: "committing",
+      },
+      { $max: { done: batch.offset + values.length } },
+      { session },
+    );
   await importReceipts<T>(ctx.db).insertOne(
     {
       _id: new ObjectId(),

@@ -4,6 +4,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { MongoClient, ObjectId, type Db } from "mongodb";
 import { Redis } from "ioredis";
 import { z } from "zod";
+import { plans } from "@shortn/billing";
 import { collection, desiredIndexes, physicalNames } from "@shortn/db";
 import {
   apiScopes,
@@ -678,10 +679,11 @@ const data = z.object({
     test("rate budgets are enforced under the same key namespace as REST", async () => {
       const credential = await key(),
         client = await connect(credential.secret);
-      const values = Array.from({ length: 600 }, (_, index) => [
-        Date.now(),
-        `rest-request-${index}`,
-      ]).flat();
+      // The fixture workspace is on Pro: its catalog rate fills the window.
+      const values = Array.from(
+        { length: plans.pro.limits.apiPerMinute ?? 0 },
+        (_, index) => [Date.now(), `rest-request-${index}`],
+      ).flat();
       await cache.zadd(`api:rate:${credential.key.id}`, ...values);
       await expect(client.listTools()).rejects.toThrow("rate_limited");
     });

@@ -235,7 +235,7 @@ export async function createQr(
     return fail("invalid_input");
   const checked = checkUrl(input.url);
   if (!checked.ok) return checked;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   if (input.design?.image && !hasFeature(entitlements, "qrLogo"))
     return fail("feature_required", { feature: "qrLogo" });
   const attach = input.attachToLinkId
@@ -654,7 +654,7 @@ export async function updateQr(
     return fail("invalid_input");
   const qr = await findOwned(ctx, id);
   if (!qr) return fail("not_found");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const $set: Document = { updatedAt: nowOf(ctx) };
   const linkSet: Document = {};
   if (input.url !== undefined) {

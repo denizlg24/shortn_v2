@@ -56,7 +56,8 @@ export default async function WorkspaceLayout({
     usageFor(slug),
   ]);
   // Workspace.plan is a migration-era snapshot. Match billing and feature
-  // gates by resolving the subscription mirror, in one query for the switcher.
+  // gates by resolving the subscription mirror and any staff override, in one
+  // query for the switcher.
   const subscriptions = await collection(await db(), "subscriptions")
     .find({
       workspaceId: { $in: list.map((item) => item.workspace._id) },
@@ -68,6 +69,8 @@ export default async function WorkspaceLayout({
       item,
       resolveEntitlements(
         subscriptions.filter((sub) => sub.workspaceId.equals(item._id)),
+        new Date(),
+        item.entitlementOverride,
       ).plan,
     ),
   );

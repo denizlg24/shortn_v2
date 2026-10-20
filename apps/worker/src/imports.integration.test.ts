@@ -1260,7 +1260,7 @@ const fixtureDomains = new Set([linkDomain]);
       const usage = await countUsage(
         db,
         ctx.workspace,
-        (await loadEntitlements(db, ctx.workspace._id)).period,
+        (await loadEntitlements(db, ctx.workspace)).period,
       );
       expect(usage).toMatchObject({ links: 5, qrCodes: 5 });
     });
@@ -1458,7 +1458,7 @@ const fixtureDomains = new Set([linkDomain]);
           const usage = await countUsage(
             db,
             ctx.workspace,
-            (await loadEntitlements(db, ctx.workspace._id)).period,
+            (await loadEntitlements(db, ctx.workspace)).period,
           );
           expect(usage).toMatchObject({ links: 0, qrCodes: 1001 });
         }
