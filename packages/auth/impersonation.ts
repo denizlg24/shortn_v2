@@ -27,6 +27,8 @@ const prefixes = [
   "/api-key",
   "/oauth2/",
   "/mcp/",
+  // Polar's customer portal: orders, subscriptions and the billing portal.
+  "/customer/",
 ];
 
 export const impersonationRestricted = (path: string) =>

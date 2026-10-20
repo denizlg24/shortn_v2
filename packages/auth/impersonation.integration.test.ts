@@ -24,6 +24,10 @@ test("account-security paths are restricted for impersonated sessions", () => {
     "/oauth2/delete-consent",
     "/mcp/select-workspace",
     "/api-key/create",
+    "/customer/portal",
+    "/customer/state",
+    "/customer/orders/list",
+    "/customer/subscriptions/list",
   ])
     expect(impersonationRestricted(path)).toBe(true);
   for (const path of ["/get-session", "/update-user", "/sign-out"])
@@ -186,6 +190,22 @@ test("account-security paths are restricted for impersonated sessions", () => {
       );
       expect(select.status).toBe(403);
       expect((await select.json()).code).toBe("IMPERSONATION_FORBIDDEN");
+    }
+  });
+
+  test("neither mode reaches the billing customer portal", async () => {
+    for (const mode of ["read", "write"] as const) {
+      const cookie = cookies(await handoff(mode));
+      for (const path of [
+        "/customer/portal",
+        "/customer/state",
+        "/customer/orders/list",
+        "/customer/subscriptions/list",
+      ]) {
+        const response = await request(path, undefined, cookie);
+        expect(response.status).toBe(403);
+        expect((await response.json()).code).toBe("IMPERSONATION_FORBIDDEN");
+      }
     }
   });
 
