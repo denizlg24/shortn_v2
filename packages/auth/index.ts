@@ -14,6 +14,7 @@ import { handoff } from "./handoff";
 import { mcpOAuthPlugins } from "./mcp-oauth";
 import { assertAccountActive, recordSignIn } from "./account-status";
 import { impersonationPolicy } from "./impersonation";
+import { adminElevation } from "./admin-elevation";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -65,6 +66,8 @@ export interface AuthConfig {
   emails: AuthEmails;
   plugins?: BetterAuthPlugin[];
   mcp?: { resource: string; rolloutPercent?: number };
+  /** Enables staff elevation into the admin console at this origin. */
+  admin?: { origin: string };
 }
 
 const randomSub = () => {
@@ -175,6 +178,7 @@ export function createAuth(config: AuthConfig) {
         "/verify-email": { window: 300, max: 10 },
         "/change-email": { window: 3600, max: 3 },
         "/change-password": { window: 900, max: 5 },
+        "/admin/elevate": { window: 900, max: 5 },
         ...(config.mcp
           ? {
               "/oauth2/register": { window: 3600, max: 10 },
@@ -532,6 +536,15 @@ export function createAuth(config: AuthConfig) {
       }),
       handoff({ db: () => handles().db }),
       impersonationPolicy(),
+      ...(config.admin
+        ? [
+            adminElevation({
+              db: () => handles().db,
+              adminOrigin: config.admin.origin,
+              redis,
+            }),
+          ]
+        : []),
       customerPlugin,
       ...(config.mcp
         ? mcpOAuthPlugins({

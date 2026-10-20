@@ -321,6 +321,7 @@ const reservedSlugs = new Set([
   "en",
   "pt",
   "es",
+  "admin",
 ]);
 
 async function checkWorkspaceSlug(db: Db, raw: string, except?: ObjectId) {

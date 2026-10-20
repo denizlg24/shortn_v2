@@ -14,6 +14,7 @@ export * from "./admin/webhooks";
 export * from "./admin/domains";
 export * from "./admin/jobs";
 export * from "./admin/impersonation";
+export * from "./admin/elevation";
 export * from "./links/moderation";
 export * from "./result";
 export * from "./workspaces/context";

@@ -429,6 +429,10 @@ export const webEnv = z
       "https://login.microsoftonline.com,https://your-company.okta.com",
       "Comma-separated operator-approved identity provider origins; no wildcards",
     ),
+    ADMIN_ORIGIN: httpUrl(
+      "https://admin.shortn.at",
+      "Admin console origin; enables staff elevation and is the only callback target",
+    ).optional(),
     AUTH_GITHUB_ID: oauth.AUTH_GITHUB_ID.optional(),
     AUTH_GITHUB_SECRET: oauth.AUTH_GITHUB_SECRET.optional(),
     AUTH_GOOGLE_ID: oauth.AUTH_GOOGLE_ID.optional(),

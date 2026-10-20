@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { auth } from "@/server/auth";
 import { AccountPage } from "@/server/account-page";
 import { requireWorkspace } from "@/server/workspace";
-import { advancedAuthAvailable } from "@shortn/auth/two-factor";
+import { twoFactorEnrollmentAllowed } from "@shortn/auth/two-factor";
 import { db } from "@/server/db";
 import { TwoFactorSettings } from "@/components/settings/account/two-factor";
 
@@ -36,7 +36,7 @@ export default async function AccountSettingsPage({
       <div className="mt-10 border-t border-line pt-8">
         <TwoFactorSettings
           active={Boolean(session.user.twoFactorEnabled)}
-          available={await advancedAuthAvailable(await db(), session.user.id)}
+          available={await twoFactorEnrollmentAllowed(await db(), session.user)}
           hasPassword={accounts.some(
             (account) => account.providerId === "credential",
           )}

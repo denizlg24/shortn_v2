@@ -71,6 +71,9 @@ export function auth(): Auth {
         ? { clientId: e.AUTH_GOOGLE_ID, clientSecret: e.AUTH_GOOGLE_SECRET }
         : undefined,
     polar: { accessToken: e.POLAR_ACCESS_TOKEN, server: e.POLAR_ENVIRONMENT },
+    ...(e.ADMIN_ORIGIN
+      ? { admin: { origin: new URL(e.ADMIN_ORIGIN).origin } }
+      : {}),
     emails: {
       verifyEmail: (input, request) =>
         mail().verifyEmail({ ...input, locale: localeOf(request) }),
