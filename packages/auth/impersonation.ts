@@ -15,8 +15,13 @@ const exact = new Set([
   "/change-email",
   "/set-password",
   "/delete-user",
+  // Name and username are sign-in identity, not workspace data.
+  "/update-user",
   "/revoke-other-sessions",
   "/revoke-sessions",
+  "/revoke-session",
+  // Its rows carry other sessions' tokens.
+  "/list-sessions",
   "/link-social",
   "/unlink-account",
 ]);

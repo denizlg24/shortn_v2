@@ -28,9 +28,12 @@ test("account-security paths are restricted for impersonated sessions", () => {
     "/customer/state",
     "/customer/orders/list",
     "/customer/subscriptions/list",
+    "/update-user",
+    "/revoke-session",
+    "/list-sessions",
   ])
     expect(impersonationRestricted(path)).toBe(true);
-  for (const path of ["/get-session", "/update-user", "/sign-out"])
+  for (const path of ["/get-session", "/sign-out"])
     expect(impersonationRestricted(path)).toBe(false);
 });
 
@@ -38,6 +41,7 @@ test("account-security paths are restricted for impersonated sessions", () => {
   let db: Db, auth: ReturnType<typeof createAuth>;
   const userId = new ObjectId(fixture.user.id);
   const adminId = new ObjectId().toHexString();
+  let ip = 1;
   const cookies = (response: Response) =>
     response.headers
       .getSetCookie()
@@ -50,6 +54,8 @@ test("account-security paths are restricted for impersonated sessions", () => {
         headers: {
           Origin: fixture.origin,
           Cookie: cookie,
+          // Spread requests over addresses: the per-IP limiter isn't under test.
+          "x-forwarded-for": `198.51.100.${ip++}`,
           ...(body ? { "Content-Type": "application/json" } : {}),
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
@@ -191,6 +197,28 @@ test("account-security paths are restricted for impersonated sessions", () => {
       expect(select.status).toBe(403);
       expect((await select.json()).code).toBe("IMPERSONATION_FORBIDDEN");
     }
+  });
+
+  test("neither mode can change the profile, list other sessions' tokens or revoke a session", async () => {
+    await db
+      .collection(physicalNames.user)
+      .updateOne({ _id: userId }, { $set: { username: "original_name" } });
+    for (const mode of ["read", "write"] as const) {
+      const cookie = cookies(await handoff(mode));
+      for (const [path, body] of [
+        ["/update-user", { username: "staff_chosen", name: "Staff" }],
+        ["/revoke-session", { token: "someone-elses-token" }],
+      ] as const) {
+        const response = await request(path, body, cookie);
+        expect(response.status).toBe(403);
+        expect((await response.json()).code).toBe("IMPERSONATION_FORBIDDEN");
+      }
+      const list = await request("/list-sessions", undefined, cookie);
+      expect(list.status).toBe(403);
+    }
+    expect(
+      await db.collection(physicalNames.user).findOne({ _id: userId }),
+    ).toMatchObject({ username: "original_name", name: fixture.user.name });
   });
 
   test("neither mode reaches the billing customer portal", async () => {

@@ -33,8 +33,13 @@ export default async function SessionsPage({
 }: PageProps<"/[workspace]/settings/account/sessions">) {
   const { workspace: slug } = await params;
   const { session } = await requireWorkspace(slug);
+  // Staff impersonating see only their own session: the full list carries
+  // the user's other session tokens, and auth refuses it.
+  const impersonated = Boolean(session.session.impersonatedBy);
   const [sessions, format, locale, t] = await Promise.all([
-    auth().api.listSessions({ headers: await headers() }),
+    impersonated
+      ? [session.session]
+      : auth().api.listSessions({ headers: await headers() }),
     getFormatter(),
     getLocale(),
     getTranslations("settings.account.sessions"),
