@@ -605,6 +605,51 @@ export async function tagLinkCounts(
   return counts;
 }
 
+/**
+ * Tags ranked by how many links in the view carry them, for pickers that
+ * open without a search. One aggregation over the view; never the tag library.
+ */
+export async function pageTagUsage(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  view: ListLinksInput = {},
+  input: { page?: number | undefined; limit?: number | undefined } = {},
+) {
+  const limit = Math.min(Math.max(Math.floor(input.limit ?? 40), 1), 100);
+  const requested = input.page ?? 1;
+  const page = Math.max(1, Number.isSafeInteger(requested) ? requested : 1);
+  const scope = await countScope(ctx, view);
+  const rows = await collection(ctx.db, "links")
+    .aggregate<{ _id: string; links: number }>([
+      { $match: { $and: [scope, { "tags.tagName": { $type: "string" } }] } },
+      {
+        $project: {
+          names: { $setUnion: [{ $ifNull: ["$tags.tagName", []] }] },
+        },
+      },
+      { $unwind: "$names" },
+      { $match: { names: { $regex: /\S/ } } },
+      { $group: { _id: "$names", links: { $sum: 1 } } },
+      { $sort: { links: -1, _id: 1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit + 1 },
+    ])
+    .toArray();
+  const shown = rows.slice(0, limit);
+  const colors = await tagColorsByName(
+    ctx,
+    shown.map((row) => row._id),
+  );
+  return {
+    items: shown.map((row) => ({
+      name: row._id,
+      color: colors[row._id.toLowerCase()] ?? tagColorOf(undefined),
+      links: row.links,
+    })),
+    page,
+    more: rows.length > limit,
+  };
+}
+
 export async function untaggedLinkCount(
   ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
   view: ListLinksInput = {},
