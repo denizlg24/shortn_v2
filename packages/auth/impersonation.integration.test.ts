@@ -18,6 +18,11 @@ test("account-security paths are restricted for impersonated sessions", () => {
     "/passkey/generate-register-options",
     "/sso/register",
     "/oauth2/consent",
+    "/oauth2/authorize",
+    "/oauth2/continue",
+    "/oauth2/update-consent",
+    "/oauth2/delete-consent",
+    "/mcp/select-workspace",
     "/api-key/create",
   ])
     expect(impersonationRestricted(path)).toBe(true);
@@ -79,6 +84,7 @@ test("account-security paths are restricted for impersonated sessions", () => {
       secret: fixture.secret,
       production: false,
       mongo: config,
+      mcp: { resource: `${fixture.origin}/mcp` },
       polar: { accessToken: "synthetic-unused-token", server: "sandbox" },
       emails: {
         verifyEmail: async () => {},
@@ -153,6 +159,34 @@ test("account-security paths are restricted for impersonated sessions", () => {
       .findOne({ _id: userId });
     expect(user?.email).toBe(fixture.user.email);
     expect(user?.twoFactorEnabled).toBe(true);
+  });
+
+  test("neither mode can authorize an OAuth or MCP grant, even one consented before", async () => {
+    for (const mode of ["read", "write"] as const) {
+      const cookie = cookies(await handoff(mode));
+      const authorize = await request(
+        `/oauth2/authorize?${new URLSearchParams({
+          response_type: "code",
+          client_id: "any-client",
+          redirect_uri: "http://127.0.0.1:9/callback",
+          scope: "links:read",
+          code_challenge: "x".repeat(43),
+          code_challenge_method: "S256",
+          resource: `${fixture.origin}/mcp`,
+        })}`,
+        undefined,
+        cookie,
+      );
+      expect(authorize.status).toBe(403);
+      expect((await authorize.json()).code).toBe("IMPERSONATION_FORBIDDEN");
+      const select = await request(
+        "/mcp/select-workspace",
+        { workspaceId: new ObjectId().toHexString() },
+        cookie,
+      );
+      expect(select.status).toBe(403);
+      expect((await select.json()).code).toBe("IMPERSONATION_FORBIDDEN");
+    }
   });
 
   test("staff accounts can't be impersonated", async () => {

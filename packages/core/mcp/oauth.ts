@@ -98,6 +98,8 @@ export async function authenticateMcpOAuth(
     ]);
   if (
     suspension ||
+    // Staff impersonation never authorizes MCP, whatever the session's mode.
+    session?.impersonatedBy ||
     !client ||
     client.disabled ||
     !consent ||
