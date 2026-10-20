@@ -425,6 +425,26 @@ test("account suspension blocks only strict, unexpired bans and any deletion", (
   });
 });
 
+test("a malformed banExpires or banReason never throws and never lifts a ban", () => {
+  const now = new Date("2026-10-20T00:00:00Z");
+  for (const banExpires of [
+    "2020-01-01",
+    1_000,
+    new Date("not a date"),
+    { $date: "2020-01-01" },
+    null,
+  ])
+    expect(accountSuspension({ banned: true, banExpires }, now)).toEqual({
+      kind: "banned",
+    });
+  expect(accountSuspension({ banned: true, banReason: 42 }, now)).toEqual({
+    kind: "banned",
+  });
+  expect(
+    accountSuspension({ banned: "true", banExpires: "x" }, now),
+  ).toBeNull();
+});
+
 test("partial indexes never use a bare _id key, and names are unique per collection", () => {
   for (const indexes of Object.values(desiredIndexes)) {
     for (const index of indexes)

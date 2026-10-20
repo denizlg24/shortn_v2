@@ -20,19 +20,31 @@ export const accountFlagsProjection = {
   deletedAt: 1,
 } as const;
 
+// Fields arrive from Mongo as written, which may predate or bypass the
+// schema, so they're read as unknown and checked here.
+type AccountFlagValues = { [K in keyof AccountFlags]?: unknown };
+
 /** Only `banned === true` blocks, so a malformed flag can't lock users out. A
- * ban without `banExpires` is permanent; an expired one is ignored, not cleared. */
+ * ban without a valid `banExpires` date is permanent; an expired one is
+ * ignored, not cleared. Never throws. */
 export function accountSuspension(
-  user: AccountFlags,
+  user: AccountFlagValues,
   now = new Date(),
 ): AccountSuspension | null {
   if (user.deletion || user.deletedAt) return { kind: "deleted" };
   if (user.banned !== true) return null;
-  if (user.banExpires && user.banExpires.getTime() <= now.getTime())
+  const expires = user.banExpires;
+  if (
+    expires instanceof Date &&
+    Number.isFinite(expires.getTime()) &&
+    expires.getTime() <= now.getTime()
+  )
     return null;
   return {
     kind: "banned",
-    ...(user.banReason ? { reason: user.banReason } : {}),
+    ...(typeof user.banReason === "string" && user.banReason
+      ? { reason: user.banReason }
+      : {}),
   };
 }
 
