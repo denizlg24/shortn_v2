@@ -3236,6 +3236,20 @@
           "disabledAt": {
             "type": ["string", "null"],
             "format": "date-time"
+          },
+          "adminDisabled": {
+            "type": ["object", "null"],
+            "properties": {
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": ["at", "reason"],
+            "description": "Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this."
           }
         },
         "required": [
@@ -3247,7 +3261,8 @@
           "createdAt",
           "updatedAt",
           "failureSince",
-          "disabledAt"
+          "disabledAt",
+          "adminDisabled"
         ]
       }
     },

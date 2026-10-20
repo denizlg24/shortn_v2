@@ -44,6 +44,7 @@ export interface WebhookEndpoint {
   updatedAt: Date;
   failureSince?: Date;
   disabledAt?: Date;
+  adminDisabled?: { at: Date; by: string; reason: string };
 }
 export interface WebhookEnvelope {
   id: string;
@@ -158,6 +159,12 @@ export function webhookView(endpoint: WebhookEndpoint) {
     updatedAt: endpoint.updatedAt.toISOString(),
     failureSince: endpoint.failureSince?.toISOString() ?? null,
     disabledAt: endpoint.disabledAt?.toISOString() ?? null,
+    adminDisabled: endpoint.adminDisabled
+      ? {
+          at: endpoint.adminDisabled.at.toISOString(),
+          reason: endpoint.adminDisabled.reason,
+        }
+      : null,
   };
 }
 export function webhookWritable(ctx: ServiceContext, config: WebhookConfig) {
@@ -254,17 +261,30 @@ export async function updateWebhook(
     ),
     updatedAt: nowOf(ctx),
   };
+  const enabling = parsed.data.enabled === true;
   const endpoint = await endpoints(ctx.db).findOneAndUpdate(
-    { _id, workspaceId: ctx.workspace._id },
+    {
+      _id,
+      workspaceId: ctx.workspace._id,
+      // Staff disabled it; only staff can lift that (23 §3.9).
+      ...(enabling ? { adminDisabled: { $exists: false } } : {}),
+    },
     {
       $set: set,
-      ...(parsed.data.enabled === true
-        ? { $unset: { disabledAt: "", failureSince: "" } }
-        : {}),
+      ...(enabling ? { $unset: { disabledAt: "", failureSince: "" } } : {}),
     },
     { returnDocument: "after" },
   );
-  return endpoint ? ok(webhookView(endpoint)) : fail("not_found");
+  if (endpoint) return ok(webhookView(endpoint));
+  if (
+    enabling &&
+    (await endpoints(ctx.db).findOne(
+      { _id, workspaceId: ctx.workspace._id },
+      { projection: { _id: 1 } },
+    ))
+  )
+    return fail("admin_disabled");
+  return fail("not_found");
 }
 export async function deleteWebhook(ctx: ServiceContext, id: string) {
   if (!can(ctx.actor, "webhooks.manage")) return fail("forbidden");

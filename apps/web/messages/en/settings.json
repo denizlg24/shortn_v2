@@ -579,7 +579,8 @@
       "not_found": "This endpoint or delivery no longer exists. Refresh and try again.",
       "endpoint_disabled": "Enable the endpoint before requesting a delivery.",
       "invalid_input": "Check the name (1–100 characters), HTTPS receiver URL and event selection. For list errors, return to the first page.",
-      "failed": "The request failed. Try again."
+      "failed": "The request failed. Try again.",
+      "admin_disabled": "Shortn disabled this endpoint, so it can't be enabled. Contact support@shortn.at."
     },
     "notices": {
       "saved": "Endpoint saved.",
@@ -593,7 +594,9 @@
       "failed": "Failed",
       "cancelled": "Cancelled"
     },
-    "copied": "Copied"
+    "copied": "Copied",
+    "adminDisabled": "Disabled by Shortn",
+    "adminDisabledNotice": "Shortn disabled this endpoint: {reason}. Contact support@shortn.at to have it reviewed."
   },
   "sso": {
     "title": "Workplace SSO",

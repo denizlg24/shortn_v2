@@ -448,6 +448,13 @@ const webhookSchema = z
     updatedAt: z.iso.datetime(),
     failureSince: z.iso.datetime().nullable(),
     disabledAt: z.iso.datetime().nullable(),
+    adminDisabled: z
+      .object({ at: z.iso.datetime(), reason: z.string() })
+      .nullable()
+      .openapi({
+        description:
+          "Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this.",
+      }),
   })
   .openapi("Webhook");
 const queuedWebhookSchema = z.object({
@@ -2511,7 +2518,9 @@ function serviceErrorStatus(error: string): 400 | 403 | 404 | 409 {
     error === "feature_required" ||
     error === "addon_required" ||
     error === "feature_disabled" ||
-    error === "taken_down"
+    error === "taken_down" ||
+    error === "admin_disabled" ||
+    error === "domain_suspended"
   )
     return 403;
   if (error === "not_found") return 404;

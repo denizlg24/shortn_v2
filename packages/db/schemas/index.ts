@@ -502,6 +502,16 @@ export const domainSchema = z.object({
   kind: z.enum(["links", "bio", "both"]),
   cfCustomHostnameId: text.optional(),
   status: z.enum(["pending", "active", "failed", "disabled", "suspended"]),
+  // Staff suspension (23 §3.8); `previousStatus` is informational, unsuspend
+  // re-verifies from pending.
+  suspension: z
+    .object({
+      at: z.date(),
+      by: text,
+      reason: text.max(1000),
+      previousStatus: text,
+    })
+    .optional(),
   verification: z.object({
     type: text,
     name: text.optional(),

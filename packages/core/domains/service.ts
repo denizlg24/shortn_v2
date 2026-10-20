@@ -284,7 +284,8 @@ export async function removeDomain(ctx: ServiceContext, id: string) {
     const domain = await ctx.db
       .collection(physicalNames.domains)
       .findOneAndUpdate(
-        { _id, workspaceId: ctx.workspace._id },
+        // Removal would free a staff-suspended hostname for re-adding.
+        { _id, workspaceId: ctx.workspace._id, status: { $ne: "suspended" } },
         {
           $set: {
             status: "disabled",
@@ -296,7 +297,15 @@ export async function removeDomain(ctx: ServiceContext, id: string) {
         },
         { session, returnDocument: "after" },
       );
-    if (!domain) return fail("not_found" as const);
+    if (!domain)
+      return (await ctx.db
+        .collection(physicalNames.domains)
+        .findOne(
+          { _id, workspaceId: ctx.workspace._id },
+          { session, projection: { _id: 1 } },
+        ))
+        ? fail("domain_suspended" as const)
+        : fail("not_found" as const);
     const keys: string[] = [];
     for await (const link of collection(ctx.db, "links")
       .find(
@@ -554,7 +563,8 @@ export async function pollDomains(
             _id: domain._id,
             lease,
             removing: { $ne: true },
-            status: { $ne: "disabled" },
+            // A poll in flight when staff suspend must not flip it back.
+            status: { $nin: ["disabled", "suspended"] },
           },
           {
             $set: {

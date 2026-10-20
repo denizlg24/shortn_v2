@@ -6702,6 +6702,12 @@ export interface components {
       failureSince: string | null;
       /** Format: date-time */
       disabledAt: string | null;
+      /** @description Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this. */
+      adminDisabled: {
+        /** Format: date-time */
+        at: string;
+        reason: string;
+      } | null;
     };
   };
   responses: never;
