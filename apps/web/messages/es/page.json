@@ -14,9 +14,7 @@
       "location": "Ubicación",
       "technology": "Dispositivos y software",
       "attribution": "Adquisición"
-    },
-    "remoteOptions": "Hasta 50 resultados. Busca cualquier etiqueta.",
-    "failedOptions": "No se pudieron cargar las etiquetas. Busca de nuevo."
+    }
   },
   "delete": {
     "whatHappens": "Qué ocurre",
@@ -58,6 +56,8 @@
     }
   },
   "selection": {
+    "bar": "Selección",
+    "actions": "Acciones",
     "selectPage": "Seleccionar esta página",
     "count": "{count, plural, one {# seleccionado} other {# seleccionados}}",
     "clear": "Borrar selección",

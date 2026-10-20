@@ -5,6 +5,7 @@ import { LayoutGrid, List } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { BulkSelection } from "@/components/page/bulk-selection";
+import { SelectPageCheckbox } from "@/components/page/selection-bar";
 import { Notice } from "@/components/page/notice";
 import { Page } from "@/components/page/page";
 import { Pagination } from "@/components/page/pagination";
@@ -202,6 +203,7 @@ export default async function QrCodesPage({
                         {
                           href: `${base}/delete`,
                           label: selectionText("delete"),
+                          tone: "danger" as const,
                         },
                       ]
                     : []),
@@ -218,6 +220,14 @@ export default async function QrCodesPage({
             )
             .map((qr) => qr.id)}
         >
+          {view === "grid" ? (
+            <div className="mb-3 flex min-h-6 items-center">
+              <SelectPageCheckbox
+                label={selectionText("selectPage")}
+                showLabel
+              />
+            </div>
+          ) : null}
           {view === "grid" ? (
             <ul className="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] border-t border-l border-line">
               {result.items.map((qr, index) => (
@@ -260,7 +270,9 @@ export default async function QrCodesPage({
                   <tr>
                     {exportsEnabled || anyDeletable ? (
                       <th scope="col" className="w-10 py-2 pr-2 font-medium">
-                        <span className="sr-only">{t("columns.select")}</span>
+                        <SelectPageCheckbox
+                          label={selectionText("selectPage")}
+                        />
                       </th>
                     ) : null}
                     <th scope="col" className="py-2 pr-4 font-medium">

@@ -85,7 +85,9 @@ try {
   await page
     .getByRole("searchbox", { name: "Search", exact: true })
     .fill("does-not-exist");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .press("Enter");
   await page.getByText("No links match these filters.").waitFor();
   assert.equal(new URL(page.url()).searchParams.get("trash"), "1");
   await page.getByRole("status").filter({ hasText: "2 selected" }).waitFor();
@@ -121,7 +123,13 @@ try {
     2,
   );
   await page.reload();
-  await page.getByRole("status").filter({ hasText: "0 selected" }).waitFor();
+  await page
+    .getByRole("checkbox", { name: "Select this page", exact: true })
+    .waitFor();
+  assert.equal(
+    await page.getByRole("region", { name: "Selection", exact: true }).count(),
+    0,
+  );
   for (const [locale, title] of [
     ["en", "Trash"],
     ["pt", "Lixo"],

@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { UtmForm } from "@/components/link-pages/utm-form";
 import { DeleteUtm } from "@/components/link-pages/delete-utm";
-import { LinksFilters } from "@/components/link-pages/links-filters";
 import { TagsField } from "@/components/page/tags-field";
 import { ShareButton } from "@/components/page/share-button";
 import { FilterBar, FilterCombobox } from "@/components/page/filters";
@@ -49,9 +48,6 @@ export default function ControlsFixture() {
             ]}
           />
         </FilterBar>
-      </section>
-      <section aria-label="Links filters">
-        <LinksFilters tags={tags} />
       </section>
       <section aria-label="QR filters">
         <QrFilters tags={tags} />

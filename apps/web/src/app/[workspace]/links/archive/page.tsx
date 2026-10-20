@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { can, cursorTags, pageBulkTagLinks } from "@shortn/core";
+import { can, pageBulkTagLinks } from "@shortn/core";
 import { buttonVariants } from "@shortn/ui";
 import { Page, Section } from "@/components/page/page";
 import { Notice } from "@/components/page/notice";
 import { Pagination } from "@/components/page/pagination";
-import { LinksFilters } from "@/components/link-pages/links-filters";
+import { LinkFiltersBar } from "@/components/link-filters/link-filters-bar";
 import { BulkArchiveForm } from "@/components/link-pages/bulk-archive-form";
 import { serviceContext } from "@/server/context";
 import {
@@ -41,16 +41,13 @@ export default async function BulkArchivePage({
   const ids = await readBulkArchiveSelection(ctx, query.selectionRef),
     ref = typeof query.selectionRef === "string" ? query.selectionRef : "";
   const view = linksViewQuery(query, requestTime());
-  const [result, tags] = await Promise.all([
-    ids.length
-      ? pageBulkTagLinks(ctx, ids, {
-          ...view.filter,
-          includeArchived: true,
-          page: view.page,
-        })
-      : null,
-    can(ctx.actor, "resource.update") ? cursorTags(ctx, { limit: 50 }) : null,
-  ]);
+  const result = ids.length
+    ? await pageBulkTagLinks(ctx, ids, {
+        ...view.filter,
+        includeArchived: true,
+        page: view.page,
+      })
+    : null;
   const valid = result && result.selected === ids.length,
     groups = new Map<string, NonNullable<typeof result>["items"]>();
   for (const link of result?.items ?? []) {
@@ -103,13 +100,11 @@ export default async function BulkArchivePage({
             title={t("review")}
             description={t("reviewHelp", { count: ids.length })}
           >
-            <LinksFilters
+            <LinkFiltersBar
+              ctx={ctx}
               workspace={workspace}
-              tags={tags?.items.map((tag) => tag.name) ?? []}
-              preserve={{
-                selectionRef: ref,
-                ...(archived ? {} : { mode: "unarchive" }),
-              }}
+              filter={view.filter}
+              counts={false}
             />
             <p className="mb-4 text-small text-fg-muted">
               {t("matching", { count: result.total, total: ids.length })}

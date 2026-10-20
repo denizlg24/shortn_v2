@@ -169,7 +169,9 @@ try {
   await page
     .getByRole("searchbox", { name: "Search", exact: true })
     .fill("Health fixture 5");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .press("Enter");
   await page.waitForURL(
     (url) => url.searchParams.get("q") === "Health fixture 5",
   );
