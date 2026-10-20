@@ -13,6 +13,7 @@ import { requestGeo } from "./geo";
 import { handoff } from "./handoff";
 import { mcpOAuthPlugins } from "./mcp-oauth";
 import { assertAccountActive, recordSignIn } from "./account-status";
+import { impersonationPolicy } from "./impersonation";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -412,6 +413,11 @@ export function createAuth(config: AuthConfig) {
       storeSessionInDatabase: true,
       additionalFields: {
         impersonatedBy: nullableString,
+        impersonationMode: {
+          type: ["read", "write"],
+          required: false,
+          input: false,
+        },
         passkeyId: nullableString,
         mcpWorkspaceId: nullableString,
         geo_city: nullableString,
@@ -525,6 +531,7 @@ export function createAuth(config: AuthConfig) {
           /^[a-zA-Z0-9 _.-]+$/.test(value) && value.trim().length >= 3,
       }),
       handoff({ db: () => handles().db }),
+      impersonationPolicy(),
       customerPlugin,
       ...(config.mcp
         ? mcpOAuthPlugins({

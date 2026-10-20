@@ -13,6 +13,7 @@ export * from "./admin/links";
 export * from "./admin/webhooks";
 export * from "./admin/domains";
 export * from "./admin/jobs";
+export * from "./admin/impersonation";
 export * from "./links/moderation";
 export * from "./result";
 export * from "./workspaces/context";

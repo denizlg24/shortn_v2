@@ -124,7 +124,8 @@ const linkResponse = z.object({
       await db?.dropDatabase();
       await client?.close();
       expect(unexpectedErrors).toEqual([]);
-    });
+      // One keyspace SCAN per key: slow when other suites share this Redis.
+    }, 60_000);
     test("every OpenAPI operation rejects missing or unrelated bearer scopes", async () => {
       // This independent policy inventory must exactly cover the public contract.
       // Resource lifecycle tests below verify successful operations and live roles;

@@ -43,7 +43,8 @@ if ((!mongoUrl || !redisUrl) && process.env.REQUIRE_INTEGRATION === "1")
         for (const resolver of replicas)
           if (message) resolver.evict(message);
           else resolver.memory.clear();
-        delivered++;
+        // Other suites share this Redis channel; count only this domain.
+        if (message?.domain === domain) delivered++;
       });
       await subscriber.subscribe(linkInvalidateChannel);
       await db.collection(physicalNames.links).insertOne({
