@@ -121,6 +121,36 @@ const config = {
           adminDisabled: { reason: "Sends to a phishing collector" },
         },
       });
+      // The owner can't route around it with a new or retargeted endpoint.
+      for (const url of [
+        "https://receiver.example/hook",
+        "https://receiver.example/hook?fresh=1",
+      ])
+        expect(
+          await createWebhook(
+            ctx,
+            { name: "Again", url, events: ["link.created"] },
+            config,
+          ),
+        ).toMatchObject({ ok: false, error: "admin_disabled" });
+      const other = await createWebhook(
+        ctx,
+        {
+          name: "Other",
+          url: "https://other.example/hook",
+          events: ["link.created"],
+        },
+        config,
+      );
+      if (!other.ok) throw new Error(other.error);
+      expect(
+        await updateWebhook(
+          ctx,
+          other.value.id,
+          { url: "https://receiver.example/hook?x=1" },
+          config,
+        ),
+      ).toMatchObject({ ok: false, error: "admin_disabled" });
       expect((await adminEnableWebhook({ db }, id)).ok).toBe(true);
       expect(
         await updateWebhook(ctx, created.value.id, { enabled: true }, config),

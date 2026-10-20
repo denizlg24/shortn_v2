@@ -219,6 +219,25 @@ export async function listWebhooks(
     nextCursor: rows.length > limit ? rows[limit - 1]!._id.toHexString() : null,
   });
 }
+// Origin and path, so a changed query string can't dodge the match.
+const receiverOf = (url: string) => {
+  const parsed = new URL(url);
+  return `${parsed.origin}${parsed.pathname}`;
+};
+
+/** Staff disabled an endpoint pointing here; the owner can't point a new or
+ * edited endpoint at the same receiver (23 §3.9). */
+async function receiverDisabledByStaff(ctx: ServiceContext, url: string) {
+  const disabled = await endpoints(ctx.db)
+    .find(
+      { workspaceId: ctx.workspace._id, adminDisabled: { $exists: true } },
+      { projection: { url: 1 } },
+    )
+    .toArray();
+  const target = receiverOf(url);
+  return disabled.some((endpoint) => receiverOf(endpoint.url) === target);
+}
+
 export async function createWebhook(
   ctx: ServiceContext,
   input: unknown,
@@ -228,6 +247,8 @@ export async function createWebhook(
   if (blocked) return blocked;
   const parsed = webhookInput.safeParse(input);
   if (!parsed.success) return fail("invalid_input");
+  if (await receiverDisabledByStaff(ctx, parsed.data.url))
+    return fail("admin_disabled");
   const secret = `whsec_${randomBytes(32).toString("base64url")}`,
     now = nowOf(ctx);
   const endpoint: WebhookEndpoint = {
@@ -255,6 +276,11 @@ export async function updateWebhook(
     return fail("invalid_input");
   const _id = parseObjectId(id);
   if (!_id) return fail("not_found");
+  if (
+    parsed.data.url !== undefined &&
+    (await receiverDisabledByStaff(ctx, parsed.data.url))
+  )
+    return fail("admin_disabled");
   const set: Document = {
     ...Object.fromEntries(
       Object.entries(parsed.data).filter(([, value]) => value !== undefined),
