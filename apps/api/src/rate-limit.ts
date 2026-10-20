@@ -1,4 +1,4 @@
-import type { Entitlements, Feature } from "@shortn/billing";
+import type { Entitlements } from "@shortn/billing";
 
 export const rateScript = `
 local now = tonumber(ARGV[1])
@@ -14,23 +14,25 @@ redis.call('PEXPIRE', KEYS[1], 60000)
 return {1, limit - used - 1, reset}
 `;
 
-/** Free has no API in the catalog, so its `apiPerMinute` is null; a free
- * workspace can still reach the API through the platform rollout flag, and
- * keeps the 30/min it had before catalog rates were used. */
+/** A plan without a catalog rate (Free, reaching the API through the rollout
+ * flag or an added feature) keeps the 30/min the old table enforced. */
 export const rolloutApiPerMinute = 30;
 
-/** Requests per minute for an API key or MCP grant (doc 23 §6 Q6), or null
- * for no limit. Catalog numbers apply, so a staff limit override does too. A
- * null limit means unlimited only when the plan (or an override) grants the
- * transport or a staff override set it explicitly; enterprise is unlimited. */
+/** Enterprise is "unlimited" in the catalog, but the limiter still runs as a
+ * safety ceiling against runaway clients. */
+export const enterpriseApiCeiling = 6000;
+
+/** Requests per minute for an API key or MCP grant (doc 23 §6 Q6, §7 A5).
+ * Catalog numbers apply, so staff limit overrides do too. Null — no limit —
+ * only when a staff override sets `apiPerMinute: null` explicitly. */
 export function apiRateLimit(
-  entitlements: Pick<Entitlements, "limits" | "features" | "sources">,
-  transport: Extract<Feature, "api" | "mcp">,
+  entitlements: Pick<Entitlements, "plan" | "limits" | "sources">,
 ): number | null {
   const limit = entitlements.limits.apiPerMinute;
+  if (entitlements.sources.overriddenLimits.includes("apiPerMinute"))
+    return limit;
   if (limit !== null) return limit;
-  return entitlements.sources.overriddenLimits.includes("apiPerMinute") ||
-    entitlements.features.includes(transport)
-    ? null
+  return entitlements.plan === "enterprise"
+    ? enterpriseApiCeiling
     : rolloutApiPerMinute;
 }

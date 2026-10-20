@@ -115,7 +115,7 @@ export function createMcpApp(deps: McpDeps) {
     if (isWorkspaceSuspended(principal.workspace))
       return c.json({ error: "workspace_suspended" }, 403);
     const entitlements = await loadEntitlements(deps.db, principal.workspace);
-    const limit = apiRateLimit(entitlements, "mcp");
+    const limit = apiRateLimit(entitlements);
     if (limit !== null) {
       // API-key budgets are shared with REST; switching transports cannot bypass them.
       const rate = z

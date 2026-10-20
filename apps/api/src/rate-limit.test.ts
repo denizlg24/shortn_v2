@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test";
 import { resolveEntitlements } from "@shortn/billing";
 import { ObjectId } from "mongodb";
-import { apiRateLimit, rolloutApiPerMinute } from "./rate-limit";
+import {
+  apiRateLimit,
+  enterpriseApiCeiling,
+  rolloutApiPerMinute,
+} from "./rate-limit";
 
 const now = new Date("2026-10-20T12:00:00Z");
 const paid = (plan: "basic" | "plus" | "pro" | "enterprise") => [
@@ -20,40 +24,42 @@ const paid = (plan: "basic" | "plus" | "pro" | "enterprise") => [
 ];
 const grant = { reason: "r", grantedBy: "staff", grantedAt: now };
 
-test("REST and MCP use catalog rates; enterprise is unlimited and free keeps the rollout rate", () => {
-  for (const transport of ["api", "mcp"] as const) {
-    expect(apiRateLimit(resolveEntitlements([], now), transport)).toBe(
-      rolloutApiPerMinute,
-    );
-    expect(
-      apiRateLimit(resolveEntitlements(paid("basic"), now), transport),
-    ).toBe(60);
-    expect(
-      apiRateLimit(resolveEntitlements(paid("plus"), now), transport),
-    ).toBe(300);
-    expect(apiRateLimit(resolveEntitlements(paid("pro"), now), transport)).toBe(
-      1200,
-    );
-    expect(
-      apiRateLimit(resolveEntitlements(paid("enterprise"), now), transport),
-    ).toBeNull();
-  }
+test("catalog rates apply; free keeps the rollout rate; enterprise runs under a ceiling", () => {
+  expect(apiRateLimit(resolveEntitlements([], now))).toBe(rolloutApiPerMinute);
+  expect(apiRateLimit(resolveEntitlements(paid("basic"), now))).toBe(60);
+  expect(apiRateLimit(resolveEntitlements(paid("plus"), now))).toBe(300);
+  expect(apiRateLimit(resolveEntitlements(paid("pro"), now))).toBe(1200);
+  expect(apiRateLimit(resolveEntitlements(paid("enterprise"), now))).toBe(
+    enterpriseApiCeiling,
+  );
 });
 
-test("staff overrides apply: a comp raises the tier, a limit lowers or lifts it", () => {
+test("adding the API feature never makes a plan without a catalog rate unlimited", () => {
   expect(
     apiRateLimit(
-      resolveEntitlements([], now, { ...grant, plan: "pro" }),
-      "api",
+      resolveEntitlements([], now, {
+        ...grant,
+        features: { add: ["api", "mcp"] },
+      }),
     ),
+  ).toBe(rolloutApiPerMinute);
+});
+
+test("staff overrides apply: a comp raises the tier, a limit lowers it, only an explicit null lifts it", () => {
+  expect(
+    apiRateLimit(resolveEntitlements([], now, { ...grant, plan: "pro" })),
   ).toBe(1200);
+  expect(
+    apiRateLimit(
+      resolveEntitlements([], now, { ...grant, plan: "enterprise" }),
+    ),
+  ).toBe(enterpriseApiCeiling);
   expect(
     apiRateLimit(
       resolveEntitlements(paid("pro"), now, {
         ...grant,
         limits: { apiPerMinute: 5 },
       }),
-      "api",
     ),
   ).toBe(5);
   expect(
@@ -62,7 +68,6 @@ test("staff overrides apply: a comp raises the tier, a limit lowers or lifts it"
         ...grant,
         limits: { apiPerMinute: null },
       }),
-      "mcp",
     ),
   ).toBeNull();
 });

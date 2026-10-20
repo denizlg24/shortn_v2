@@ -3860,6 +3860,30 @@ const linkResponse = z.object({
         const limited = await request("/v1/links", created.secret);
         expect(limited.status).toBe(429);
         expect(limited.headers.get("RateLimit-Limit")).toBe("2");
+        await cache.del(`api:rate:${created.key.id}`);
+        // Enterprise is "unlimited" in the catalog but keeps a ceiling.
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $set: { entitlementOverride: { ...grant, plan: "enterprise" } } },
+        );
+        const enterprise = await request("/v1/links", created.secret);
+        expect(enterprise.status).toBe(200);
+        expect(enterprise.headers.get("RateLimit-Limit")).toBe("6000");
+        await cache.del(`api:rate:${created.key.id}`);
+        // A plan without a catalog rate stays limited even with the feature.
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              entitlementOverride: { ...grant, features: { add: ["api"] } },
+            },
+          },
+        );
+        expect(
+          (await request("/v1/links", created.secret)).headers.get(
+            "RateLimit-Limit",
+          ),
+        ).toBe("30");
       } finally {
         await workspaces.updateOne(
           { _id: ctx.workspace._id },

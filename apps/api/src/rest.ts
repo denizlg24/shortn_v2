@@ -590,7 +590,7 @@ export function createRestApi(deps: RestDeps) {
     });
     const entitlements = await loadEntitlements(deps.db, principal.workspace);
     c.set("entitlements", entitlements);
-    const limit = apiRateLimit(entitlements, "api");
+    const limit = apiRateLimit(entitlements);
     if (limit === null) return next();
     const result = z
       .tuple([z.number(), z.number(), z.number()])
