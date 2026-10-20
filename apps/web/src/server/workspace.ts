@@ -4,6 +4,7 @@ import {
   membershipsFor,
   recordImpersonatedAction,
   workspaceContext,
+  type Actor,
 } from "@shortn/core";
 import { physicalNames } from "@shortn/db";
 import { ObjectId } from "mongodb";
@@ -74,6 +75,31 @@ async function auditImpersonatedAction(
     path: request.get("referer"),
   });
 }
+
+/** Route handlers carry no Next-Action header, so write-mode impersonation
+ * audits them by name here. Fails closed like the server-action path. */
+export async function auditImpersonatedRequest(
+  session: SessionData,
+  workspaceId: ObjectId,
+  label: string,
+) {
+  const adminId = session.session.impersonatedBy;
+  if (impersonationOf(session) !== "write" || !adminId) return;
+  await recordImpersonatedAction(await db(), {
+    adminId,
+    userId: session.user.id,
+    workspaceId,
+    sessionId: session.session.id,
+    actionId: label,
+    path: (await headers()).get("referer"),
+  });
+}
+
+/** The actor for a route handler that resolved its workspace itself. */
+export const withImpersonation = (session: SessionData, actor: Actor) => {
+  const impersonation = impersonationOf(session);
+  return impersonation ? { ...actor, impersonation } : actor;
+};
 
 export const memberships = cache(async (userId: string) =>
   membershipsFor(await db(), userId),
