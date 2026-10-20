@@ -359,6 +359,13 @@ try {
       url.searchParams.get("tag") === "Promo",
   );
 
+  // Archive and Trash keep grouping as a toolbar control.
+  await page.goto(`${root}/links?archived=1`);
+  await page.getByRole("button", { name: /^Sort and display/ }).click();
+  await page.getByRole("menuitemradio", { name: "Tag", exact: true }).click();
+  await page.waitForURL((url) => url.searchParams.get("group") === "tag");
+  assert.equal(new URL(page.url()).searchParams.get("archived"), "1");
+
   // The campaign picker reuses the toolbar with local state, not the URL.
   await page.goto(`${root}/campaigns/${await campaignId()}/builder`);
   await theme(page, false);
