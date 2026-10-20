@@ -80,6 +80,8 @@ function forwardTo<T extends object>(resolve: () => T): T {
 
 const client = forwardTo(() => liveMongo().client);
 const db = forwardTo(() => liveMongo().db);
+// The native handle auth uses, for session-path checks outside better-auth.
+export const authDb = db;
 
 const options = {
   onAPIError: {

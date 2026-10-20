@@ -1,11 +1,12 @@
 import "server-only";
 import { createAuth, type Auth } from "@shortn/auth";
 import { consumeAuthRateLimit } from "@shortn/auth/rate-limit";
+import { endSuspendedSession } from "@shortn/db";
 import { nextCookies } from "better-auth/next-js";
 import { headers } from "next/headers";
 import { cache } from "react";
 import { localeFromCookieHeader } from "@/i18n/locale";
-import { mongoConfig } from "./db";
+import { db, mongoConfig } from "./db";
 import { env } from "./env";
 import { mail } from "./mail";
 import { redis } from "./redis";
@@ -93,9 +94,18 @@ export function auth(): Auth {
   return instance;
 }
 
-export const getSession = cache(async () =>
-  auth().api.getSession({ headers: await headers() }),
-);
+// Sign-in refuses a banned account, but a session opened before the ban
+// would otherwise live on; every server-side session read re-checks it.
+export const getSession = cache(async () => {
+  const session = await auth().api.getSession({ headers: await headers() });
+  if (!session) return session;
+  const statusCache = await redis()
+    .then((clients) => clients.cache)
+    .catch(() => undefined);
+  return (await endSuspendedSession(await db(), statusCache, session))
+    ? null
+    : session;
+});
 
 // Which OAuth buttons the sign-in screens may show.
 export function socialProviders() {
