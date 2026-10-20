@@ -11,7 +11,7 @@ if (!mongoUrl && process.env.REQUIRE_INTEGRATION === "1")
 (mongoUrl ? describe : describe.skip)(
   "custom-domain public page forwarding",
   () => {
-    let client: MongoClient, db: Db, hostname: string;
+    let client: MongoClient, db: Db, hostname: string, workspaceId: ObjectId;
     const seen: Headers[] = [];
     const web = Bun.serve({
       port: 0,
@@ -33,6 +33,7 @@ if (!mongoUrl && process.env.REQUIRE_INTEGRATION === "1")
         name: "Forward",
         sub: `auth|${userId}`,
       });
+      workspaceId = workspace._id;
       await db.collection(physicalNames.subscriptions).insertOne({
         workspaceId: workspace._id,
         polarSubscriptionId: crypto.randomUUID(),
@@ -95,6 +96,62 @@ if (!mongoUrl && process.env.REQUIRE_INTEGRATION === "1")
       expect(response.status).toBe(200);
       expect(seen.at(-1)?.get("x-bio-auth")).toBe("synthetic-bio-secret");
       expect(seen.at(-1)?.get("x-shortn-client-ip")).toBe("203.0.113.7");
+    });
+
+    test("a suspended workspace's custom-domain link stops serving, decided by the in-process set", async () => {
+      const suspended = new Set<string>();
+      const app = createApp({
+        resolver: {
+          resolve: async () => ({
+            kind: "link",
+            id: new ObjectId().toHexString(),
+            ws: workspaceId.toHexString(),
+            key: "promo",
+            dest: "https://example.com/landing",
+            status: "ok",
+            pwd: false,
+          }),
+        },
+        suspended,
+        enqueue: () => {},
+        health: async () => true,
+        secrets: { legacy: encodeSecret("legacy-secret") },
+        origin: "https://shortn.at",
+        linkDomain: "shortn.at",
+        edgeAuthSecret: "synthetic-edge-secret",
+        db,
+        log: () => {},
+      });
+      const visit = () =>
+        app.request("/promo", {
+          headers: {
+            "x-edge-auth": "synthetic-edge-secret",
+            "x-shortn-forwarded-host": hostname,
+          },
+        });
+      expect((await visit()).headers.get("location")).toBe(
+        "https://example.com/landing",
+      );
+      suspended.add(workspaceId.toHexString());
+      expect((await visit()).status).toBe(404);
+      // The set is authoritative on the hot path: a suspension the set
+      // hasn't heard of yet is not read from Mongo per request.
+      suspended.clear();
+      await db
+        .collection(physicalNames.workspaces)
+        .updateOne(
+          { _id: workspaceId },
+          { $set: { suspension: { level: "suspended" } } },
+        );
+      try {
+        expect((await visit()).headers.get("location")).toBe(
+          "https://example.com/landing",
+        );
+      } finally {
+        await db
+          .collection(physicalNames.workspaces)
+          .updateOne({ _id: workspaceId }, { $unset: { suspension: "" } });
+      }
     });
   },
 );

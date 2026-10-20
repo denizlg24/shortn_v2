@@ -670,9 +670,13 @@ export async function pollDomains(
     }
   }
 }
+/** A custom domain that may serve right now. The redirect hot path passes
+ * `isSuspended` (its in-process set, which fails open) so it skips the
+ * per-request workspace read; web and bio callers read Mongo. */
 export async function activeDomain(
   db: Db,
   hostname: string,
+  options: { isSuspended?: (workspaceId: unknown) => boolean } = {},
 ): Promise<Document | null> {
   const domain = await db.collection(physicalNames.domains).findOne({
     hostname,
@@ -681,8 +685,12 @@ export async function activeDomain(
     sslStatus: "active",
     removing: { $ne: true },
   });
+  const suspended = (workspaceId: unknown) =>
+    options.isSuspended
+      ? options.isSuspended(workspaceId)
+      : workspaceIsSuspended(db, workspaceId);
   return domain &&
-    !(await workspaceIsSuspended(db, domain.workspaceId)) &&
+    !(await suspended(domain.workspaceId)) &&
     (await domainAllowance(db, domain.workspaceId as ObjectId)) > 0 &&
     (await db.collection(domainAddonsCollection).findOne({
       polarSubscriptionId: domain.addonSubscriptionId,

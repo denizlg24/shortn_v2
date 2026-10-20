@@ -11,7 +11,7 @@ import {
   resolveLegacyBio,
 } from "@shortn/core";
 import { bioCanonical } from "@shortn/core/bio-hosts";
-import type { Db } from "mongodb";
+import { ObjectId, type Db } from "mongodb";
 import type { ClickMessage, Decision, TokenSecrets } from "@shortn/core";
 import { Hono } from "hono";
 import { getCookie } from "hono/cookie";
@@ -129,6 +129,13 @@ function respond(decision: Decision, key: string): Response {
 export function createApp(options: AppOptions) {
   const app = new Hono();
   const log = options.log ?? console.error;
+  // Custom domains of suspended workspaces stop serving from the same
+  // in-process set as their links; no per-request workspace read.
+  const domainOptions = {
+    isSuspended: (workspaceId: unknown) =>
+      workspaceId instanceof ObjectId &&
+      Boolean(options.suspended?.has(workspaceId.toHexString())),
+  };
 
   app.get("/__health", async (c) =>
     (await options.health()) ? c.text("ok") : c.text("unhealthy", 503),
@@ -161,7 +168,7 @@ export function createApp(options: AppOptions) {
       (/^\/authenticate\//.test(c.req.path) ||
         /^\/(?:en|pt|es)\/safety\//.test(c.req.path))
     ) {
-      if (!(await activeDomain(options.db, host)))
+      if (!(await activeDomain(options.db, host, domainOptions)))
         return c.text("Not found", 404);
       const target = new URL(c.req.path, options.bio.webOrigin);
       target.search = new URL(c.req.url).search;
@@ -197,7 +204,9 @@ export function createApp(options: AppOptions) {
     const custom =
       domain !== options.linkDomain && domain !== new URL(options.origin).host;
     const domainRecord =
-      custom && options.db ? await activeDomain(options.db, domain) : null;
+      custom && options.db
+        ? await activeDomain(options.db, domain, domainOptions)
+        : null;
     if (custom && !domainRecord) return c.text("Not found", 404);
     async function proxyBio(path: string, hostname?: string) {
       if (!options.bio?.webOrigin || !options.bio.secret)
