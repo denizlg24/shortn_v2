@@ -64,7 +64,7 @@ export default function ControlsFixture() {
         <TagsField
           id="tags"
           label={t("tagsSection")}
-          allTags={tags}
+          allTags={tags.map((name) => ({ name, color: "slate" }))}
           selected={["Editorial"]}
         />
         <button className="my-4" type="submit">
