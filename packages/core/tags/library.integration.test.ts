@@ -7,6 +7,7 @@ import {
   getTag,
   mergeTag,
   pageTags,
+  pageTagUsage,
   setTagColor,
   tagColorsByName,
   tagLinkCounts,
@@ -130,6 +131,22 @@ const mongo = process.env.MONGO_TEST_URL,
       (await pageTags(ctx, { sort: "newest" })).items.map((item) => item.name),
     ).toEqual(["Gamma", "Alpha", "beta"]);
     expect(await untaggedLinkCount(ctx)).toBe(1);
+    const ranked = await pageTagUsage(ctx, {}, { limit: 1 });
+    expect([ranked.items, ranked.more]).toEqual([
+      [{ name: "Alpha", color: "slate", links: 2 }],
+      true,
+    ]);
+    const next = await pageTagUsage(ctx, {}, { limit: 1, page: 2 });
+    expect([next.items.map((item) => item.name), next.more]).toEqual([
+      ["beta"],
+      false,
+    ]);
+    expect(
+      (await pageTagUsage(ctx, { trash: true })).items.map((item) => [
+        item.name,
+        item.links,
+      ]),
+    ).toEqual([["beta", 1]]);
   });
 
   test("counts each link once even when a legacy copy embeds the tag twice", async () => {
