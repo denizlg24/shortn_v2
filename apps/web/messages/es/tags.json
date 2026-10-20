@@ -1,0 +1,88 @@
+{
+  "title": "Etiquetas",
+  "manage": "Gestionar etiquetas",
+  "more": "+{count}",
+  "count": "{count, plural, =0 {Sin etiquetas} one {# etiqueta} other {# etiquetas}}",
+  "search": "Buscar etiquetas",
+  "searchPlaceholder": "Buscar etiquetas…",
+  "sort": "Ordenar por",
+  "sortLabel": "Ordenar, actualmente {sort}",
+  "sorts": {
+    "name": "Nombre",
+    "newest": "Más recientes"
+  },
+  "columns": {
+    "tag": "Etiqueta",
+    "links": "Enlaces",
+    "created": "Creada",
+    "actions": "Acciones"
+  },
+  "linksHint": "Enlaces activos. Los archivados y los de la papelera también cuentan al fusionar o eliminar.",
+  "empty": "Aún no hay etiquetas. Añade etiquetas al crear o editar enlaces.",
+  "emptyFiltered": "Ninguna etiqueta coincide con esta búsqueda.",
+  "readOnly": "Puedes ver las etiquetas. Los miembros y administradores pueden renombrarlas, cambiar su color, fusionarlas y eliminarlas.",
+  "viewLinks": "Ver enlaces",
+  "viewLinksFor": "Ver enlaces con la etiqueta {tag}",
+  "actionsFor": "Acciones para {tag}",
+  "edit": "Renombrar o cambiar color",
+  "merge": "Fusionar con otra etiqueta",
+  "delete": "Eliminar etiqueta",
+  "color": "Color",
+  "colorFor": "Color de {tag}",
+  "colorFailed": "No se pudo guardar el color. Inténtalo de nuevo.",
+  "colors": {
+    "slate": "Pizarra",
+    "blue": "Azul",
+    "teal": "Verde azulado",
+    "violet": "Violeta",
+    "magenta": "Magenta",
+    "ochre": "Ocre",
+    "rust": "Óxido"
+  },
+  "saved": "Etiqueta guardada.",
+  "merged": "Etiquetas fusionadas.",
+  "deleted": "Etiqueta eliminada.",
+  "editPage": {
+    "title": "Editar etiqueta",
+    "description": "Los cambios se aplican a todos los enlaces y códigos QR con esta etiqueta.",
+    "name": "Nombre",
+    "nameHint": "Hasta 48 caracteres. Los nombres son únicos en este espacio de trabajo, sin distinguir mayúsculas.",
+    "color": "Color",
+    "usage": "{links, plural, one {# enlace} other {# enlaces}} y {qrCodes, plural, one {# código QR} other {# códigos QR}} usan esta etiqueta, incluidos los enlaces archivados y en la papelera.",
+    "more": "Más acciones",
+    "save": "Guardar cambios",
+    "cancel": "Cancelar"
+  },
+  "mergePage": {
+    "title": "Fusionar etiqueta",
+    "description": "Pasa todo lo que tiene la etiqueta «{tag}» a otra etiqueta y elimina «{tag}».",
+    "target": "Fusionar con",
+    "targetPlaceholder": "Elige una etiqueta…",
+    "targetSearch": "Buscar etiquetas…",
+    "targetEmpty": "Ninguna otra etiqueta coincide.",
+    "consequences": {
+      "move": "{links, plural, one {# enlace} other {# enlaces}} y {qrCodes, plural, one {# código QR} other {# códigos QR}} con «{tag}» pasan a tener la etiqueta elegida. Los que ya la tenían conservan una sola copia.",
+      "remove": "«{tag}» se elimina del espacio de trabajo. Sus ID antiguos siguen apuntando a la etiqueta elegida en la API.",
+      "final": "Una fusión no se puede deshacer."
+    },
+    "confirm": "Fusionar etiquetas"
+  },
+  "deletePage": {
+    "title": "Eliminar etiqueta",
+    "description": "Elimina «{tag}» del espacio de trabajo.",
+    "consequences": {
+      "remove": "«{tag}» se quita de {links, plural, one {# enlace} other {# enlaces}} y {qrCodes, plural, one {# código QR} other {# códigos QR}}, incluidos los enlaces archivados y en la papelera.",
+      "keep": "Los enlaces y códigos QR siguen funcionando; solo se quita la etiqueta.",
+      "final": "Eliminar una etiqueta no se puede deshacer."
+    },
+    "confirm": "Eliminar etiqueta"
+  },
+  "errors": {
+    "forbidden": "No tienes permiso para cambiar esta etiqueta.",
+    "not_found": "Esta etiqueta ya no existe.",
+    "name_taken": "Ya existe otra etiqueta con este nombre.",
+    "invalid_input": "Revisa el nombre e inténtalo de nuevo.",
+    "failed": "No se pudo. Inténtalo de nuevo.",
+    "target_required": "Elige la etiqueta con la que fusionar."
+  }
+}

@@ -13,7 +13,8 @@
     "./bio-views": "./bio/views.ts",
     "./bio-urls": "./bio/urls.ts",
     "./api-scopes": "./api-keys/scopes.ts",
-    "./import-input": "./imports/csv.ts"
+    "./import-input": "./imports/csv.ts",
+    "./tag-options": "./tags/options.ts"
   },
   "scripts": {
     "lint": "eslint .",

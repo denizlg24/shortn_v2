@@ -1,16 +1,19 @@
-import { can, listLinks, cursorTags } from "@shortn/core";
+import { can, listLinks, tagColorsByName } from "@shortn/core";
 import { buttonVariants, cn } from "@shortn/ui";
+import { Tags } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { LinkPasteCapture } from "@/components/link-pages/link-paste-capture";
 import { Fragment } from "react";
 import { HealthFlag } from "@/components/link-pages/health";
 import { TrashSelection } from "@/components/link-pages/trash-selection";
+import { LinkFiltersBar } from "@/components/link-filters/link-filters-bar";
 import { BulkSelection } from "@/components/page/bulk-selection";
+import { SelectPageCheckbox } from "@/components/page/selection-bar";
 import { Notice } from "@/components/page/notice";
 import { Page } from "@/components/page/page";
-import { LinksFilters } from "@/components/link-pages/links-filters";
 import { Pagination } from "@/components/page/pagination";
+import { TagChipList } from "@/components/tags/tag-chip";
 import { serviceContext } from "@/server/context";
 import { linksViewQuery, linksViewSearch } from "@/server/link-list-query";
 import { linkExportStore } from "@/server/link-exports";
@@ -41,17 +44,23 @@ export default async function LinksPage({
   const bulkTagsText = await getTranslations("bulkTags");
   const trashText = await getTranslations("linkPages.trash");
   const healthText = await getTranslations("linkPages.health");
+  const selectionText = await getTranslations("page.selection");
+  const tagsText = await getTranslations("tags");
   const trash = one(query.trash) === "1",
     archived = !trash && one(query.archived) === "1";
   const format = await getFormatter();
   const ctx = await serviceContext(workspace);
 
   const view = linksViewQuery(query, requestTime());
-  const { search, tags: selectedTags, status, dateBounds } = view;
-  const [tagPage, result] = await Promise.all([
-    cursorTags(ctx, { limit: 50 }),
-    listLinks(ctx, { ...view.filter, page: view.page, limit: pageSize }),
-  ]);
+  const result = await listLinks(ctx, {
+    ...view.filter,
+    page: view.page,
+    limit: pageSize,
+  });
+  const colors = await tagColorsByName(
+    ctx,
+    result.links.flatMap((link) => link.tags.map((tag) => tag.name)),
+  );
   const exportText = await getTranslations("linkExports");
   const exportSearch = linksViewSearch(query);
 
@@ -63,9 +72,7 @@ export default async function LinksPage({
   const anyDeletable = result.links.some((link) =>
     trash ? deletable(link) : can(ctx.actor, "resource.update"),
   );
-  const filtered = Boolean(
-    search || selectedTags.length || status || Object.keys(dateBounds).length,
-  );
+  const filtered = view.filtered;
   const deleted = Number(one(query.deleted));
   const now = requestTime().getTime();
   const eligible = result.links
@@ -83,6 +90,18 @@ export default async function LinksPage({
   const rows = grouped
     ? [...result.links].sort((a, b) => groupOf(a).localeCompare(groupOf(b)))
     : result.links;
+  const sectionLink = (href: string, current: boolean, label: string) => (
+    <Link
+      href={href}
+      aria-current={current ? "page" : undefined}
+      className={buttonVariants({
+        variant: current ? "secondary" : "ghost",
+        size: "sm",
+      })}
+    >
+      {label}
+    </Link>
+  );
 
   return (
     <Page
@@ -94,7 +113,6 @@ export default async function LinksPage({
             ? archiveText("libraryTitle")
             : t("title")
       }
-      description={t("count", { count: result.total ?? 0 })}
       actions={
         <>
           {linkExportStore() ? (
@@ -131,42 +149,32 @@ export default async function LinksPage({
       }
     >
       {canCreate ? <LinkPasteCapture workspace={workspace} /> : null}
-      <nav
-        aria-label={trashText("sections")}
-        className="mb-4 flex flex-wrap gap-2"
-        {...tourAnchor("links-library")}
-      >
-        <Link
-          href={`/${workspace}/links`}
-          aria-current={!trash && !archived ? "page" : undefined}
-          className={buttonVariants({
-            variant: !trash && !archived ? "secondary" : "ghost",
-            size: "sm",
-          })}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <nav
+          aria-label={trashText("sections")}
+          className="flex flex-wrap gap-1"
+          {...tourAnchor("links-library")}
         >
-          {t("title")}
-        </Link>
+          {sectionLink(`/${workspace}/links`, !trash && !archived, t("title"))}
+          {sectionLink(
+            `/${workspace}/links?archived=1`,
+            archived,
+            archiveText("libraryTitle"),
+          )}
+          {sectionLink(
+            `/${workspace}/links?trash=1`,
+            trash,
+            trashText("title"),
+          )}
+        </nav>
         <Link
-          href={`/${workspace}/links?archived=1`}
-          aria-current={archived ? "page" : undefined}
-          className={buttonVariants({
-            variant: archived ? "secondary" : "ghost",
-            size: "sm",
-          })}
+          href={`/${workspace}/tags`}
+          className={buttonVariants({ variant: "ghost", size: "sm" })}
         >
-          {archiveText("libraryTitle")}
+          <Tags aria-hidden />
+          {tagsText("manage")}
         </Link>
-        <Link
-          href={`/${workspace}/links?trash=1`}
-          aria-current={trash ? "page" : undefined}
-          className={buttonVariants({
-            variant: trash ? "secondary" : "ghost",
-            size: "sm",
-          })}
-        >
-          {trashText("title")}
-        </Link>
-      </nav>
+      </div>
       {trash ? (
         <p className="mb-4 max-w-prose text-small text-fg-muted">
           {trashText("description")}
@@ -181,11 +189,12 @@ export default async function LinksPage({
         <Notice tone="success">{t("deleted", { count: deleted })}</Notice>
       ) : null}
       <div {...tourAnchor("links-filters")}>
-        <LinksFilters
+        <LinkFiltersBar
+          ctx={ctx}
           workspace={workspace}
-          tags={tagPage.items.map((item) => item.name)}
-          trash={trash}
-          archived={archived}
+          filter={view.filter}
+          total={result.total}
+          grouping={trash || archived}
         />
       </div>
 
@@ -224,7 +233,8 @@ export default async function LinksPage({
                     ]),
                 {
                   href: `/${workspace}/links/delete`,
-                  label: (await getTranslations("page.selection"))("delete"),
+                  label: selectionText("delete"),
+                  tone: "danger" as const,
                 },
               ],
             }
@@ -263,7 +273,9 @@ export default async function LinksPage({
                   <tr>
                     {anyDeletable ? (
                       <th scope="col" className="w-10 py-2 pr-2 font-medium">
-                        <span className="sr-only">{t("columns.select")}</span>
+                        <SelectPageCheckbox
+                          label={selectionText("selectPage")}
+                        />
                       </th>
                     ) : null}
                     <th scope="col" className="py-2 pr-4 font-medium">
@@ -375,16 +387,12 @@ export default async function LinksPage({
                           {link.url}
                         </td>
                         <td className="py-2.5 pr-4 max-lg:hidden">
-                          <span className="flex flex-wrap gap-1">
-                            {link.tags.map((item) => (
-                              <span
-                                key={item.id}
-                                className="rounded-chip bg-bg-muted px-1.5 py-0.5 text-meta"
-                              >
-                                {item.name}
-                              </span>
-                            ))}
-                          </span>
+                          <TagChipList
+                            tags={link.tags}
+                            colors={colors}
+                            moreLabel={(count) => tagsText("more", { count })}
+                            className="max-w-72"
+                          />
                         </td>
                         <td className="py-2.5 pr-4 text-right font-mono tabular-nums">
                           {format.number(link.clicks)}

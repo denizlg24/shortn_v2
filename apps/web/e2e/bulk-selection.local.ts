@@ -138,9 +138,8 @@ try {
     .getByRole("button", { name: "Clear selection", exact: true })
     .click();
   await page
-    .getByRole("status")
-    .filter({ hasText: /^0 selected$/ })
-    .waitFor();
+    .getByRole("region", { name: "Selection", exact: true })
+    .waitFor({ state: "detached" });
   assert.equal(
     await page.locator('input[name="ids"]').first().isChecked(),
     false,

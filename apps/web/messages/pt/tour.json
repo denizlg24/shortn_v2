@@ -35,7 +35,7 @@
     },
     "filters": {
       "title": "Encontrar links e agir em massa",
-      "body": "Pesquise por chave, destino ou título e filtre por etiqueta, estado e data. Selecione links em várias páginas e filtros para arquivar, etiquetar, mover para uma campanha ou eliminar até 500 de uma vez."
+      "body": "Pesquise por chave, destino ou título e use Filtrar para restringir por etiqueta, estado, domínio, campanha ou data. Selecione links em várias páginas e filtros para arquivar, etiquetar, mover para uma campanha ou eliminar até 500 de uma vez."
     },
     "newLink": {
       "title": "Criar um link",

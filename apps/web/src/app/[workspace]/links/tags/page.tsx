@@ -6,7 +6,7 @@ import { buttonVariants } from "@shortn/ui";
 import { Page, Section } from "@/components/page/page";
 import { Notice } from "@/components/page/notice";
 import { Pagination } from "@/components/page/pagination";
-import { LinksFilters } from "@/components/link-pages/links-filters";
+import { LinkFiltersBar } from "@/components/link-filters/link-filters-bar";
 import { BulkTagsForm } from "@/components/link-pages/bulk-tags-form";
 import { serviceContext } from "@/server/context";
 import {
@@ -94,10 +94,11 @@ export default async function BulkTagsPage({
             title={t("review")}
             description={t("reviewHelp", { count: ids.length })}
           >
-            <LinksFilters
+            <LinkFiltersBar
+              ctx={ctx}
               workspace={workspace}
-              tags={tags?.items.map((tag) => tag.name) ?? []}
-              preserve={{ selectionRef: ref }}
+              filter={view.filter}
+              counts={false}
             />
             <p className="mb-4 text-small text-fg-muted">
               {t("matching", { count: result.total, total: ids.length })}

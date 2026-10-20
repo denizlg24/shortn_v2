@@ -1,0 +1,70 @@
+{
+  "label": "Filter links",
+  "search": "Search",
+  "searchPlaceholder": "Search key, destination or title…",
+  "clearSearch": "Clear search",
+  "filter": "Filter",
+  "filterActive": "{count, plural, one {Filter, # active} other {Filter, # active}}",
+  "filterBy": "Filter by…",
+  "back": "Back to filters",
+  "editFilter": "Change filter: {filter}",
+  "remove": "Remove filter: {filter}",
+  "clear": "Clear all",
+  "results": "{count, plural, one {# link} other {# links}}",
+  "loading": "Loading…",
+  "retry": "Retry",
+  "andMore": "{first}, +{count}",
+  "facets": {
+    "tags": "Tag",
+    "status": "Status",
+    "domain": "Domain",
+    "campaign": "Campaign",
+    "created": "Created"
+  },
+  "operators": {
+    "is": "is",
+    "isAnyOf": "is any of",
+    "isAllOf": "is all of"
+  },
+  "tagsFacet": {
+    "search": "Search tags…",
+    "empty": "No tags match.",
+    "failed": "Tags couldn’t load.",
+    "untagged": "Untagged",
+    "more": "Load more tags",
+    "match": "Match",
+    "any": "Any",
+    "all": "All",
+    "anyHint": "Links with at least one selected tag",
+    "allHint": "Links with every selected tag",
+    "manage": "Manage tags"
+  },
+  "domainFacet": {
+    "search": "Search domains…",
+    "empty": "No domains match.",
+    "default": "Default"
+  },
+  "campaignFacet": {
+    "search": "Search campaigns…",
+    "empty": "No campaigns match.",
+    "failed": "Campaigns couldn’t load.",
+    "more": "Load more campaigns",
+    "unknown": "Unknown campaign"
+  },
+  "createdFacet": {
+    "custom": "Custom range…",
+    "from": "From (UTC)",
+    "to": "To (UTC)",
+    "apply": "Apply range",
+    "range": "{from} – {to}",
+    "since": "From {from}",
+    "until": "Through {to}"
+  },
+  "sort": "Sort by",
+  "displayLabel": "Sort and display, currently {sort}",
+  "group": "Group by",
+  "groups": {
+    "none": "No grouping",
+    "tag": "Tag"
+  }
+}

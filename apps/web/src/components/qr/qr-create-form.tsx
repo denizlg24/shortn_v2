@@ -17,7 +17,7 @@ import {
   type QrDesignError,
 } from "./qr-design-editor";
 import { useQrErrorMessage } from "./qr-errors";
-import { TagsField } from "../page/tags-field";
+import { TagsField, type TagOption } from "../page/tags-field";
 
 export type AttachableLink = Pick<
   LinkView,
@@ -39,7 +39,7 @@ export function QrCreateForm({
   base: QrDesign;
   /** A short URL of the real length, so the preview has the real density. */
   previewData: string;
-  allTags: string[];
+  allTags: TagOption[];
   logoGate: PlanId | null;
   /** From ?link=: the code is attached to this link and opens its URL. */
   initialLink: AttachableLink | null;

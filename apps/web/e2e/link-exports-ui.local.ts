@@ -139,18 +139,16 @@ async function download(page: Page, label: string) {
   return readFile((await result.path())!);
 }
 try {
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      _id: subscriptionId,
-      workspaceId: workspace._id,
-      polarSubscriptionId: marker,
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    _id: subscriptionId,
+    workspaceId: workspace._id,
+    polarSubscriptionId: marker,
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
+    cancelAtPeriodEnd: false,
+  });
   const created = await createLink(ctx, {
     url: `https://example.com/${marker}?utm_source=one&utm_source=two#part`,
     title: `São João — ${marker} — ${"Editorial edição semanal ".repeat(12)}`,
@@ -293,26 +291,26 @@ try {
   await page
     .getByRole("button", { name: "Prepare export", exact: true })
     .waitFor();
-  await page.getByRole("combobox", { name: "Tag", exact: true }).click();
-  assert.equal(
-    await page.getByRole("option", { name: targetTag, exact: true }).count(),
-    0,
-  );
-  await page.getByPlaceholder("Search options…").fill(targetTag);
-  await page.getByRole("option", { name: targetTag, exact: true }).waitFor();
+  // Tag options carry their link count after the name.
+  const tagOption = (name: string) =>
+    page.getByRole("option", {
+      name: new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`),
+    });
+  await page.getByRole("button", { name: /^Change filter: Tag/ }).click();
+  await page.getByRole("combobox", { name: "Search tags…" }).fill(targetTag);
+  await tagOption(targetTag).waitFor();
   await capture(page, "en-remote-tag-search-light-390", 390);
-  await page.getByRole("option", { name: targetTag, exact: true }).click();
-  await page.keyboard.press("Escape");
+  await tagOption(targetTag).click();
   await page.waitForURL((url) =>
     url.searchParams.getAll("tag").includes(targetTag),
   );
-  // The shared tag filter matches ANY selected tag, so remove the large tag to isolate one row.
-  await page
-    .getByRole("button", { name: `Remove ${marker}`, exact: true })
-    .click();
+  // Any-of matching: deselect the large tag to isolate one row.
+  await page.getByRole("combobox", { name: "Search tags…" }).fill(marker);
+  await tagOption(marker).click();
   await page.waitForURL(
     (url) => !url.searchParams.getAll("tag").includes(marker),
   );
+  await page.keyboard.press("Escape");
   await page.getByText("1 matching link", { exact: true }).first().waitFor();
   await page.goto(`${library}/export?q=synthetic-no-matches-${marker}`);
   await page

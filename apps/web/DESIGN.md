@@ -245,7 +245,8 @@ The palette is a single hue with one accent: navy at every lightness, white, and
 ### Tertiary
 
 - **Status trio** (`success` green 150, `warning` amber 65, `danger` red 27): link health, safety, billing state and destructive actions. Nothing decorative.
-- **Chart series 2–6** (`chart-2` to `chart-6`, magenta, teal, ochre, violet, rust): checked for CVD separation in both themes by `bun run check:tokens`. They appear only in charts.
+- **Chart series 2–6** (`chart-2` to `chart-6`, magenta, teal, ochre, violet, rust): checked for CVD separation in both themes by `bun run check:tokens`. They appear only in charts, and through the tag palette below.
+- **Tag palette** (`tag-slate`, `tag-blue`, `tag-teal`, `tag-violet`, `tag-magenta`, `tag-ochre`, `tag-rust`): the only colours a user chooses. Teal to rust reuse the chart hues; slate is the default and blue sits well away from signal. They render only as small dots before a tag name, never as fills or text, and `check:tokens` holds each at 3:1 on `bg` and `overlay`.
 
 ### Neutral
 
@@ -327,7 +328,7 @@ The system is flat, with depth expressed through tonal steps (`bg` → `bg-subtl
 
 ## Shapes
 
-Corners stay small and functional: **4px** for chips, checkboxes and QR thumbnails; **6px** for buttons, inputs, menu items and focusable links; **8px** for overlays, dialogs, the link object and product-capture frames; **0** for table rows, page sections and bands. Borders are always 1px. Tab indicators are 2px bars with rounded ends. Status dots (8px) are the only full circles.
+Corners stay small and functional: **4px** for chips, checkboxes and QR thumbnails; **6px** for buttons, inputs, menu items and focusable links; **8px** for overlays, dialogs, the link object and product-capture frames; **0** for table rows, page sections and bands. Borders are always 1px. Tab indicators are 2px bars with rounded ends. Status dots and tag colour dots (6–8px) are the only full circles.
 
 **The 4/6/8/0 Rule.** No radius outside this scale. In particular, no `rounded-xl` or `rounded-2xl` panels.
 
@@ -347,8 +348,18 @@ Quiet, compact and immediate.
 
 ### Chips
 
-- **Style:** 20px tall, 4px radius, a 6% `fg` tint background, meta-size `fg-muted` text, max 8rem wide with truncation. Overflow collapses into a mono "+N" chip with a tooltip.
-- **State:** chips are labels, not controls. Filters are explicit labelled selects, not removable chips.
+- **Style:** 20px tall, 4px radius, a 6% `fg` tint background, meta-size `fg-muted` text, max 8rem wide with truncation. A tag chip leads with its 6px colour dot. Overflow collapses into a mono "+N" chip with a tooltip.
+- **State:** chips are labels, not controls. Active filters are filter tokens, below.
+
+### List toolbar and filter tokens
+
+- **One row:** search (applies on Enter or after 300ms), a secondary `Filter` button, a ghost sort/display menu, and the result count at the right. No stacked field labels; every control has an accessible name. Below 640px, Filter and sort collapse to 32px icon buttons and the count moves to the token row.
+- **Filter menu:** a popover listing facets (Tag, Status, Domain, Campaign, Created) that drills into one facet in place. Multi-select facets keep the popover open; single-choice facets close it. Large option sets are searched and paged on the server, never listed whole.
+- **Tokens:** each active filter is one 28px bordered token, `Field operator value ×`: the field in `fg-muted`, the operator in `fg-subtle`, the value in `fg` 500 truncated to a bounded width. The token body reopens its facet; × removes it. Tokens wrap, followed by `Clear all`. The URL stays the source of truth.
+
+### Selection bar
+
+Bulk actions exist only while something is selected. The bar floats at the bottom of the content column (an overlay surface, so it carries the overlay shadow), sits above the mobile tab bar, and settles after the list when scrolled to the end. It states the count and the per-action limit, then the actions; below 640px they fold into an Actions menu. "Select this page" is the checkbox in the table header.
 
 ### Cards / Containers
 

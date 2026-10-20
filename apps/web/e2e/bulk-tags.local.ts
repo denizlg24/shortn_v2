@@ -261,7 +261,15 @@ try {
     await page
       .getByRole("link", { name: "Back to links", exact: true })
       .click();
-    await page.getByText("0 selected", { exact: true }).waitFor();
+    await page
+      .getByRole("checkbox", { name: "Select this page", exact: true })
+      .waitFor();
+    assert.equal(
+      await page
+        .getByRole("region", { name: "Selection", exact: true })
+        .count(),
+      0,
+    );
     const selection = encodeSelection(fixture.ids.slice(0, 51));
     await page.goto(`${root}/tags?selection=${selection}`);
     await page.waitForURL((url) => url.searchParams.has("selectionRef"));
@@ -380,14 +388,12 @@ try {
       )
       .waitFor();
     assert.equal(
-      await db
-        .collection(physicalNames.links)
-        .countDocuments({
-          _id: {
-            $in: fixture.ids.slice(0, 4).map((id: string) => new ObjectId(id)),
-          },
-          tags: { $size: 0 },
-        }),
+      await db.collection(physicalNames.links).countDocuments({
+        _id: {
+          $in: fixture.ids.slice(0, 4).map((id: string) => new ObjectId(id)),
+        },
+        tags: { $size: 0 },
+      }),
       4,
     );
     // An editor can select other creators' links for tagging, while delete remains restricted.
@@ -520,17 +526,15 @@ try {
 } finally {
   await browser.close();
   if (!incumbent) {
-    await db
-      .collection(physicalNames.user)
-      .updateOne(
-        {
-          _id: new ObjectId(login.userId),
-          lastWorkspaceId: String(workspaceId),
-        },
-        fixture.lastWorkspaceId
-          ? { $set: { lastWorkspaceId: fixture.lastWorkspaceId } }
-          : { $unset: { lastWorkspaceId: "" } },
-      );
+    await db.collection(physicalNames.user).updateOne(
+      {
+        _id: new ObjectId(login.userId),
+        lastWorkspaceId: String(workspaceId),
+      },
+      fixture.lastWorkspaceId
+        ? { $set: { lastWorkspaceId: fixture.lastWorkspaceId } }
+        : { $unset: { lastWorkspaceId: "" } },
+    );
     for (const name of [
       physicalNames.links,
       physicalNames.tags,
