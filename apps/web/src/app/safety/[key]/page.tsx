@@ -87,15 +87,23 @@ export default async function SafetyPage({
 
   if (link.blocked)
     return frame(
-      <PublicMessage
-        title={t("blocked.title")}
-        description={
-          link.disabledReason?.startsWith("auto:report")
-            ? t("blocked.reported")
-            : t("blocked.body")
-        }
-        action={home}
-      />,
+      link.disabledReason === "workspace:suspended" ? (
+        <PublicMessage
+          title={t("blocked.unavailableTitle")}
+          description={t("blocked.suspended")}
+          action={home}
+        />
+      ) : (
+        <PublicMessage
+          title={t("blocked.title")}
+          description={
+            link.disabledReason?.startsWith("auto:report")
+              ? t("blocked.reported")
+              : t("blocked.body")
+          }
+          action={home}
+        />
+      ),
     );
 
   const status = isStatus(link.safetyStatus) ? link.safetyStatus : "pending";

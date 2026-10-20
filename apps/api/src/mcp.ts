@@ -6,6 +6,7 @@ import {
   platformFeatureEnabled,
   apiScopes,
   createMcpOAuthVerifier,
+  isWorkspaceSuspended,
   type ApiPrincipal,
   type OAuthPrincipal,
 } from "@shortn/core";
@@ -110,6 +111,9 @@ export function createMcpApp(deps: McpDeps) {
       !platformFeatureEnabled(principal.workspace, "mcp", deps.rolloutPercent)
     )
       return c.json({ error: "feature_disabled" }, 404);
+    // Locked workspaces keep read tools; mutations fail inside the tool.
+    if (isWorkspaceSuspended(principal.workspace))
+      return c.json({ error: "workspace_suspended" }, 403);
     const entitlements = await loadEntitlements(
       deps.db,
       principal.workspace._id,

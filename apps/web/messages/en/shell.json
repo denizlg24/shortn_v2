@@ -66,5 +66,26 @@
     "switchWorkspace": "Switch workspace",
     "help": "Show shortcuts",
     "goTo": "Go to {section}"
+  },
+  "suspension": {
+    "label": "Workspace status",
+    "lockedNotice": "Shortn has made this workspace read-only ({category}). Links keep working; you can view, export and manage billing.",
+    "suspendedNotice": "Shortn has suspended this workspace ({category}). Its links and pages are offline; you can export data and manage billing.",
+    "title": "This workspace is suspended",
+    "body": "Shortn suspended this workspace ({category}). Its links, bio pages and custom domains are offline. You can still export your data and manage billing.",
+    "export": "Export data",
+    "billing": "Billing",
+    "contact": "Contact support",
+    "categories": {
+      "abuse": "abuse",
+      "phishing": "phishing",
+      "malware": "malware",
+      "spam": "spam",
+      "fraud": "fraud",
+      "chargeback": "a payment dispute",
+      "legal": "a legal request",
+      "nonpayment": "an unpaid balance",
+      "other": "a policy review"
+    }
   }
 }

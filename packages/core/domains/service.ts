@@ -12,6 +12,7 @@ import { fail, ok } from "../result";
 import { can } from "../workspaces/authz";
 import { parseObjectId } from "../workspaces/service";
 import { nowOf, type ServiceContext } from "../workspaces/context";
+import { workspaceIsSuspended } from "../workspaces/status";
 import { ownedBioDocument, bioOutboxCollection } from "../bio/publishing";
 
 export const domainAddonsCollection = physicalNames.domain_addons;
@@ -671,6 +672,7 @@ export async function activeDomain(
     removing: { $ne: true },
   });
   return domain &&
+    !(await workspaceIsSuspended(db, domain.workspaceId)) &&
     (await domainAllowance(db, domain.workspaceId as ObjectId)) > 0 &&
     (await db.collection(domainAddonsCollection).findOne({
       polarSubscriptionId: domain.addonSubscriptionId,

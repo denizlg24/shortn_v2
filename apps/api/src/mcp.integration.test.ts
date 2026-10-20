@@ -634,6 +634,47 @@ const data = z.object({
       }
       await client.listTools();
     });
+    test("locked workspaces keep read tools only; suspended ones are refused", async () => {
+      const credential = await key(),
+        client = await connect(credential.secret);
+      const workspaces = collection(db, "workspaces");
+      const set = (level: "locked" | "suspended") =>
+        workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              suspension: {
+                level,
+                category: "other",
+                internalNote: "integration",
+                by: "staff",
+                at: new Date(),
+              },
+            },
+          },
+        );
+      try {
+        await set("locked");
+        expect(
+          (await call(client, "search_links", { limit: 1 })).isError,
+        ).toBeUndefined();
+        const write = await call(client, "create_link", {
+          url: "https://example.com/locked",
+        });
+        expect(write.isError).toBe(true);
+        expect(write.structuredContent?.error).toEqual({
+          code: "workspace_locked",
+        });
+        await set("suspended");
+        await expect(client.listTools()).rejects.toThrow();
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+      }
+      await client.listTools();
+    });
     test("rate budgets are enforced under the same key namespace as REST", async () => {
       const credential = await key(),
         client = await connect(credential.secret);

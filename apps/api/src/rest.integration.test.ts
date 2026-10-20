@@ -3829,5 +3829,46 @@ const linkResponse = z.object({
         await users.deleteOne({ _id });
       }
     });
+    test("a locked workspace reads but can't write; a suspended one gets 403 for everything", async () => {
+      const created = await key(["links:read", "links:write", "qr:read"]);
+      const workspaces = collection(db, "workspaces");
+      const set = (level: "locked" | "suspended") =>
+        workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              suspension: {
+                level,
+                category: "other",
+                internalNote: "integration",
+                by: "staff",
+                at: new Date(),
+              },
+            },
+          },
+        );
+      try {
+        await set("locked");
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        const write = await request(
+          "/v1/links",
+          created.secret,
+          post("https://example.com/locked"),
+        );
+        expect(write.status).toBe(403);
+        expect((await write.json()).code).toBe("workspace_locked");
+        await set("suspended");
+        const read = await request("/v1/links", created.secret);
+        expect(read.status).toBe(403);
+        expect((await read.json()).code).toBe("workspace_suspended");
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
+      }
+      expect((await request("/v1/links", created.secret)).status).toBe(200);
+    });
   },
 );

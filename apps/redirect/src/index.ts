@@ -2,7 +2,13 @@ import { readHotClickCount, incrementUntrackedClickCount } from "@shortn/redis";
 import { encodeSecret } from "@shortn/core";
 import { closeMongoClient, getDb } from "@shortn/db";
 import { parseEnv, redirectEnv } from "@shortn/env";
-import { createRedisClients, linkInvalidateChannel } from "@shortn/redis";
+import {
+  createRedisClients,
+  linkInvalidateChannel,
+  parseWorkspaceSuspension,
+  workspaceSuspensionChannel,
+} from "@shortn/redis";
+import { createSuspensionSet, loadSuspendedWorkspaces } from "./suspensions";
 import { createApp } from "./app";
 import { createClickQueue } from "./clicks";
 import { metrics } from "./metrics";
@@ -18,8 +24,17 @@ const { cache, durable } = await createRedisClients(env);
 const resolver = createResolver(cache, mongoLinkLoader(db, env.LINK_DOMAIN));
 metrics.gauge("l1_entries", () => resolver.memory.size);
 
+const suspended = createSuspensionSet(() => loadSuspendedWorkspaces(db));
+metrics.gauge("suspended_workspaces", () => suspended.size);
+
 const subscriber = cache.duplicate({ enableOfflineQueue: true });
 subscriber.on("message", (channel, payload) => {
+  if (channel === workspaceSuspensionChannel) {
+    const message = parseWorkspaceSuspension(payload);
+    if (message) suspended.apply(message);
+    else void suspended.reload();
+    return;
+  }
   if (channel !== linkInvalidateChannel) return;
   const message = parseInvalidation(payload);
   if (message) resolver.evict(message);
@@ -27,8 +42,12 @@ subscriber.on("message", (channel, payload) => {
 });
 // A dropped subscription can miss invalidations; the in-process layer is
 // short-lived anyway, but clear it so reconnects never extend staleness.
-subscriber.on("ready", () => resolver.memory.clear());
-await subscriber.subscribe(linkInvalidateChannel);
+subscriber.on("ready", () => {
+  resolver.memory.clear();
+  void suspended.reload();
+});
+await subscriber.subscribe(linkInvalidateChannel, workspaceSuspensionChannel);
+await suspended.start();
 
 const clicks = createClickQueue(durable, env.CLICK_SPOOL_PATH);
 await clicks.load();
@@ -50,6 +69,7 @@ const health = async () => {
 
 const app = createApp({
   resolver,
+  suspended,
   clickCounter: {
     read: (id, base) => readHotClickCount(durable, id, base),
     untracked: (id, base) => incrementUntrackedClickCount(durable, id, base),
@@ -92,6 +112,7 @@ async function shutdown() {
   if (stopping) return;
   stopping = true;
   clearInterval(drainTimer);
+  suspended.stop();
   await server.stop();
   await clicks.drain();
   if (clicks.spooled)

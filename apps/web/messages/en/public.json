@@ -7,7 +7,9 @@
   "blocked": {
     "title": "This link has been disabled",
     "body": "Shortn turned it off because it may be harmful, so it can't take you anywhere.",
-    "reported": "Several visitors reported this link, so it's switched off until we review it."
+    "reported": "Several visitors reported this link, so it's switched off until we review it.",
+    "unavailableTitle": "This link is unavailable",
+    "suspended": "The account that owns this link has been suspended, so it can't take you anywhere."
   },
   "authenticate": {
     "metaTitle": "Password required",

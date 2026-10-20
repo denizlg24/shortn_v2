@@ -7,7 +7,9 @@
   "blocked": {
     "title": "Este enlace se ha desactivado",
     "body": "Shortn lo desactivó porque puede ser dañino, así que no lleva a ninguna parte.",
-    "reported": "Varios visitantes denunciaron este enlace, así que está desactivado hasta que lo revisemos."
+    "reported": "Varios visitantes denunciaron este enlace, así que está desactivado hasta que lo revisemos.",
+    "unavailableTitle": "Este enlace no está disponible",
+    "suspended": "La cuenta propietaria de este enlace está suspendida, así que no puede llevarte a ningún sitio."
   },
   "authenticate": {
     "metaTitle": "Se necesita contraseña",

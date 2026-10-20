@@ -1,4 +1,5 @@
 import { rateScript } from "./rate-limit";
+import { workspaceBlock } from "./workspace-access";
 import { bioContentSchema } from "@shortn/core/bio-content";
 import { createHash } from "node:crypto";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
@@ -558,6 +559,12 @@ export function createRestApi(deps: RestDeps) {
       !platformFeatureEnabled(principal.workspace, "api", deps.rolloutPercent)
     )
       return problem(c, 404, "feature_disabled");
+    const blocked = workspaceBlock(
+      principal.workspace,
+      c.req.method,
+      c.req.path,
+    );
+    if (blocked) return problem(c, 403, blocked);
     c.set("principal", principal);
     c.set("service", {
       db: deps.db,

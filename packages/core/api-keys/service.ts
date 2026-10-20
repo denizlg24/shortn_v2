@@ -6,6 +6,7 @@ import { collection, findAccountSuspension, type Documents } from "@shortn/db";
 import { z } from "zod";
 import type { Redis } from "ioredis";
 import { can, type Actor } from "../workspaces/authz";
+import { workspaceReadOnly } from "../workspaces/status";
 import { nowOf, type ServiceContext } from "../workspaces/context";
 import { fail, ok } from "../result";
 
@@ -274,10 +275,15 @@ export async function authenticateApiKey(
       throw error;
     }
   }
+  const actor: Actor = {
+    userId: member.userId,
+    role: member.role,
+    readOnly: workspaceReadOnly(workspace),
+  };
   return ok({
     keyId: key._id.toHexString(),
     scopes: key.scopes,
-    actor: { userId: member.userId, role: member.role },
+    actor,
     workspace,
   } satisfies ApiPrincipal);
 }

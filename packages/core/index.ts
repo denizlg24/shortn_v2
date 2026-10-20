@@ -7,6 +7,8 @@ export * from "./clicks/enrich";
 export * from "./analytics/rollups";
 export * from "./workspaces/authz";
 export * from "./workspaces/service";
+export * from "./workspaces/status";
+export * from "./admin/workspaces";
 export * from "./result";
 export * from "./workspaces/context";
 export * from "./tags/service";

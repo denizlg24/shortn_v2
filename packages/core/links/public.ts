@@ -3,6 +3,7 @@ import { invalidateLinks, type InvalidationStore } from "@shortn/redis";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import type { Db, Document } from "mongodb";
+import { workspaceIsSuspended } from "../workspaces/status";
 import {
   withMutation,
   recordWebhookEvent,
@@ -65,6 +66,21 @@ export async function publicLink(
           .findOne({ sub: doc.sub }, { projection: { name: 1 } })
       : null;
   const date = doc.date instanceof Date ? doc.date : doc._id.getTimestamp();
+  // The redirect blocks these from an in-process set; this page must agree,
+  // or it would offer "Continue" for a link whose own fields look fine.
+  if (await workspaceIsSuspended(db, doc.workspaceId))
+    return {
+      key,
+      destination: "",
+      destinationHost: "",
+      passwordHint: null,
+      passwordProtected: false,
+      blocked: true,
+      disabledReason: "workspace:suspended",
+      safetyStatus: "blocked",
+      createdAt: date.toISOString(),
+      creatorName: null,
+    };
   return {
     key,
     destination: doc.longUrl,

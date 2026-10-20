@@ -27,6 +27,7 @@ import {
   withMutation,
   recordWebhookEvent,
   can,
+  workspaceAccess,
   csvCell,
   mongoLinkLoader,
   cacheTtlSeconds,
@@ -60,6 +61,9 @@ async function context(
     !can({ userId: member.userId, role: member.role }, "resource.create")
   )
     throw new Error("access_removed");
+  // Imports write links, so a staff lock stops them like a dashboard edit.
+  if (workspaceAccess(workspace) !== "active")
+    throw new Error("workspace_suspended");
   return {
     db: deps.db,
     cache: deps.cache,
@@ -482,6 +486,7 @@ export async function runImport(
       [
         "invalid_import_kind",
         "access_removed",
+        "workspace_suspended",
         "upload_missing_or_changed",
         "source_changed",
         "empty_import",

@@ -123,6 +123,8 @@ export function createMcpTools(
       async (input) => {
         try {
           requireScopes(scopes);
+          if (mutation && ctx.actor.readOnly)
+            throw new ToolFailure("workspace_locked");
           const run = () => action(input);
           const data = mutation
             ? await withMcpAudit(ctx, identity, name, run, log)

@@ -22,9 +22,11 @@ import { deletedPage } from "./deleted-page";
 import { deepLinkPage } from "./deep-link-page";
 import { socialPreviewPage } from "./social-preview";
 import type { Resolver } from "./resolver";
+import type { SuspendedWorkspaces } from "./suspensions";
 
 export interface AppOptions {
   resolver: Pick<Resolver, "resolve">;
+  suspended?: SuspendedWorkspaces;
   clickCounter?: {
     read: (id: string, base: number) => Promise<number>;
     untracked: (id: string, base: number) => Promise<void>;
@@ -271,7 +273,15 @@ export function createApp(options: AppOptions) {
     metrics.inc("requests_total");
     try {
       if (domainRecord?.kind === "bio") return c.text("Not found", 404);
-      const link = await options.resolver.resolve(domain, path.key);
+      const resolved = await options.resolver.resolve(domain, path.key);
+      // A suspended workspace's links go to the safety page; the link
+      // documents and their cache entries stay untouched.
+      const link =
+        resolved.kind === "link" &&
+        resolved.ws &&
+        options.suspended?.has(resolved.ws)
+          ? { ...resolved, status: "blocked" as const }
+          : resolved;
       if (!link && domainRecord?.notFoundRedirect)
         return c.redirect(String(domainRecord.notFoundRedirect), 302);
       const userAgent = (c.req.header("user-agent") ?? "").slice(0, 2000);
