@@ -93,7 +93,7 @@ const worker = createWorkspaceExportWorker({
 });
 const browser = await chromium.launch({ headless: true }),
   base = `${login.origin}/api/workspace-exports/${workspace.slug}`;
-const directory = ".impeccable/review/p6-workspace-export-ui",
+const directory = "test-results/captures/p6-workspace-export-ui",
   captures: object[] = [],
   errors: string[] = [];
 await mkdir(directory, { recursive: true });
@@ -182,17 +182,15 @@ try {
     createdAt: new Date(),
   }));
   await db.collection(physicalNames.links).insertMany(links);
-  await db
-    .collection(physicalNames.bio_pages)
-    .insertOne({
-      _id: new ObjectId(),
-      workspaceId,
-      slug: marker,
-      title: "Synthetic legacy bio",
-      links: links
-        .slice(0, 2501)
-        .map((link) => ({ link: link._id, title: link.title })),
-    });
+  await db.collection(physicalNames.bio_pages).insertOne({
+    _id: new ObjectId(),
+    workspaceId,
+    slug: marker,
+    title: "Synthetic legacy bio",
+    links: links
+      .slice(0, 2501)
+      .map((link) => ({ link: link._id, title: link.title })),
+  });
   await collection(db, "tags").insertMany(
     Array.from({ length: 100 }, (_, i) => ({
       _id: new ObjectId(),

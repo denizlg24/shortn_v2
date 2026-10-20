@@ -49,7 +49,7 @@ import {
 } from "../webhooks/events";
 import { archiveLegacyClicks } from "../legacy-clicks";
 import { fail, ok, type Result } from "../result";
-import type { LinkSort, LinkStatusFilter } from "./filters";
+import type { LinkSort, LinkStatusFilter, TagMatchMode } from "./filters";
 import { isReservedKey } from "../routing";
 import { scanUrl, type ScanDeps } from "../safety/scan";
 import { validateDestination } from "../safety/structural";
@@ -58,6 +58,7 @@ import {
   ensureTags,
   tagName,
   normalizeTagName,
+  untaggedLinkFilter,
 } from "../tags/service";
 import { countUsage } from "../usage/service";
 import { withQuotaMutation } from "../usage/quota-lock";
@@ -1474,8 +1475,14 @@ async function deleteOne(ctx: ServiceContext, link: Link) {
 
 export interface ListLinksInput {
   campaign?: string | undefined;
+  /** Hostname; the workspace's default link domain also matches legacy links without one. */
+  domain?: string | undefined;
   search?: string | undefined;
   tags?: string[] | undefined;
+  /** "any" (default) matches links with at least one of `tags`; "all" requires every one. */
+  tagMode?: TagMatchMode | undefined;
+  /** Adds links without a named tag to the "any" match. Ignored for "all". */
+  untagged?: boolean | undefined;
   status?: LinkStatusFilter | undefined;
   createdAfter?: Date | undefined;
   /** Exclusive upper bound. */
@@ -1512,6 +1519,17 @@ const sortSpec: Record<LinkSort, Record<string, 1 | -1>> = {
 const escapeRegex = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+function tagFilter(input: ListLinksInput): Filter<Link> | null {
+  const tags = input.tags ?? [];
+  if (input.tagMode === "all" && tags.length)
+    return { "tags.tagName": { $all: tags } };
+  const any: Filter<Link>[] = [
+    ...(tags.length ? [{ "tags.tagName": { $in: tags } }] : []),
+    ...(input.untagged ? [untaggedLinkFilter] : []),
+  ];
+  return any.length > 1 ? { $or: any } : (any[0] ?? null);
+}
+
 /** Shared filtered-view scope for dashboard browsing and streamed exports. */
 export async function linkListFilter(
   ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
@@ -1534,7 +1552,16 @@ export async function linkListFilter(
       $or: [{ urlCode: pattern }, { longUrl: pattern }, { title: pattern }],
     });
   }
-  if (input.tags?.length) and.push({ "tags.tagName": { $in: input.tags } });
+  const tags = tagFilter(input);
+  if (tags) and.push(tags);
+  if (input.domain) {
+    const domain = input.domain.toLowerCase();
+    and.push(
+      domain === ctx.linkDomain.toLowerCase()
+        ? { $or: [{ domain }, { domain: { $exists: false } }] }
+        : { domain },
+    );
+  }
   if (input.campaign) {
     const campaignId = parseObjectId(input.campaign);
     const campaign = campaignId

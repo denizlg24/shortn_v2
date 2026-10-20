@@ -31,7 +31,7 @@ const browser = await chromium.launch({ headless: true }),
   }),
   page = await context.newPage();
 const directory =
-    process.env.SSO_CAPTURE_DIR ?? ".impeccable/review/p6-sso/first",
+    process.env.SSO_CAPTURE_DIR ?? "test-results/captures/p6-sso/first",
   captures: object[] = [],
   pageErrors: string[] = [];
 const workspaceId = new ObjectId(),
@@ -146,41 +146,35 @@ async function connectProvider(name: string) {
 try {
   await mkdir(directory, { recursive: true });
   const now = new Date();
-  await db
-    .collection(physicalNames.workspaces)
-    .insertOne({
-      _id: workspaceId,
-      slug,
-      name: "P6 Workplace",
-      ownerUserId: login.userId,
-      personal: false,
-      plan: "enterprise",
-      addOns: [],
-      defaultDomain: "shortn.at",
-      platformFeatures: { advancedAuth: true, mcp: true },
-      createdAt: now,
-      updatedAt: now,
-    });
-  await db
-    .collection(physicalNames.workspace_members)
-    .insertOne({
-      workspaceId,
-      userId: login.userId,
-      role: "owner",
-      createdAt: now,
-      updatedAt: now,
-    });
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      workspaceId,
-      plan: "enterprise",
-      status: "active",
-      polarSubscriptionId: `synthetic-sso-${workspaceId}`,
-      currentPeriodStart: now,
-      currentPeriodEnd: new Date(now.getTime() + 86400000),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.workspaces).insertOne({
+    _id: workspaceId,
+    slug,
+    name: "P6 Workplace",
+    ownerUserId: login.userId,
+    personal: false,
+    plan: "enterprise",
+    addOns: [],
+    defaultDomain: "shortn.at",
+    platformFeatures: { advancedAuth: true, mcp: true },
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.collection(physicalNames.workspace_members).insertOne({
+    workspaceId,
+    userId: login.userId,
+    role: "owner",
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    workspaceId,
+    plan: "enterprise",
+    status: "active",
+    polarSubscriptionId: `synthetic-sso-${workspaceId}`,
+    currentPeriodStart: now,
+    currentPeriodEnd: new Date(now.getTime() + 86400000),
+    cancelAtPeriodEnd: false,
+  });
   await context.addCookies([
     { name: "NEXT_LOCALE", value: "en", url: login.origin },
   ]);
@@ -279,35 +273,29 @@ try {
   const credential = (await db
     .collection(physicalNames.account)
     .findOne({ userId, providerId: "credential" }))!;
-  await db
-    .collection(physicalNames.user)
-    .insertOne({
-      _id: viewerId,
-      name: "P6 Viewer",
-      email: viewerEmail,
-      emailVerified: true,
-      createdAt: now,
-      updatedAt: now,
-    });
-  await db
-    .collection(physicalNames.account)
-    .insertOne({
-      userId: viewerId,
-      accountId: String(viewerId),
-      providerId: "credential",
-      password: credential.password,
-      createdAt: now,
-      updatedAt: now,
-    });
-  await db
-    .collection(physicalNames.workspace_members)
-    .insertOne({
-      workspaceId,
-      userId: String(viewerId),
-      role: "viewer",
-      createdAt: now,
-      updatedAt: now,
-    });
+  await db.collection(physicalNames.user).insertOne({
+    _id: viewerId,
+    name: "P6 Viewer",
+    email: viewerEmail,
+    emailVerified: true,
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.collection(physicalNames.account).insertOne({
+    userId: viewerId,
+    accountId: String(viewerId),
+    providerId: "credential",
+    password: credential.password,
+    createdAt: now,
+    updatedAt: now,
+  });
+  await db.collection(physicalNames.workspace_members).insertOne({
+    workspaceId,
+    userId: String(viewerId),
+    role: "viewer",
+    createdAt: now,
+    updatedAt: now,
+  });
   await passwordLogin(settingsPath, viewerEmail);
   await page
     .getByText("Only the workspace owner can configure identity providers.", {
@@ -681,12 +669,10 @@ try {
   await db
     .collection(physicalNames.sso_link_intents)
     .deleteMany({ workspaceId });
-  await db
-    .collection(physicalNames.account)
-    .deleteMany({
-      userId: { $in: [login.userId, userId] },
-      providerId: { $in: rows.map((row) => row.providerId) },
-    });
+  await db.collection(physicalNames.account).deleteMany({
+    userId: { $in: [login.userId, userId] },
+    providerId: { $in: rows.map((row) => row.providerId) },
+  });
   await db
     .collection(physicalNames.session)
     .deleteMany({ ssoProviderId: { $in: rows.map((row) => String(row._id)) } });

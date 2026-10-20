@@ -12,7 +12,7 @@ const mongo = await new MongoClient(
   ).connect(),
   db = mongo.db("shortn_p6_dev"),
   durable = new Redis("redis://127.0.0.1:16379/6");
-const directory = ".impeccable/review/p6-bulk-archive",
+const directory = "test-results/captures/p6-bulk-archive",
   captures: object[] = [],
   errors: string[] = [],
   workspaceId = new ObjectId(),
@@ -264,7 +264,13 @@ try {
   assert.deepEqual(first.utmLinks, links[0]!.utmLinks);
   assert.deepEqual(first.rules, links[0]!.rules);
   await page.getByRole("link", { name: en.viewArchived, exact: true }).click();
-  await page.getByText("0 selected", { exact: true }).waitFor();
+  await page
+    .getByRole("checkbox", { name: "Select this page", exact: true })
+    .waitFor();
+  assert.equal(
+    await page.getByRole("region", { name: "Selection", exact: true }).count(),
+    0,
+  );
   assert.equal(await page.locator('input[name="ids"]').count(), 25);
   await capture(page, "en-library-light-1440", 1440);
   await capture(page, "en-library-light-390", 390);

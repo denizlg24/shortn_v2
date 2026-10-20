@@ -47,7 +47,7 @@ export default async function NewQrPage({
       <QrCreateForm
         base={defaultQrDesign(previewData)}
         previewData={previewData}
-        allTags={tags.map((tag) => tag.name)}
+        allTags={tags}
         logoGate={gateOf(logo)}
         initialLink={
           link

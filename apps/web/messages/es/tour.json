@@ -35,7 +35,7 @@
     },
     "filters": {
       "title": "Encontrar enlaces y actuar en bloque",
-      "body": "Busca por clave, destino o título y filtra por etiqueta, estado y fecha. Selecciona enlaces en varias páginas y filtros para archivarlos, etiquetarlos, moverlos a una campaña o eliminar hasta 500 a la vez."
+      "body": "Busca por clave, destino o título y usa Filtrar para acotar por etiqueta, estado, dominio, campaña o fecha. Selecciona enlaces en varias páginas y filtros para archivarlos, etiquetarlos, moverlos a una campaña o eliminar hasta 500 a la vez."
     },
     "newLink": {
       "title": "Crear un enlace",

@@ -14,9 +14,7 @@
       "location": "Location",
       "technology": "Devices and software",
       "attribution": "Acquisition"
-    },
-    "remoteOptions": "Up to 50 matches. Search to find any tag.",
-    "failedOptions": "Tags could not load. Search again to retry."
+    }
   },
   "delete": {
     "whatHappens": "What happens",
@@ -58,6 +56,8 @@
     }
   },
   "selection": {
+    "bar": "Selection",
+    "actions": "Actions",
     "selectPage": "Select this page",
     "count": "{count, plural, one {# selected} other {# selected}}",
     "clear": "Clear selection",

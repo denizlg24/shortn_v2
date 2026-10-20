@@ -41,7 +41,7 @@ export default async function QrDetailsPage({
           tags: qr.tags.map((tag) => tag.name),
         }}
         attachedLink={qr.attachedLinkKey}
-        allTags={tags.map((tag) => tag.name)}
+        allTags={tags}
         action={updateQrDetailsPageAction.bind(null, workspace, id)}
         cancelHref={base}
       />

@@ -44,7 +44,7 @@ export default async function NewLinkPage({
           ...emptyLinkValues,
           url: typeof url === "string" ? url.slice(0, 2048) : "",
         }}
-        allTags={tags.map((tag) => tag.name)}
+        allTags={tags}
         gates={{
           customKeys: gateOf(features.customKeys),
           passwords: gateOf(features.passwords),

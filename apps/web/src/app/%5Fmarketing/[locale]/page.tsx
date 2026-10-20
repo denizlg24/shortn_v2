@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { HeroStage, type HeroLabels } from "@/components/marketing/hero-stage";
+import { LaunchVideo } from "@/components/marketing/launch-video";
 import { ProductShot } from "@/components/marketing/product-shot";
 import {
   ClosingBand,
@@ -25,6 +26,11 @@ export async function generateMetadata({
 }
 
 const exampleUrl = "https://shortn.at/spring-issue";
+
+const launchVideo = {
+  src: "/_web/marketing/shortn-launch.mp4",
+  poster: "/_web/marketing/shortn-launch-poster.jpg",
+};
 
 export default async function HomePage({
   params,
@@ -168,6 +174,24 @@ export default async function HomePage({
               })}
             </p>
           </div>
+        </Container>
+      </section>
+
+      <section className="border-b border-line py-20 md:py-28">
+        <Container className="flex flex-col gap-10 md:gap-12">
+          <SectionHeading title={t("video.title")} body={t("video.body")} />
+          <figure className="flex flex-col gap-2">
+            <div className="aspect-video overflow-hidden rounded-overlay border border-line bg-bg-subtle">
+              <LaunchVideo
+                src={launchVideo.src}
+                poster={launchVideo.poster}
+                label={t("video.label")}
+              />
+            </div>
+            <figcaption className="text-meta text-fg-subtle">
+              {t("video.caption")}
+            </figcaption>
+          </figure>
         </Container>
       </section>
 

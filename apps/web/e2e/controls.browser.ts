@@ -101,7 +101,6 @@ try {
       );
       await page.keyboard.press("Escape");
     }
-    const links = page.getByRole("region", { name: "Links filters" });
     const qr = page.getByRole("region", { name: "QR filters" });
     const tagForm = page.getByRole("form", { name: "Tags form" });
     if (locale === "en") {
@@ -121,44 +120,6 @@ try {
         await page.getByTestId("posted-tags").textContent(),
         '["Newsletter","Nova edição"]',
       );
-      await links.getByRole("combobox").first().click();
-      await page.getByPlaceholder("Search options…").fill("Print");
-      await page.getByRole("option", { name: "Print", exact: true }).click();
-      await page.waitForURL(
-        (value) => value.searchParams.get("tag") === "Print",
-      );
-      await page.getByPlaceholder("Search options…").fill("Newsletter");
-      await page
-        .getByRole("option", { name: "Newsletter", exact: true })
-        .click();
-      await page.waitForURL(
-        (value) => value.searchParams.getAll("tag").length === 2,
-      );
-      await page.keyboard.press("Escape");
-      await links.getByLabel("Period", { exact: true }).selectOption("custom");
-      await page.waitForURL(
-        (value) => value.searchParams.get("created") === "custom",
-      );
-      assert(new URL(page.url()).searchParams.has("from"));
-      await links.getByLabel("From (UTC)", { exact: true }).fill("2026-09-01");
-      await links.getByLabel("To (UTC)", { exact: true }).fill("2026-09-30");
-      await links.getByRole("button", { name: "Apply", exact: true }).click();
-      await page.waitForURL(
-        (value) =>
-          value.searchParams.get("from") === "2026-09-01" &&
-          value.searchParams.get("to") === "2026-09-30",
-      );
-      assert.deepEqual(new URL(page.url()).searchParams.getAll("tag"), [
-        "Print",
-        "Newsletter",
-      ]);
-      await links.getByLabel("Period", { exact: true }).selectOption("7");
-      await page.waitForURL(
-        (value) => value.searchParams.get("created") === "7",
-      );
-      assert(!new URL(page.url()).searchParams.has("from"));
-      await links.getByRole("link", { name: "Clear all" }).click();
-      await page.waitForURL((value) => !value.search);
       await qr.getByLabel("Period", { exact: true }).selectOption("custom");
       await page.waitForURL(
         (value) => value.searchParams.get("created") === "custom",

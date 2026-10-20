@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { can, cursorTags, pageCampaigns, pageBulkTagLinks } from "@shortn/core";
+import { can, pageCampaigns, pageBulkTagLinks } from "@shortn/core";
 import { buttonVariants } from "@shortn/ui";
 import { Page, Section } from "@/components/page/page";
 import { Notice } from "@/components/page/notice";
 import { Pagination } from "@/components/page/pagination";
-import { LinksFilters } from "@/components/link-pages/links-filters";
+import { LinkFiltersBar } from "@/components/link-filters/link-filters-bar";
 import { BulkCampaignForm } from "@/components/link-pages/bulk-campaign-form";
 import { hasFeature, loadEntitlements, minimumPlanFor } from "@shortn/billing";
 import { PlanGate } from "@/components/plan-gate";
@@ -42,12 +42,9 @@ export default async function BulkCampaignPage({
   const ids = await readCampaignSelection(ctx, query.selectionRef),
     ref = typeof query.selectionRef === "string" ? query.selectionRef : "";
   const view = linksViewQuery(query, requestTime());
-  const [result, tags, campaigns] = await Promise.all([
+  const [result, campaigns] = await Promise.all([
     ids.length && entitled
       ? pageBulkTagLinks(ctx, ids, { ...view.filter, page: view.page })
-      : null,
-    can(ctx.actor, "resource.update") && entitled
-      ? cursorTags(ctx, { limit: 50 })
       : null,
     can(ctx.actor, "resource.update") && entitled
       ? pageCampaigns(ctx, { limit: 25 })
@@ -122,10 +119,11 @@ export default async function BulkCampaignPage({
             title={t("review")}
             description={t("reviewHelp", { count: ids.length })}
           >
-            <LinksFilters
+            <LinkFiltersBar
+              ctx={ctx}
               workspace={workspace}
-              tags={tags?.items.map((tag) => tag.name) ?? []}
-              preserve={{ selectionRef: ref }}
+              filter={view.filter}
+              counts={false}
             />
             <p className="mb-4 text-small text-fg-muted">
               {t("matching", { count: result.total, total: ids.length })}

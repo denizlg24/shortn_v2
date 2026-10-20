@@ -129,7 +129,7 @@ await db.collection(physicalNames.subscriptions).insertOne({
   currentPeriodEnd: new Date(now.getTime() + 29 * 86400000),
   cancelAtPeriodEnd: false,
 });
-const directory = ".impeccable/review/p6-health-ui";
+const directory = "test-results/captures/p6-health-ui";
 await mkdir(directory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [],
@@ -169,7 +169,9 @@ try {
   await page
     .getByRole("searchbox", { name: "Search", exact: true })
     .fill("Health fixture 5");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .press("Enter");
   await page.waitForURL(
     (url) => url.searchParams.get("q") === "Health fixture 5",
   );

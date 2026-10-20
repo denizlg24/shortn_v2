@@ -1,7 +1,5 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
-
 ## Platform
 
 web
@@ -37,7 +35,7 @@ Create, manage and measure every link an organization shares, in print and digit
 - Name **Shortn** and the logo mark (heavy grotesque white "S" in a deep navy square) stay.
 - Brand colors stay: deep navy ink (`oklch(0.208 0.042 265.755)`, ≈ #0f172b) paired with white. New palette work extends from these; it does not replace them.
 - Domain: `shortn.at`.
-- Visual direction (chosen 2026-10-09, impeccable direction round, seed 2e7ef8a3): **the category standard, executed at full craft**. Conventions are embraced without irony or smuggled quirk. Craft bar: **Linear** and **Dub.co**. Explicit anti-goals: boxy card grids, decorative gradients, glassmorphism, generic icon tiles, "AI SaaS" hero tropes.
+- Visual direction (chosen 2026-10-09): **the category standard, executed at full craft**. Conventions are embraced without irony or smuggled quirk. Craft bar: **Linear** and **Dub.co**. Explicit anti-goals: boxy card grids, decorative gradients, glassmorphism, generic icon tiles, "AI SaaS" hero tropes.
 
 ## Terminology
 

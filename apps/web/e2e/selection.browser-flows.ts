@@ -25,7 +25,8 @@ export async function checkBulkSelection({
       name: "Delete selected",
       exact: true,
     });
-    assert(await remove.isDisabled());
+    // The selection bar only exists while something is selected.
+    assert.equal(await remove.count(), 0);
     await rows.first().check();
     assert.equal(
       await page
@@ -64,7 +65,7 @@ export async function checkBulkSelection({
     await page
       .getByRole("button", { name: "Clear selection", exact: true })
       .click();
-    assert(await remove.isDisabled());
+    assert.equal(await remove.count(), 0);
     assert.equal(
       await rows.evaluateAll(
         (inputs) =>
@@ -82,10 +83,11 @@ export async function checkBulkSelection({
     );
     await page.getByRole("link", { name: "Cancel", exact: true }).click();
     await page.waitForURL((url) => !url.pathname.endsWith("/delete"));
-    assert(
+    assert.equal(
       await page
         .getByRole("button", { name: "Delete selected", exact: true })
-        .isDisabled(),
+        .count(),
+      0,
     );
   }
   await go("/links");
@@ -93,7 +95,9 @@ export async function checkBulkSelection({
   await page
     .getByRole("searchbox", { name: "Search", exact: true })
     .fill("Dashboard fixture");
-  await page.getByRole("button", { name: "Apply", exact: true }).click();
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .press("Enter");
   await page.waitForURL(
     (url) => url.searchParams.get("q") === "Dashboard fixture",
   );

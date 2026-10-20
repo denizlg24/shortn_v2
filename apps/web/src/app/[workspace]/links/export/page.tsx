@@ -3,7 +3,6 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import {
   authorizeLinkExport,
   countFilteredLinkExport,
-  cursorTags,
   LinkExportError,
   listLinks,
 } from "@shortn/core";
@@ -11,7 +10,7 @@ import { buttonVariants } from "@shortn/ui";
 import { Page, Section } from "@/components/page/page";
 import { Notice } from "@/components/page/notice";
 import { Pagination } from "@/components/page/pagination";
-import { LinksFilters } from "@/components/link-pages/links-filters";
+import { LinkFiltersBar } from "@/components/link-filters/link-filters-bar";
 import { LinkExportForm } from "@/components/link-pages/export-form";
 import { serviceContext } from "@/server/context";
 import { linkExportStore } from "@/server/link-exports";
@@ -49,17 +48,16 @@ export default async function ExportLinksPage({
   if (!linkExportStore()) error = "unavailable";
   else
     try {
-      await authorizeLinkExport(ctx);
+      await authorizeLinkExport(ctx, Boolean(view.filter.campaign));
     } catch (value) {
       error = value instanceof LinkExportError ? value.code : "failed";
     }
-  const [total, tagPage, result] = !error
+  const [total, result] = !error
     ? await Promise.all([
         countFilteredLinkExport(ctx, view.filter),
-        cursorTags(ctx, { limit: 50 }),
         listLinks(ctx, { ...view.filter, page: view.page, limit: 25 }),
       ])
-    : [0, null, null];
+    : [0, null];
   const groups = new Map<string, NonNullable<typeof result>["links"]>();
   for (const link of result?.links ?? []) {
     const day = formatter.dateTime(new Date(link.createdAt), {
@@ -113,11 +111,10 @@ export default async function ExportLinksPage({
             />
           </Section>
           <Section title={t("review")} description={t("reviewHelp")}>
-            <LinksFilters
+            <LinkFiltersBar
+              ctx={ctx}
               workspace={workspace}
-              tags={tagPage?.items.map((tag) => tag.name) ?? []}
-              trash={view.trash}
-              archived={Boolean(view.filter.archived)}
+              filter={view.filter}
             />
             <p className="mb-4 text-small text-fg-muted">
               {t("scope", { count: total })}

@@ -33,7 +33,7 @@ await db.collection(physicalNames.webhook_endpoints).insertMany(
   })),
 );
 const browser = await chromium.launch({ headless: true });
-const captures = ".impeccable/review/webhooks";
+const captures = "test-results/captures/webhooks";
 await mkdir(captures, { recursive: true });
 const errors: string[] = [];
 const createdIds: ObjectId[] = [];

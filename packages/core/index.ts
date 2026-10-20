@@ -26,6 +26,7 @@ export * from "./bio/analytics";
 export * from "./domains/service";
 export * from "./links/public";
 export * from "./links/filters";
+export * from "./tags/options";
 export * from "./api-keys/service";
 export * from "./platform/features";
 export * from "./analytics/service";

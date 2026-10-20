@@ -197,7 +197,6 @@
     "empty": "Trash is empty.",
     "restore": "Restore selected",
     "restoring": "Restoring…",
-    "selection": "{count} selected · up to {limit}",
     "limit": "Select up to {limit} links per operation.",
     "failed": "Links could not be restored. Check your permissions and try again.",
     "partial": "{count, plural, one {# selected link could not be restored.} other {# selected links could not be restored.}} It may have expired or your permissions may have changed. Clear the selection to continue.",
@@ -205,9 +204,6 @@
     "restoreUntil": "Restore until",
     "until": "Restore until {date}",
     "expired": "Expired",
-    "group": "Group this page",
-    "ungrouped": "No grouping",
-    "byTag": "By first tag",
     "untagged": "Untagged"
   },
   "health": {

@@ -7,8 +7,11 @@ import { can } from "../workspaces/authz";
 import { endpoints } from "../webhooks/service";
 import { recordWebhookEvent, linkEventData } from "../webhooks/events";
 import { fail, ok, type Result } from "../result";
+import type { ListLinksInput } from "../links/service";
+import { tagColorOf, isTagColor, type TagColor, type TagSort } from "./options";
 
 type Tag = Documents["tags"];
+type Link = Documents["links"];
 
 export interface TagRef {
   _id: ObjectId;
@@ -25,15 +28,22 @@ export const normalizeTagName = (name: string) =>
 export async function listTags(ctx: Pick<ServiceContext, "db" | "workspace">) {
   const tags = await collection(ctx.db, "tags")
     .find(ownedBy<Tag>(ctx.workspace), {
-      projection: { name: 1, tagName: 1, mergedInto: 1 },
+      projection: { name: 1, tagName: 1, mergedInto: 1, color: 1 },
     })
     .toArray();
-  const byLower = new Map<string, { id: string; name: string }>();
+  const byLower = new Map<
+    string,
+    { id: string; name: string; color: TagColor }
+  >();
   for (const tag of tags) {
     if (tag.mergedInto) continue;
     const name = tagName(tag);
     if (name && !byLower.has(name.toLowerCase()))
-      byLower.set(name.toLowerCase(), { id: tag._id.toHexString(), name });
+      byLower.set(name.toLowerCase(), {
+        id: tag._id.toHexString(),
+        name,
+        color: tagColorOf(tag.color),
+      });
   }
   return [...byLower.values()].sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -318,6 +328,34 @@ function tagReference(tag: Tag) {
     ],
   };
 }
+/** Aggregation form of `tagReference`, evaluated against the `$$tag` element. */
+function isTagElement(tag: Tag) {
+  return {
+    $or: [
+      { $eq: ["$$tag._id", tag._id] },
+      {
+        $in: [
+          "$$tag.id",
+          [tag.id, ...(tag.legacyIds ?? [])].filter((id): id is string =>
+            Boolean(id),
+          ),
+        ],
+      },
+      {
+        $and: [
+          { $eq: [{ $type: "$$tag._id" }, "missing"] },
+          { $eq: [{ $type: "$$tag.id" }, "missing"] },
+          {
+            $or: [
+              { $eq: ["$$tag.tagName", { $literal: tagName(tag) }] },
+              { $eq: ["$$tag.name", { $literal: tagName(tag) }] },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+}
 async function editTagReferences(
   ctx: ServiceContext,
   tag: Tag,
@@ -402,45 +440,7 @@ async function editTagReferences(
                 $filter: {
                   input: { $ifNull: ["$tags", []] },
                   as: "tag",
-                  cond: {
-                    $not: [
-                      {
-                        $or: [
-                          { $eq: ["$$tag._id", tag._id] },
-                          {
-                            $in: [
-                              "$$tag.id",
-                              [tag.id, ...(tag.legacyIds ?? [])].filter(
-                                (id): id is string => Boolean(id),
-                              ),
-                            ],
-                          },
-                          {
-                            $and: [
-                              { $eq: [{ $type: "$$tag._id" }, "missing"] },
-                              { $eq: [{ $type: "$$tag.id" }, "missing"] },
-                              {
-                                $or: [
-                                  {
-                                    $eq: [
-                                      "$$tag.tagName",
-                                      { $literal: tagName(tag) },
-                                    ],
-                                  },
-                                  {
-                                    $eq: [
-                                      "$$tag.name",
-                                      { $literal: tagName(tag) },
-                                    ],
-                                  },
-                                ],
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                    ],
-                  },
+                  cond: { $not: [isTagElement(tag)] },
                 },
               },
               tagIds: {
@@ -525,6 +525,455 @@ export async function deleteTag(
           { session },
         );
         return ok(null);
+      },
+      { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } },
+    );
+  } finally {
+    await session.endSession();
+  }
+}
+
+/** No embedded tag with a visible name, matching how views list a link's tags. */
+export const untaggedLinkFilter: Filter<Link> = {
+  tags: {
+    $not: {
+      $elemMatch: {
+        $or: [{ tagName: { $regex: /\S/ } }, { name: { $regex: /\S/ } }],
+      },
+    },
+  },
+};
+
+export interface TagListItem {
+  id: string;
+  name: string;
+  color: TagColor;
+  createdAt: string;
+  createdBy: string | null;
+  /** Links in the counted view; null when counts were not requested. */
+  links: number | null;
+}
+const tagListItem = (tag: Tag, links: number | null): TagListItem => ({
+  id: tag._id.toHexString(),
+  name: tagName(tag),
+  color: tagColorOf(tag.color),
+  createdAt: (tag.createdAt ?? tag._id.getTimestamp()).toISOString(),
+  createdBy: typeof tag.createdBy === "string" ? tag.createdBy : null,
+  links,
+});
+
+// Counts use the shared list filter, so a number always equals what the Links
+// view shows after picking that tag with the other filters unchanged.
+async function countScope(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  view: ListLinksInput,
+) {
+  const { linkListFilter } = await import("../links/service");
+  return linkListFilter(ctx, {
+    ...view,
+    tags: undefined,
+    tagMode: undefined,
+    untagged: undefined,
+  });
+}
+
+/** Per-name link counts for one page of tags; never scans more than the view. */
+export async function tagLinkCounts(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  names: string[],
+  view: ListLinksInput = {},
+) {
+  const wanted = [...new Set(names.filter(Boolean))].slice(0, 200);
+  const counts = new Map<string, number>();
+  if (!wanted.length) return counts;
+  const scope = await countScope(ctx, view);
+  const rows = await collection(ctx.db, "links")
+    .aggregate<{ _id: string; links: number }>([
+      { $match: { $and: [scope, { "tags.tagName": { $in: wanted } }] } },
+      {
+        $project: {
+          names: {
+            $setIntersection: [{ $ifNull: ["$tags.tagName", []] }, wanted],
+          },
+        },
+      },
+      { $unwind: "$names" },
+      { $group: { _id: "$names", links: { $sum: 1 } } },
+    ])
+    .toArray();
+  for (const row of rows) counts.set(row._id, row.links);
+  return counts;
+}
+
+/**
+ * Tags ranked by how many links in the view carry them, for pickers that
+ * open without a search. One aggregation over the view; never the tag library.
+ */
+export async function pageTagUsage(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  view: ListLinksInput = {},
+  input: { page?: number | undefined; limit?: number | undefined } = {},
+) {
+  const limit = Math.min(Math.max(Math.floor(input.limit ?? 40), 1), 100);
+  const requested = input.page ?? 1;
+  const page = Math.max(1, Number.isSafeInteger(requested) ? requested : 1);
+  const scope = await countScope(ctx, view);
+  const rows = await collection(ctx.db, "links")
+    .aggregate<{ _id: string; links: number }>([
+      { $match: { $and: [scope, { "tags.tagName": { $type: "string" } }] } },
+      {
+        $project: {
+          names: { $setUnion: [{ $ifNull: ["$tags.tagName", []] }] },
+        },
+      },
+      { $unwind: "$names" },
+      { $match: { names: { $regex: /\S/ } } },
+      { $group: { _id: "$names", links: { $sum: 1 } } },
+      { $sort: { links: -1, _id: 1 } },
+      { $skip: (page - 1) * limit },
+      { $limit: limit + 1 },
+    ])
+    .toArray();
+  const shown = rows.slice(0, limit);
+  const colors = await tagColorsByName(
+    ctx,
+    shown.map((row) => row._id),
+  );
+  return {
+    items: shown.map((row) => ({
+      name: row._id,
+      color: colors[row._id.toLowerCase()] ?? tagColorOf(undefined),
+      links: row.links,
+    })),
+    page,
+    more: rows.length > limit,
+  };
+}
+
+export async function untaggedLinkCount(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  view: ListLinksInput = {},
+) {
+  const scope = await countScope(ctx, view);
+  return collection(ctx.db, "links").countDocuments({
+    $and: [scope, untaggedLinkFilter],
+  });
+}
+
+/**
+ * Server-paginated tag library. `counts` is the Links view the per-tag numbers
+ * describe; pass false to skip counting.
+ */
+export async function pageTags(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  input: {
+    search?: string | undefined;
+    sort?: TagSort | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+    counts?: ListLinksInput | false | undefined;
+  } = {},
+) {
+  const search = input.search?.trim().slice(0, 200);
+  const pattern = search ? new RegExp(literalPattern(search), "i") : null;
+  const filter: Filter<Tag> = {
+    $and: [
+      ownedBy<Tag>(ctx.workspace),
+      { mergedInto: { $exists: false } },
+      ...(pattern ? [{ $or: [{ name: pattern }, { tagName: pattern }] }] : []),
+    ],
+  };
+  const tags = collection(ctx.db, "tags");
+  const limit = Math.min(Math.max(Math.floor(input.limit ?? 50), 1), 100);
+  const total = await tags.countDocuments(filter);
+  const pages = Math.max(1, Math.ceil(total / limit));
+  const requested = input.page ?? 1;
+  const page = Math.min(
+    pages,
+    Math.max(1, Number.isSafeInteger(requested) ? requested : 1),
+  );
+  const docs =
+    input.sort === "newest"
+      ? await tags
+          .find(filter)
+          .sort({ _id: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .toArray()
+      : // Legacy tags may lack nameLower, so order by the displayed name.
+        await tags
+          .aggregate<Tag>([
+            { $match: filter },
+            {
+              $addFields: {
+                _sortName: {
+                  $toLower: {
+                    $trim: { input: { $ifNull: ["$name", "$tagName", ""] } },
+                  },
+                },
+              },
+            },
+            { $sort: { _sortName: 1, _id: 1 } },
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+            { $unset: "_sortName" },
+          ])
+          .toArray();
+  const counts =
+    input.counts === false
+      ? null
+      : await tagLinkCounts(ctx, docs.map(tagName), input.counts ?? {});
+  return {
+    items: docs.map((tag) =>
+      tagListItem(tag, counts ? (counts.get(tagName(tag)) ?? 0) : null),
+    ),
+    total,
+    page,
+    pages,
+  };
+}
+
+export async function getTagItem(
+  ctx: Pick<ServiceContext, "db" | "workspace" | "linkDomain">,
+  id: string,
+) {
+  const tag = await ownedTag(ctx, id);
+  if (!tag) return null;
+  const counts = await tagLinkCounts(ctx, [tagName(tag)]);
+  return tagListItem(tag, counts.get(tagName(tag)) ?? 0);
+}
+
+/** Colour of each named tag, keyed by lowercase name, for rendering chips. */
+export async function tagColorsByName(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  names: string[],
+): Promise<Record<string, TagColor>> {
+  const lower = [
+    ...new Set(names.map((name) => name.trim().toLowerCase()).filter(Boolean)),
+  ].slice(0, 500);
+  if (!lower.length) return {};
+  const docs = await collection(ctx.db, "tags")
+    .find(
+      {
+        $and: [
+          ownedBy<Tag>(ctx.workspace),
+          { mergedInto: { $exists: false } },
+          { nameLower: { $in: lower } },
+        ],
+      },
+      { projection: { nameLower: 1, color: 1 } },
+    )
+    .toArray();
+  return Object.fromEntries(
+    docs.flatMap((tag) =>
+      tag.nameLower ? [[tag.nameLower, tagColorOf(tag.color)] as const] : [],
+    ),
+  );
+}
+
+export async function setTagColor(
+  ctx: ServiceContext,
+  id: string,
+  color: unknown,
+): Promise<Result<TagListItem, TagError>> {
+  if (!can(ctx.actor, "resource.update")) return fail("forbidden");
+  if (!isTagColor(color)) return fail("invalid_input");
+  const tag = await ownedTag(ctx, id);
+  if (!tag) return fail("not_found");
+  const updated = await collection(ctx.db, "tags").findOneAndUpdate(
+    { _id: tag._id },
+    { $set: { color, updatedAt: nowOf(ctx) } },
+    { returnDocument: "after" },
+  );
+  return updated ? ok(tagListItem(updated, null)) : fail("not_found");
+}
+
+/** What a workspace-wide edit of this tag touches, including archived and trashed links. */
+export async function tagUsage(
+  ctx: Pick<ServiceContext, "db" | "workspace">,
+  id: string,
+) {
+  const tag = await ownedTag(ctx, id);
+  if (!tag) return null;
+  const tagged = {
+    $or: [{ tags: { $elemMatch: tagReference(tag) } }, { tagIds: tag._id }],
+  };
+  const [links, qrCodes] = await Promise.all([
+    collection(ctx.db, "links").countDocuments({
+      $and: [ownedBy<Link>(ctx.workspace), tagged, { isQrCode: { $ne: true } }],
+    }),
+    collection(ctx.db, "qr_codes").countDocuments({
+      $and: [ownedBy<Documents["qr_codes"]>(ctx.workspace), tagged],
+    }),
+  ]);
+  return { links, qrCodes };
+}
+
+async function mergeTagReferences(
+  ctx: ServiceContext,
+  source: Tag,
+  target: Tag,
+  session: ClientSession,
+) {
+  const tagged = {
+    $or: [
+      { tags: { $elemMatch: tagReference(source) } },
+      { tagIds: source._id },
+    ],
+  };
+  const subscribed = await endpoints(ctx.db).findOne(
+    { workspaceId: ctx.workspace._id, enabled: true, events: "link.updated" },
+    { session, projection: { _id: 1 } },
+  );
+  const affected = subscribed
+    ? (
+        await collection(ctx.db, "links")
+          .find(
+            { $and: [ownedBy<Link>(ctx.workspace), tagged] },
+            { session, projection: { _id: 1 } },
+          )
+          .toArray()
+      ).map((link) => link._id)
+    : [];
+  const embedded = embeddedTags(
+    [
+      {
+        _id: target._id,
+        id: target.id ?? target._id.toHexString(),
+        name: tagName(target),
+      },
+    ],
+    legacySubOf(ctx),
+  );
+  const now = nowOf(ctx);
+  for (const physical of [physicalNames.links, physicalNames.qr_codes])
+    await ctx.db.collection<TaggedDocument>(physical).updateMany(
+      { $and: [ownedBy<TaggedDocument>(ctx.workspace), tagged] },
+      [
+        {
+          $set: {
+            tags: {
+              $let: {
+                vars: {
+                  kept: {
+                    $filter: {
+                      input: { $ifNull: ["$tags", []] },
+                      as: "tag",
+                      cond: { $not: [isTagElement(source)] },
+                    },
+                  },
+                },
+                in: {
+                  $cond: [
+                    {
+                      $anyElementTrue: [
+                        {
+                          $map: {
+                            input: "$$kept",
+                            as: "tag",
+                            in: isTagElement(target),
+                          },
+                        },
+                      ],
+                    },
+                    "$$kept",
+                    { $concatArrays: ["$$kept", { $literal: embedded }] },
+                  ],
+                },
+              },
+            },
+            tagIds: {
+              $let: {
+                vars: {
+                  kept: {
+                    $filter: {
+                      input: { $ifNull: ["$tagIds", []] },
+                      as: "tagId",
+                      cond: { $ne: ["$$tagId", source._id] },
+                    },
+                  },
+                },
+                in: {
+                  $cond: [
+                    { $in: [target._id, "$$kept"] },
+                    "$$kept",
+                    { $concatArrays: ["$$kept", [target._id]] },
+                  ],
+                },
+              },
+            },
+            updatedAt: now,
+          },
+        },
+      ],
+      { session },
+    );
+  // Recorded after the rewrite so subscribers receive the merged tag list.
+  for (let start = 0; start < affected.length; start += 500)
+    for (const link of await collection(ctx.db, "links")
+      .find({ _id: { $in: affected.slice(start, start + 500) } }, { session })
+      .toArray())
+      await recordWebhookEvent(
+        ctx.db,
+        ctx.workspace._id,
+        "link.updated",
+        linkEventData(link, ctx.linkDomain),
+        session,
+        now,
+      );
+}
+
+/**
+ * Moves every link and QR code from `id` onto `targetId` in one transaction,
+ * like rename and delete, then removes the source tag. Its legacy IDs resolve
+ * to the target afterwards.
+ */
+export async function mergeTag(
+  ctx: ServiceContext,
+  id: string,
+  targetId: string,
+): Promise<Result<TagListItem, TagError>> {
+  if (!can(ctx.actor, "resource.update")) return fail("forbidden");
+  const session = ctx.db.client.startSession();
+  try {
+    return await session.withTransaction(
+      async () => {
+        const source = await ownedTag(ctx, id, session);
+        const target = await ownedTag(ctx, targetId, session);
+        if (!source || !target) return fail("not_found");
+        if (source._id.equals(target._id)) return fail("invalid_input");
+        if (
+          !can(ctx.actor, "resource.delete", {
+            createdBy:
+              typeof source.createdBy === "string"
+                ? source.createdBy
+                : undefined,
+          })
+        )
+          return fail("forbidden");
+        await mergeTagReferences(ctx, source, target, session);
+        const legacy = [source.id, ...(source.legacyIds ?? [])].filter(
+          (value): value is string => Boolean(value),
+        );
+        const merged = await collection(ctx.db, "tags").findOneAndUpdate(
+          { _id: target._id },
+          [
+            {
+              $set: {
+                updatedAt: nowOf(ctx),
+                legacyIds: {
+                  $setUnion: [{ $ifNull: ["$legacyIds", []] }, legacy],
+                },
+              },
+            },
+          ],
+          { session, returnDocument: "after" },
+        );
+        await collection(ctx.db, "tags").deleteOne(
+          { _id: source._id },
+          { session },
+        );
+        return merged ? ok(tagListItem(merged, null)) : fail("not_found");
       },
       { readConcern: { level: "snapshot" }, writeConcern: { w: "majority" } },
     );

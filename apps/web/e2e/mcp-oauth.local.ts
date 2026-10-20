@@ -22,7 +22,7 @@ const mongo = await new MongoClient(
   ).connect(),
   db = mongo.db("shortn_p6_dev");
 const browser = await chromium.launch({ headless: true }),
-  directory = ".impeccable/review/p6-oauth";
+  directory = "test-results/captures/p6-oauth";
 await mkdir(directory, { recursive: true });
 const captures: object[] = [],
   errors: string[] = [];

@@ -49,6 +49,13 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
   --color-chart-6: var(--chart-6);
+  --color-tag-slate: var(--tag-slate);
+  --color-tag-blue: var(--tag-blue);
+  --color-tag-teal: var(--tag-teal);
+  --color-tag-violet: var(--tag-violet);
+  --color-tag-magenta: var(--tag-magenta);
+  --color-tag-ochre: var(--tag-ochre);
+  --color-tag-rust: var(--tag-rust);
 
   --font-sans: var(--font-ui);
   --font-mono: var(--font-data);

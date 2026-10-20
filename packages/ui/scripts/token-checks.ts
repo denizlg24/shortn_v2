@@ -27,6 +27,15 @@ type Tokens = Map<string, string>;
 
 const THEMES: ThemeName[] = ["light", "dark"];
 const CHART_SERIES = [1, 2, 3, 4, 5, 6];
+const TAG_COLORS = [
+  "slate",
+  "blue",
+  "teal",
+  "violet",
+  "magenta",
+  "ochre",
+  "rust",
+];
 
 function readBlock(source: string, selector: string): Tokens {
   const escaped = selector.replace(".", "\\.");
@@ -104,6 +113,13 @@ const nonTextPairs: ContrastPair[] = [
     bg: "bg",
     min: NON_TEXT_AA,
   })),
+  ...TAG_COLORS.flatMap((name) =>
+    ["bg", "overlay"].map((bg) => ({
+      fg: `tag-${name}`,
+      bg,
+      min: NON_TEXT_AA,
+    })),
+  ),
 ];
 
 /** Text/non-text contrast, chart-series separation under simulated colour vision, and sRGB gamut, per theme. */

@@ -62,16 +62,14 @@ const foreign = {
 };
 const browser = await chromium.launch({ headless: true });
 try {
-  await db
-    .collection(physicalNames.tags)
-    .insertMany(
-      tagNames.map((name, at) => ({
-        _id: tagIds[at],
-        workspaceId: workspace._id,
-        name,
-        tagName: name,
-      })),
-    );
+  await db.collection(physicalNames.tags).insertMany(
+    tagNames.map((name, at) => ({
+      _id: tagIds[at],
+      workspaceId: workspace._id,
+      name,
+      tagName: name,
+    })),
+  );
   await db.collection(physicalNames.links).insertMany([...docs, foreign]);
   const page = await browser.newPage({
       viewport: { width: 1440, height: 1000 },
@@ -96,11 +94,16 @@ try {
       .getByRole("button", { name: "Browse links", exact: true })
       .click();
   }
+  // Toggles a tag in the toolbar's Tag facet (server-searched options).
   async function tag(name: string) {
-    await library
-      .getByRole("combobox", { name: "Filter by tags", exact: true })
-      .click();
-    await page.getByRole("option", { name, exact: true }).click();
+    const token = library.getByRole("button", { name: /^Change filter: Tag/ });
+    if (await token.count()) await token.click();
+    else {
+      await library.getByRole("button", { name: /^Filter/ }).click();
+      await page.getByRole("option", { name: "Tag", exact: true }).click();
+    }
+    await page.getByRole("combobox", { name: "Search tags…" }).fill(name);
+    await page.getByRole("option", { name: new RegExp(`^${name}\\b`) }).click();
     await page.keyboard.press("Escape");
   }
   async function params() {
@@ -121,27 +124,17 @@ try {
   await button("Use 40 selected links").waitFor();
   await tag(tagNames[1]!);
   await library.getByText(/1,005 matching links/).waitFor();
-  const filter = library.getByRole("combobox", {
-    name: "Filter by tags",
-    exact: true,
-  });
-  assert.equal(await filter.innerText(), "2 tags");
-  const tagBox = (await filter.boundingBox())!,
-    groupBox = (await library
-      .getByLabel("Group results", { exact: true })
-      .boundingBox())!;
-  assert(
-    tagBox.x + tagBox.width < groupBox.x,
-    "Tag selector overlaps grouping",
-  );
-  await button(`Remove tag ${tagNames[0]}`).click();
+  await library
+    .getByRole("button", { name: /^Change filter: Tag is any of/ })
+    .waitFor();
+  await tag(tagNames[0]!);
   await library.getByText(/4 matching links/).waitFor();
   await button("Select this page").click();
   await button("Use 44 selected links").waitFor();
-  await mkdir(".impeccable/review", { recursive: true });
+  await mkdir("test-results/captures", { recursive: true });
   if (process.argv.includes("--capture"))
     await page.screenshot({
-      path: ".impeccable/review/campaign-library-desktop.png",
+      path: "test-results/captures/campaign-library-desktop.png",
       fullPage: true,
     });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -166,7 +159,7 @@ try {
   assert.deepEqual(clipping, [], "Campaign picker clips controls");
   if (process.argv.includes("--capture"))
     await page.screenshot({
-      path: ".impeccable/review/campaign-library-mobile.png",
+      path: "test-results/captures/campaign-library-mobile.png",
       fullPage: true,
     });
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -260,11 +253,9 @@ try {
 } finally {
   await browser.close();
   await db.collection(physicalNames.campaigns).deleteOne({ _id: campaignId });
-  await db
-    .collection(physicalNames.links)
-    .deleteMany({
-      _id: { $in: [...docs.map((link) => link._id), foreign._id] },
-    });
+  await db.collection(physicalNames.links).deleteMany({
+    _id: { $in: [...docs.map((link) => link._id), foreign._id] },
+  });
   await db.collection(physicalNames.tags).deleteMany({ _id: { $in: tagIds } });
   cache.disconnect();
   await client.close();
