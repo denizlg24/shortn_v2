@@ -358,6 +358,25 @@ try {
       url.pathname.endsWith("/links") &&
       url.searchParams.get("tag") === "Promo",
   );
+
+  // The campaign picker reuses the toolbar with local state, not the URL.
+  await page.goto(`${root}/campaigns/${await campaignId()}/builder`);
+  await theme(page, false);
+  await page.getByRole("button", { name: "Browse links", exact: true }).click();
+  const library = page.getByRole("region", { name: "Choose campaign links" });
+  await library.getByText("5,001 matching links").waitFor();
+  await library.getByRole("button", { name: "Filter", exact: true }).click();
+  await page.getByRole("option", { name: "Tag", exact: true }).click();
+  await page.getByRole("option", { name: /^Podcast\b/ }).click();
+  await page.keyboard.press("Escape");
+  await library.getByText(/^\d[\d,]* matching links/).waitFor();
+  assert.equal(new URL(page.url()).searchParams.has("tag"), false);
+  await library
+    .getByRole("button", { name: /^Change filter: Tag is Podcast/ })
+    .waitFor();
+  await library.getByRole("button", { name: "Select this page" }).click();
+  for (const width of [1440, 390])
+    await capture(page, `campaign-picker-light-${width}`, width);
   assert.deepEqual(errors, []);
   console.log(
     `Links filters passed on 5,001 links / 1,200 tags; captures in ${directory}`,
