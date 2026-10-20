@@ -697,7 +697,8 @@
       "dns": "The DNS record could not be verified. Check its name and value, allow time for DNS updates, and try again.",
       "clipboard": "Could not copy. Select the record text and copy it manually.",
       "network": "Could not connect. Check your connection and try again.",
-      "accountMismatch": "That workplace identity is connected to another Shortn account. Choose your own workplace identity."
+      "accountMismatch": "That workplace identity is connected to another Shortn account. Choose your own workplace identity.",
+      "suspended": "This account is suspended. Contact support@shortn.at."
     }
   }
 }

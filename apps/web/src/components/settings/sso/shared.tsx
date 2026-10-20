@@ -15,6 +15,7 @@ export function ssoErrorKey(code?: string, status?: number) {
   if (["SESSION_IS_NOT_FRESH", "SESSION_EXPIRED"].includes(code ?? ""))
     return "fresh";
   if (code === "LAST_SIGN_IN_METHOD") return "lastMethod";
+  if (code === "ACCOUNT_SUSPENDED") return "suspended";
   if (code === "SSO_LINK_ACCOUNT_MISMATCH") return "accountMismatch";
   if (code === "SSO_LINK_EMAIL_MISMATCH") return "emailMismatch";
   if (["SSO_ACCOUNT_NOT_CONNECTED", "SSO_LINK_EXPIRED"].includes(code ?? ""))

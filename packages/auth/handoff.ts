@@ -1,4 +1,4 @@
-import { physicalNames } from "@shortn/db";
+import { findAccountSuspension, physicalNames } from "@shortn/db";
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthEndpoint } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
@@ -52,6 +52,10 @@ export const handoff = (options: { db: () => Db }) =>
             found.userId,
           );
           if (!user) throw ctx.redirect("/login");
+          // createSession's hook would refuse too, but only after the 2FA
+          // step and as JSON; a navigation needs the login page.
+          if (await findAccountSuspension(options.db(), user.id))
+            throw ctx.redirect("/login?error=ACCOUNT_SUSPENDED");
           if (Reflect.get(user, "twoFactorEnabled") && !found.impersonatedBy) {
             // The one-time handoff proves the primary session only. Complete
             // the second factor on this host before creating any full session.

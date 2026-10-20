@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { BlockList, isIP } from "node:net";
 import { customAlphabet } from "nanoid";
 import { ObjectId, type Db, type ClientSession } from "mongodb";
-import { collection, type Documents } from "@shortn/db";
+import { collection, findAccountSuspension, type Documents } from "@shortn/db";
 import { z } from "zod";
 import type { Redis } from "ioredis";
 import { can, type Actor } from "../workspaces/authz";
@@ -238,14 +238,15 @@ export async function authenticateApiKey(
     !apiKeyIpAllowed(key.ipAllowlist, ip)
   )
     return fail("unauthorized");
-  const [member, workspace] = await Promise.all([
+  const [member, workspace, suspension] = await Promise.all([
     collection(db, "workspace_members").findOne({
       workspaceId: key.workspaceId,
       userId: key.createdBy,
     }),
     collection(db, "workspaces").findOne({ _id: key.workspaceId }),
+    findAccountSuspension(db, key.createdBy, now),
   ]);
-  if (!member || !workspace) return fail("unauthorized");
+  if (!member || !workspace || suspension) return fail("unauthorized");
   const usageKey = `apikey:last-used:${key._id.toHexString()}`;
   let recordUse = true;
   if (usageCache) {

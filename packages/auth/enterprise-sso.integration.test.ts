@@ -280,36 +280,30 @@ const mongo = process.env.MONGO_TEST_URL;
         },
       });
       const now = new Date();
-      await db
-        .collection(physicalNames.user)
-        .insertOne({
-          _id: userId,
-          email: "member@synthetic.invalid",
-          name: "Preserved local profile",
-          emailVerified: true,
-          createdAt: now,
-          updatedAt: now,
-        });
-      await db
-        .collection(physicalNames.account)
-        .insertOne({
-          userId,
-          accountId: String(userId),
-          providerId: "credential",
-          password: fixture.account.password,
-          createdAt: now,
-          updatedAt: now,
-        });
-      await db
-        .collection(physicalNames.workspaces)
-        .insertOne({
-          _id: workspaceId,
-          ownerUserId: String(userId),
-          personal: false,
-          slug: "synthetic-sso",
-          name: "Synthetic workspace",
-          platformFeatures: { advancedAuth: true },
-        });
+      await db.collection(physicalNames.user).insertOne({
+        _id: userId,
+        email: "member@synthetic.invalid",
+        name: "Preserved local profile",
+        emailVerified: true,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await db.collection(physicalNames.account).insertOne({
+        userId,
+        accountId: String(userId),
+        providerId: "credential",
+        password: fixture.account.password,
+        createdAt: now,
+        updatedAt: now,
+      });
+      await db.collection(physicalNames.workspaces).insertOne({
+        _id: workspaceId,
+        ownerUserId: String(userId),
+        personal: false,
+        slug: "synthetic-sso",
+        name: "Synthetic workspace",
+        platformFeatures: { advancedAuth: true },
+      });
       await db
         .collection(physicalNames.workspace_members)
         .insertOne({ workspaceId, userId: String(userId), role: "owner" });
@@ -446,14 +440,12 @@ const mongo = process.env.MONGO_TEST_URL;
       }));
       await db.collection(physicalNames.sso_providers).insertMany(providers);
       const otherProvider = new ObjectId();
-      await db
-        .collection(physicalNames.sso_providers)
-        .insertOne({
-          _id: otherProvider,
-          workspaceId: new ObjectId(),
-          providerId: "another-tenant",
-          domainVerified: true,
-        });
+      await db.collection(physicalNames.sso_providers).insertOne({
+        _id: otherProvider,
+        workspaceId: new ObjectId(),
+        providerId: "another-tenant",
+        domainVerified: true,
+      });
       const bindings = providers.map((row) => ({
         providerRecordId: row._id,
         providerId: row.providerId,
@@ -464,15 +456,13 @@ const mongo = process.env.MONGO_TEST_URL;
       }));
       await db.collection(physicalNames.sso_bindings).insertMany(bindings);
       const stranger = new ObjectId();
-      await db
-        .collection(physicalNames.sso_bindings)
-        .insertOne({
-          userId: stranger,
-          providerRecordId: otherProvider,
-          providerId: "another-tenant",
-          issuer,
-          subject: "private-stranger",
-        });
+      await db.collection(physicalNames.sso_bindings).insertOne({
+        userId: stranger,
+        providerRecordId: otherProvider,
+        providerId: "another-tenant",
+        issuer,
+        subject: "private-stranger",
+      });
       try {
         const first = await ssoProviderPage(db, workspaceId, 1, true),
           last = await ssoProviderPage(db, workspaceId, 999, true);
@@ -535,21 +525,14 @@ const mongo = process.env.MONGO_TEST_URL;
             { _id: workspaceId },
             { $set: { "platformFeatures.advancedAuth": true } },
           );
-        await db
-          .collection(physicalNames.sso_bindings)
-          .deleteMany({
-            providerId: {
-              $in: [
-                ...providers.map((row) => row.providerId),
-                "another-tenant",
-              ],
-            },
-          });
-        await db
-          .collection(physicalNames.sso_providers)
-          .deleteMany({
-            _id: { $in: [...providers.map((row) => row._id), otherProvider] },
-          });
+        await db.collection(physicalNames.sso_bindings).deleteMany({
+          providerId: {
+            $in: [...providers.map((row) => row.providerId), "another-tenant"],
+          },
+        });
+        await db.collection(physicalNames.sso_providers).deleteMany({
+          _id: { $in: [...providers.map((row) => row._id), otherProvider] },
+        });
       }
     });
     test("linked subjects authenticate; a changed subject or issuer cannot inherit the binding", async () => {
@@ -568,6 +551,21 @@ const mongo = process.env.MONGO_TEST_URL;
         "/connected",
       );
       validToken = true;
+    });
+    test("a banned user's signed OIDC callback opens no session", async () => {
+      await request("/sign-out", {});
+      const users = db.collection(physicalNames.user);
+      await users.updateOne({ _id: userId }, { $set: { banned: true } });
+      try {
+        const location = (await request(await begin())).headers.get("location");
+        expect(location).toContain("ACCOUNT_SUSPENDED");
+        expect(await (await request("/get-session")).json()).toBeNull();
+      } finally {
+        await users.updateOne({ _id: userId }, { $unset: { banned: "" } });
+      }
+      expect((await request(await begin())).headers.get("location")).toBe(
+        "/connected",
+      );
     });
     test("flag changes immediately reject shared SSO sessions; owners can delete after entitlement loss", async () => {
       expect((await request(await begin())).headers.get("location")).toBe(

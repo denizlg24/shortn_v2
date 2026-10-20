@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 import { ObjectId } from "mongodb";
 import { desiredIndexes, equivalentIndex, legacyCollections } from "./indexes";
 import { physicalNames } from "./collections";
+import { accountSuspension } from "./account-status";
 import {
   bioPageSchema,
   clickEventSchema,
@@ -386,6 +387,42 @@ test("admin schemas accept legacy rows and reject malformed staff fields", () =>
       moderation: { state: "taken_down", category: "nope", by: "a", at },
     }).success,
   ).toBe(false);
+});
+
+test("account suspension blocks only strict, unexpired bans and any deletion", () => {
+  const now = new Date("2026-10-20T00:00:00Z");
+  const later = new Date(now.getTime() + 1000);
+  const earlier = new Date(now.getTime() - 1000);
+  expect(accountSuspension({}, now)).toBeNull();
+  expect(accountSuspension({ banned: false }, now)).toBeNull();
+  expect(accountSuspension({ banned: null }, now)).toBeNull();
+  expect(accountSuspension({ banned: true }, now)).toEqual({ kind: "banned" });
+  expect(
+    accountSuspension(
+      { banned: true, banReason: "spam", banExpires: later },
+      now,
+    ),
+  ).toEqual({ kind: "banned", reason: "spam" });
+  expect(accountSuspension({ banned: true, banExpires: now }, now)).toBeNull();
+  expect(
+    accountSuspension({ banned: true, banExpires: earlier }, now),
+  ).toBeNull();
+  expect(
+    accountSuspension(
+      {
+        deletion: {
+          requestedAt: now,
+          by: "staff",
+          purgeAfter: later,
+          state: "scheduled",
+        },
+      },
+      now,
+    ),
+  ).toEqual({ kind: "deleted" });
+  expect(accountSuspension({ deletedAt: earlier }, now)).toEqual({
+    kind: "deleted",
+  });
 });
 
 test("partial indexes never use a bare _id key, and names are unique per collection", () => {

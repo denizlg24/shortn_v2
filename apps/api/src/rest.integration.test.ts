@@ -3793,5 +3793,41 @@ const linkResponse = z.object({
       expect(limited.headers.get("RateLimit-Remaining")).toBe("0");
       expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
     });
+    test("a banned or deletion-pending creator's key gets 401 until the ban lapses", async () => {
+      const created = await key(["links:read"]);
+      const users = collection(db, "user");
+      const _id = new ObjectId(ctx.actor.userId);
+      await users.insertOne({ _id, email: "banned-creator@example.com" });
+      try {
+        await users.updateOne({ _id }, { $set: { banned: true } });
+        expect((await request("/v1/links", created.secret)).status).toBe(401);
+        await users.updateOne(
+          { _id },
+          {
+            $unset: { banned: "" },
+            $set: {
+              deletion: {
+                requestedAt: new Date(),
+                by: "staff",
+                purgeAfter: new Date(),
+                state: "scheduled",
+              },
+            },
+          },
+        );
+        expect((await request("/v1/links", created.secret)).status).toBe(401);
+        await users.updateOne(
+          { _id },
+          {
+            $unset: { deletion: "" },
+            $set: { banned: true, banExpires: new Date(Date.now() - 1000) },
+          },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+      } finally {
+        await users.deleteOne({ _id });
+      }
+    });
   },
 );

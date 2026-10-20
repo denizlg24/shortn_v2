@@ -56,6 +56,15 @@ export function LoginForm({
   const [passkeyPending, setPasskeyPending] = useState(false);
   const passkeyBusy = useRef(false);
   const usingEmail = form.values.identifier.includes("@");
+  const suspendedMessage = (error: object) => {
+    const reason =
+      "reason" in error && typeof error.reason === "string"
+        ? error.reason.trim()
+        : "";
+    return reason
+      ? t("errors.accountSuspendedReason", { reason })
+      : t("errors.accountSuspended");
+  };
 
   const onSubmit = form.submit(async (values) => {
     const identifier = values.identifier.trim();
@@ -94,6 +103,8 @@ export function LoginForm({
       case "USERNAME_IS_TOO_LONG":
       case "USERNAME_IS_INVALID":
         return { field: "identifier", error: t("errors.useEmailToSignIn") };
+      case "ACCOUNT_SUSPENDED":
+        return { formError: suspendedMessage(error) };
     }
     return {
       formError:
@@ -202,7 +213,13 @@ export function LoginForm({
           form.setFormError("");
           try {
             const result = await authClient.signIn.passkey();
-            if (result.error)
+            if (
+              result.error &&
+              "code" in result.error &&
+              result.error.code === "ACCOUNT_SUSPENDED"
+            )
+              form.setFormError(suspendedMessage(result.error));
+            else if (result.error)
               form.setFormError(
                 t(
                   result.error.status === 429

@@ -2,7 +2,12 @@ import { createHash } from "node:crypto";
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from "jose";
 import { ObjectId, type Db } from "mongodb";
 import { z } from "zod";
-import { collection, physicalNames, ssoSessionActive } from "@shortn/db";
+import {
+  collection,
+  findAccountSuspension,
+  physicalNames,
+  ssoSessionActive,
+} from "@shortn/db";
 import { apiScopes } from "../api-keys/scopes";
 import type { ApiPrincipal } from "../api-keys/service";
 import { fail, ok } from "../result";
@@ -66,7 +71,7 @@ export async function authenticateMcpOAuth(
   const userId = claims.sub,
     workspaceId = new ObjectId(claims["https://shortn.at/workspace"]);
   const userIds = [userId, new ObjectId(userId)];
-  const [client, consent, session, member, workspace, resource] =
+  const [client, consent, session, member, workspace, resource, suspension] =
     await Promise.all([
       db
         .collection(physicalNames.oauth_clients)
@@ -87,8 +92,10 @@ export async function authenticateMcpOAuth(
       db
         .collection(physicalNames.oauth_resources)
         .findOne({ identifier: config.resource, disabled: { $ne: true } }),
+      findAccountSuspension(db, userId, now),
     ]);
   if (
+    suspension ||
     !client ||
     client.disabled ||
     !consent ||

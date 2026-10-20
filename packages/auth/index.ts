@@ -12,6 +12,7 @@ import { passkeyPlugins } from "./passkeys";
 import { requestGeo } from "./geo";
 import { handoff } from "./handoff";
 import { mcpOAuthPlugins } from "./mcp-oauth";
+import { assertAccountActive, recordSignIn } from "./account-status";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -95,6 +96,7 @@ export function createAuth(config: AuthConfig) {
   const emailUpdates = new WeakSet<object>();
   const securityUpdates = new WeakSet<object>();
   const createdSessions = new WeakMap<object, string>();
+  const secondFactorPending = new WeakSet<object>();
   const handles = () => getMongoHandles(config.mongo);
   const db = forwardTo(() => handles().db);
   const client = forwardTo(() => handles().client);
@@ -364,8 +366,18 @@ export function createAuth(config: AuthConfig) {
         create: {
           async after(session, ctx) {
             if (ctx) createdSessions.set(ctx, session.token);
+            if (!ctx || !secondFactorPending.delete(ctx))
+              await recordSignIn(handles().db, session, ctx?.path);
           },
           async before(session, ctx) {
+            // Every sign-in method and the handoff end in createSession, so
+            // this is the single ban gate (23 §3.1).
+            const { awaitingSecondFactor } = await assertAccountActive(
+              handles().db,
+              session.userId,
+              ctx?.path,
+            );
+            if (ctx && awaitingSecondFactor) secondFactorPending.add(ctx);
             if (ctx?.path === "/passkey/verify-authentication") {
               const credentialId: unknown = ctx.body?.response?.id;
               const key =

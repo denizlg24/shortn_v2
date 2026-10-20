@@ -697,7 +697,8 @@
       "dns": "No se pudo verificar el registro DNS. Comprueba el nombre y el valor, espera a que se propague e inténtalo de nuevo.",
       "clipboard": "No se pudo copiar. Selecciona el texto del registro y cópialo manualmente.",
       "network": "No se pudo conectar. Comprueba tu conexión e inténtalo de nuevo.",
-      "accountMismatch": "Esa identidad de la organización está conectada a otra cuenta Shortn. Elige tu propia identidad."
+      "accountMismatch": "Esa identidad de la organización está conectada a otra cuenta Shortn. Elige tu propia identidad.",
+      "suspended": "Esta cuenta está suspendida. Escribe a support@shortn.at."
     }
   }
 }

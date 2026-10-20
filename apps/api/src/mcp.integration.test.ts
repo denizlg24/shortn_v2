@@ -619,6 +619,21 @@ const data = z.object({
       keys.push(restricted.value.key.id);
       await expect(connect(restricted.value.secret)).rejects.toThrow();
     });
+    test("a banned creator's key is refused on the next request", async () => {
+      const credential = await key(),
+        client = await connect(credential.secret);
+      const users = collection(db, "user");
+      const _id = new ObjectId(ctx.actor.userId);
+      await users.insertOne({ _id, email: "banned-mcp@example.com" });
+      try {
+        await client.listTools();
+        await users.updateOne({ _id }, { $set: { banned: true } });
+        await expect(client.listTools()).rejects.toThrow();
+      } finally {
+        await users.deleteOne({ _id });
+      }
+      await client.listTools();
+    });
     test("rate budgets are enforced under the same key namespace as REST", async () => {
       const credential = await key(),
         client = await connect(credential.secret);

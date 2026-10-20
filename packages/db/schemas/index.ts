@@ -795,6 +795,7 @@ export const schemas = {
     ip: text.optional(),
     country: text.optional(),
     uaHash: text.optional(),
+    impersonatedBy: text.optional(),
   }),
   click_rejects: z.looseObject({
     _id: objectId,

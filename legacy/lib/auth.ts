@@ -26,6 +26,7 @@ import {
 } from "@polar-sh/better-auth";
 import { polarClient } from "./polar";
 import { impersonationHandoff } from "./impersonation-handoff";
+import { refuseSuspendedAccount } from "./account-status";
 import { ssoSessionActive } from "@shortn/db";
 import { legacyPasswordGate } from "@shortn/auth/legacy-password-gate";
 import { ObjectId } from "mongodb";
@@ -256,6 +257,7 @@ const options = {
     session: {
       create: {
         before: async (session, ctx) => {
+          await refuseSuspendedAccount(db, session.userId);
           const request = ctx?.request;
           let geo = null;
 
@@ -415,12 +417,10 @@ const options = {
       async (id, userId) =>
         /^[a-f\d]{24}$/i.test(id) &&
         Boolean(
-          await db
-            .collection("passkey")
-            .findOne({
-              _id: new ObjectId(id),
-              userId: { $in: [userId, new ObjectId(userId)] },
-            }),
+          await db.collection("passkey").findOne({
+            _id: new ObjectId(id),
+            userId: { $in: [userId, new ObjectId(userId)] },
+          }),
         ),
       (session, userId) => ssoSessionActive(db, session, userId),
     ),
