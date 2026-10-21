@@ -55,10 +55,44 @@ test("migration preserves content, legacy fonts, alignment and link order", () =
     align: "right",
   });
   expect(content.blocks[1]).toMatchObject({
-    linkId: "123456789012345678901234",
-    title: "Read this",
+    type: "links",
+    items: [{ linkId: "123456789012345678901234", title: "Read this" }],
   });
   expect(bioContentSchema.safeParse(content).success).toBe(true);
+});
+test("migration fits large legacy pages and keeps scheme-less socials", () => {
+  const content = migratedBioContent({
+    title: "Newsroom",
+    blocks: [
+      { type: "profile", title: "Newsroom" },
+      {
+        type: "socials",
+        items: [
+          { platform: "website", url: "www.example.pt/" },
+          { platform: "x", url: "javascript:alert(1)" },
+          { platform: "shop", url: "example.pt:8080/store" },
+        ],
+      },
+      ...Array.from({ length: 519 }, (_, i) => ({
+        type: "link",
+        linkId: (i + 1).toString(16).padStart(24, "0"),
+        title: "A".repeat(i === 0 ? 200 : 10),
+      })),
+    ],
+  });
+  expect(bioContentSchema.safeParse(content).success).toBe(true);
+  expect(content.blocks.map((block) => block.type)).toEqual([
+    "profile",
+    "socials",
+    "links",
+  ]);
+  expect(content.blocks[1]).toMatchObject({
+    items: [
+      { platform: "website", url: "https://www.example.pt/" },
+      { platform: "shop", url: "https://example.pt:8080/store" },
+    ],
+  });
+  expect(bioLinkIds(content)).toHaveLength(519);
 });
 test("schedule boundaries are inclusive at start, exclusive at end", () => {
   const block = {
