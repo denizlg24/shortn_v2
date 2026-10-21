@@ -384,8 +384,19 @@ export function migratedBioContent(page: Record<string, unknown>): BioContent {
       ...(type === "link" || type === "qr"
         ? {
             linkId: String(item.linkId),
-            title: str(item.title),
+            title: str(item.title).slice(0, 120),
             image: safeBioUrl(str(item.image)) ?? "",
+          }
+        : {}),
+      ...(type === "socials"
+        ? {
+            items: (Array.isArray(item.items) ? item.items : []).flatMap(
+              (social) => {
+                const platform = str(object(social).platform).slice(0, 32),
+                  url = legacySocialUrl(str(object(social).url));
+                return platform && url ? [{ platform, url }] : [];
+              },
+            ),
           }
         : {}),
     };
@@ -404,7 +415,7 @@ export function migratedBioContent(page: Record<string, unknown>): BioContent {
       avatarShape: "circle",
     });
   const seo = object(page.seo);
-  return {
+  return groupBioLinks({
     locale: page.locale === "pt" || page.locale === "es" ? page.locale : "en",
     blocks,
     theme,
@@ -414,7 +425,15 @@ export function migratedBioContent(page: Record<string, unknown>): BioContent {
       noindex: seo.noindex === true,
     },
     hideBranding: false,
-  };
+  });
+}
+/** Legacy socials were often saved without a scheme ("instagram.com/me"). */
+function legacySocialUrl(value: string) {
+  const text = value.trim();
+  if (!text || text.length > 2048) return undefined;
+  return /^[a-z][a-z\d+.-]*:/i.test(text)
+    ? safeBioUrl(text)
+    : safeBioUrl(`https://${text}`);
 }
 
 /** Collect nested references once for ownership checks and public resolution. */
