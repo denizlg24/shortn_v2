@@ -431,7 +431,7 @@ export function migratedBioContent(page: Record<string, unknown>): BioContent {
 function legacySocialUrl(value: string) {
   const text = value.trim();
   if (!text || text.length > 2048) return undefined;
-  return /^[a-z][a-z\d+.-]*:/i.test(text)
+  return /^[a-z][a-z\d+.-]*:(?!\d)/i.test(text)
     ? safeBioUrl(text)
     : safeBioUrl(`https://${text}`);
 }
