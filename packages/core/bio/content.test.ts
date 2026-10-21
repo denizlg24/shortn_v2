@@ -70,6 +70,7 @@ test("migration fits large legacy pages and keeps scheme-less socials", () => {
         items: [
           { platform: "website", url: "www.example.pt/" },
           { platform: "x", url: "javascript:alert(1)" },
+          { platform: "shop", url: "example.pt:8080/store" },
         ],
       },
       ...Array.from({ length: 519 }, (_, i) => ({
@@ -86,7 +87,10 @@ test("migration fits large legacy pages and keeps scheme-less socials", () => {
     "links",
   ]);
   expect(content.blocks[1]).toMatchObject({
-    items: [{ platform: "website", url: "https://www.example.pt/" }],
+    items: [
+      { platform: "website", url: "https://www.example.pt/" },
+      { platform: "shop", url: "https://example.pt:8080/store" },
+    ],
   });
   expect(bioLinkIds(content)).toHaveLength(519);
 });
