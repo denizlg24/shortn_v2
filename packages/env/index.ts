@@ -871,6 +871,36 @@ export const workerEnv = z
 
 // Legacy infrastructure variables also belong in the generated root example.
 // The legacy app validates its complete runtime environment in utils/env.ts.
+export const adminEnv = z
+  .object({
+    NODE_ENV: common.NODE_ENV,
+    ...mongo,
+    REDIS_CACHE_URL: redis.REDIS_CACHE_URL,
+    REDIS_DURABLE_URL: redis.REDIS_DURABLE_URL.optional().meta({
+      ...(redis.REDIS_DURABLE_URL.meta() ?? {}),
+      description:
+        "Read-only queue depth for the Jobs and Overview panels; they degrade without it",
+    }),
+    ADMIN_ORIGIN: httpUrl(
+      "https://admin.shortn.at",
+      "Admin console origin; Origin checks and the elevation callback",
+    ),
+    APP_URL: httpUrl(
+      "https://app.shortn.at",
+      "Dashboard origin for elevation and impersonation handoff",
+    ),
+    LINK_DOMAIN: value(
+      z.string().min(1).default("shortn.at"),
+      "shortn.at",
+      "Root link domain, for cache invalidation of root-domain keys",
+    ),
+    POLAR_ACCESS_TOKEN: secret(
+      "Admin-only Polar organization token (subscriptions:write refunds:write orders:read customers:read metrics:read)",
+    ).optional(),
+    POLAR_ENVIRONMENT: polarEnvironment.default("sandbox"),
+  })
+  .superRefine(productionRules);
+
 export const legacyInfraEnv = z.object({
   PICRON_URL: value(
     z.url().default("https://picron.denizlg24.com"),
@@ -908,6 +938,7 @@ export function envExample(): string {
     redirect: redirectEnv,
     api: apiEnv,
     worker: workerEnv,
+    admin: adminEnv,
     "legacy infrastructure": legacyInfraEnv,
   };
   const seen = new Set<string>();
