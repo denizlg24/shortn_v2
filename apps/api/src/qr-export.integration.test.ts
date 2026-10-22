@@ -248,8 +248,8 @@ const pepper = "synthetic-qr-api-export-pepper-".repeat(3);
       const signatures: { key: string; seconds: number; url: string }[] = [];
       const f = await fixture(),
         credential = await f.key(["qr:read"]),
-        app = f.api(true, async (key, seconds) => {
-          const url = `${await f.store.sign(key, seconds)}&signature=${signatures.length}`;
+        app = f.api(true, async (key, seconds, options) => {
+          const url = `${await f.store.sign(key, seconds, options)}&signature=${signatures.length}`;
           signatures.push({ key, seconds, url });
           return url;
         });
