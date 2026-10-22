@@ -15,7 +15,7 @@ export const loadMember = cache(async (slug: string, userId: string) => {
   return {
     workspace,
     member,
-    actor: { userId: session.user.id, role: actor.role },
+    actor: { ...actor, userId: session.user.id },
     self: member.userId === session.user.id,
   };
 });

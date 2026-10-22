@@ -16,6 +16,7 @@ import {
   linkEventData,
 } from "../webhooks/events";
 import { fail, ok, type Result } from "../result";
+import { isTakenDown } from "./moderation";
 
 export const bulkLinkLimit = 500;
 export const bulkTagLimit = 50;
@@ -32,7 +33,7 @@ export const bulkLinkTagsSchema = z
   .refine((input) => input.mode === "replace" || input.tags.length > 0);
 export type BulkLinkTagsInput = z.infer<typeof bulkLinkTagsSchema>;
 export type BulkLinkTagsError =
-  "forbidden" | "invalid_input" | "not_found" | "tag_limit";
+  "forbidden" | "invalid_input" | "not_found" | "tag_limit" | "taken_down";
 
 /** One bounded transaction: stale/foreign selections and tag overflow change nothing. */
 export async function bulkLinkTags(
@@ -71,6 +72,7 @@ export async function bulkLinkTags(
       )
       .toArray();
     if (links.length !== ids.length) return fail("not_found");
+    if (links.some(isTakenDown)) return fail("taken_down");
     const changes = links.map((link) => {
       const existing = new Map(
         (link.tags ?? [])

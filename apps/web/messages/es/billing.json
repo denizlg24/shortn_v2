@@ -25,7 +25,10 @@
     "resumed": "{plan} vuelve a renovarse con normalidad.",
     "legacy": "Los cambios de plan y la cancelación siguen haciéndose en shortn.at mientras la facturación pasa al nuevo panel.",
     "legacyAction": "Gestionar el plan en shortn.at",
-    "comparePlans": "Comparar planes"
+    "comparePlans": "Comparar planes",
+    "complimentaryUntil": "{plan} de cortesía hasta el {date}. Cualquier suscripción de pago continúa sin cambios.",
+    "complimentary": "{plan} de cortesía. Cualquier suscripción de pago continúa sin cambios.",
+    "customLimits": "Este espacio de trabajo tiene límites de uso personalizados. Los indicadores siguientes muestran los límites efectivos."
   },
   "status": {
     "checkoutPending": "Pago recibido. Tu nuevo plan aparecerá aquí en unos segundos, en cuanto Polar lo confirme.",

@@ -73,7 +73,8 @@
     "invalidInput": "Some fields are too long or not valid. Check them and try again.",
     "network": "Couldn't reach Shortn. Check your connection and try again.",
     "generic": "Something went wrong on our side. Try again.",
-    "copyFailed": "Couldn't copy to the clipboard."
+    "copyFailed": "Couldn't copy to the clipboard.",
+    "takenDown": "Shortn removed this link, so it can't be changed."
   },
   "sheet": {
     "overview": "Overview",

@@ -29,7 +29,7 @@ export default async function InviteMemberPage({
   ]);
   const [{ members, invites }, entitlements] = await Promise.all([
     membersAction(slug),
-    loadEntitlements(await db(), workspace._id),
+    loadEntitlements(await db(), workspace),
   ]);
   const self = { userId: session.user.id, role: actor.role };
   const base = `/${slug}/settings/members`;

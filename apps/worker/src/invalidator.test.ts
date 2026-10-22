@@ -70,6 +70,7 @@ test("job metadata-only updates preserve cached payloads even without pre-images
         "ruleSchedule.publishedAt": new Date(),
         "safetyScan.leaseUntil": new Date(),
         "health.nextAt": new Date(),
+        destHostRev: "com.example",
       },
       removedFields: ["ruleSchedule.token", "health.token"],
       truncatedArrays: [{ field: "ruleSchedule.remaining", newSize: 0 }],

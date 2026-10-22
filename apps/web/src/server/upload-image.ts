@@ -1,6 +1,19 @@
+import { can, type Actor } from "@shortn/core";
 import sharp from "sharp";
 
 export const maxImageBytes = 5 * 1024 * 1024;
+
+export const uploadPurposes = ["qr-logo", "bio-image", "avatar"] as const;
+export type UploadPurpose = (typeof uploadPurposes)[number];
+
+/** Uploads write to workspace storage, so a locked or suspended workspace
+ * takes none. An avatar is the account's own identity: no staff
+ * impersonation may change it. Other images follow resource edits. */
+export function uploadAllowed(actor: Actor, purpose: UploadPurpose) {
+  if (actor.readOnly) return false;
+  if (purpose === "avatar") return !actor.impersonation;
+  return can(actor, "resource.update");
+}
 
 // Decode actual image bytes, strip metadata, and rasterize SVG so uploaded
 // documents can never execute as active content on the app origin.

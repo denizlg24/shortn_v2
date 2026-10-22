@@ -28,6 +28,7 @@ import {
 import {
   collection,
   deriveLink,
+  destinationHostRev,
   physicalNames,
   type Documents,
 } from "@shortn/db";
@@ -74,6 +75,7 @@ import {
 import { can } from "../workspaces/authz";
 import { legacySubOf, nowOf, type ServiceContext } from "../workspaces/context";
 import { ownedBy, parseObjectId } from "../workspaces/service";
+import { isTakenDown } from "./moderation";
 
 type Link = Documents["links"];
 type CampaignRefs = { links: ObjectId[]; workspaceId?: ObjectId; sub?: string };
@@ -108,6 +110,8 @@ export interface LinkView {
   password: { hint: string | null } | null;
   safety: { status: string; disabled: boolean; interstitial: boolean };
   qrCodeId: string | null;
+  /** Set when Shortn staff took the link down; owners can't edit it. */
+  moderation?: { state: "taken_down"; category: string } | null;
   deletedAt?: string | null;
   archivedAt?: string | null;
   restoreUntil?: string | null;
@@ -160,6 +164,9 @@ export function toLinkView(link: Link, linkDomain: string): LinkView {
       ),
     },
     qrCodeId: link.qrCodeId || null,
+    moderation: link.moderation
+      ? { state: link.moderation.state, category: link.moderation.category }
+      : null,
     deletedAt: link.deletedAt?.toISOString() ?? null,
     archivedAt: link.archivedAt?.toISOString() ?? null,
     restoreUntil: link.deletedAt
@@ -189,7 +196,8 @@ export type LinkError =
   | "feature_required"
   | "limit_reached"
   | "not_found"
-  | "invalid_input";
+  | "invalid_input"
+  | "taken_down";
 
 function normalizeUrl(input: string): string {
   const trimmed = input.trim();
@@ -266,7 +274,7 @@ export async function suggestAvailableLinkKey(
 ) {
   if (
     !can(ctx.actor, "resource.create") ||
-    !hasFeature(await loadEntitlements(ctx.db, ctx.workspace._id), "customKeys")
+    !hasFeature(await loadEntitlements(ctx.db, ctx.workspace), "customKeys")
   )
     return null;
   let source = title?.trim() ?? "";
@@ -458,7 +466,7 @@ export async function validateCreateLinks(
 ) {
   if (!inputs.length || inputs.length > 500)
     throw new Error("invalid_batch_size");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const results: Result<CreateLinkInput, LinkError>[] = [];
   for (const input of inputs) {
     const result = await prepareLinkCreation(
@@ -652,7 +660,7 @@ async function createManyAttached(
   };
   const prior = await replay();
   if (prior) return prior;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const prepared: PreparedLinkCreation[] = [];
   const keys = new Set<string>();
   const earlierFailure = async (): Promise<Result<
@@ -798,6 +806,7 @@ async function createManyAttached(
             urlCode: key,
             customCode: Boolean(input.key?.trim()),
             longUrl: url,
+            destHostRev: destinationHostRev(url),
             isQrCode: qrImport,
             ...(qrCodeId ? { qrCodeId } : {}),
             title: input.title?.trim() || `${new URL(url).hostname} - untitled`,
@@ -1003,7 +1012,8 @@ export async function updateLink(
   if (!can(ctx.actor, "resource.update")) return fail("forbidden");
   const link = await findOwned(ctx, id);
   if (!link) return fail("not_found");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  if (isTakenDown(link)) return fail("taken_down");
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const legacy: Document = { ...link };
   const set: Document = {};
   const oldKey = link.urlCode ?? link.key;
@@ -1040,6 +1050,7 @@ export async function updateLink(
     if (!destination.ok) return destination;
     legacy.longUrl = destination.value;
     set.longUrl = destination.value;
+    set.destHostRev = destinationHostRev(destination.value);
     // A changed destination is unscanned again (legacy rescans in after()).
     legacy.safetyStatus =
       link.safetyStatus === "blocked" ? "blocked" : "pending";
@@ -1377,10 +1388,14 @@ export async function purgeExpiredLinks(
   deps: Pick<ServiceContext, "db" | "cache" | "linkDomain">,
   now = new Date(),
   limit = 100,
+  workspaceId?: ObjectId,
 ) {
   const cutoff = new Date(now.getTime() - linkTrashRetentionMs);
   const docs = await collection(deps.db, "links")
-    .find({ deletedAt: { $lte: cutoff } })
+    .find({
+      deletedAt: { $lte: cutoff },
+      ...(workspaceId ? { workspaceId } : {}),
+    })
     .sort({ deletedAt: 1, _id: 1 })
     .limit(Math.min(1000, Math.max(1, limit)))
     .toArray();

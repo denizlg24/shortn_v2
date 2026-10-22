@@ -39,10 +39,7 @@ export async function createApiKeyAction(
   if (!auth.ok) return auth;
   // New keys follow the plan; existing keys keep working and can be rotated or revoked.
   if (
-    !hasFeature(
-      await loadEntitlements(auth.ctx.db, auth.ctx.workspace._id),
-      "api",
-    )
+    !hasFeature(await loadEntitlements(auth.ctx.db, auth.ctx.workspace), "api")
   )
     return { ok: false, error: "feature_required" };
   const input = parseApiKeyForm(form);

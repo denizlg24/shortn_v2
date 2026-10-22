@@ -61,18 +61,16 @@ const url = process.env.MONGO_TEST_URL;
         resolveWorkspaceSsoIdentity(input, { database }, proof, now),
       );
     const intent = () =>
-      db
-        .collection(ssoAuthorityCollections.intent)
-        .insertOne({
-          nonceHash: hashSsoLinkNonce(nonce),
-          providerId: "enterprise-fixture",
-          providerRecordId: String(providerId),
-          workspaceId,
-          userId,
-          sessionId,
-          createdAt: now,
-          expiresAt: new Date(now.getTime() + 300000),
-        });
+      db.collection(ssoAuthorityCollections.intent).insertOne({
+        nonceHash: hashSsoLinkNonce(nonce),
+        providerId: "enterprise-fixture",
+        providerRecordId: String(providerId),
+        workspaceId,
+        userId,
+        sessionId,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 300000),
+      });
     beforeAll(async () => {
       if (!["localhost", "127.0.0.1"].includes(new URL(url!).hostname))
         throw Error("Loopback Mongo required");
@@ -139,41 +137,35 @@ const url = process.env.MONGO_TEST_URL;
           emailVerified: true,
         },
       ]);
-      await db
-        .collection(physicalNames.session)
-        .insertOne({
-          _id: sessionId,
-          userId,
-          createdAt: now,
-          expiresAt: new Date(now.getTime() + 3600000),
-          token: "synthetic-session",
-        });
-      await db
-        .collection(physicalNames.workspaces)
-        .insertOne({
-          _id: workspaceId,
-          ownerUserId: String(userId),
-          personal: false,
-          platformFeatures: { advancedAuth: true },
-        });
+      await db.collection(physicalNames.session).insertOne({
+        _id: sessionId,
+        userId,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 3600000),
+        token: "synthetic-session",
+      });
+      await db.collection(physicalNames.workspaces).insertOne({
+        _id: workspaceId,
+        ownerUserId: String(userId),
+        personal: false,
+        platformFeatures: { advancedAuth: true },
+      });
       await db
         .collection(physicalNames.workspace_members)
         .insertOne({ workspaceId, userId: String(userId), role: "owner" });
       await db
         .collection(physicalNames.subscriptions)
         .insertOne({ workspaceId, plan: "enterprise", status: "active" });
-      await db
-        .collection("ssoProvider")
-        .insertOne({
-          _id: providerId,
-          providerId: "enterprise-fixture",
-          userId,
-          workspaceId,
-          identityIssuer: "https://idp.synthetic.invalid",
-          issuer: "https://idp.synthetic.invalid",
-          domain: "synthetic.invalid",
-          domainVerified: true,
-        });
+      await db.collection("ssoProvider").insertOne({
+        _id: providerId,
+        providerId: "enterprise-fixture",
+        userId,
+        workspaceId,
+        identityIssuer: "https://idp.synthetic.invalid",
+        issuer: "https://idp.synthetic.invalid",
+        domain: "synthetic.invalid",
+        domainVerified: true,
+      });
     });
     afterAll(async () => {
       await db?.dropDatabase();
@@ -228,27 +220,23 @@ const url = process.env.MONGO_TEST_URL;
       await db
         .collection(physicalNames.workspace_members)
         .insertOne({ workspaceId, userId: String(otherUser), role: "member" });
-      await db
-        .collection(physicalNames.session)
-        .insertOne({
-          _id: otherSession,
-          userId: otherUser,
-          createdAt: now,
-          expiresAt: new Date(now.getTime() + 3600000),
-          token: "synthetic-other-session",
-        });
-      await db
-        .collection(ssoAuthorityCollections.intent)
-        .insertOne({
-          nonceHash: hashSsoLinkNonce(otherNonce),
-          providerId: "enterprise-fixture",
-          providerRecordId: String(providerId),
-          workspaceId,
-          userId: otherUser,
-          sessionId: otherSession,
-          createdAt: now,
-          expiresAt: new Date(now.getTime() + 300000),
-        });
+      await db.collection(physicalNames.session).insertOne({
+        _id: otherSession,
+        userId: otherUser,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 3600000),
+        token: "synthetic-other-session",
+      });
+      await db.collection(ssoAuthorityCollections.intent).insertOne({
+        nonceHash: hashSsoLinkNonce(otherNonce),
+        providerId: "enterprise-fixture",
+        providerRecordId: String(providerId),
+        workspaceId,
+        userId: otherUser,
+        sessionId: otherSession,
+        createdAt: now,
+        expiresAt: new Date(now.getTime() + 300000),
+      });
       expect(await resolve(identity(), otherNonce)).toEqual({
         action: "reject",
         code: "SSO_LINK_ACCOUNT_MISMATCH",
@@ -299,6 +287,41 @@ const url = process.env.MONGO_TEST_URL;
       await db
         .collection(physicalNames.workspace_members)
         .deleteMany({ workspaceId });
+      expect((await resolve()).action).toBe("reject");
+    });
+    test("a complimentary Enterprise plan satisfies SSO authority until it expires", async () => {
+      await db
+        .collection(physicalNames.subscriptions)
+        .updateMany({ workspaceId }, { $set: { status: "canceled" } });
+      const comp = (expiresAt?: Date) =>
+        db.collection(physicalNames.workspaces).updateOne(
+          { _id: workspaceId },
+          {
+            $set: {
+              entitlementOverride: {
+                plan: "enterprise",
+                reason: "design partner",
+                grantedBy: "staff",
+                grantedAt: now,
+                ...(expiresAt ? { expiresAt } : {}),
+              },
+            },
+          },
+        );
+      await comp();
+      await intent();
+      expect((await resolve(identity(), nonce)).action).toBe("link");
+      // Resolution runs on the fixture clock, not the wall clock.
+      await comp(new Date(now.getTime() - 1000));
+      expect((await resolve()).action).toBe("reject");
+      // A comp below Enterprise doesn't grant SSO.
+      await comp(new Date(now.getTime() + 86_400_000));
+      await db
+        .collection(physicalNames.workspaces)
+        .updateOne(
+          { _id: workspaceId },
+          { $set: { "entitlementOverride.plan": "pro" } },
+        );
       expect((await resolve()).action).toBe("reject");
     });
     test("expired, revoked, impersonated or different-account consent cannot bind a subject", async () => {

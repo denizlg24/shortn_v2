@@ -98,6 +98,7 @@ export function createMcpTools(
     title: link.title,
     tags: link.tags,
     safety: link.safety,
+    moderation: link.moderation ?? null,
   });
   function tool<S extends z.ZodRawShape>(
     name: string,
@@ -123,6 +124,8 @@ export function createMcpTools(
       async (input) => {
         try {
           requireScopes(scopes);
+          if (mutation && ctx.actor.readOnly)
+            throw new ToolFailure("workspace_locked");
           const run = () => action(input);
           const data = mutation
             ? await withMcpAudit(ctx, identity, name, run, log)
@@ -446,7 +449,7 @@ export function createMcpTools(
     ["workspace:read"],
     false,
     async () => {
-      const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+      const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
       const consumed = await countUsage(
         ctx.db,
         ctx.workspace,

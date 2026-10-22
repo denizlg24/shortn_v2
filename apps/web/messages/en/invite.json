@@ -23,6 +23,7 @@
   "errors": {
     "invalid": "This invite no longer works. Ask for a new one.",
     "mismatch": "This invite was sent to a different email address.",
+    "locked": "This workspace is temporarily unavailable. Try the invite again later.",
     "generic": "Something went wrong on our side. Try again."
   }
 }

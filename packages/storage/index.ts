@@ -3,12 +3,17 @@ import {
   HeadObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
+  DeleteObjectCommand,
+  ListObjectsV2Command,
+  DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Upload } from "@aws-sdk/lib-storage";
 import { Readable } from "node:stream";
 
 export interface ObjectStore {
+  delete?(key: string): Promise<void>;
+  deletePrefix?(prefix: string): Promise<void>;
   head(key: string): Promise<{ bytes: number; contentType: string } | null>;
   get(key: string, maximumBytes: number): Promise<Uint8Array>;
   put(key: string, bytes: Uint8Array, contentType: string): Promise<void>;
@@ -184,6 +189,38 @@ export function createObjectStore(config: StorageConfig): ObjectStore {
         }),
         { abortSignal: AbortSignal.timeout(30_000) },
       );
+    },
+    async deletePrefix(value) {
+      const checked = key(value.replace(/\/$/, ""));
+      if (checked.Key.split("/").length < 3)
+        throw new Error("invalid_purge_prefix");
+      let token: string | undefined;
+      do {
+        const page = await client.send(
+          new ListObjectsV2Command({
+            Bucket: checked.Bucket,
+            Prefix: `${checked.Key}/`,
+            MaxKeys: 1000,
+            ...(token ? { ContinuationToken: token } : {}),
+          }),
+        );
+        const objects = (page.Contents ?? []).flatMap((object) =>
+          object.Key ? [{ Key: object.Key }] : [],
+        );
+        if (objects.length) {
+          const result = await client.send(
+            new DeleteObjectsCommand({
+              Bucket: checked.Bucket,
+              Delete: { Objects: objects, Quiet: true },
+            }),
+          );
+          if (result.Errors?.length) throw new Error("object_purge_failed");
+        }
+        token = page.IsTruncated ? page.NextContinuationToken : undefined;
+      } while (token);
+    },
+    async delete(value) {
+      await client.send(new DeleteObjectCommand(key(value)));
     },
     async sign(value, seconds, filename) {
       if (

@@ -30,7 +30,7 @@ export default async function ApiKeysPage({
   ]);
   const base = `/${workspace}/settings/api-keys`,
     config = env();
-  const manage = can(ctx.actor, "apiKeys.manage");
+  const manage = can(ctx.actor, "apiKeys.revoke");
   const before = typeof query.before === "string" ? query.before : undefined;
   const result = manage ? await listApiKeys(ctx, before, 25) : null;
   const enabled =

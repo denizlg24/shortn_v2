@@ -9,6 +9,10 @@ import type { Workspace } from "@shortn/core";
 import { getTranslations } from "next-intl/server";
 import { unstable_rethrow } from "next/navigation";
 import { Shell } from "@/components/shell/shell";
+import {
+  WorkspaceStatusBanner,
+  WorkspaceSuspensionGate,
+} from "@/components/shell/workspace-status";
 import type { UsageItem, WorkspaceSummary } from "@/components/shell/types";
 import { billingOverview } from "@/server/plan";
 import { memberships, requireWorkspace } from "@/server/workspace";
@@ -52,7 +56,8 @@ export default async function WorkspaceLayout({
     usageFor(slug),
   ]);
   // Workspace.plan is a migration-era snapshot. Match billing and feature
-  // gates by resolving the subscription mirror, in one query for the switcher.
+  // gates by resolving the subscription mirror and any staff override, in one
+  // query for the switcher.
   const subscriptions = await collection(await db(), "subscriptions")
     .find({
       workspaceId: { $in: list.map((item) => item.workspace._id) },
@@ -64,6 +69,8 @@ export default async function WorkspaceLayout({
       item,
       resolveEntitlements(
         subscriptions.filter((sub) => sub.workspaceId.equals(item._id)),
+        new Date(),
+        item.entitlementOverride,
       ).plan,
     ),
   );
@@ -71,6 +78,9 @@ export default async function WorkspaceLayout({
     (item) => item.id === workspace._id.toHexString(),
   );
   if (!active) throw new Error("Active workspace is missing from memberships");
+  // Mutations are refused in core (the actor is read-only); the banner and
+  // gate only explain it and hide all but billing/exports when suspended.
+  const suspension = workspace.suspension;
   return (
     <Shell
       workspace={active}
@@ -82,8 +92,19 @@ export default async function WorkspaceLayout({
       }}
       impersonating={Boolean(session.session.impersonatedBy)}
       usage={usage}
+      notice={
+        suspension ? (
+          <WorkspaceStatusBanner suspension={suspension} slug={slug} />
+        ) : null
+      }
     >
-      {children}
+      {suspension ? (
+        <WorkspaceSuspensionGate suspension={suspension} slug={slug}>
+          {children}
+        </WorkspaceSuspensionGate>
+      ) : (
+        children
+      )}
     </Shell>
   );
 }

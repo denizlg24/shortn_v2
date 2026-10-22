@@ -4,6 +4,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 import { MongoClient, ObjectId, type Db } from "mongodb";
 import { Redis } from "ioredis";
 import { z } from "zod";
+import { plans } from "@shortn/billing";
 import { collection, desiredIndexes, physicalNames } from "@shortn/db";
 import {
   apiScopes,
@@ -619,13 +620,70 @@ const data = z.object({
       keys.push(restricted.value.key.id);
       await expect(connect(restricted.value.secret)).rejects.toThrow();
     });
+    test("a banned creator's key is refused on the next request", async () => {
+      const credential = await key(),
+        client = await connect(credential.secret);
+      const users = collection(db, "user");
+      const _id = new ObjectId(ctx.actor.userId);
+      await users.insertOne({ _id, email: "banned-mcp@example.com" });
+      try {
+        await client.listTools();
+        await users.updateOne({ _id }, { $set: { banned: true } });
+        await expect(client.listTools()).rejects.toThrow();
+      } finally {
+        await users.deleteOne({ _id });
+      }
+      await client.listTools();
+    });
+    test("locked workspaces keep read tools only; suspended ones are refused", async () => {
+      const credential = await key(),
+        client = await connect(credential.secret);
+      const workspaces = collection(db, "workspaces");
+      const set = (level: "locked" | "suspended") =>
+        workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              suspension: {
+                level,
+                category: "other",
+                internalNote: "integration",
+                by: "staff",
+                at: new Date(),
+              },
+            },
+          },
+        );
+      try {
+        await set("locked");
+        expect(
+          (await call(client, "search_links", { limit: 1 })).isError,
+        ).toBeUndefined();
+        const write = await call(client, "create_link", {
+          url: "https://example.com/locked",
+        });
+        expect(write.isError).toBe(true);
+        expect(write.structuredContent?.error).toEqual({
+          code: "workspace_locked",
+        });
+        await set("suspended");
+        await expect(client.listTools()).rejects.toThrow();
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+      }
+      await client.listTools();
+    });
     test("rate budgets are enforced under the same key namespace as REST", async () => {
       const credential = await key(),
         client = await connect(credential.secret);
-      const values = Array.from({ length: 600 }, (_, index) => [
-        Date.now(),
-        `rest-request-${index}`,
-      ]).flat();
+      // The fixture workspace is on Pro: its catalog rate fills the window.
+      const values = Array.from(
+        { length: plans.pro.limits.apiPerMinute ?? 0 },
+        (_, index) => [Date.now(), `rest-request-${index}`],
+      ).flat();
       await cache.zadd(`api:rate:${credential.key.id}`, ...values);
       await expect(client.listTools()).rejects.toThrow("rate_limited");
     });

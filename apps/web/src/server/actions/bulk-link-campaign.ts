@@ -12,9 +12,7 @@ export async function searchCampaignTargetsAction(
   const ctx = await serviceContext(workspace);
   if (!can(ctx.actor, "resource.update"))
     return { error: "forbidden" as const };
-  if (
-    !hasFeature(await loadEntitlements(ctx.db, ctx.workspace._id), "campaigns")
-  )
+  if (!hasFeature(await loadEntitlements(ctx.db, ctx.workspace), "campaigns"))
     return { error: "feature_required" as const };
   if (
     typeof search !== "string" ||

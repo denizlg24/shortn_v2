@@ -2,7 +2,9 @@ import "server-only";
 import {
   ensurePersonalWorkspace,
   membershipsFor,
+  recordImpersonatedAction,
   workspaceContext,
+  type Actor,
 } from "@shortn/core";
 import { physicalNames } from "@shortn/db";
 import { ObjectId } from "mongodb";
@@ -26,14 +28,78 @@ export const requireSession = cache(async (): Promise<SessionData> => {
   return session;
 });
 
+/** A staff impersonation session's mode; tokens without one are read-only. */
+export const impersonationOf = (session: SessionData) =>
+  session.session.impersonatedBy
+    ? session.session.impersonationMode === "write"
+      ? ("write" as const)
+      : ("read" as const)
+    : undefined;
+
 export const requireWorkspace = cache(async (slug: string) => {
   const session = await requireSession();
   const context = await workspaceContext(await db(), session.user.id, slug);
   if (!context) notFound();
-  if (session.user.lastWorkspaceId !== context.workspace._id.toHexString())
+  const impersonation = impersonationOf(session);
+  if (impersonation === "write")
+    await auditImpersonatedAction(session, context.workspace._id);
+  if (
+    !impersonation &&
+    session.user.lastWorkspaceId !== context.workspace._id.toHexString()
+  )
     await rememberWorkspace(session.user.id, context.workspace._id);
-  return { session, ...context };
+  return {
+    session,
+    workspace: context.workspace,
+    actor: impersonation ? { ...context.actor, impersonation } : context.actor,
+  };
 });
+
+// Write-mode impersonation leaves a staff audit row for every server action
+// it runs (23 §3.6). Fail closed: no row, no action. Page renders aren't
+// mutations and carry no Next-Action header.
+async function auditImpersonatedAction(
+  session: SessionData,
+  workspaceId: ObjectId,
+) {
+  const request = await headers();
+  const actionId = request.get("next-action");
+  const adminId = session.session.impersonatedBy;
+  if (!actionId || !adminId) return;
+  await recordImpersonatedAction(await db(), {
+    adminId,
+    userId: session.user.id,
+    workspaceId,
+    sessionId: session.session.id,
+    actionId,
+    path: request.get("referer"),
+  });
+}
+
+/** Route handlers carry no Next-Action header, so write-mode impersonation
+ * audits them by name here. Fails closed like the server-action path. */
+export async function auditImpersonatedRequest(
+  session: SessionData,
+  workspaceId: ObjectId,
+  label: string,
+) {
+  const adminId = session.session.impersonatedBy;
+  if (impersonationOf(session) !== "write" || !adminId) return;
+  await recordImpersonatedAction(await db(), {
+    adminId,
+    userId: session.user.id,
+    workspaceId,
+    sessionId: session.session.id,
+    actionId: label,
+    path: (await headers()).get("referer"),
+  });
+}
+
+/** The actor for a route handler that resolved its workspace itself. */
+export const withImpersonation = (session: SessionData, actor: Actor) => {
+  const impersonation = impersonationOf(session);
+  return impersonation ? { ...actor, impersonation } : actor;
+};
 
 export const memberships = cache(async (userId: string) =>
   membershipsFor(await db(), userId),

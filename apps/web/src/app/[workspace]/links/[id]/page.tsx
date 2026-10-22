@@ -15,6 +15,7 @@ import { Notice } from "@/components/page/notice";
 import { Page, Section } from "@/components/page/page";
 import { linkTabs, loadLink } from "@/server/link-page";
 import { lastDays } from "@/server/time";
+import { moderationCategoryKey } from "@/lib/moderation";
 
 export async function generateMetadata({
   params,
@@ -142,14 +143,24 @@ export default async function LinkOverviewPage({
         </Notice>
       ) : null}
       {saved ? <Notice tone="success">{t("overview.saved")}</Notice> : null}
-      {link.safety.disabled || safetyStatus === "blocked" ? (
+      {link.moderation ? (
+        <Notice tone="warning">
+          {t("overview.takenDownNotice", {
+            category: (await getTranslations("public.blocked"))(
+              `categories.${moderationCategoryKey(link.moderation.category)}`,
+            ),
+          })}
+        </Notice>
+      ) : link.safety.disabled || safetyStatus === "blocked" ? (
         <Notice tone="warning">{t("overview.disabledNotice")}</Notice>
       ) : null}
 
       <LinkHealthSection
         health={link.health}
         editHref={
-          can(ctx.actor, "resource.update") ? `${base}/edit` : undefined
+          can(ctx.actor, "resource.update") && !link.moderation
+            ? `${base}/edit`
+            : undefined
         }
       />
 

@@ -66,5 +66,26 @@
     "switchWorkspace": "Cambiar de espacio de trabajo",
     "help": "Mostrar atajos",
     "goTo": "Ir a {section}"
+  },
+  "suspension": {
+    "label": "Estado del espacio de trabajo",
+    "lockedNotice": "Shortn ha dejado este espacio de trabajo en modo de solo lectura ({category}). Los enlaces siguen funcionando; puedes consultarlos, exportar datos y gestionar la facturación.",
+    "suspendedNotice": "Shortn ha suspendido este espacio de trabajo ({category}). Sus enlaces y páginas están desconectados; puedes exportar datos y gestionar la facturación.",
+    "title": "Este espacio de trabajo está suspendido",
+    "body": "Shortn ha suspendido este espacio de trabajo ({category}). Sus enlaces, páginas de bio y dominios personalizados están desconectados. Aún puedes exportar tus datos y gestionar la facturación.",
+    "export": "Exportar datos",
+    "billing": "Facturación",
+    "contact": "Contactar con soporte",
+    "categories": {
+      "abuse": "abuso",
+      "phishing": "phishing",
+      "malware": "malware",
+      "spam": "spam",
+      "fraud": "fraude",
+      "chargeback": "una disputa de pago",
+      "legal": "una solicitud legal",
+      "nonpayment": "un saldo pendiente",
+      "other": "una revisión de políticas"
+    }
   }
 }

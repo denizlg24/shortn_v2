@@ -1,6 +1,7 @@
 import { collection, personalWorkspaceSlug, type Documents } from "@shortn/db";
 import { ObjectId, type Db, type Filter } from "mongodb";
 import type { Actor, Role } from "./authz";
+import { workspaceReadOnly } from "./status";
 
 export type Workspace = Documents["workspaces"];
 
@@ -106,7 +107,12 @@ export async function workspaceContext(
     workspaceId: workspace._id,
     userId,
   });
-  return member ? { workspace, actor: { userId, role: member.role } } : null;
+  if (!member) return null;
+  const readOnly = workspaceReadOnly(workspace);
+  return {
+    workspace,
+    actor: { userId, role: member.role, ...(readOnly ? { readOnly } : {}) },
+  };
 }
 
 // Legacy creates documents with `sub` only; continuous M2 assigns the

@@ -20,7 +20,7 @@ export default async function SsoSettingsPage({
     database = await db();
   const [t, entitlement, providers] = await Promise.all([
     getTranslations("settings.sso"),
-    loadEntitlements(database, workspace._id),
+    loadEntitlements(database, workspace),
     searchParams.then((query) =>
       ssoProviderPage(database, workspace._id, query.page),
     ),

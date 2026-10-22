@@ -25,7 +25,10 @@
     "resumed": "{plan} renews as usual again.",
     "legacy": "Plan changes and cancellation still happen on shortn.at while billing moves to the new dashboard.",
     "legacyAction": "Manage plan on shortn.at",
-    "comparePlans": "Compare plans"
+    "comparePlans": "Compare plans",
+    "complimentaryUntil": "Complimentary {plan} until {date}. Any paid subscription continues unchanged.",
+    "complimentary": "Complimentary {plan}. Any paid subscription continues unchanged.",
+    "customLimits": "This workspace has custom usage limits. The meters below show your effective limits."
   },
   "status": {
     "checkoutPending": "Payment received. Your new plan shows here within a few seconds, as soon as Polar confirms it.",

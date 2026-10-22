@@ -6,6 +6,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import env from "@/utils/env";
 import { verifyConfirmationToken } from "@/lib/confirmation-token";
+import { legacyWorkspaceSuspended } from "@/lib/workspace-suspension";
 
 const SECRET_KEY = new TextEncoder().encode(env.AUTH_SECRET);
 // Reached through a proxy rewrite, so request.url carries the server's own
@@ -29,7 +30,8 @@ export async function GET(
     if (
       urlDoc.disabled ||
       urlDoc.safetyStatus === "blocked" ||
-      urlDoc.safetyStatus === "malicious"
+      urlDoc.safetyStatus === "malicious" ||
+      (await legacyWorkspaceSuspended(urlDoc.get("workspaceId")))
     ) {
       return NextResponse.redirect(`${ORIGIN}/${locale}/safety/${slug}`, 302);
     }

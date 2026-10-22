@@ -520,6 +520,26 @@ const mongo = process.env.MONGO_TEST_URL,
       await db
         .collection(physicalNames.session)
         .updateOne({ _id: sourceSession._id }, { $unset: { passkeyId: "" } });
+      // A token minted from an impersonation session never carries staff
+      // into the user's workspace through MCP.
+      await db
+        .collection(physicalNames.session)
+        .updateOne(
+          { _id: sourceSession._id },
+          { $set: { impersonatedBy: new ObjectId().toHexString() } },
+        );
+      expect(
+        (await authenticateMcpOAuth(db, tokens.access_token, config)).ok,
+      ).toBe(false);
+      await db
+        .collection(physicalNames.session)
+        .updateOne(
+          { _id: sourceSession._id },
+          { $unset: { impersonatedBy: "" } },
+        );
+      expect(
+        (await authenticateMcpOAuth(db, tokens.access_token, config)).ok,
+      ).toBe(true);
       const ssoTenant = new ObjectId(),
         ssoProvider = new ObjectId(),
         ssoAccount = new ObjectId(),

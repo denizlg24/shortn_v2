@@ -454,5 +454,60 @@ const config = {
           ?.status,
       ).toBe("cancelled");
     });
+    test("a suspended workspace's deliveries are held without an attempt and resume after unsuspend", async () => {
+      const hook = await endpoint();
+      const queued = await testWebhook(ctx, hook.id, config);
+      if (!queued.ok) throw new Error(queued.error);
+      const id = new ObjectId(queued.value.id),
+        now = new Date(Date.now() + 1000);
+      const workspaces = collection(db, "workspaces");
+      await workspaces.updateOne(
+        { _id: ctx.workspace._id },
+        {
+          $set: {
+            platformFeatures: { webhooks: true },
+            suspension: {
+              level: "suspended",
+              category: "spam",
+              internalNote: "integration",
+              by: "staff",
+              at: now,
+            },
+          },
+        },
+      );
+      let sends = 0;
+      const send = async () => {
+        sends++;
+        return 204;
+      };
+      try {
+        await deliverWebhook(db, queued.value.id, config, send, now);
+        const held = await deliveries(db).findOne({ _id: id });
+        expect(sends).toBe(0);
+        expect(held).toMatchObject({
+          status: "pending",
+          attempts: 0,
+          lastError: "workspace_suspended",
+        });
+        expect(held?.nextAttemptAt.getTime()).toBe(now.getTime() + 300_000);
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+      }
+      await deliverWebhook(
+        db,
+        queued.value.id,
+        config,
+        send,
+        new Date(now.getTime() + 300_000),
+      );
+      expect(sends).toBe(1);
+      expect((await deliveries(db).findOne({ _id: id }))?.status).toBe(
+        "delivered",
+      );
+    });
   },
 );

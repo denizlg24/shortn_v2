@@ -66,5 +66,26 @@
     "switchWorkspace": "Mudar de espaço de trabalho",
     "help": "Mostrar atalhos",
     "goTo": "Ir para {section}"
+  },
+  "suspension": {
+    "label": "Estado do espaço de trabalho",
+    "lockedNotice": "A Shortn colocou este espaço de trabalho só de leitura ({category}). Os links continuam a funcionar; pode consultar, exportar dados e gerir a faturação.",
+    "suspendedNotice": "A Shortn suspendeu este espaço de trabalho ({category}). Os links e páginas estão offline; pode exportar dados e gerir a faturação.",
+    "title": "Este espaço de trabalho está suspenso",
+    "body": "A Shortn suspendeu este espaço de trabalho ({category}). Os links, páginas bio e domínios personalizados estão offline. Ainda pode exportar os seus dados e gerir a faturação.",
+    "export": "Exportar dados",
+    "billing": "Faturação",
+    "contact": "Contactar o suporte",
+    "categories": {
+      "abuse": "abuso",
+      "phishing": "phishing",
+      "malware": "malware",
+      "spam": "spam",
+      "fraud": "fraude",
+      "chargeback": "uma disputa de pagamento",
+      "legal": "um pedido legal",
+      "nonpayment": "um saldo em dívida",
+      "other": "uma revisão de políticas"
+    }
   }
 }

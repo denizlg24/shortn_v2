@@ -86,6 +86,39 @@ export async function invalidateLinks(
   };
   await store.publish(linkInvalidateChannel, JSON.stringify(message));
 }
+// Redirect replicas keep an in-process set of suspended workspaces; this
+// channel updates it immediately, a periodic reload covers missed messages.
+export const workspaceSuspensionChannel = "workspace-suspension";
+export interface WorkspaceSuspensionMessage {
+  workspaceId: string;
+  suspended: boolean;
+}
+export async function publishWorkspaceSuspension(
+  store: Pick<InvalidationStore, "publish">,
+  message: WorkspaceSuspensionMessage,
+) {
+  await store.publish(workspaceSuspensionChannel, JSON.stringify(message));
+}
+export function parseWorkspaceSuspension(
+  payload: string,
+): WorkspaceSuspensionMessage | null {
+  try {
+    const value: unknown = JSON.parse(payload);
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      "workspaceId" in value &&
+      "suspended" in value &&
+      typeof value.workspaceId === "string" &&
+      /^[a-f\d]{24}$/i.test(value.workspaceId) &&
+      typeof value.suspended === "boolean"
+    )
+      return { workspaceId: value.workspaceId, suspended: value.suspended };
+  } catch {
+    /* Malformed payloads are ignored; the periodic reload corrects state. */
+  }
+  return null;
+}
 export interface CacheStore {
   eval(
     script: string,

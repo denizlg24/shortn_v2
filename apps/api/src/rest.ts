@@ -1,4 +1,5 @@
-import { rateScript } from "./rate-limit";
+import { apiRateLimit, rateScript } from "./rate-limit";
+import { workspaceBlock } from "./workspace-access";
 import { bioContentSchema } from "@shortn/core/bio-content";
 import { createHash } from "node:crypto";
 import { OpenAPIHono, createRoute, z } from "@hono/zod-openapi";
@@ -255,6 +256,14 @@ const linkSchema = z
       })
       .optional(),
     qrCodeId: z.string().nullable(),
+    moderation: z
+      .object({ state: z.literal("taken_down"), category: z.string() })
+      .nullable()
+      .optional()
+      .openapi({
+        description:
+          "Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted.",
+      }),
     deletedAt: z.string().nullable().optional(),
     restoreUntil: z.string().nullable().optional(),
     utm: z.array(
@@ -439,6 +448,13 @@ const webhookSchema = z
     updatedAt: z.iso.datetime(),
     failureSince: z.iso.datetime().nullable(),
     disabledAt: z.iso.datetime().nullable(),
+    adminDisabled: z
+      .object({ at: z.iso.datetime(), reason: z.string() })
+      .nullable()
+      .openapi({
+        description:
+          "Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this.",
+      }),
   })
   .openapi("Webhook");
 const queuedWebhookSchema = z.object({
@@ -558,6 +574,12 @@ export function createRestApi(deps: RestDeps) {
       !platformFeatureEnabled(principal.workspace, "api", deps.rolloutPercent)
     )
       return problem(c, 404, "feature_disabled");
+    const blocked = workspaceBlock(
+      principal.workspace,
+      c.req.method,
+      c.req.path,
+    );
+    if (blocked) return problem(c, 403, blocked);
     c.set("principal", principal);
     c.set("service", {
       db: deps.db,
@@ -566,18 +588,10 @@ export function createRestApi(deps: RestDeps) {
       actor: principal.actor,
       linkDomain: deps.linkDomain,
     });
-    const entitlements = await loadEntitlements(
-      deps.db,
-      principal.workspace._id,
-    );
+    const entitlements = await loadEntitlements(deps.db, principal.workspace);
     c.set("entitlements", entitlements);
-    const limit = {
-      free: 30,
-      basic: 60,
-      plus: 180,
-      pro: 600,
-      enterprise: 1200,
-    }[entitlements.plan];
+    const limit = apiRateLimit(entitlements);
+    if (limit === null) return next();
     const result = z
       .tuple([z.number(), z.number(), z.number()])
       .parse(
@@ -2503,7 +2517,10 @@ function serviceErrorStatus(error: string): 400 | 403 | 404 | 409 {
     error === "forbidden" ||
     error === "feature_required" ||
     error === "addon_required" ||
-    error === "feature_disabled"
+    error === "feature_disabled" ||
+    error === "taken_down" ||
+    error === "admin_disabled" ||
+    error === "domain_suspended"
   )
     return 403;
   if (error === "not_found") return 404;

@@ -21,7 +21,16 @@ export interface Endpoint {
   enabled: boolean;
   failureSince: string | null;
   disabledAt: string | null;
+  adminDisabled: { at: string; reason: string } | null;
 }
+const knownErrors = [
+  "forbidden",
+  "feature_disabled",
+  "not_found",
+  "endpoint_disabled",
+  "invalid_input",
+  "admin_disabled",
+] as const;
 export const eventNames = [
   "link.created",
   "link.updated",
@@ -98,7 +107,7 @@ export function WebhookManager({
         if (!result.ok) {
           setError(
             t(
-              `errors.${["forbidden", "feature_disabled", "not_found", "endpoint_disabled", "invalid_input"].includes(result.error) ? (result.error as "forbidden" | "feature_disabled" | "not_found" | "endpoint_disabled" | "invalid_input") : "failed"}`,
+              `errors.${knownErrors.find((code) => code === result.error) ?? "failed"}`,
             ),
           );
           return;
@@ -307,14 +316,23 @@ export function WebhookManager({
                     </div>
                     <span className="text-small text-fg-muted">
                       {t(
-                        item.enabled
-                          ? "active"
-                          : item.disabledAt
-                            ? "autoDisabled"
-                            : "inactive",
+                        item.adminDisabled
+                          ? "adminDisabled"
+                          : item.enabled
+                            ? "active"
+                            : item.disabledAt
+                              ? "autoDisabled"
+                              : "inactive",
                       )}
                     </span>
                   </div>
+                  {item.adminDisabled ? (
+                    <p className="text-small text-danger">
+                      {t("adminDisabledNotice", {
+                        reason: item.adminDisabled.reason,
+                      })}
+                    </p>
+                  ) : null}
                   <p className="break-words text-small text-fg-muted">
                     {item.events.join(", ")}
                   </p>

@@ -212,7 +212,7 @@ const mongo = process.env.MONGO_TEST_URL,
   });
   test("full batch quota is checked before writes and concurrent batches/single creates cannot overspend", async () => {
     const ctx = await context();
-    const limit = (await loadEntitlements(db, ctx.workspace._id)).limits.links!;
+    const limit = (await loadEntitlements(db, ctx.workspace)).limits.links!;
     expect((await createLink(ctx, { url: "https://example.com/one" })).ok).toBe(
       true,
     );

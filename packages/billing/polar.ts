@@ -9,7 +9,7 @@ import {
   type PlanId,
   type PolarServer,
 } from "./catalog";
-import { paidStatuses } from "./entitlements";
+import { effectivePlan, paidStatuses } from "./entitlements";
 import { mirrorDomainAddon } from "./domain-addon";
 
 type Mirror = Documents["subscriptions"];
@@ -200,14 +200,22 @@ export async function applyFetched(
   return { status: "applied", before: previous, after };
 }
 
-async function currentPlan(db: Db, workspaceId: ObjectId): Promise<PlanId> {
-  const paid = await collection(db, "subscriptions")
-    .find({ workspaceId, status: { $in: [...paidStatuses] } })
-    .toArray();
-  return paid.reduce<PlanId>(
-    (best, sub) => (planRank[sub.plan] > planRank[best] ? sub.plan : best),
-    "free",
-  );
+// workspaces.plan is the admin facet's snapshot, so it includes a comp.
+export async function currentPlan(
+  db: Db,
+  workspaceId: ObjectId,
+  now = new Date(),
+): Promise<PlanId> {
+  const [paid, workspace] = await Promise.all([
+    collection(db, "subscriptions")
+      .find({ workspaceId, status: { $in: [...paidStatuses] } })
+      .toArray(),
+    collection(db, "workspaces").findOne(
+      { _id: workspaceId },
+      { projection: { entitlementOverride: 1 } },
+    ),
+  ]);
+  return effectivePlan(paid, workspace?.entitlementOverride, now);
 }
 
 export async function* allSubscriptions(polar: Polar) {

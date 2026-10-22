@@ -5,7 +5,10 @@ import {
   createAuthMiddleware,
   getSessionFromCtx,
 } from "better-auth/api";
-import { symmetricDecrypt } from "better-auth/crypto";
+import {
+  symmetricDecrypt,
+  type SymmetricDecryptOptions,
+} from "better-auth/crypto";
 import { ObjectId, type Db } from "mongodb";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
@@ -50,6 +53,47 @@ function matchingTotpStep(secret: string, code: string, now: number) {
   return matched;
 }
 
+/** Checks a TOTP code and claims its time step, so each code works once
+ * across sign-in and admin step-up alike. */
+export async function verifyTotpStepUp(
+  db: Db,
+  key: SymmetricDecryptOptions["key"],
+  userId: string,
+  code: string,
+  now = Date.now(),
+): Promise<"verified" | "invalid" | "replayed" | "no_factor"> {
+  if (!/^[a-f\d]{24}$/i.test(userId)) return "no_factor";
+  const factors = db.collection(physicalNames.two_factor);
+  const factor = await factors.findOne({
+    userId: { $in: [userId, new ObjectId(userId)] },
+  });
+  if (!factor || typeof factor.secret !== "string") return "no_factor";
+  const secret = await symmetricDecrypt({ key, data: factor.secret });
+  const step = matchingTotpStep(secret, code, now);
+  if (step === null) return "invalid";
+  const claimed = await factors.updateOne(
+    {
+      _id: factor._id,
+      $or: [
+        { lastTotpStep: { $exists: false } },
+        { lastTotpStep: { $lt: step } },
+      ],
+    },
+    { $set: { lastTotpStep: step } },
+  );
+  return claimed.modifiedCount ? "verified" : "replayed";
+}
+
+/** Platform staff enrol 2FA to reach the admin console, whatever their
+ * workspaces' plans (23 §1.4). */
+export const twoFactorEnrollmentAllowed = async (
+  db: Db,
+  user: { id: string; role?: unknown },
+) =>
+  user.role === "admin" ||
+  user.role === "superadmin" ||
+  (await advancedAuthAvailable(db, user.id));
+
 export function twoFactorPolicy(db: () => Db): BetterAuthPlugin {
   return {
     id: "shortn-two-factor-policy",
@@ -89,7 +133,7 @@ export function twoFactorPolicy(db: () => Db): BetterAuthPlugin {
                 });
               if (
                 ctx.path === "/two-factor/enable" &&
-                !(await advancedAuthAvailable(db(), session.user.id))
+                !(await twoFactorEnrollmentAllowed(db(), session.user))
               )
                 throw new APIError("FORBIDDEN", {
                   code: "ADVANCED_AUTH_UNAVAILABLE",
@@ -114,7 +158,7 @@ export function twoFactorPolicy(db: () => Db): BetterAuthPlugin {
               session &&
               !Reflect.get(session.user, "twoFactorEnabled") &&
               (!session.user.emailVerified ||
-                !(await advancedAuthAvailable(db(), session.user.id)))
+                !(await twoFactorEnrollmentAllowed(db(), session.user)))
             )
               throw new APIError("FORBIDDEN", {
                 code: "ADVANCED_AUTH_UNAVAILABLE",
@@ -135,30 +179,14 @@ export function twoFactorPolicy(db: () => Db): BetterAuthPlugin {
               if (!challenge || challenge.expiresAt <= new Date()) return;
               userId = challenge.value;
             }
-            if (!ObjectId.isValid(userId)) return;
-            const factors = db().collection(physicalNames.two_factor);
-            const factor = await factors.findOne({
-              userId: { $in: [userId, new ObjectId(userId)] },
-            });
-            if (!factor || typeof factor.secret !== "string") return;
-            const secret = await symmetricDecrypt({
-              key: ctx.context.secretConfig,
-              data: factor.secret,
-            });
-            const step = matchingTotpStep(secret, ctx.body.code, Date.now());
-            // Invalid codes still reach the upstream challenge/account lockout.
-            if (step === null) return;
-            const claimed = await factors.updateOne(
-              {
-                _id: factor._id,
-                $or: [
-                  { lastTotpStep: { $exists: false } },
-                  { lastTotpStep: { $lt: step } },
-                ],
-              },
-              { $set: { lastTotpStep: step } },
+            const result = await verifyTotpStepUp(
+              db(),
+              ctx.context.secretConfig,
+              userId,
+              ctx.body.code,
             );
-            if (!claimed.modifiedCount)
+            // Invalid codes still reach the upstream challenge/account lockout.
+            if (result === "replayed")
               throw new APIError("UNAUTHORIZED", {
                 code: "TOTP_ALREADY_USED",
                 message: "Wait for a new authenticator code",

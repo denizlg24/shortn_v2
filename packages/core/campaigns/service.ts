@@ -18,6 +18,7 @@ import { fail, ok, type Result } from "../result";
 import { can } from "../workspaces/authz";
 import { legacySubOf, nowOf, type ServiceContext } from "../workspaces/context";
 import { ownedBy, parseObjectId } from "../workspaces/service";
+import { isTakenDown } from "../links/moderation";
 
 type Campaign = Documents["campaigns"];
 type Link = Documents["links"];
@@ -28,7 +29,8 @@ export type CampaignError =
   | "not_found"
   | "title_taken"
   | "invalid_title"
-  | "conflict";
+  | "conflict"
+  | "taken_down";
 
 export interface UtmDefaults {
   sources: string[];
@@ -80,7 +82,7 @@ export function toCampaignView(campaign: Campaign): CampaignView {
 async function gate(ctx: ServiceContext, write: boolean) {
   if (!can(ctx.actor, write ? "resource.update" : "workspace.view"))
     return fail("forbidden");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   if (!hasFeature(entitlements, "campaigns"))
     return fail("feature_required", { feature: "campaigns" });
   return null;
@@ -453,6 +455,7 @@ export async function setLinkUtm(
         )
       : null;
     if (!link) return fail("not_found" as const);
+    if (isTakenDown(link)) return fail("taken_down" as const);
     const current = (link.utmLinks ?? []).map((variant) => ({
       source: typeof variant.source === "string" ? variant.source : undefined,
       medium: typeof variant.medium === "string" ? variant.medium : undefined,
@@ -682,6 +685,7 @@ export async function moveLinksToCampaign(
       )
       .toArray();
     if (links.length !== selected.length) return fail("not_found" as const);
+    if (links.some(isTakenDown)) return fail("taken_down" as const);
     const changed: { domain: string; keys: string[] }[] = [];
     for (const link of links) {
       const variants = (link.utmLinks?.length ? link.utmLinks : [{}]).map(

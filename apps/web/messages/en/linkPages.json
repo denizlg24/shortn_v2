@@ -90,7 +90,9 @@
     "createdBy": "Created by",
     "unknownCreator": "Creator unavailable",
     "disabledNotice": "This short link is disabled and does not redirect visitors.",
-    "safetyPage": "Visitors see a safety page before continuing."
+    "safetyPage": "Visitors see a safety page before continuing.",
+    "takenDownNotice": "Removed by Shortn Trust & Safety: {category}. It no longer redirects and can't be edited. Contact support@shortn.at to appeal; you can still delete it.",
+    "takenDownLocked": "Shortn removed this link, so it can't be edited. Contact support@shortn.at to appeal."
   },
   "form": {
     "newTitle": "New link",

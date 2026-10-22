@@ -19,7 +19,9 @@ export function AcceptInvite({ token }: { token: string }) {
         ? t("errors.invalid")
         : state.error === "invite_email_mismatch"
           ? t("errors.mismatch")
-          : t("errors.generic")
+          : state.error === "workspace_locked"
+            ? t("errors.locked")
+            : t("errors.generic")
       : null;
 
   return (

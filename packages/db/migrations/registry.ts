@@ -10,6 +10,7 @@ import { linkPasswordSecrets } from "./m0009-link-password-secrets";
 import { usagePeriods } from "./m0010-usage-periods";
 import { subscriptionsMirror } from "./m0011-subscriptions-mirror";
 import { assetsToStorage } from "./m0012-assets-to-storage";
+import { linkDestHost } from "./m0013-link-dest-host";
 import type { Migration } from "./runner";
 
 // Applied in id order. Test fixtures are never registered here.
@@ -26,4 +27,5 @@ export const productionMigrations: Migration[] = [
   usagePeriods,
   subscriptionsMirror,
   assetsToStorage,
+  linkDestHost,
 ];

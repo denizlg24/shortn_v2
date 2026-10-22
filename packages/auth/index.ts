@@ -12,6 +12,9 @@ import { passkeyPlugins } from "./passkeys";
 import { requestGeo } from "./geo";
 import { handoff } from "./handoff";
 import { mcpOAuthPlugins } from "./mcp-oauth";
+import { assertAccountActive, recordSignIn } from "./account-status";
+import { impersonationPolicy } from "./impersonation";
+import { adminElevation } from "./admin-elevation";
 
 // `request` is the triggering request, used to pick the email language.
 export interface AuthEmails {
@@ -63,6 +66,8 @@ export interface AuthConfig {
   emails: AuthEmails;
   plugins?: BetterAuthPlugin[];
   mcp?: { resource: string; rolloutPercent?: number };
+  /** Enables staff elevation into the admin console at this origin. */
+  admin?: { origin: string };
 }
 
 const randomSub = () => {
@@ -95,6 +100,7 @@ export function createAuth(config: AuthConfig) {
   const emailUpdates = new WeakSet<object>();
   const securityUpdates = new WeakSet<object>();
   const createdSessions = new WeakMap<object, string>();
+  const secondFactorPending = new WeakSet<object>();
   const handles = () => getMongoHandles(config.mongo);
   const db = forwardTo(() => handles().db);
   const client = forwardTo(() => handles().client);
@@ -172,6 +178,7 @@ export function createAuth(config: AuthConfig) {
         "/verify-email": { window: 300, max: 10 },
         "/change-email": { window: 3600, max: 3 },
         "/change-password": { window: 900, max: 5 },
+        "/admin/elevate": { window: 900, max: 5 },
         ...(config.mcp
           ? {
               "/oauth2/register": { window: 3600, max: 10 },
@@ -222,6 +229,21 @@ export function createAuth(config: AuthConfig) {
           input: false,
         },
         lastWorkspaceId: nullableString,
+        // Staff-managed (23 §3.1). input: false makes update-user reject them.
+        role: {
+          type: ["user", "admin", "superadmin"],
+          required: false,
+          input: false,
+        },
+        banned: { type: "boolean", required: false, input: false },
+        banReason: { type: "string", required: false, input: false },
+        banExpires: { type: "date", required: false, input: false },
+        deletion: {
+          type: "json",
+          required: false,
+          input: false,
+          returned: false,
+        },
       },
     },
     databaseHooks: {
@@ -349,8 +371,18 @@ export function createAuth(config: AuthConfig) {
         create: {
           async after(session, ctx) {
             if (ctx) createdSessions.set(ctx, session.token);
+            if (!ctx || !secondFactorPending.delete(ctx))
+              await recordSignIn(handles().db, session, ctx?.path);
           },
           async before(session, ctx) {
+            // Every sign-in method and the handoff end in createSession, so
+            // this is the single ban gate (23 §3.1).
+            const { awaitingSecondFactor } = await assertAccountActive(
+              handles().db,
+              session.userId,
+              ctx?.path,
+            );
+            if (ctx && awaitingSecondFactor) secondFactorPending.add(ctx);
             if (ctx?.path === "/passkey/verify-authentication") {
               const credentialId: unknown = ctx.body?.response?.id;
               const key =
@@ -385,6 +417,11 @@ export function createAuth(config: AuthConfig) {
       storeSessionInDatabase: true,
       additionalFields: {
         impersonatedBy: nullableString,
+        impersonationMode: {
+          type: ["read", "write"],
+          required: false,
+          input: false,
+        },
         passkeyId: nullableString,
         mcpWorkspaceId: nullableString,
         geo_city: nullableString,
@@ -498,6 +535,16 @@ export function createAuth(config: AuthConfig) {
           /^[a-zA-Z0-9 _.-]+$/.test(value) && value.trim().length >= 3,
       }),
       handoff({ db: () => handles().db }),
+      impersonationPolicy(),
+      ...(config.admin
+        ? [
+            adminElevation({
+              db: () => handles().db,
+              adminOrigin: config.admin.origin,
+              redis,
+            }),
+          ]
+        : []),
       customerPlugin,
       ...(config.mcp
         ? mcpOAuthPlugins({
