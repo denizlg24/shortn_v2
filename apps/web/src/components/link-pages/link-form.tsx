@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@shortn/ui";
+import { encodeSelection } from "@/lib/bulk-selection";
 import { useLinkCreation } from "./use-link-creation";
 import { useFormSubmit } from "../editor/use-form-submit";
 import { TagsField, type TagOption } from "../page/tags-field";
@@ -40,6 +41,8 @@ export function LinkForm({
   const t = useTranslations("linkPages.form");
   const advanced = useTranslations("linkAdvanced");
   const creation = useTranslations("linkCreation");
+  const bio = useTranslations("bio.destination");
+  const [addToBio, setAddToBio] = useState(false);
   const tErrors = useTranslations("linkPages.errors");
   const tLinkErrors = useTranslations("links.errors");
   const { state, pending, onSubmit } = useFormSubmit(action);
@@ -95,9 +98,13 @@ export function LinkForm({
         clearTimeout(timeout);
       }
       if (mounted.current)
-        router.push(`${created.path}?created=1&copied=${copied ? "1" : "0"}`);
+        router.push(
+          addToBio && workspace
+            ? `/${workspace}/links/bio?selection=${encodeSelection([created.id])}`
+            : `${created.path}?created=1&copied=${copied ? "1" : "0"}`,
+        );
     })();
-  }, [state.created, router]);
+  }, [state.created, router, addToBio, workspace]);
   const [passwordMode, setPasswordMode] = useState<"keep" | "set" | "remove">(
     "keep",
   );
@@ -327,6 +334,26 @@ export function LinkForm({
           label={t("tagsSection")}
         />
       </Section>
+
+      {mode === "create" && workspace ? (
+        <Section title={bio("title")}>
+          <label className="flex items-start gap-3 text-small">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-[var(--color-signal)]"
+              checked={addToBio}
+              disabled={pending || Boolean(state.created)}
+              onChange={(event) => setAddToBio(event.target.checked)}
+            />
+            <span>
+              {bio("afterCreate")}
+              <span className="mt-1 block text-meta text-fg-muted">
+                {bio("afterCreateHint")}
+              </span>
+            </span>
+          </label>
+        </Section>
+      ) : null}
 
       <Section title={t("passwordSection")} anchor="link-password">
         {gates.passwords ? (

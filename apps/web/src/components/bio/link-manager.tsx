@@ -24,17 +24,21 @@ import {
   Pencil,
   Plus,
   Trash2,
-  X,
-  ChevronsUpDown,
 } from "lucide-react";
 import type { BioLinkItem, BioResolvedLink } from "@shortn/core/bio-content";
 import {
-  bioLinkFiltersAction,
   searchBioLinksAction,
   selectBioLinksAction,
   shortenBioContentAction,
 } from "@/server/actions/bio-publishing";
-import { buttonVariants, Combobox } from "@shortn/ui";
+import { buttonVariants } from "@shortn/ui";
+import { LinkToolbar } from "../link-filters/toolbar";
+import {
+  emptyLinkFilters,
+  linkFiltersSearch,
+  type LinkFilterState,
+} from "../link-filters/state";
+import { linkFacetOptionsAction } from "@/server/actions/link-filters";
 import { FilterField } from "../page/filters";
 import { ImageUpload } from "../page/image-upload";
 const input =
@@ -87,6 +91,7 @@ export function LinkManager({
   onBusyChange,
   uploading,
   chooseOnly = false,
+  startWithLibrary = false,
 }: {
   workspace: string;
   bioId: string;
@@ -97,10 +102,11 @@ export function LinkManager({
   onBusyChange: (busy: boolean) => void;
   uploading: boolean;
   chooseOnly?: boolean;
+  startWithLibrary?: boolean;
 }) {
   const t = useTranslations("bio.editor");
   const [mode, setMode] = useState<"manage" | "existing" | "create">(
-    chooseOnly ? "existing" : "manage",
+    chooseOnly || startWithLibrary || !items.length ? "existing" : "manage",
   );
   const [search, setSearch] = useState(""),
     [page, setPage] = useState(1),
@@ -110,31 +116,32 @@ export function LinkManager({
   > | null>(null);
   const [pending, setPending] = useState(false),
     [error, setError] = useState("");
-  const [tags, setTags] = useState<string[]>([]),
-    [groupBy, setGroupBy] = useState("tag");
-  const [tagOptions, setTagOptions] = useState<Awaited<
-    ReturnType<typeof bioLinkFiltersAction>
-  > | null>(null);
-  const [filterError, setFilterError] = useState(false),
-    [filterRetry, setFilterRetry] = useState(0);
+  const [filters, setFilters] = useState<LinkFilterState>({
+    ...emptyLinkFilters,
+    group: "tag",
+  });
+  const tags = filters.tags,
+    groupBy = filters.group,
+    query = linkFiltersSearch(filters).toString();
+  const [setup, setSetup] = useState<{
+    domains: string[];
+    campaigns: boolean;
+  } | null>(null);
   const [selection, setSelection] = useState<Record<string, LibraryLink>>({});
   const [selecting, setSelecting] = useState(false);
   useEffect(() => {
     let live = true;
-    void bioLinkFiltersAction(workspace)
+    void linkFacetOptionsAction(workspace)
       .then((value) => {
-        if (live) {
-          setTagOptions(value);
-          setFilterError(false);
-        }
+        if (live) setSetup(value);
       })
       .catch(() => {
-        if (live) setFilterError(true);
+        if (live) setSetup({ domains: [], campaigns: false });
       });
     return () => {
       live = false;
     };
-  }, [workspace, filterRetry]);
+  }, [workspace]);
   const [url, setUrl] = useState(""),
     [title, setTitle] = useState("");
   const sensors = useSensors(
@@ -149,7 +156,7 @@ export function LinkManager({
     const timer = setTimeout(() => {
       setPending(true);
       setError("");
-      void searchBioLinksAction(workspace, search, page, tags)
+      void searchBioLinksAction(workspace, filters.search, page, tags, query)
         .then((value) => {
           if (live) setLibrary(value);
         })
@@ -164,7 +171,7 @@ export function LinkManager({
       live = false;
       clearTimeout(timer);
     };
-  }, [workspace, search, page, mode, tags, t]);
+  }, [workspace, filters.search, page, mode, tags, query, t]);
   function navigate(next: typeof mode) {
     setMode(next);
     setSearch("");
@@ -172,7 +179,7 @@ export function LinkManager({
     setEditing(null);
     setError("");
     setLibrary(null);
-    setTags([]);
+    setFilters({ ...emptyLinkFilters, group: "tag" });
     setSelection({});
   }
   function add(link: { id: string; title: string; href: string }) {
@@ -216,10 +223,11 @@ export function LinkManager({
     try {
       const matches = await selectBioLinksAction(
         workspace,
-        search,
+        filters.search,
         tags,
         [...alreadyAdded, ...Object.keys(selection)],
         capacity,
+        query,
       );
       toggleLinks(matches, true);
     } catch {
@@ -399,133 +407,40 @@ export function LinkManager({
         </form>
       ) : (
         <>
-          <FilterField label={t("searchLinks")} className="w-full min-w-0">
-            {(id) => (
-              <input
-                id={id}
-                type="search"
-                maxLength={200}
-                className={filterControl}
-                value={search}
-                onChange={(e) => {
-                  setSearch(e.target.value);
+          {mode === "manage" ? (
+            <FilterField label={t("searchLinks")} className="w-full min-w-0">
+              {(id) => (
+                <input
+                  id={id}
+                  type="search"
+                  maxLength={200}
+                  className={filterControl}
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              )}
+            </FilterField>
+          ) : null}
+          {mode === "existing" ? (
+            <>
+              <LinkToolbar
+                workspace={workspace}
+                value={filters}
+                onChange={(next) => {
+                  setFilters(next);
                   setPage(1);
                   setLibrary(null);
                 }}
+                facets={
+                  setup?.campaigns
+                    ? ["tags", "status", "domain", "campaign", "created"]
+                    : ["tags", "status", "domain", "created"]
+                }
+                domains={setup?.domains ?? []}
+                countView={null}
+                pending={pending || selecting}
+                grouping
               />
-            )}
-          </FilterField>
-          {mode === "existing" ? (
-            <>
-              <div className="studio-library-filters flex min-w-0 flex-wrap items-end gap-3">
-                <FilterField
-                  label={t("filterTags")}
-                  className="min-w-0 w-full sm:flex-1"
-                >
-                  {(id) => (
-                    <Combobox
-                      id={id}
-                      multiple
-                      options={(tagOptions ?? []).map((tag) => ({
-                        value: tag.name,
-                        label: tag.name,
-                      }))}
-                      value={tags}
-                      placeholder={t("anyTag")}
-                      searchPlaceholder={t("searchTags")}
-                      emptyText={t("noTags")}
-                      disabled={!tagOptions || selecting}
-                      trigger={
-                        <button
-                          id={id}
-                          role="combobox"
-                          type="button"
-                          className={`${filterControl} flex items-center justify-between gap-2`}
-                        >
-                          <span className="min-w-0 flex-1 truncate text-left">
-                            {tags.length > 1
-                              ? t("tagCount", { count: tags.length })
-                              : (tags[0] ?? t("anyTag"))}
-                          </span>
-                          <ChevronsUpDown
-                            aria-hidden
-                            className="size-4 shrink-0"
-                          />
-                        </button>
-                      }
-                      onValueChange={(value) => {
-                        setTags(value.slice(0, 50));
-                        setPage(1);
-                        setLibrary(null);
-                      }}
-                    />
-                  )}
-                </FilterField>
-                <FilterField
-                  label={t("groupBy")}
-                  className="min-w-0 w-full sm:w-36"
-                >
-                  {(id) => (
-                    <select
-                      id={id}
-                      className={filterControl}
-                      value={groupBy}
-                      onChange={(e) => setGroupBy(e.target.value)}
-                    >
-                      <option value="tag">{t("byTag")}</option>
-                      <option value="none">{t("noGrouping")}</option>
-                    </select>
-                  )}
-                </FilterField>
-              </div>
-              {filterError ? (
-                <p role="alert" className="text-small">
-                  {t("filtersFailed")}{" "}
-                  <button
-                    type="button"
-                    className="text-signal underline"
-                    onClick={() => setFilterRetry((value) => value + 1)}
-                  >
-                    {t("retry")}
-                  </button>
-                </p>
-              ) : null}
-              {tags.length ? (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <button
-                      key={tag}
-                      type="button"
-                      className="inline-flex min-w-0 max-w-full items-center gap-1 rounded-chip bg-bg-muted px-1.5 py-1 text-meta text-fg hover:bg-bg-subtle"
-                      disabled={selecting}
-                      aria-label={t("removeTag", { tag })}
-                      onClick={() => {
-                        setTags((current) =>
-                          current.filter((value) => value !== tag),
-                        );
-                        setPage(1);
-                        setLibrary(null);
-                      }}
-                    >
-                      <span className="truncate">{tag}</span>
-                      <X aria-hidden className="size-3 shrink-0" />
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="text-small text-signal hover:underline"
-                    disabled={selecting}
-                    onClick={() => {
-                      setTags([]);
-                      setSearch("");
-                      setPage(1);
-                      setLibrary(null);
-                    }}
-                  >
-                    {t("clearFilters")}
-                  </button>
-                </div>
-              ) : null}
               {!chooseOnly ? (
                 <div className="flex flex-wrap items-center gap-2 border-y border-line py-3">
                   <p className="basis-full text-small text-fg-muted">

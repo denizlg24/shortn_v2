@@ -13,6 +13,8 @@ import {
   shortenBioUrl,
 } from "@shortn/core";
 import { revalidatePath, revalidateTag } from "next/cache";
+import { linkListQueryOf, linksViewQuery } from "../link-list-query";
+import { requestTime } from "../time";
 import { serviceContext } from "../context";
 
 export async function saveBioContentAction(
@@ -99,13 +101,24 @@ export async function searchBioLinksAction(
   search: string,
   page = 1,
   tags: string[] = [],
+  query?: string,
 ) {
   const ctx = await serviceContext(workspace);
   const result = await listLinks(ctx, {
-    search: search.slice(0, 200),
-    tags: tags.slice(0, 50).map((tag) => tag.slice(0, 48)),
+    ...(query !== undefined
+      ? linksViewQuery(linkListQueryOf(query.slice(0, 4000)), requestTime())
+          .filter
+      : {}),
+    ...(query === undefined
+      ? {
+          search: search.slice(0, 200),
+          tags: tags.slice(0, 50).map((tag) => tag.slice(0, 64)),
+        }
+      : {}),
     page: Math.max(1, Math.min(10000, Math.floor(page) || 1)),
     limit: 20,
+    trash: false,
+    archived: false,
     includeHidden: true,
   });
   const { env } = await import("../env");
@@ -128,6 +141,7 @@ export async function selectBioLinksAction(
   tags: string[],
   excluded: string[],
   capacity: number,
+  query?: string,
 ) {
   const ctx = await serviceContext(workspace);
   const limit = Math.max(0, Math.min(1000, Math.floor(capacity) || 0));
@@ -139,10 +153,20 @@ export async function selectBioLinksAction(
   // At most 3,000 records: 1,000 available slots plus up to 2,000 exclusions.
   for (let page = 1; page <= 15 && selected.length < limit; page++) {
     const result = await listLinks(ctx, {
-      search: search.slice(0, 200),
-      tags: tags.slice(0, 50).map((tag) => tag.slice(0, 48)),
+      ...(query !== undefined
+        ? linksViewQuery(linkListQueryOf(query.slice(0, 4000)), requestTime())
+            .filter
+        : {}),
+      ...(query === undefined
+        ? {
+            search: search.slice(0, 200),
+            tags: tags.slice(0, 50).map((tag) => tag.slice(0, 64)),
+          }
+        : {}),
       page,
       limit: 200,
+      trash: false,
+      archived: false,
       includeHidden: true,
     });
     for (const link of result.links) {

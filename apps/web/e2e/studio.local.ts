@@ -134,6 +134,14 @@ try {
     viewport: { width: 1440, height: 1000 },
   });
   const errors: string[] = [];
+  await page.addLocatorHandler(
+    page.getByRole("dialog").filter({
+      has: page.getByRole("button", { name: "Close", exact: true }),
+    }),
+    async (dialog) => {
+      await dialog.getByRole("button", { name: "Close", exact: true }).click();
+    },
+  );
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => {
     if (message.type() === "error") errors.push(message.text());
@@ -242,7 +250,7 @@ try {
   await page.getByRole("button", { name: "Sections", exact: true }).click();
   await page
     .locator(".studio-workspace")
-    .getByRole("button", { name: "Links · 125", exact: true })
+    .getByRole("button", { name: / · 125$/, exact: false })
     .click();
   assert.equal(
     await page.getByLabel("Display links").inputValue(),
@@ -271,7 +279,7 @@ try {
       path: `${review}/desktop-customization.png`,
       fullPage: true,
     });
-  await page.getByRole("button", { name: "Manage 125 links" }).click();
+  await page.getByRole("button", { name: "Edit section links (125)" }).click();
   assert.equal(
     await page.getByRole("button", { name: "Edit link", exact: true }).count(),
     20,
@@ -297,14 +305,18 @@ try {
       fullPage: true,
     });
   await page.getByRole("button", { name: "Add link", exact: true }).click();
-  await page.getByLabel("Search links").fill("Sample resource");
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .fill("Sample resource");
   await page.getByRole("button", { name: "Next", exact: true }).waitFor();
   await page.getByRole("button", { name: "Next", exact: true }).click();
   await page
     .getByRole("navigation", { name: "Link pages" })
     .filter({ hasText: "2 / 7" })
     .waitFor();
-  await page.getByLabel("Search links").fill("125");
+  await page
+    .getByRole("searchbox", { name: "Search", exact: true })
+    .fill("125");
   await page.getByText("Sample resource 125", { exact: true }).waitFor();
   await page.getByRole("button", { name: "Back to links" }).click();
   // Select from a thousand-link library by tag, preserving choices across pages/filters.
@@ -318,16 +330,22 @@ try {
     .getByRole("button", { name: "Links", exact: true })
     .click();
   await page
+    .getByRole("button", { name: "Back to section", exact: true })
+    .click();
+  await page
     .getByLabel("Display links", { exact: true })
     .selectOption("paginated");
   await page
-    .getByRole("button", { name: "Manage 0 links", exact: true })
+    .getByRole("button", { name: "Edit section links (0)", exact: true })
     .click();
-  await page.getByRole("button", { name: "Add link", exact: true }).click();
   async function chooseTag(tag: string) {
-    await page
-      .getByRole("combobox", { name: "Filter by tags", exact: true })
-      .click();
+    const token = page.getByRole("button", { name: /^Change filter: Tag/ });
+    if (await token.count()) await token.click();
+    else {
+      await page.getByRole("button", { name: /^Filter/ }).click();
+      await page.getByRole("option", { name: "Tag", exact: true }).click();
+    }
+    await page.getByRole("combobox", { name: "Search tags…" }).fill(tag);
     await page.getByRole("option", { name: tag, exact: true }).click();
     await page.keyboard.press("Escape");
   }
@@ -352,27 +370,15 @@ try {
     .waitFor();
   await chooseTag(tagNames[1]!);
   await page.getByText(/1,005 matching links/).waitFor();
-  const tagFilter = page.getByRole("combobox", {
-    name: "Filter by tags",
-    exact: true,
-  });
-  assert.equal(await tagFilter.innerText(), "2 tags");
-  const tagBounds = (await tagFilter.boundingBox())!;
-  const groupBounds = (await page
-    .getByLabel("Group results", { exact: true })
-    .boundingBox())!;
-  assert(
-    tagBounds.x + tagBounds.width < groupBounds.x,
-    "Selected tags overlap grouping field",
-  );
+  const tagFilter = page.getByRole("button", { name: /^Change filter: Tag/ });
+  const tagLabel = await tagFilter.getAttribute("aria-label");
+  assert(tagNames.every((name) => tagLabel?.includes(name)));
   if (capture)
     await page.screenshot({
       path: `${review}/tag-library-multiple-desktop.png`,
       fullPage: true,
     });
-  await page
-    .getByRole("button", { name: `Remove tag ${tagNames[0]}`, exact: true })
-    .click();
+  await chooseTag(tagNames[0]!);
   await page.getByText(/4 matching links/).waitFor();
   await page
     .getByRole("button", { name: "Select this page", exact: true })
@@ -416,9 +422,7 @@ try {
   await page
     .getByRole("button", { name: "Clear selection", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "Clear filters", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Clear all", exact: true }).click();
   await chooseTag(tagNames[0]!);
   await page.getByText(/1,001 matching links/).waitFor();
   await page
@@ -446,10 +450,10 @@ try {
   await page.getByRole("button", { name: "Sections", exact: true }).click();
   await page
     .locator(".studio-workspace-body")
-    .getByRole("button", { name: "Links · 125", exact: true })
+    .getByRole("button", { name: / · 125$/, exact: false })
     .click();
   await page
-    .getByRole("button", { name: "Manage 125 links", exact: true })
+    .getByRole("button", { name: "Edit section links (125)", exact: true })
     .click();
   await page
     .getByRole("button", { name: "Edit link", exact: true })
@@ -612,7 +616,7 @@ try {
   await page.getByRole("button", { name: "Sections", exact: true }).click();
   await page
     .locator(".studio-workspace")
-    .getByRole("button", { name: "Links · 125", exact: true })
+    .getByRole("button", { name: / · 125$/, exact: false })
     .click();
   await page.getByLabel("Card content").selectOption("image-only");
   await page.getByLabel("Card corners").selectOption("square");
@@ -666,7 +670,7 @@ try {
   await page.getByRole("button", { name: "Sections", exact: true }).click();
   await page
     .locator(".studio-workspace")
-    .getByRole("button", { name: "Links · 125", exact: true })
+    .getByRole("button", { name: / · 125$/, exact: false })
     .click();
   await page.getByLabel("Link cards").selectOption("list");
   await page.getByText("Link styling", { exact: true }).click();
@@ -763,9 +767,9 @@ try {
   await page.getByRole("button", { name: "Sections", exact: true }).click();
   await page
     .locator(".studio-workspace")
-    .getByRole("button", { name: "Links · 125", exact: true })
+    .getByRole("button", { name: / · 125$/, exact: false })
     .click();
-  await page.getByRole("button", { name: "Manage 125 links" }).click();
+  await page.getByRole("button", { name: "Edit section links (125)" }).click();
   assert(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
