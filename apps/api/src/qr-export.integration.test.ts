@@ -245,9 +245,14 @@ const pepper = "synthetic-qr-api-export-pepper-".repeat(3);
     });
 
     test("GET export queues idempotently, worker produces bytes, polling signs and ready requests redirect", async () => {
+      const signatures: { key: string; seconds: number; url: string }[] = [];
       const f = await fixture(),
         credential = await f.key(["qr:read"]),
-        app = f.api();
+        app = f.api(true, async (key, seconds) => {
+          const url = `${await f.store.sign(key, seconds)}&signature=${signatures.length}`;
+          signatures.push({ key, seconds, url });
+          return url;
+        });
       const path = `/v1/qr-codes/${f.qr.id}/export?format=png&size=512`;
       const first = await f.request(app, path, credential.secret);
       expect(first.status).toBe(202);
@@ -283,6 +288,8 @@ const pepper = "synthetic-qr-api-export-pepper-".repeat(3);
       );
       expect(delivery).not.toHaveProperty("objectKey");
       expect(delivery).not.toHaveProperty("design");
+      expect(signatures).toHaveLength(1);
+      expect(delivery.downloadUrl).toBe(signatures[0]!.url);
       const bytes = [...f.objects.values()][0]!;
       expect(bytes.contentType).toBe("image/png");
       expect(Buffer.from(bytes.bytes.subarray(0, 8)).toString("hex")).toBe(
@@ -290,7 +297,14 @@ const pepper = "synthetic-qr-api-export-pepper-".repeat(3);
       );
       const redirected = await f.request(app, path, credential.secret);
       expect(redirected.status).toBe(303);
-      expect(redirected.headers.get("Location")).toBe(delivery.downloadUrl);
+      // Each response signs again; the remaining TTL can tick down between requests.
+      expect(signatures).toHaveLength(2);
+      expect(signatures[1]!.key).toBe(signatures[0]!.key);
+      expect(signatures[1]!.seconds).toBeGreaterThan(0);
+      expect(signatures[1]!.seconds).toBeLessThanOrEqual(
+        signatures[0]!.seconds,
+      );
+      expect(redirected.headers.get("Location")).toBe(signatures[1]!.url);
       expect(
         await qrExportJobs(db).countDocuments({
           workspaceId: f.ctx.workspace._id,
@@ -584,12 +598,10 @@ const pepper = "synthetic-qr-api-export-pepper-".repeat(3);
         expect([...f.objects.values()][0]!.contentType).toBe("image/svg+xml");
         expect(failures).toEqual([]);
         expect(
-          await db
-            .collection(physicalNames.audit_log)
-            .countDocuments({
-              workspaceId: f.ctx.workspace._id,
-              tool: "create_qr_code",
-            }),
+          await db.collection(physicalNames.audit_log).countDocuments({
+            workspaceId: f.ctx.workspace._id,
+            tool: "create_qr_code",
+          }),
         ).toBe(1);
       } finally {
         clearInterval(interval);
