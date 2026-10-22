@@ -48,6 +48,8 @@ const mongo = process.env.MONGO_TEST_URL;
       await runMigrations(client, db, [migration], {
         direction: "down",
         verifyOnly: true,
+        until: "0000",
+        confirmDown: true,
       });
     } finally {
       await db.dropDatabase();
