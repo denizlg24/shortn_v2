@@ -35,6 +35,20 @@ const mongo = process.env.MONGO_TEST_URL;
         batchDelayMs: 0,
       });
       expect(await links.find({}).sort({ _id: 1 }).toArray()).toEqual(first);
+      await runMigrations(client, db, [migration], {
+        direction: "down",
+        until: "0000",
+        confirmDown: true,
+        batchSize: 2,
+        batchDelayMs: 0,
+      });
+      expect(
+        await links.countDocuments({ destHostRev: { $exists: true } }),
+      ).toBe(0);
+      await runMigrations(client, db, [migration], {
+        direction: "down",
+        verifyOnly: true,
+      });
     } finally {
       await db.dropDatabase();
       await client.close();

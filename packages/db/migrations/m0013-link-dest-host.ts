@@ -34,6 +34,17 @@ export const linkDestHost: Migration = {
     });
   },
   async verify(ctx) {
+    if (ctx.direction === "down") {
+      const remaining = await ctx
+        .read(names.links)
+        .countDocuments({ destHostRev: { $exists: true } });
+      return report(
+        { remaining },
+        remaining
+          ? [`${remaining} destination hosts remain after rollback`]
+          : [],
+      );
+    }
     let wrong = 0;
     for await (const doc of ctx
       .read(names.links)
