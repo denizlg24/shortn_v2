@@ -91,7 +91,7 @@ const worker = createQrExportWorker({
   log: (message) => console.log(message),
 });
 const browser = await chromium.launch({ headless: true });
-const directory = ".impeccable/review/p6-qr-ui",
+const directory = "test-results/captures/p6-qr-ui",
   captures: object[] = [],
   errors: string[] = [],
   refs = new Set<string>();

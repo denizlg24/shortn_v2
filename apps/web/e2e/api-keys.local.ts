@@ -25,7 +25,7 @@ const db = client.db("shortn_p6_dev"),
   workspaceId = new ObjectId(credentials.workspaceId);
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [];
-const captures = ".impeccable/review/p6";
+const captures = "test-results/captures/p6";
 await mkdir(captures, { recursive: true });
 try {
   const context = await browser.newContext({

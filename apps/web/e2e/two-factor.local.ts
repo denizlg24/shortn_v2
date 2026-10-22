@@ -26,7 +26,7 @@ const context = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
   }),
   page = await context.newPage();
-const directory = ".impeccable/review/p6-two-factor",
+const directory = "test-results/captures/p6-two-factor",
   captures: object[] = [],
   errors: string[] = [];
 const workspaceId = new ObjectId(login.workspaceId),

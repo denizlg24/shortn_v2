@@ -104,7 +104,7 @@ try {
     .getByRole("columnheader", { name: "Trash fixture", exact: true })
     .waitFor();
   await page.screenshot({
-    path: ".impeccable/review/p6/trash-desktop.png",
+    path: "test-results/captures/p6/trash-desktop.png",
     fullPage: true,
     caret: "initial",
   });
@@ -148,7 +148,7 @@ try {
     );
     assert.equal(await page.locator('input[name="ids"]').count(), 25);
     await page.screenshot({
-      path: `.impeccable/review/p6/trash-mobile-${locale}.png`,
+      path: `test-results/captures/p6/trash-mobile-${locale}.png`,
       fullPage: true,
       caret: "initial",
     });

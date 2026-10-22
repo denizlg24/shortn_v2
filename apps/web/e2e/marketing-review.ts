@@ -3,7 +3,7 @@ import { chromium } from "playwright-core";
 
 const origin = process.env.MARKETING_ORIGIN ?? "http://localhost:3400";
 const out = new URL(
-  "../../../.impeccable/review/pm-marketing/",
+  "../../../test-results/captures/pm-marketing/",
   import.meta.url,
 ).pathname;
 const browser = await chromium.launch({ headless: true });

@@ -37,7 +37,7 @@ const app = createApp({
 });
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: app.fetch });
 const browser = await chromium.launch({ headless: true });
-const directory = ".impeccable/review/p6-deep-links";
+const directory = "test-results/captures/p6-deep-links";
 await mkdir(directory, { recursive: true });
 const captures: object[] = [];
 try {

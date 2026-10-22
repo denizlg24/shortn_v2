@@ -129,7 +129,7 @@ await db.collection(physicalNames.subscriptions).insertOne({
   currentPeriodEnd: new Date(now.getTime() + 29 * 86400000),
   cancelAtPeriodEnd: false,
 });
-const directory = ".impeccable/review/p6-health-ui";
+const directory = "test-results/captures/p6-health-ui";
 await mkdir(directory, { recursive: true });
 const browser = await chromium.launch({ headless: true });
 const errors: string[] = [],

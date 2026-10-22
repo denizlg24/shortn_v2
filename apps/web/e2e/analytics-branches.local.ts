@@ -16,7 +16,7 @@ const mongo = await new MongoClient(
 const foreignWorkspaceId = new ObjectId();
 const workspaceId = new ObjectId(),
   slug = `branches-${crypto.randomUUID()}`,
-  directory = ".impeccable/review/p6-analytics-branches",
+  directory = "test-results/captures/p6-analytics-branches",
   captures: object[] = [],
   errors: string[] = [];
 const workspace = {
@@ -70,17 +70,15 @@ try {
     role: "owner",
     createdAt: new Date(),
   });
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      workspaceId,
-      polarSubscriptionId: crypto.randomUUID(),
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    workspaceId,
+    polarSubscriptionId: crypto.randomUUID(),
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 86400000 * 29),
+    cancelAtPeriodEnd: false,
+  });
   const links = Array.from({ length: 5001 }, (_, i) => ({
     _id: new ObjectId(),
     workspaceId,
@@ -118,29 +116,27 @@ try {
       ipHash: `synthetic-${i}-${j}`,
     })),
   );
-  await db
-    .collection(physicalNames.click_events)
-    .insertMany([
-      ...events,
-      {
-        ts,
-        m: {
-          workspaceId: foreignWorkspaceId,
-          linkId: links[0]!._id,
-          kind: "click",
-          branch: "rotation:0",
-        },
+  await db.collection(physicalNames.click_events).insertMany([
+    ...events,
+    {
+      ts,
+      m: {
+        workspaceId: foreignWorkspaceId,
+        linkId: links[0]!._id,
+        kind: "click",
+        branch: "rotation:0",
       },
-      {
-        ts,
-        m: {
-          workspaceId,
-          linkId: links[1]!._id,
-          kind: "click",
-          branch: "rotation:0",
-        },
+    },
+    {
+      ts,
+      m: {
+        workspaceId,
+        linkId: links[1]!._id,
+        kind: "click",
+        branch: "rotation:0",
       },
-    ]);
+    },
+  ]);
   const input = {
     scope: { type: "link" as const, id: String(links[0]!._id) },
     from: new Date(Date.now() - 86400000).toISOString(),

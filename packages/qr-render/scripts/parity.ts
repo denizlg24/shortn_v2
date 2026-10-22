@@ -122,7 +122,7 @@ const bundle = await Bun.build({
 if (!bundle.success) throw new Error(bundle.logs.map(String).join("\n"));
 const browser = await chromium.launch({ headless: true });
 const directory = new URL(
-  "../../../.impeccable/review/p6-qr-export",
+  "../../../test-results/captures/p6-qr-export",
   import.meta.url,
 ).pathname;
 await mkdir(directory, { recursive: true });

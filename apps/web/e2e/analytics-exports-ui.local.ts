@@ -84,7 +84,7 @@ const worker = createAnalyticsExportWorker({
 const browser = await chromium.launch({ headless: true });
 let sourceKey = "";
 const ownedTagIds: ObjectId[] = [];
-const directory = ".impeccable/review/p6-analytics-export-ui",
+const directory = "test-results/captures/p6-analytics-export-ui",
   captures: object[] = [],
   errors: string[] = [];
 const analytics = `${login.origin}/${login.workspace}/analytics`;
@@ -135,18 +135,16 @@ async function download(page: Page, label: string) {
   return readFile((await result.path())!);
 }
 try {
-  await db
-    .collection(physicalNames.subscriptions)
-    .insertOne({
-      _id: subscriptionId,
-      workspaceId: workspace._id,
-      polarSubscriptionId: marker,
-      status: "active",
-      plan: "pro",
-      currentPeriodStart: new Date(Date.now() - 86400000),
-      currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
-      cancelAtPeriodEnd: false,
-    });
+  await db.collection(physicalNames.subscriptions).insertOne({
+    _id: subscriptionId,
+    workspaceId: workspace._id,
+    polarSubscriptionId: marker,
+    status: "active",
+    plan: "pro",
+    currentPeriodStart: new Date(Date.now() - 86400000),
+    currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
+    cancelAtPeriodEnd: false,
+  });
   const created = await createLink(ctx, {
     url: `https://example.com/${marker}`,
     title: `São João — ${"Editorial semanal ".repeat(12)}`,
@@ -181,21 +179,19 @@ try {
   await collection(db, "tags").insertMany(tags);
   ownedTagIds.push(...tags.map((tag) => tag._id));
   const ts = new Date(Date.now() - 3600_000);
-  await db
-    .collection(physicalNames.click_events)
-    .insertMany(
-      Array.from({ length: 1005 }, (_, i) => ({
-        ts,
-        m: {
-          workspaceId: workspace._id,
-          linkId: source._id,
-          key: sourceKey,
-          kind: i % 2 ? "scan" : "click",
-        },
-        country: marker,
-        ipHash: `private-${i % 3}`,
-      })),
-    );
+  await db.collection(physicalNames.click_events).insertMany(
+    Array.from({ length: 1005 }, (_, i) => ({
+      ts,
+      m: {
+        workspaceId: workspace._id,
+        linkId: source._id,
+        key: sourceKey,
+        kind: i % 2 ? "scan" : "click",
+      },
+      country: marker,
+      ipHash: `private-${i % 3}`,
+    })),
+  );
   const context = await browser.newContext({
       acceptDownloads: true,
       viewport: { width: 1440, height: 1000 },

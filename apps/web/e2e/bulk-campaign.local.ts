@@ -12,7 +12,7 @@ const mongo = await new MongoClient(
   ).connect(),
   db = mongo.db("shortn_p6_dev"),
   durable = new Redis("redis://127.0.0.1:16379/6");
-const directory = ".impeccable/review/p6-bulk-campaign",
+const directory = "test-results/captures/p6-bulk-campaign",
   captures: object[] = [],
   errors: string[] = [],
   workspaceId = new ObjectId(),
