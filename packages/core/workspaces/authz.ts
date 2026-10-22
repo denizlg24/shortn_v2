@@ -9,8 +9,10 @@ export type Action =
   | "resource.delete"
   | "domains.manage"
   | "apiKeys.manage"
+  | "apiKeys.revoke"
   | "webhooks.manage"
   | "members.manage"
+  | "members.remove"
   | "workspace.update"
   | "billing.manage"
   | "workspace.delete";
@@ -22,8 +24,10 @@ const minimum: Record<Action, Role> = {
   "resource.delete": "member",
   "domains.manage": "admin",
   "apiKeys.manage": "admin",
+  "apiKeys.revoke": "admin",
   "webhooks.manage": "admin",
   "members.manage": "admin",
+  "members.remove": "admin",
   "workspace.update": "admin",
   "billing.manage": "owner",
   "workspace.delete": "owner",
@@ -35,14 +39,22 @@ const rank: Record<Role, number> = { viewer: 0, member: 1, admin: 2, owner: 3 };
  * suspension of the workspace. */
 export type ReadOnlyReason = "locked" | "suspended";
 
-// A locked or suspended owner can still pay or cancel.
-const readOnlyAllows: readonly Action[] = ["workspace.view", "billing.manage"];
+// A locked or suspended owner can still pay or cancel, and take safety
+// actions that only reduce access: revoke API keys, remove members and
+// revoke invites (23 §7 A3).
+const readOnlyAllows: readonly Action[] = [
+  "workspace.view",
+  "billing.manage",
+  "apiKeys.revoke",
+  "members.remove",
+];
 
 // Staff impersonating a user never act on the account's money, credentials
 // or existence, in either mode (23 §3.6).
 const impersonationDenies: readonly Action[] = [
   "billing.manage",
   "apiKeys.manage",
+  "apiKeys.revoke",
   "workspace.delete",
 ];
 

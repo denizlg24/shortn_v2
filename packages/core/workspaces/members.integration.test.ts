@@ -143,6 +143,28 @@ const redisUrl = process.env.REDIS_TEST_URL;
       expect(await acceptInvite(db, again.value.token, stranger)).toMatchObject(
         { error: "invite_email_mismatch" },
       );
+      const workspaces = db.collection(physicalNames.workspaces);
+      await workspaces.updateOne(
+        { _id: team._id },
+        {
+          $set: {
+            suspension: {
+              level: "locked",
+              category: "other",
+              internalNote: "n",
+              by: "s",
+              at: new Date(),
+            },
+          },
+        },
+      );
+      expect(await acceptInvite(db, again.value.token, member)).toMatchObject({
+        error: "workspace_locked",
+      });
+      await workspaces.updateOne(
+        { _id: team._id },
+        { $unset: { suspension: 1 } },
+      );
       expect((await acceptInvite(db, again.value.token, member)).ok).toBe(true);
       expect(await acceptInvite(db, again.value.token, member)).toMatchObject({
         error: "invite_invalid",

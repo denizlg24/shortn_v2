@@ -5,6 +5,7 @@ import { ObjectId, type Db } from "mongodb";
 import { fail, ok, type Result } from "../result";
 import { can, type Role } from "./authz";
 import { nowOf, type ServiceContext } from "./context";
+import { workspaceReadOnly } from "./status";
 import {
   defaultLinkDomain,
   type UserIdentity,
@@ -25,7 +26,8 @@ export type MemberError =
   | "slug_taken"
   | "invalid_slug"
   | "limit_reached"
-  | "not_empty";
+  | "not_empty"
+  | "workspace_locked";
 
 export interface MemberView {
   userId: string;
@@ -195,7 +197,7 @@ export async function revokeInvite(
   ctx: ServiceContext,
   id: string,
 ): Promise<Result<null, MemberError>> {
-  if (!can(ctx.actor, "members.manage")) return fail("forbidden");
+  if (!can(ctx.actor, "members.remove")) return fail("forbidden");
   if (!ObjectId.isValid(id)) return fail("not_found");
   await collection(ctx.db, "workspace_invites").updateOne(
     {
@@ -234,6 +236,9 @@ export async function acceptInvite(
   if (!found) return fail("invite_invalid");
   if (normalizeEmail(user.email) !== found.invite.email)
     return fail("invite_email_mismatch");
+  // Nobody joins a workspace under a staff lock or suspension; the invite
+  // stays pending so it works again once the workspace is restored.
+  if (workspaceReadOnly(found.workspace)) return fail("workspace_locked");
   const claimed = await collection(db, "workspace_invites").findOneAndUpdate(
     { _id: found.invite._id, acceptedAt: { $exists: false } },
     { $set: { acceptedAt: now, updatedAt: now } },
@@ -293,7 +298,7 @@ export async function removeMember(
   if (!member) return fail("not_found");
   if (member.role === "owner") return fail("owner_protected");
   const self = userId === ctx.actor.userId;
-  if (!self && !can(ctx.actor, "members.manage")) return fail("forbidden");
+  if (!self && !can(ctx.actor, "members.remove")) return fail("forbidden");
   if (!self && member.role === "admin" && ctx.actor.role !== "owner")
     return fail("forbidden");
   await collection(ctx.db, "workspace_members").deleteOne({ _id: member._id });

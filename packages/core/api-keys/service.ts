@@ -128,7 +128,8 @@ export async function listApiKeys(
   before?: string,
   limit = 50,
 ) {
-  if (!can(ctx.actor, "apiKeys.manage")) return fail("forbidden");
+  // Whoever may revoke keys may see them, including under a staff lock.
+  if (!can(ctx.actor, "apiKeys.revoke")) return fail("forbidden");
   if (before && !/^[a-f\d]{24}$/i.test(before)) return fail("invalid_input");
   const size = Math.max(1, Math.min(100, Math.floor(limit) || 50));
   const rows = await collection(ctx.db, "api_keys")
@@ -146,7 +147,7 @@ export async function listApiKeys(
 }
 
 export async function revokeApiKey(ctx: ServiceContext, id: string) {
-  if (!can(ctx.actor, "apiKeys.manage")) return fail("forbidden");
+  if (!can(ctx.actor, "apiKeys.revoke")) return fail("forbidden");
   if (!/^[a-f\d]{24}$/i.test(id)) return fail("not_found");
   const result = await collection(ctx.db, "api_keys").updateOne(
     { _id: new ObjectId(id), workspaceId: ctx.workspace._id },

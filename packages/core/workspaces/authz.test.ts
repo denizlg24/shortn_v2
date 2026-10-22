@@ -9,8 +9,10 @@ const actions: Action[] = [
   "resource.delete",
   "domains.manage",
   "apiKeys.manage",
+  "apiKeys.revoke",
   "webhooks.manage",
   "members.manage",
+  "members.remove",
   "workspace.update",
   "billing.manage",
   "workspace.delete",
@@ -23,10 +25,12 @@ test("an owner can do everything", () => {
   expect(allowed(owner)).toEqual(actions);
 });
 
-test("locked and suspended workspaces allow viewing and billing only", () => {
+test("locked and suspended workspaces allow viewing, billing and access-reducing actions", () => {
   for (const readOnly of ["locked", "suspended"] as const)
     expect(allowed({ ...owner, readOnly })).toEqual([
       "workspace.view",
+      "apiKeys.revoke",
+      "members.remove",
       "billing.manage",
     ]);
 });
@@ -41,13 +45,14 @@ test("read-only impersonation views only; write mode never touches billing, keys
   for (const action of [
     "billing.manage",
     "apiKeys.manage",
+    "apiKeys.revoke",
     "workspace.delete",
   ] as const)
     expect(write).not.toContain(action);
-  // Impersonating into a locked workspace is still read-only.
+  // Impersonating into a locked workspace only views or reduces access.
   expect(
     allowed({ ...owner, impersonation: "write", readOnly: "locked" }),
-  ).toEqual(["workspace.view"]);
+  ).toEqual(["workspace.view", "members.remove"]);
 });
 
 test("workspace access follows the suspension level", () => {
