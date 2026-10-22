@@ -441,7 +441,7 @@
     "changePage": "Change page",
     "section": "Links section",
     "sectionHint": "Links are appended to this section. Links already in it are skipped.",
-    "sectionOption": "{title} · {count} links",
+    "sectionOption": "{title} · {count, plural, one {# link} other {# links}}",
     "untitled": "Links section {number}",
     "hidden": "Hidden",
     "newSection": "Create a new section",
