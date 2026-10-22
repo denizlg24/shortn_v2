@@ -2,10 +2,17 @@ import { createHash } from "node:crypto";
 import { createRemoteJWKSet, jwtVerify, type JWTVerifyGetKey } from "jose";
 import { ObjectId, type Db } from "mongodb";
 import { z } from "zod";
-import { collection, physicalNames, ssoSessionActive } from "@shortn/db";
+import {
+  collection,
+  findAccountSuspension,
+  physicalNames,
+  ssoSessionActive,
+} from "@shortn/db";
 import { apiScopes } from "../api-keys/scopes";
 import type { ApiPrincipal } from "../api-keys/service";
 import { fail, ok } from "../result";
+import type { Actor } from "../workspaces/authz";
+import { workspaceReadOnly } from "../workspaces/status";
 
 const oid = z.string().regex(/^[a-f0-9]{24}$/i);
 const claimsSchema = z.object({
@@ -66,7 +73,7 @@ export async function authenticateMcpOAuth(
   const userId = claims.sub,
     workspaceId = new ObjectId(claims["https://shortn.at/workspace"]);
   const userIds = [userId, new ObjectId(userId)];
-  const [client, consent, session, member, workspace, resource] =
+  const [client, consent, session, member, workspace, resource, suspension] =
     await Promise.all([
       db
         .collection(physicalNames.oauth_clients)
@@ -87,8 +94,12 @@ export async function authenticateMcpOAuth(
       db
         .collection(physicalNames.oauth_resources)
         .findOne({ identifier: config.resource, disabled: { $ne: true } }),
+      findAccountSuspension(db, userId, now),
     ]);
   if (
+    suspension ||
+    // Staff impersonation never authorizes MCP, whatever the session's mode.
+    session?.impersonatedBy ||
     !client ||
     client.disabled ||
     !consent ||
@@ -132,11 +143,16 @@ export async function authenticateMcpOAuth(
   }
   // Rate identity survives refresh/token rotation and cannot be chosen by an
   // unverified initialize.clientInfo or request header.
+  const actor: Actor = {
+    userId,
+    role: member.role,
+    readOnly: workspaceReadOnly(workspace),
+  };
   const keyId = `oauth:${createHash("sha256").update(`${claims.azp}:${workspaceId.toHexString()}:${userId}`).digest("hex")}`;
   return ok({
     keyId,
     scopes: scopes.filter((scope) => scope !== "offline_access"),
-    actor: { userId, role: member.role },
+    actor,
     workspace,
     oauthClientId: claims.azp,
     consentId: String(consent._id),

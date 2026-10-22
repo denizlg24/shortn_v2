@@ -11,6 +11,7 @@ import {
   openWebhookSecret,
   webhookSignature,
   platformFeatureEnabled,
+  isWorkspaceSuspended,
   type WebhookConfig,
 } from "@shortn/core";
 import { sendWebhook, WebhookSendError } from "./webhook-sender";
@@ -62,6 +63,20 @@ export async function deliverWebhook(
   ) {
     await deliveries(db).updateOne(match, {
       $set: { status: "cancelled", lastError: "endpoint_disabled" },
+      $unset: { leaseToken: "", leaseUntil: "" },
+    });
+    return;
+  }
+  // Held, not cancelled: unsuspending before retryUntil resumes delivery, and
+  // the held attempt doesn't count against the endpoint.
+  if (isWorkspaceSuspended(workspace)) {
+    await deliveries(db).updateOne(match, {
+      $set: {
+        status: "pending",
+        nextAttemptAt: new Date(now.getTime() + 300_000),
+        lastError: "workspace_suspended",
+      },
+      $inc: { attempts: -1 },
       $unset: { leaseToken: "", leaseUntil: "" },
     });
     return;

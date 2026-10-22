@@ -56,7 +56,7 @@ export async function GET(
 ) {
   const { workspace } = await params;
   const ctx = await serviceContext(workspace);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const url = new URL(request.url);
   const from = new Date(url.searchParams.get("from") ?? "");
   const to = new Date(url.searchParams.get("to") ?? "");

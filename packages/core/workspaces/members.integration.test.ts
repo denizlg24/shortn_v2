@@ -143,6 +143,28 @@ const redisUrl = process.env.REDIS_TEST_URL;
       expect(await acceptInvite(db, again.value.token, stranger)).toMatchObject(
         { error: "invite_email_mismatch" },
       );
+      const workspaces = db.collection(physicalNames.workspaces);
+      await workspaces.updateOne(
+        { _id: team._id },
+        {
+          $set: {
+            suspension: {
+              level: "locked",
+              category: "other",
+              internalNote: "n",
+              by: "s",
+              at: new Date(),
+            },
+          },
+        },
+      );
+      expect(await acceptInvite(db, again.value.token, member)).toMatchObject({
+        error: "workspace_locked",
+      });
+      await workspaces.updateOne(
+        { _id: team._id },
+        { $unset: { suspension: 1 } },
+      );
       expect((await acceptInvite(db, again.value.token, member)).ok).toBe(true);
       expect(await acceptInvite(db, again.value.token, member)).toMatchObject({
         error: "invite_invalid",
@@ -177,6 +199,42 @@ const redisUrl = process.env.REDIS_TEST_URL;
       expect(await deleteWorkspace(asOwner)).toMatchObject({
         error: "not_empty",
       });
+    });
+
+    test("a comp lets a free owner create a team workspace and never blocks deleting it", async () => {
+      const owner = await user(`c-${crypto.randomUUID()}@x.com`);
+      const slug = () => `comp-${crypto.randomUUID().slice(0, 8)}`;
+      expect(
+        await createWorkspace(db, owner, { name: "T", slug: slug() }),
+      ).toMatchObject({ error: "limit_reached" });
+      const grant = {
+        reason: "partner",
+        grantedBy: "staff",
+        grantedAt: new Date(),
+      };
+      await db
+        .collection(physicalNames.workspaces)
+        .updateOne(
+          { _id: owner.workspace._id },
+          { $set: { entitlementOverride: { ...grant, plan: "pro" } } },
+        );
+      const created = await createWorkspace(db, owner, {
+        name: "Comped team",
+        slug: slug(),
+      });
+      if (!created.ok) throw new Error(created.error);
+      await db
+        .collection(physicalNames.workspaces)
+        .updateOne(
+          { _id: created.value._id },
+          { $set: { entitlementOverride: { ...grant, plan: "enterprise" } } },
+        );
+      const team = (await db
+        .collection<Workspace>(physicalNames.workspaces)
+        .findOne({ _id: created.value._id }))!;
+      expect((await deleteWorkspace(ctx(team, owner.id, "owner"))).ok).toBe(
+        true,
+      );
     });
 
     test("bio pages: legacy-shaped writes, slug rules, owned links only", async () => {

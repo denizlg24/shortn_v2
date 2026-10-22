@@ -23,6 +23,7 @@
   "errors": {
     "invalid": "Este convite já não é válido. Peça um novo.",
     "mismatch": "Este convite foi enviado para outro endereço de e-mail.",
+    "locked": "Este espaço de trabalho está temporariamente indisponível. Tente o convite mais tarde.",
     "generic": "Algo correu mal do nosso lado. Tente novamente."
   }
 }

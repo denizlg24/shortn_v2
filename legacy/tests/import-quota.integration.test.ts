@@ -209,7 +209,7 @@ const mongo = process.env.MONGO_TEST_URL,
       const used = await countUsage(
         db,
         ctx.workspace,
-        (await loadEntitlements(db, ctx.workspace._id)).period,
+        (await loadEntitlements(db, ctx.workspace)).period,
       );
       expect(used.links).toBe(2);
       expect(

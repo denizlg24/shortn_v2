@@ -132,6 +132,8 @@ export function LinkForm({
         return tLinkErrors("forbidden");
       case "not_found":
         return tLinkErrors("notFound");
+      case "taken_down":
+        return tLinkErrors("takenDown");
       default:
         return tLinkErrors("generic");
     }

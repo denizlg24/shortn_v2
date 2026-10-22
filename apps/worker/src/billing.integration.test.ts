@@ -1,5 +1,10 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { applyFetched, products, type SubscriptionLike } from "@shortn/billing";
+import {
+  applyFetched,
+  mirrorDiffers,
+  products,
+  type SubscriptionLike,
+} from "@shortn/billing";
 import { collection, physicalNames } from "@shortn/db";
 import type { Mailer } from "@shortn/emails";
 import { MongoClient, ObjectId, type Db } from "mongodb";
@@ -253,6 +258,45 @@ const mongoUrl = process.env.MONGO_TEST_URL;
         .collection(physicalNames.billing_events)
         .countDocuments({ processedAt: { $exists: false } }),
     ).toBe(0);
+  });
+
+  test("a comp lifts the workspace plan snapshot but never touches the subscription mirror", async () => {
+    const { workspaceId, state } = await setup();
+    const workspaces = db.collection(physicalNames.workspaces);
+    const grant = { reason: "r", grantedBy: "staff", grantedAt: new Date() };
+    await workspaces.updateOne(
+      { _id: workspaceId },
+      { $set: { entitlementOverride: { ...grant, plan: "pro" } } },
+    );
+    const first = await applyFetched(db, "sandbox", state.current);
+    expect(first.status).toBe("applied");
+    const mirror = await db
+      .collection(physicalNames.subscriptions)
+      .findOne({ polarSubscriptionId: state.current.id });
+    expect(mirror?.plan).toBe("plus");
+    expect((await workspaces.findOne({ _id: workspaceId }))?.plan).toBe("pro");
+    // Reconcile replays the same Polar state and counts drift with
+    // mirrorDiffers; the override must not register as drift.
+    const replay = await applyFetched(db, "sandbox", state.current);
+    if (replay.status !== "applied") throw new Error(replay.status);
+    expect(mirrorDiffers(replay.before, replay.after)).toBe(false);
+    await workspaces.updateOne(
+      { _id: workspaceId },
+      {
+        $set: {
+          entitlementOverride: {
+            ...grant,
+            plan: "enterprise",
+            expiresAt: new Date(Date.now() - 1000),
+          },
+        },
+      },
+    );
+    await applyFetched(db, "sandbox", {
+      ...state.current,
+      modifiedAt: new Date("2026-10-03T00:00:00Z"),
+    });
+    expect((await workspaces.findOne({ _id: workspaceId }))?.plan).toBe("plus");
   });
 
   test("shadow mode records disagreements with legacy's name rule", async () => {

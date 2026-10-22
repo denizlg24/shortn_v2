@@ -22,6 +22,11 @@ import { invalidInput, type ActionResult } from "./result";
 
 export interface BillingOverview {
   plan: PlanId;
+  sources?: {
+    plan: "subscription" | "comp" | "free";
+    overrideExpiresAt?: string;
+    overriddenLimits: string[];
+  };
   limits: (typeof plans)[PlanId]["limits"];
   features: readonly string[];
   usage: { links: number; qrCodes: number; bioPages: number };
@@ -55,7 +60,7 @@ export async function billingOverviewAction(
   workspace: string,
 ): Promise<BillingOverview> {
   const ctx = await serviceContext(workspace);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const usage = await countUsage(ctx.db, ctx.workspace, entitlements.period);
   const mirror = entitlements.subscription
     ? await collection(ctx.db, "subscriptions").findOne({
@@ -64,6 +69,16 @@ export async function billingOverviewAction(
     : null;
   return {
     plan: entitlements.plan,
+    sources: {
+      plan: entitlements.sources.plan,
+      overriddenLimits: entitlements.sources.overriddenLimits,
+      ...(entitlements.sources.overrideExpiresAt
+        ? {
+            overrideExpiresAt:
+              entitlements.sources.overrideExpiresAt.toISOString(),
+          }
+        : {}),
+    },
     limits: entitlements.limits,
     features: entitlements.features,
     usage,

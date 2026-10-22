@@ -1,3 +1,8 @@
+import {
+  PlatformNotice,
+  platformSubject,
+  type PlatformNoticeKind,
+} from "./templates/platform";
 import type { ReactElement } from "react";
 import { Resend } from "resend";
 import { renderEmail } from "./render";
@@ -116,6 +121,20 @@ export function createMailer(config: MailerConfig) {
     if (error) throw new Error(`Resend: ${error.name}: ${error.message}`);
   }
   return {
+    platformNotice(input: {
+      to: string;
+      locale: Locale;
+      kind: PlatformNoticeKind;
+      details: { label: string; value: string }[];
+      idempotencyKey: string;
+    }) {
+      return send(
+        input.to,
+        platformSubject(input.locale, input.kind),
+        <PlatformNotice {...input} logoUrl={logo} />,
+        { idempotencyKey: input.idempotencyKey },
+      );
+    },
     contactReceived(input: {
       to: string;
       locale: Locale;

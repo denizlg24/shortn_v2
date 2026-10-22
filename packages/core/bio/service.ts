@@ -339,7 +339,7 @@ export async function createBioPage(
     return fail("invalid_slug");
   const checked = await checkSlug(ctx, input.slug);
   if (!checked.ok) return checked;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const limit = entitlements.limits.bioPages;
   if (limit !== null) {
     const used = await collection(ctx.db, "bio_pages").countDocuments(

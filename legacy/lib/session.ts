@@ -1,15 +1,20 @@
-import { auth } from "@/lib/auth";
+import { auth, authDb } from "@/lib/auth";
+import { cacheRedis } from "@/lib/link-cache";
+import { endSuspendedSession } from "@shortn/db";
 import { headers } from "next/headers";
 
 /**
  * Gets the current session from Better-Auth
- * Returns null if no session exists
+ * Returns null if no session exists, or if the account was banned or
+ * scheduled for deletion after the session was opened (doc 23 §3.1).
  */
 export async function getServerSession() {
   try {
     const session = await auth.api.getSession({ headers: await headers() });
-
-    return session;
+    if (!session) return session;
+    return (await endSuspendedSession(authDb, await cacheRedis(), session))
+      ? null
+      : session;
   } catch (_error) {
     return null;
   }

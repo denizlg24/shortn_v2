@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { hasFeature, loadEntitlements } from "@shortn/billing";
-import { can, workspaceContext } from "@shortn/core";
+import { workspaceContext } from "@shortn/core";
 import { getSession } from "@/server/auth";
 import { db } from "@/server/db";
 import { env } from "@/server/env";
@@ -9,7 +9,13 @@ import {
   boundedUploadBody,
   imageForStorage,
   maxImageBytes,
+  uploadAllowed,
+  uploadPurposes,
 } from "@/server/upload-image";
+import {
+  auditImpersonatedRequest,
+  withImpersonation,
+} from "@/server/workspace";
 
 export const runtime = "nodejs";
 const failure = (error: string, status: number) =>
@@ -31,14 +37,20 @@ export async function POST(
   const { workspace: slug } = await params;
   const database = await db();
   const ctx = await workspaceContext(database, session.user.id, slug);
-  const purpose = new URL(request.url).searchParams.get("purpose");
-  if (!["qr-logo", "bio-image", "avatar"].includes(purpose ?? ""))
-    return failure("invalid", 400);
-  if (!ctx || (purpose !== "avatar" && !can(ctx.actor, "resource.update")))
+  const purpose = uploadPurposes.find(
+    (item) => item === new URL(request.url).searchParams.get("purpose"),
+  );
+  if (!purpose) return failure("invalid", 400);
+  if (!ctx || !uploadAllowed(withImpersonation(session, ctx.actor), purpose))
     return failure("forbidden", 403);
+  await auditImpersonatedRequest(
+    session,
+    ctx.workspace._id,
+    `POST /api/uploads?purpose=${purpose}`,
+  );
   if (
     purpose === "qr-logo" &&
-    !hasFeature(await loadEntitlements(database, ctx.workspace._id), "qrLogo")
+    !hasFeature(await loadEntitlements(database, ctx.workspace), "qrLogo")
   )
     return failure("plan", 403);
   const store = storage();

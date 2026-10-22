@@ -1,3 +1,7 @@
+import { sweepEntitlementOverrides } from "./entitlement-overrides";
+import { purgeAccount } from "./account-purge";
+import { sendPlatformNotifications } from "./platform-notifications";
+import { createPlatformMetrics } from "./platform-metrics";
 import { createWorkspaceExportWorker } from "./workspace-exports";
 import { createAnalyticsExportWorker } from "./analytics-exports";
 import { createLinkExportWorker } from "./link-exports";
@@ -30,8 +34,9 @@ import { mongoMailLedger } from "./billing-mail-ledger";
 import { orderMailer } from "./billing-receipts";
 import { billingRecipients } from "./billing-recipients";
 import { createInvalidator } from "./invalidator";
+import { collection } from "@shortn/db";
 import {
-  every,
+  every as runEvery,
   fillEventWorkspaces,
   refreshRecentRollups,
   runContinuousMigrations,
@@ -49,6 +54,49 @@ const client = await getMongoClient({
 });
 const db = client.db(env.MONGODB_DB);
 const { cache, durable } = await createRedisClients(env);
+const heartbeatAt = new Map<string, number>();
+const every: typeof runEvery = (ms, name, job, logger) =>
+  runEvery(
+    ms,
+    name,
+    async () => {
+      const started = Date.now();
+      let failure: unknown;
+      try {
+        return await job();
+      } catch (error) {
+        failure = error;
+        throw error;
+      } finally {
+        if (started - (heartbeatAt.get(name) ?? 0) >= 30000) {
+          heartbeatAt.set(name, started);
+          await collection(db, "worker_heartbeats")
+            .updateOne(
+              { _id: name },
+              {
+                $set: {
+                  lastRunAt: new Date(started),
+                  lastDurationMs: Date.now() - started,
+                  ...(failure
+                    ? {
+                        lastError:
+                          failure instanceof Error
+                            ? failure.message
+                            : "loop_failed",
+                        lastErrorAt: new Date(),
+                      }
+                    : {}),
+                },
+              },
+              { upsert: true },
+            )
+            .catch((error) => logger("worker heartbeat failed", error));
+        }
+      }
+    },
+    logger,
+  );
+
 // Blocking stream reads need a connection of their own.
 const streamConnection = durable.duplicate();
 await streamConnection.connect();
@@ -343,7 +391,67 @@ const timers = [
     () => purgeExpiredLinks({ db, cache, linkDomain: env.LINK_DOMAIN }),
     log,
   ),
+  every(
+    60000,
+    "entitlement-overrides",
+    () =>
+      sweepEntitlementOverrides({
+        db,
+        cache,
+        linkDomain: env.LINK_DOMAIN,
+        now: () => new Date(),
+        admin: { id: "system", email: "system@shortn.at", role: "superadmin" },
+        session: { id: "entitlement-overrides" },
+        request: {},
+      }),
+    log,
+  ),
   every(60_000, "trim", () => trimStream(durable), log),
+  every(
+    60000,
+    "account-purge",
+    () =>
+      purgeAccount({
+        db,
+        cache,
+        linkDomain: env.LINK_DOMAIN,
+        now: () => new Date(),
+        polar,
+        polarServer: env.POLAR_ENVIRONMENT,
+        ...(env.S3_ENDPOINT &&
+        env.S3_REGION &&
+        env.S3_BUCKET &&
+        env.S3_ACCESS_KEY_ID &&
+        env.S3_SECRET_ACCESS_KEY
+          ? {
+              store: createObjectStore({
+                S3_ENDPOINT: env.S3_ENDPOINT,
+                S3_REGION: env.S3_REGION,
+                S3_BUCKET: env.S3_BUCKET,
+                S3_ACCESS_KEY_ID: env.S3_ACCESS_KEY_ID,
+                S3_SECRET_ACCESS_KEY: env.S3_SECRET_ACCESS_KEY,
+              }),
+            }
+          : {}),
+      }),
+    log,
+  ),
+  ...(mailer
+    ? [
+        every(
+          30000,
+          "platform-notifications",
+          () => sendPlatformNotifications(db, mailer),
+          log,
+        ),
+      ]
+    : []),
+  every(
+    5 * 60_000,
+    "platform-metrics",
+    createPlatformMetrics(db, () => new Date(), durable),
+    log,
+  ),
   every(5 * 60_000, "rollups", () => refreshRecentRollups(db), log),
   every(5 * 60_000, "event-workspaces", () => fillEventWorkspaces(db), log),
   ...(env.RUN_CONTINUOUS_MIGRATIONS === "1"

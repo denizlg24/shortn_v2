@@ -24,6 +24,8 @@ export interface ShellProps {
   user: ShellUser;
   impersonating: boolean;
   usage?: UsageItem[];
+  /** A workspace-wide notice above every page, e.g. a staff lock. */
+  notice?: ReactNode;
   children: ReactNode;
 }
 
@@ -33,6 +35,7 @@ export function Shell({
   user,
   impersonating,
   usage = noUsage,
+  notice,
   children,
 }: ShellProps) {
   const t = useTranslations("shell");
@@ -114,6 +117,7 @@ export function Shell({
           against the viewport and give the page a second, empty scrollbar. */}
         <div className="relative flex h-dvh flex-col overflow-hidden bg-bg text-fg">
           {impersonating ? <ImpersonationBanner /> : null}
+          {notice}
           <div className="flex min-h-0 flex-1">
             <Sidebar
               workspaceMenuOpen={workspaceMenuOpen}

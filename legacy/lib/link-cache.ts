@@ -26,6 +26,18 @@ async function getClient(url: string): Promise<Redis> {
   return client;
 }
 
+/** The shared cache Redis, or undefined when it isn't configured or can't
+ * connect; callers fall back to Mongo. */
+export async function cacheRedis(): Promise<Redis | undefined> {
+  const url = env.REDIS_CACHE_URL;
+  if (!url) return undefined;
+  try {
+    return await getClient(url);
+  } catch {
+    return undefined;
+  }
+}
+
 // Failures are logged rather than thrown: the change-stream consumer is the
 // safety net for any invalidation missed here.
 export async function invalidateLinkCache(

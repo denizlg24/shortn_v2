@@ -2,7 +2,7 @@ import { beforeAll, afterAll, describe, test, expect } from "bun:test";
 import { MongoClient, ObjectId, type Db } from "mongodb";
 import Redis from "ioredis";
 import { keys, cacheScripts } from "@shortn/redis";
-import { desiredIndexes, physicalNames } from "@shortn/db";
+import { collection, desiredIndexes, physicalNames } from "@shortn/db";
 import {
   createImportJob,
   inspectImport,
@@ -139,17 +139,15 @@ const fixtureDomains = new Set([linkDomain]);
           name: "Synthetic",
         });
       if (pro)
-        await db
-          .collection(physicalNames.subscriptions)
-          .insertOne({
-            workspaceId: workspace._id,
-            polarSubscriptionId: crypto.randomUUID(),
-            status: "active",
-            plan: "pro",
-            currentPeriodStart: new Date(Date.now() - 86400000),
-            currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
-            cancelAtPeriodEnd: false,
-          });
+        await db.collection(physicalNames.subscriptions).insertOne({
+          workspaceId: workspace._id,
+          polarSubscriptionId: crypto.randomUUID(),
+          status: "active",
+          plan: "pro",
+          currentPeriodStart: new Date(Date.now() - 86400000),
+          currentPeriodEnd: new Date(Date.now() + 29 * 86400000),
+          cancelAtPeriodEnd: false,
+        });
       return {
         db,
         cache: redis,
@@ -195,15 +193,13 @@ const fixtureDomains = new Set([linkDomain]);
         other = await context(),
         now = new Date(),
         memberId = new ObjectId().toHexString();
-      await db
-        .collection(physicalNames.workspace_members)
-        .insertOne({
-          _id: new ObjectId(),
-          workspaceId: ctx.workspace._id,
-          userId: memberId,
-          role: "member",
-          createdAt: now,
-        });
+      await db.collection(physicalNames.workspace_members).insertOne({
+        _id: new ObjectId(),
+        workspaceId: ctx.workspace._id,
+        userId: memberId,
+        role: "member",
+        createdAt: now,
+      });
       const member = {
         ...ctx,
         actor: { userId: memberId, role: "member" as const },
@@ -328,12 +324,10 @@ const fixtureDomains = new Set([linkDomain]);
       expect(csv).not.toContain("foreign");
       expect(csv).not.toContain("password");
       // Free the global domain/key identity before importing it into the other tenant.
-      await db
-        .collection(physicalNames.links)
-        .deleteOne({
-          _id: new ObjectId(created.value.id),
-          workspaceId: source.workspace._id,
-        });
+      await db.collection(physicalNames.links).deleteOne({
+        _id: new ObjectId(created.value.id),
+        workspaceId: source.workspace._id,
+      });
       const job = await ready(target, csv);
       expect(job).toMatchObject({ valid: 1, invalid: 0 });
       expect((await commitImport(target, job._id.toHexString())).ok).toBe(true);
@@ -371,16 +365,14 @@ const fixtureDomains = new Set([linkDomain]);
         .collection(physicalNames.links)
         .findOne({ _id: new ObjectId(created.value.id) }))!;
       const marker = crypto.randomUUID().slice(0, 8);
-      await db
-        .collection(physicalNames.links)
-        .insertMany(
-          Array.from({ length: 700 }, (_, index) => ({
-            ...base,
-            _id: new ObjectId(),
-            urlCode: `snap-${marker}-${index}`,
-            key: `snap-${marker}-${index}`,
-          })),
-        );
+      await db.collection(physicalNames.links).insertMany(
+        Array.from({ length: 700 }, (_, index) => ({
+          ...base,
+          _id: new ObjectId(),
+          urlCode: `snap-${marker}-${index}`,
+          key: `snap-${marker}-${index}`,
+        })),
+      );
       const stream = streamFilteredLinkExport(
         ctx,
         { search: "Snapshot" },
@@ -396,14 +388,12 @@ const fixtureDomains = new Set([linkDomain]);
           { _id: base._id },
           { $set: { title: "Changed after the snapshot" } },
         );
-      await db
-        .collection(physicalNames.links)
-        .insertOne({
-          ...base,
-          _id: new ObjectId(),
-          urlCode: `new-${marker}`,
-          key: `new-${marker}`,
-        });
+      await db.collection(physicalNames.links).insertOne({
+        ...base,
+        _id: new ObjectId(),
+        urlCode: `new-${marker}`,
+        key: `new-${marker}`,
+      });
       let output = "[\n" + new TextDecoder().decode(first.value!);
       for await (const chunk of stream)
         output += new TextDecoder().decode(chunk);
@@ -434,12 +424,10 @@ const fixtureDomains = new Set([linkDomain]);
       const revoked = streamFilteredLinkExport(ctx, {}, "json");
       await revoked.next();
       await revoked.next();
-      await db
-        .collection(physicalNames.workspace_members)
-        .deleteOne({
-          workspaceId: ctx.workspace._id,
-          userId: ctx.actor.userId,
-        });
+      await db.collection(physicalNames.workspace_members).deleteOne({
+        workspaceId: ctx.workspace._id,
+        userId: ctx.actor.userId,
+      });
       let seen = 1,
         stopped = false;
       try {
@@ -465,29 +453,25 @@ const fixtureDomains = new Set([linkDomain]);
           .collection(physicalNames.links)
           .findOne({ _id: new ObjectId(created.value.id) }))!,
         marker = crypto.randomUUID().slice(0, 8);
-      await db
-        .collection(physicalNames.links)
-        .insertMany(
-          Array.from({ length: 4998 }, (_, index) => ({
-            ...base,
-            _id: new ObjectId(),
-            urlCode: `export-${marker}-${index}`,
-            key: `export-${marker}-${index}`,
-          })),
-        );
+      await db.collection(physicalNames.links).insertMany(
+        Array.from({ length: 4998 }, (_, index) => ({
+          ...base,
+          _id: new ObjectId(),
+          urlCode: `export-${marker}-${index}`,
+          key: `export-${marker}-${index}`,
+        })),
+      );
       const small = await prepareLinkExport(ctx, {}, "json");
       if (!small.ok || small.value.mode !== "stream")
         throw new Error("expected stream");
       expect(small.value.total).toBe(4999);
       expect(small.value.selection).toHaveLength(4999);
-      await db
-        .collection(physicalNames.links)
-        .insertOne({
-          ...base,
-          _id: new ObjectId(),
-          urlCode: `extra-${marker}`,
-          key: `extra-${marker}`,
-        });
+      await db.collection(physicalNames.links).insertOne({
+        ...base,
+        _id: new ObjectId(),
+        urlCode: `extra-${marker}`,
+        key: `extra-${marker}`,
+      });
       let streamed = "";
       for await (const chunk of streamFilteredLinkExport(
         ctx,
@@ -1041,13 +1025,11 @@ const fixtureDomains = new Set([linkDomain]);
       expect(
         await getImportJob(await context(), job._id.toHexString()),
       ).toBeNull();
-      await db
-        .collection(physicalNames.webhook_endpoints)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          enabled: true,
-          events: ["import.completed", "link.created"],
-        });
+      await db.collection(physicalNames.webhook_endpoints).insertOne({
+        workspaceId: ctx.workspace._id,
+        enabled: true,
+        events: ["import.completed", "link.created"],
+      });
       expect((await commitImport(ctx, job._id.toHexString())).ok).toBe(true);
       await runImport(deps(), job._id.toHexString());
       expect((await getImportJob(ctx, job._id.toHexString()))?.state).toBe(
@@ -1061,12 +1043,10 @@ const fixtureDomains = new Set([linkDomain]);
         new Date("2027-01-01T12:00:00Z"),
       );
       expect(
-        await db
-          .collection(physicalNames.webhook_events)
-          .countDocuments({
-            workspaceId: ctx.workspace._id,
-            "event.type": "import.completed",
-          }),
+        await db.collection(physicalNames.webhook_events).countDocuments({
+          workspaceId: ctx.workspace._id,
+          "event.type": "import.completed",
+        }),
       ).toBe(1);
       expect(await runImport(deps(), job._id.toHexString())).toBe(false);
     });
@@ -1076,24 +1056,20 @@ const fixtureDomains = new Set([linkDomain]);
         addon = `synthetic-${crypto.randomUUID()}`,
         key = `qr-${crypto.randomUUID().slice(0, 8)}`;
       fixtureDomains.add(domain);
-      await db
-        .collection(physicalNames.domain_addons)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          polarSubscriptionId: addon,
-          status: "active",
-        });
-      await db
-        .collection(physicalNames.domains)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          hostname: domain,
-          kind: "short",
-          status: "active",
-          hostnameStatus: "active",
-          sslStatus: "active",
-          addonSubscriptionId: addon,
-        });
+      await db.collection(physicalNames.domain_addons).insertOne({
+        workspaceId: ctx.workspace._id,
+        polarSubscriptionId: addon,
+        status: "active",
+      });
+      await db.collection(physicalNames.domains).insertOne({
+        workspaceId: ctx.workspace._id,
+        hostname: domain,
+        kind: "short",
+        status: "active",
+        hostnameStatus: "active",
+        sslStatus: "active",
+        addonSubscriptionId: addon,
+      });
       const job = await ready(
         ctx,
         `url,key,title,tags,utm_source,expires_at,domain\nhttps://example.com/a,${key},QR Newsletter,Editorial,email,2027-01-01T12:00:00Z,${domain}`,
@@ -1138,24 +1114,20 @@ const fixtureDomains = new Set([linkDomain]);
       const secondDomain = `qr-${crypto.randomUUID()}.invalid`,
         secondAddon = crypto.randomUUID();
       fixtureDomains.add(secondDomain);
-      await db
-        .collection(physicalNames.domain_addons)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          polarSubscriptionId: secondAddon,
-          status: "active",
-        });
-      await db
-        .collection(physicalNames.domains)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          hostname: secondDomain,
-          kind: "short",
-          status: "active",
-          hostnameStatus: "active",
-          sslStatus: "active",
-          addonSubscriptionId: secondAddon,
-        });
+      await db.collection(physicalNames.domain_addons).insertOne({
+        workspaceId: ctx.workspace._id,
+        polarSubscriptionId: secondAddon,
+        status: "active",
+      });
+      await db.collection(physicalNames.domains).insertOne({
+        workspaceId: ctx.workspace._id,
+        hostname: secondDomain,
+        kind: "short",
+        status: "active",
+        hostnameStatus: "active",
+        sslStatus: "active",
+        addonSubscriptionId: secondAddon,
+      });
       const secondJob = await ready(
         ctx,
         `url,key,domain\nhttps://example.org/second,${key},${secondDomain}`,
@@ -1288,7 +1260,7 @@ const fixtureDomains = new Set([linkDomain]);
       const usage = await countUsage(
         db,
         ctx.workspace,
-        (await loadEntitlements(db, ctx.workspace._id)).period,
+        (await loadEntitlements(db, ctx.workspace)).period,
       );
       expect(usage).toMatchObject({ links: 5, qrCodes: 5 });
     });
@@ -1486,7 +1458,7 @@ const fixtureDomains = new Set([linkDomain]);
           const usage = await countUsage(
             db,
             ctx.workspace,
-            (await loadEntitlements(db, ctx.workspace._id)).period,
+            (await loadEntitlements(db, ctx.workspace)).period,
           );
           expect(usage).toMatchObject({ links: 0, qrCodes: 1001 });
         }
@@ -1559,13 +1531,11 @@ const fixtureDomains = new Set([linkDomain]);
     test("completion outbox failure retries the event without recreating committed rows", async () => {
       const ctx = await context(),
         job = await ready(ctx, "url\nhttps://example.com");
-      await db
-        .collection(physicalNames.webhook_endpoints)
-        .insertOne({
-          workspaceId: ctx.workspace._id,
-          enabled: true,
-          events: ["import.completed"],
-        });
+      await db.collection(physicalNames.webhook_endpoints).insertOne({
+        workspaceId: ctx.workspace._id,
+        enabled: true,
+        events: ["import.completed"],
+      });
       await commitImport(ctx, job._id.toHexString());
       await db.command({
         collMod: physicalNames.webhook_events,
@@ -1604,12 +1574,10 @@ const fixtureDomains = new Set([linkDomain]);
         done: 1,
       });
       expect(
-        await db
-          .collection(physicalNames.webhook_events)
-          .countDocuments({
-            workspaceId: ctx.workspace._id,
-            "event.type": "import.completed",
-          }),
+        await db.collection(physicalNames.webhook_events).countDocuments({
+          workspaceId: ctx.workspace._id,
+          "event.type": "import.completed",
+        }),
       ).toBe(1);
       expect(
         await db
@@ -1690,6 +1658,40 @@ const fixtureDomains = new Set([linkDomain]);
       },
       360_000,
     );
+    test("a locked or suspended workspace fails a pending import permanently", async () => {
+      const ctx = await context(),
+        job = await uploaded(ctx, "url\nhttps://example.com");
+      await collection(db, "workspaces").updateOne(
+        { _id: ctx.workspace._id },
+        {
+          $set: {
+            suspension: {
+              level: "locked",
+              category: "chargeback",
+              internalNote: "integration",
+              by: "staff",
+              at: new Date(),
+            },
+          },
+        },
+      );
+      try {
+        await importJobs(db).updateOne(
+          { _id: job._id },
+          { $set: { state: "validate_pending", generation: 1 } },
+        );
+        await runImport(deps(), job._id.toHexString());
+        expect(await importJobs(db).findOne({ _id: job._id })).toMatchObject({
+          state: "failed",
+          error: "workspace_suspended",
+        });
+      } finally {
+        await collection(db, "workspaces").updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+      }
+    });
     test("lost membership and changed source fail closed; factory pump uses real durable Redis", async () => {
       const ctx = await context(),
         job = await uploaded(ctx, "url\nhttps://example.com");

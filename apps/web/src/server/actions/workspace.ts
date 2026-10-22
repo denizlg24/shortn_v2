@@ -19,7 +19,7 @@ import { serviceContext } from "../context";
 import { db } from "../db";
 import { env } from "../env";
 import { mail } from "../mail";
-import { requireSession } from "../workspace";
+import { impersonationOf, requireSession } from "../workspace";
 import { invalidInput, toAction, type ActionResult } from "./result";
 
 const role = z.enum(["admin", "member", "viewer"]);
@@ -95,6 +95,7 @@ export async function createWorkspaceAction(input: {
     .safeParse(input);
   if (!parsed.success) return invalidInput;
   const session = await requireSession();
+  if (impersonationOf(session)) return { ok: false, error: "forbidden" };
   const result = await createWorkspace(await db(), session.user, parsed.data);
   return result.ok
     ? { ok: true, data: { slug: result.value.slug } }

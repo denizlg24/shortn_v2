@@ -1,3 +1,5 @@
+import type { Entitlements } from "@shortn/billing";
+
 export const rateScript = `
 local now = tonumber(ARGV[1])
 local limit = tonumber(ARGV[2])
@@ -11,3 +13,26 @@ redis.call('ZADD', KEYS[1], now, ARGV[3])
 redis.call('PEXPIRE', KEYS[1], 60000)
 return {1, limit - used - 1, reset}
 `;
+
+/** A plan without a catalog rate (Free, reaching the API through the rollout
+ * flag or an added feature) keeps the 30/min the old table enforced. */
+export const rolloutApiPerMinute = 30;
+
+/** Enterprise is "unlimited" in the catalog, but the limiter still runs as a
+ * safety ceiling against runaway clients. */
+export const enterpriseApiCeiling = 6000;
+
+/** Requests per minute for an API key or MCP grant (doc 23 §6 Q6, §7 A5).
+ * Catalog numbers apply, so staff limit overrides do too. Null — no limit —
+ * only when a staff override sets `apiPerMinute: null` explicitly. */
+export function apiRateLimit(
+  entitlements: Pick<Entitlements, "plan" | "limits" | "sources">,
+): number | null {
+  const limit = entitlements.limits.apiPerMinute;
+  if (entitlements.sources.overriddenLimits.includes("apiPerMinute"))
+    return limit;
+  if (limit !== null) return limit;
+  return entitlements.plan === "enterprise"
+    ? enterpriseApiCeiling
+    : rolloutApiPerMinute;
+}

@@ -39,12 +39,14 @@ export function TwoFactorChallenge({ next }: { next: string }) {
         const key =
           result.error.code === "TOTP_ALREADY_USED"
             ? "used"
-            : result.error.code === "INVALID_TWO_FACTOR_COOKIE"
-              ? "expired"
-              : result.error.status === 429 ||
-                  result.error.code === "ACCOUNT_TEMPORARILY_LOCKED"
-                ? "locked"
-                : "invalid";
+            : result.error.code === "ACCOUNT_SUSPENDED"
+              ? "suspended"
+              : result.error.code === "INVALID_TWO_FACTOR_COOKIE"
+                ? "expired"
+                : result.error.status === 429 ||
+                    result.error.code === "ACCOUNT_TEMPORARILY_LOCKED"
+                  ? "locked"
+                  : "invalid";
         setError(t(key));
         input.current?.focus();
       } else {

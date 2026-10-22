@@ -579,7 +579,8 @@
       "not_found": "Este destino ou entrega já não existe. Atualize e tente novamente.",
       "endpoint_disabled": "Ative o destino antes de pedir uma entrega.",
       "invalid_input": "Verifique o nome (1–100 caracteres), o URL HTTPS e os eventos. Se o erro for na lista, volte à primeira página.",
-      "failed": "O pedido falhou. Tente novamente."
+      "failed": "O pedido falhou. Tente novamente.",
+      "admin_disabled": "A Shortn desativou este destino, por isso não pode ser ativado. Contacte support@shortn.at."
     },
     "notices": {
       "saved": "Destino guardado.",
@@ -593,7 +594,9 @@
       "failed": "Falhou",
       "cancelled": "Cancelada"
     },
-    "copied": "Copiado"
+    "copied": "Copiado",
+    "adminDisabled": "Desativado pela Shortn",
+    "adminDisabledNotice": "A Shortn desativou este destino: {reason}. Contacte support@shortn.at para o rever."
   },
   "sso": {
     "title": "SSO da organização",
@@ -697,7 +700,8 @@
       "dns": "Não foi possível verificar o registo DNS. Confirme o nome e o valor, aguarde a propagação e tente novamente.",
       "clipboard": "Não foi possível copiar. Selecione o texto do registo e copie-o manualmente.",
       "network": "Não foi possível estabelecer ligação. Verifique a sua ligação e tente novamente.",
-      "accountMismatch": "Esta identidade da organização está associada a outra conta Shortn. Escolha a sua própria identidade."
+      "accountMismatch": "Esta identidade da organização está associada a outra conta Shortn. Escolha a sua própria identidade.",
+      "suspended": "Esta conta está suspensa. Contacte support@shortn.at."
     }
   }
 }

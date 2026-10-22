@@ -4,6 +4,7 @@ import { db } from "@/server/db";
 import { env } from "@/server/env";
 import { importStore } from "@/server/imports";
 import { serviceContext } from "@/server/context";
+import { auditImpersonatedRequest } from "@/server/workspace";
 
 export const runtime = "nodejs";
 export async function PUT(
@@ -21,6 +22,13 @@ export async function PUT(
   const { workspace, id } = await params;
   const ctx = await workspaceContext(await db(), session.user.id, workspace);
   if (!ctx) return failure("not_found", 404);
+  // Lock and read-only impersonation are enforced by the upload service
+  // through serviceContext below; write-mode impersonation is audited here.
+  await auditImpersonatedRequest(
+    session,
+    ctx.workspace._id,
+    `PUT /api/imports/${id}`,
+  );
   const store = importStore();
   if (!store) return failure("unavailable", 503);
   const maximum = 10 * 1024 * 1024;

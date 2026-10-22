@@ -347,6 +347,20 @@
           "qrCodeId": {
             "type": ["string", "null"]
           },
+          "moderation": {
+            "type": ["object", "null"],
+            "properties": {
+              "state": {
+                "type": "string",
+                "enum": ["taken_down"]
+              },
+              "category": {
+                "type": "string"
+              }
+            },
+            "required": ["state", "category"],
+            "description": "Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted."
+          },
           "deletedAt": {
             "type": ["string", "null"]
           },
@@ -3222,6 +3236,20 @@
           "disabledAt": {
             "type": ["string", "null"],
             "format": "date-time"
+          },
+          "adminDisabled": {
+            "type": ["object", "null"],
+            "properties": {
+              "at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": ["at", "reason"],
+            "description": "Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this."
           }
         },
         "required": [
@@ -3233,7 +3261,8 @@
           "createdAt",
           "updatedAt",
           "failureSince",
-          "disabledAt"
+          "disabledAt",
+          "adminDisabled"
         ]
       }
     },

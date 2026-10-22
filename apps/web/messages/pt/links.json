@@ -73,7 +73,8 @@
     "invalidInput": "Alguns campos são demasiado longos ou não são válidos. Verifique-os e tente novamente.",
     "network": "Não foi possível contactar o Shortn. Verifique a ligação e tente novamente.",
     "generic": "Algo correu mal do nosso lado. Tente novamente.",
-    "copyFailed": "Não foi possível copiar para a área de transferência."
+    "copyFailed": "Não foi possível copiar para a área de transferência.",
+    "takenDown": "A Shortn removeu este link, por isso não pode ser alterado."
   },
   "sheet": {
     "overview": "Visão geral",

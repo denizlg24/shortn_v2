@@ -6,6 +6,7 @@ import { z } from "zod";
 import { can } from "../workspaces/authz";
 import { ownedBy, parseObjectId } from "../workspaces/service";
 import { nowOf, type ServiceContext } from "../workspaces/context";
+import { workspaceIsSuspended } from "../workspaces/status";
 import { createLink } from "../links/service";
 import { fail, ok } from "../result";
 import {
@@ -50,7 +51,7 @@ export async function readBioDraft(
 async function validateContent(ctx: ServiceContext, input: unknown) {
   const result = bioContentSchema.safeParse(input);
   if (!result.success) return fail("invalid_input" as const);
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   if (
     entitlements.plan === "free" &&
     (result.data.hideBranding ||
@@ -371,23 +372,33 @@ export async function changeBioHandle(
   // Aliases stay retired conservatively until a traffic-based release job is approved.
   return ok({ handle });
 }
+// Pages of a suspended workspace resolve as missing; callers check this live,
+// outside any content cache (23 §3.2).
+const servable = async (db: Db, page: Document | null) =>
+  page && !(await workspaceIsSuspended(db, page.workspaceId)) ? page : null;
 export async function resolveBioDocument(db: Db, handle: string) {
   if (!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(handle)) return null;
   const current = await pages(db).findOne({ handle, published: true });
-  if (current) return current;
+  if (current) return servable(db, current);
   const alias = await collection(db, "bio_aliases").findOne({ slug: handle });
   return alias
-    ? pages(db).findOne({ _id: alias.bioPageId, published: true })
+    ? servable(
+        db,
+        await pages(db).findOne({ _id: alias.bioPageId, published: true }),
+      )
     : null;
 }
 export async function resolveLegacyBio(db: Db, slug: string) {
   const alias = await collection(db, "bio_aliases").findOne({ slug });
-  return pages(db).findOne({
-    ...(alias
-      ? { _id: alias.bioPageId }
-      : { $or: [{ legacySlug: slug }, { slug }] }),
-    published: true,
-  });
+  return servable(
+    db,
+    await pages(db).findOne({
+      ...(alias
+        ? { _id: alias.bioPageId }
+        : { $or: [{ legacySlug: slug }, { slug }] }),
+      published: true,
+    }),
+  );
 }
 export async function publicBioFromDocument(
   db: Db,

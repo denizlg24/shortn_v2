@@ -2,10 +2,11 @@ import { createHash } from "node:crypto";
 import { BlockList, isIP } from "node:net";
 import { customAlphabet } from "nanoid";
 import { ObjectId, type Db, type ClientSession } from "mongodb";
-import { collection, type Documents } from "@shortn/db";
+import { collection, findAccountSuspension, type Documents } from "@shortn/db";
 import { z } from "zod";
 import type { Redis } from "ioredis";
 import { can, type Actor } from "../workspaces/authz";
+import { workspaceReadOnly } from "../workspaces/status";
 import { nowOf, type ServiceContext } from "../workspaces/context";
 import { fail, ok } from "../result";
 
@@ -127,7 +128,8 @@ export async function listApiKeys(
   before?: string,
   limit = 50,
 ) {
-  if (!can(ctx.actor, "apiKeys.manage")) return fail("forbidden");
+  // Whoever may revoke keys may see them, including under a staff lock.
+  if (!can(ctx.actor, "apiKeys.revoke")) return fail("forbidden");
   if (before && !/^[a-f\d]{24}$/i.test(before)) return fail("invalid_input");
   const size = Math.max(1, Math.min(100, Math.floor(limit) || 50));
   const rows = await collection(ctx.db, "api_keys")
@@ -145,7 +147,7 @@ export async function listApiKeys(
 }
 
 export async function revokeApiKey(ctx: ServiceContext, id: string) {
-  if (!can(ctx.actor, "apiKeys.manage")) return fail("forbidden");
+  if (!can(ctx.actor, "apiKeys.revoke")) return fail("forbidden");
   if (!/^[a-f\d]{24}$/i.test(id)) return fail("not_found");
   const result = await collection(ctx.db, "api_keys").updateOne(
     { _id: new ObjectId(id), workspaceId: ctx.workspace._id },
@@ -238,14 +240,15 @@ export async function authenticateApiKey(
     !apiKeyIpAllowed(key.ipAllowlist, ip)
   )
     return fail("unauthorized");
-  const [member, workspace] = await Promise.all([
+  const [member, workspace, suspension] = await Promise.all([
     collection(db, "workspace_members").findOne({
       workspaceId: key.workspaceId,
       userId: key.createdBy,
     }),
     collection(db, "workspaces").findOne({ _id: key.workspaceId }),
+    findAccountSuspension(db, key.createdBy, now),
   ]);
-  if (!member || !workspace) return fail("unauthorized");
+  if (!member || !workspace || suspension) return fail("unauthorized");
   const usageKey = `apikey:last-used:${key._id.toHexString()}`;
   let recordUse = true;
   if (usageCache) {
@@ -273,10 +276,15 @@ export async function authenticateApiKey(
       throw error;
     }
   }
+  const actor: Actor = {
+    userId: member.userId,
+    role: member.role,
+    readOnly: workspaceReadOnly(workspace),
+  };
   return ok({
     keyId: key._id.toHexString(),
     scopes: key.scopes,
-    actor: { userId: member.userId, role: member.role },
+    actor,
     workspace,
   } satisfies ApiPrincipal);
 }

@@ -124,7 +124,8 @@ const linkResponse = z.object({
       await db?.dropDatabase();
       await client?.close();
       expect(unexpectedErrors).toEqual([]);
-    });
+      // One keyspace SCAN per key: slow when other suites share this Redis.
+    }, 60_000);
     test("every OpenAPI operation rejects missing or unrelated bearer scopes", async () => {
       // This independent policy inventory must exactly cover the public contract.
       // Resource lifecycle tests below verify successful operations and live roles;
@@ -567,7 +568,7 @@ const linkResponse = z.object({
       if (!created.ok) throw new Error(created.error);
       keyIds.push(created.value.key.id);
       const secret = created.value.secret;
-      const limit = (await loadEntitlements(db, workspace._id)).limits.links!;
+      const limit = (await loadEntitlements(db, workspace)).limits.links!;
       const readonly = await createApiKey(
         bulkCtx,
         { name: "Read", scopes: ["links:read"] },
@@ -3792,6 +3793,145 @@ const linkResponse = z.object({
       expect(limited.headers.get("RateLimit-Limit")).toBe("30");
       expect(limited.headers.get("RateLimit-Remaining")).toBe("0");
       expect(Number(limited.headers.get("Retry-After"))).toBeGreaterThan(0);
+    });
+    test("a banned or deletion-pending creator's key gets 401 until the ban lapses", async () => {
+      const created = await key(["links:read"]);
+      const users = collection(db, "user");
+      const _id = new ObjectId(ctx.actor.userId);
+      await users.insertOne({ _id, email: "banned-creator@example.com" });
+      try {
+        await users.updateOne({ _id }, { $set: { banned: true } });
+        expect((await request("/v1/links", created.secret)).status).toBe(401);
+        await users.updateOne(
+          { _id },
+          {
+            $unset: { banned: "" },
+            $set: {
+              deletion: {
+                requestedAt: new Date(),
+                by: "staff",
+                purgeAfter: new Date(),
+                state: "scheduled",
+              },
+            },
+          },
+        );
+        expect((await request("/v1/links", created.secret)).status).toBe(401);
+        await users.updateOne(
+          { _id },
+          {
+            $unset: { deletion: "" },
+            $set: { banned: true, banExpires: new Date(Date.now() - 1000) },
+          },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+      } finally {
+        await users.deleteOne({ _id });
+      }
+    });
+    test("a comp and a staff rate override set the API tier", async () => {
+      const created = await key(["links:read"]);
+      const workspaces = collection(db, "workspaces");
+      const grant = {
+        reason: "partner",
+        grantedBy: "staff",
+        grantedAt: new Date(),
+      };
+      try {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $set: { entitlementOverride: { ...grant, plan: "pro" } } },
+        );
+        const comped = await request("/v1/links", created.secret);
+        expect(comped.status).toBe(200);
+        expect(comped.headers.get("RateLimit-Limit")).toBe("1200");
+        await cache.del(`api:rate:${created.key.id}`);
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              entitlementOverride: { ...grant, limits: { apiPerMinute: 2 } },
+            },
+          },
+        );
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        const limited = await request("/v1/links", created.secret);
+        expect(limited.status).toBe(429);
+        expect(limited.headers.get("RateLimit-Limit")).toBe("2");
+        await cache.del(`api:rate:${created.key.id}`);
+        // Enterprise is "unlimited" in the catalog but keeps a ceiling.
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $set: { entitlementOverride: { ...grant, plan: "enterprise" } } },
+        );
+        const enterprise = await request("/v1/links", created.secret);
+        expect(enterprise.status).toBe(200);
+        expect(enterprise.headers.get("RateLimit-Limit")).toBe("6000");
+        await cache.del(`api:rate:${created.key.id}`);
+        // A plan without a catalog rate stays limited even with the feature.
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              entitlementOverride: { ...grant, features: { add: ["api"] } },
+            },
+          },
+        );
+        expect(
+          (await request("/v1/links", created.secret)).headers.get(
+            "RateLimit-Limit",
+          ),
+        ).toBe("30");
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { entitlementOverride: "" } },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
+      }
+    });
+    test("a locked workspace reads but can't write; a suspended one gets 403 for everything", async () => {
+      const created = await key(["links:read", "links:write", "qr:read"]);
+      const workspaces = collection(db, "workspaces");
+      const set = (level: "locked" | "suspended") =>
+        workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          {
+            $set: {
+              suspension: {
+                level,
+                category: "other",
+                internalNote: "integration",
+                by: "staff",
+                at: new Date(),
+              },
+            },
+          },
+        );
+      try {
+        await set("locked");
+        expect((await request("/v1/links", created.secret)).status).toBe(200);
+        const write = await request(
+          "/v1/links",
+          created.secret,
+          post("https://example.com/locked"),
+        );
+        expect(write.status).toBe(403);
+        expect((await write.json()).code).toBe("workspace_locked");
+        await set("suspended");
+        const read = await request("/v1/links", created.secret);
+        expect(read.status).toBe(403);
+        expect((await read.json()).code).toBe("workspace_suspended");
+      } finally {
+        await workspaces.updateOne(
+          { _id: ctx.workspace._id },
+          { $unset: { suspension: "" } },
+        );
+        await cache.del(`api:rate:${created.key.id}`);
+      }
+      expect((await request("/v1/links", created.secret)).status).toBe(200);
     });
   },
 );

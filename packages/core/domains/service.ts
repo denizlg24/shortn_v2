@@ -12,6 +12,7 @@ import { fail, ok } from "../result";
 import { can } from "../workspaces/authz";
 import { parseObjectId } from "../workspaces/service";
 import { nowOf, type ServiceContext } from "../workspaces/context";
+import { workspaceIsSuspended } from "../workspaces/status";
 import { ownedBioDocument, bioOutboxCollection } from "../bio/publishing";
 
 export const domainAddonsCollection = physicalNames.domain_addons;
@@ -283,7 +284,8 @@ export async function removeDomain(ctx: ServiceContext, id: string) {
     const domain = await ctx.db
       .collection(physicalNames.domains)
       .findOneAndUpdate(
-        { _id, workspaceId: ctx.workspace._id },
+        // Removal would free a staff-suspended hostname for re-adding.
+        { _id, workspaceId: ctx.workspace._id, status: { $ne: "suspended" } },
         {
           $set: {
             status: "disabled",
@@ -295,7 +297,15 @@ export async function removeDomain(ctx: ServiceContext, id: string) {
         },
         { session, returnDocument: "after" },
       );
-    if (!domain) return fail("not_found" as const);
+    if (!domain)
+      return (await ctx.db
+        .collection(physicalNames.domains)
+        .findOne(
+          { _id, workspaceId: ctx.workspace._id },
+          { session, projection: { _id: 1 } },
+        ))
+        ? fail("domain_suspended" as const)
+        : fail("not_found" as const);
     const keys: string[] = [];
     for await (const link of collection(ctx.db, "links")
       .find(
@@ -553,7 +563,8 @@ export async function pollDomains(
             _id: domain._id,
             lease,
             removing: { $ne: true },
-            status: { $ne: "disabled" },
+            // A poll in flight when staff suspend must not flip it back.
+            status: { $nin: ["disabled", "suspended"] },
           },
           {
             $set: {
@@ -659,9 +670,13 @@ export async function pollDomains(
     }
   }
 }
+/** A custom domain that may serve right now. The redirect hot path passes
+ * `isSuspended` (its in-process set, which fails open) so it skips the
+ * per-request workspace read; web and bio callers read Mongo. */
 export async function activeDomain(
   db: Db,
   hostname: string,
+  options: { isSuspended?: (workspaceId: unknown) => boolean } = {},
 ): Promise<Document | null> {
   const domain = await db.collection(physicalNames.domains).findOne({
     hostname,
@@ -670,7 +685,12 @@ export async function activeDomain(
     sslStatus: "active",
     removing: { $ne: true },
   });
+  const suspended = (workspaceId: unknown) =>
+    options.isSuspended
+      ? options.isSuspended(workspaceId)
+      : workspaceIsSuspended(db, workspaceId);
   return domain &&
+    !(await suspended(domain.workspaceId)) &&
     (await domainAllowance(db, domain.workspaceId as ObjectId)) > 0 &&
     (await db.collection(domainAddonsCollection).findOne({
       polarSubscriptionId: domain.addonSubscriptionId,

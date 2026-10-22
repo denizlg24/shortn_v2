@@ -6,6 +6,7 @@ export interface IUrl extends Document {
   urlCode: string;
   customCode: boolean;
   longUrl: string;
+  destHostRev?: string;
   qrCodeId?: string;
   isQrCode: boolean;
   title?: string;
@@ -42,11 +43,7 @@ export interface IUrl extends Document {
 }
 
 export type SafetyStatus =
-  | "pending"
-  | "safe"
-  | "suspicious"
-  | "malicious"
-  | "blocked";
+  "pending" | "safe" | "suspicious" | "malicious" | "blocked";
 
 export interface TUrl {
   _id: string;
@@ -54,6 +51,7 @@ export interface TUrl {
   urlCode: string;
   customCode: boolean;
   longUrl: string;
+  destHostRev?: string;
   qrCodeId?: string;
   isQrCode: boolean;
   title?: string;
@@ -93,6 +91,7 @@ const UrlSchema = new Schema<IUrl>({
   urlCode: { type: String, required: true },
   customCode: { type: Boolean, default: false },
   longUrl: { type: String, required: true },
+  destHostRev: { type: String },
   qrCodeId: String,
   isQrCode: { type: Boolean, default: false },
   title: String,
@@ -136,6 +135,27 @@ const UrlSchema = new Schema<IUrl>({
   requiresInterstitial: { type: Boolean, default: false },
 });
 
+const reversedHost = (url: string) => {
+  try {
+    return new URL(url).hostname
+      .toLowerCase()
+      .replace(/\.$/, "")
+      .split(".")
+      .reverse()
+      .join(".");
+  } catch {
+    return undefined;
+  }
+};
+UrlSchema.pre("save", function () {
+  if (this.isModified("longUrl")) this.destHostRev = reversedHost(this.longUrl);
+});
+UrlSchema.pre(["findOneAndUpdate", "updateOne", "updateMany"], function () {
+  const update = this.getUpdate();
+  if (!update || Array.isArray(update)) return;
+  const next = update.$set?.longUrl ?? update.longUrl;
+  if (typeof next === "string") this.set({ destHostRev: reversedHost(next) });
+});
 UrlSchema.methods.recordClick = async function () {
   this.clicks.total++;
   this.clicks.lastClick = new Date();

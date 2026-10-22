@@ -3,6 +3,7 @@ import { invalidateLinks, type InvalidationStore } from "@shortn/redis";
 import bcrypt from "bcryptjs";
 import { SignJWT } from "jose";
 import type { Db, Document } from "mongodb";
+import { workspaceIsSuspended } from "../workspaces/status";
 import {
   withMutation,
   recordWebhookEvent,
@@ -20,6 +21,8 @@ export interface PublicLink {
   passwordProtected: boolean;
   blocked: boolean;
   disabledReason: string | null;
+  /** Category of a staff takedown, shown to visitors. */
+  moderationCategory: string | null;
   safetyStatus: string;
   createdAt: string;
   creatorName: string | null;
@@ -65,6 +68,22 @@ export async function publicLink(
           .findOne({ sub: doc.sub }, { projection: { name: 1 } })
       : null;
   const date = doc.date instanceof Date ? doc.date : doc._id.getTimestamp();
+  // The redirect blocks these from an in-process set; this page must agree,
+  // or it would offer "Continue" for a link whose own fields look fine.
+  if (await workspaceIsSuspended(db, doc.workspaceId))
+    return {
+      key,
+      destination: "",
+      destinationHost: "",
+      passwordHint: null,
+      passwordProtected: false,
+      blocked: true,
+      disabledReason: "workspace:suspended",
+      moderationCategory: null,
+      safetyStatus: "blocked",
+      createdAt: date.toISOString(),
+      creatorName: null,
+    };
   return {
     key,
     destination: doc.longUrl,
@@ -75,10 +94,18 @@ export async function publicLink(
     blocked: Boolean(
       doc.disabled ||
       doc.safetyStatus === "blocked" ||
-      doc.safetyStatus === "malicious",
+      doc.safetyStatus === "malicious" ||
+      doc.moderation,
     ),
-    disabledReason:
-      typeof doc.disabledReason === "string" ? doc.disabledReason : null,
+    disabledReason: doc.moderation
+      ? "admin:takedown"
+      : typeof doc.disabledReason === "string"
+        ? doc.disabledReason
+        : null,
+    moderationCategory:
+      typeof doc.moderation?.category === "string"
+        ? doc.moderation.category
+        : null,
     safetyStatus:
       typeof doc.safetyStatus === "string" ? doc.safetyStatus : "pending",
     createdAt: date.toISOString(),

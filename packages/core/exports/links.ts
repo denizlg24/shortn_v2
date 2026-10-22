@@ -60,7 +60,7 @@ export async function authorizeLinkExport(
       workspaceId: ctx.workspace._id,
       userId: ctx.actor.userId,
     }),
-    loadEntitlements(ctx.db, ctx.workspace._id),
+    loadEntitlements(ctx.db, ctx.workspace),
   ]);
   if (
     !workspace ||

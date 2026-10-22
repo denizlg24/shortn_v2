@@ -4,7 +4,7 @@ import { acceptInvite } from "@shortn/core";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { db } from "../db";
-import { requireSession } from "../workspace";
+import { impersonationOf, requireSession } from "../workspace";
 import { invalidInput, type ActionResult } from "./result";
 
 // Invite tokens are 32 random bytes in base64url (packages/core members.ts).
@@ -17,6 +17,8 @@ export async function acceptInviteAction(
   const parsed = token.safeParse(input);
   if (!parsed.success) return invalidInput;
   const session = await requireSession();
+  // Joining a workspace is the user's own decision, never staff's.
+  if (impersonationOf(session)) return { ok: false, error: "forbidden" };
   const result = await acceptInvite(await db(), parsed.data, {
     id: session.user.id,
     email: session.user.email,

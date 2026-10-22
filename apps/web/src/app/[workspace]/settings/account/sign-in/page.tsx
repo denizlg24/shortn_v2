@@ -52,7 +52,7 @@ export default async function AccountSettingsPage({
     .toArray();
   const [connections, entitlement] = await Promise.all([
     ssoConnectionPage(database, session.user.id, ssoConnectedPage),
-    loadEntitlements(database, workspace._id),
+    loadEntitlements(database, workspace),
   ]);
   const available =
     !workspace.personal &&

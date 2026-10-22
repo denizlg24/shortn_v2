@@ -5762,6 +5762,12 @@ export interface components {
         campaign?: components["schemas"]["Campaign"][];
       };
       qrCodeId: string | null;
+      /** @description Set when Shortn removed the link for a policy violation. It no longer redirects and can't be edited; it can still be deleted. */
+      moderation?: {
+        /** @enum {string} */
+        state: "taken_down";
+        category: string;
+      } | null;
       deletedAt?: string | null;
       restoreUntil?: string | null;
       utm: {
@@ -6696,6 +6702,12 @@ export interface components {
       failureSince: string | null;
       /** Format: date-time */
       disabledAt: string | null;
+      /** @description Set when Shortn disabled the endpoint. It can't be re-enabled until Shortn lifts this. */
+      adminDisabled: {
+        /** Format: date-time */
+        at: string;
+        reason: string;
+      } | null;
     };
   };
   responses: never;

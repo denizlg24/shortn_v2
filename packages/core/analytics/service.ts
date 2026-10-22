@@ -179,7 +179,7 @@ export async function resolveAnalyticsExportScope(
 ) {
   const resolved = await resolveScope(ctx, input);
   if (!resolved) return null;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const allowed: Filters = {};
   if (hasFeature(entitlements, "analyticsBreakdowns"))
     for (const [key, value] of Object.entries(filters))
@@ -202,7 +202,7 @@ export async function queryAnalytics(
     return fail("invalid_input");
   const q = parsed.data;
   if (!can(ctx.actor, "workspace.view")) return fail("forbidden");
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
 
   const resolved = await resolveScope(ctx, q.scope);
   if (!resolved) return { ok: false, error: "not_found" };

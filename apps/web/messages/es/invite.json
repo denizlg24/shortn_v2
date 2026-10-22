@@ -23,6 +23,7 @@
   "errors": {
     "invalid": "Esta invitación ya no es válida. Pide una nueva.",
     "mismatch": "Esta invitación se envió a otra dirección de correo.",
+    "locked": "Este espacio de trabajo no está disponible temporalmente. Vuelve a intentarlo más tarde.",
     "generic": "Algo salió mal por nuestra parte. Inténtalo de nuevo."
   }
 }

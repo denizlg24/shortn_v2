@@ -1,6 +1,7 @@
 import { listTags } from "@shortn/core";
 import { getTranslations } from "next-intl/server";
 import { LinkForm } from "@/components/link-pages/link-form";
+import { Notice } from "@/components/page/notice";
 import { Page } from "@/components/page/page";
 import { gateOf } from "@/lib/plan-features";
 import { updateLinkPageAction } from "@/server/actions/link-pages";
@@ -36,28 +37,32 @@ export default async function EditLinkPage({
       tabsLabel={t("tabs.label")}
       width="form"
     >
-      <LinkForm
-        mode="edit"
-        domain={link.domain}
-        initial={{
-          ...(link.rules ? { rules: link.rules } : {}),
-          ...(link.og ? { og: link.og } : {}),
-          url: link.url,
-          key: link.key,
-          title: link.title,
-          description: link.description ?? "",
-          tags: link.tags.map((tag) => tag.name),
-          hasPassword: Boolean(link.password),
-          passwordHint: link.password?.hint ?? "",
-        }}
-        allTags={tags}
-        gates={{
-          customKeys: gateOf(features.customKeys),
-          passwords: gateOf(features.passwords),
-        }}
-        action={updateLinkPageAction.bind(null, workspace, id)}
-        cancelHref={base}
-      />
+      {link.moderation ? (
+        <Notice tone="warning">{t("overview.takenDownLocked")}</Notice>
+      ) : (
+        <LinkForm
+          mode="edit"
+          domain={link.domain}
+          initial={{
+            ...(link.rules ? { rules: link.rules } : {}),
+            ...(link.og ? { og: link.og } : {}),
+            url: link.url,
+            key: link.key,
+            title: link.title,
+            description: link.description ?? "",
+            tags: link.tags.map((tag) => tag.name),
+            hasPassword: Boolean(link.password),
+            passwordHint: link.password?.hint ?? "",
+          }}
+          allTags={tags}
+          gates={{
+            customKeys: gateOf(features.customKeys),
+            passwords: gateOf(features.passwords),
+          }}
+          action={updateLinkPageAction.bind(null, workspace, id)}
+          cancelHref={base}
+        />
+      )}
     </Page>
   );
 }

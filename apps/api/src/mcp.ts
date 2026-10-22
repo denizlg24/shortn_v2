@@ -6,6 +6,7 @@ import {
   platformFeatureEnabled,
   apiScopes,
   createMcpOAuthVerifier,
+  isWorkspaceSuspended,
   type ApiPrincipal,
   type OAuthPrincipal,
 } from "@shortn/core";
@@ -14,7 +15,7 @@ import type { Db } from "mongodb";
 import type { Redis } from "ioredis";
 import { z } from "zod";
 import { createMcpTools } from "./mcp-tools";
-import { rateScript } from "./rate-limit";
+import { apiRateLimit, rateScript } from "./rate-limit";
 
 export interface McpDeps {
   qrExports?: {
@@ -110,36 +111,32 @@ export function createMcpApp(deps: McpDeps) {
       !platformFeatureEnabled(principal.workspace, "mcp", deps.rolloutPercent)
     )
       return c.json({ error: "feature_disabled" }, 404);
-    const entitlements = await loadEntitlements(
-      deps.db,
-      principal.workspace._id,
-    );
-    const limit = {
-      free: 30,
-      basic: 60,
-      plus: 180,
-      pro: 600,
-      enterprise: 1200,
-    }[entitlements.plan];
-    // API-key budgets are shared with REST; switching transports cannot bypass them.
-    const rate = z
-      .tuple([z.number(), z.number(), z.number()])
-      .parse(
-        await deps.cache.eval(
-          rateScript,
-          1,
-          `api:rate:${principal.keyId}`,
-          Date.now(),
-          limit,
-          crypto.randomUUID(),
-        ),
-      );
-    c.header("RateLimit-Limit", String(limit));
-    c.header("RateLimit-Remaining", String(rate[1]));
-    c.header("RateLimit-Reset", String(rate[2]));
-    if (!rate[0]) {
-      c.header("Retry-After", String(rate[2]));
-      return c.json({ error: "rate_limited" }, 429);
+    // Locked workspaces keep read tools; mutations fail inside the tool.
+    if (isWorkspaceSuspended(principal.workspace))
+      return c.json({ error: "workspace_suspended" }, 403);
+    const entitlements = await loadEntitlements(deps.db, principal.workspace);
+    const limit = apiRateLimit(entitlements);
+    if (limit !== null) {
+      // API-key budgets are shared with REST; switching transports cannot bypass them.
+      const rate = z
+        .tuple([z.number(), z.number(), z.number()])
+        .parse(
+          await deps.cache.eval(
+            rateScript,
+            1,
+            `api:rate:${principal.keyId}`,
+            Date.now(),
+            limit,
+            crypto.randomUUID(),
+          ),
+        );
+      c.header("RateLimit-Limit", String(limit));
+      c.header("RateLimit-Remaining", String(rate[1]));
+      c.header("RateLimit-Reset", String(rate[2]));
+      if (!rate[0]) {
+        c.header("Retry-After", String(rate[2]));
+        return c.json({ error: "rate_limited" }, 429);
+      }
     }
     const server = createMcpTools(
       {

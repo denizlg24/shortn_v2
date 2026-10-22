@@ -158,28 +158,24 @@ const mongo = process.env.MONGO_TEST_URL;
         .collection(physicalNames.passkeys)
         .createIndex({ credentialID: 1 }, { unique: true });
       const now = new Date();
-      await db
-        .collection(physicalNames.user)
-        .insertOne({
-          _id: userId,
-          name: fixture.user.name,
-          email: fixture.user.email,
-          emailVerified: true,
-          sub: "legacy|passkey",
-          createdAt: now,
-          updatedAt: now,
-        });
-      await db
-        .collection(physicalNames.account)
-        .insertOne({
-          _id: accountId,
-          userId,
-          accountId: String(userId),
-          providerId: "credential",
-          password: fixture.account.password,
-          createdAt: now,
-          updatedAt: now,
-        });
+      await db.collection(physicalNames.user).insertOne({
+        _id: userId,
+        name: fixture.user.name,
+        email: fixture.user.email,
+        emailVerified: true,
+        sub: "legacy|passkey",
+        createdAt: now,
+        updatedAt: now,
+      });
+      await db.collection(physicalNames.account).insertOne({
+        _id: accountId,
+        userId,
+        accountId: String(userId),
+        providerId: "credential",
+        password: fixture.account.password,
+        createdAt: now,
+        updatedAt: now,
+      });
       workspaceId = (
         await ensurePersonalWorkspace(db, {
           id: String(userId),
@@ -356,6 +352,57 @@ const mongo = process.env.MONGO_TEST_URL;
         )?.lastVerifiedCounter,
       ).toBe(2);
     });
+    test("a banned user's valid assertion opens no session; an expired ban does", async () => {
+      const users = db.collection(physicalNames.user);
+      const sessions = () =>
+        db.collection(physicalNames.session).countDocuments({ userId });
+      const before = await sessions();
+      await users.updateOne({ _id: userId }, { $set: { banned: true } });
+      try {
+        const c = await challenge();
+        const refused = await request(
+          "/passkey/verify-authentication",
+          { response: assertion(c.data.challenge, 10) },
+          c.cookie,
+        );
+        // The plugin rethrows only its own @better-auth/core APIError class;
+        // with two core copies installed it reports AUTHENTICATION_FAILED.
+        expect([400, 403]).toContain(refused.status);
+        expect(["ACCOUNT_SUSPENDED", "AUTHENTICATION_FAILED"]).toContain(
+          (await refused.json()).code,
+        );
+        expect(refused.headers.getSetCookie().join()).not.toContain(
+          "session_token=",
+        );
+        expect(await sessions()).toBe(before);
+        await users.updateOne(
+          { _id: userId },
+          { $set: { banExpires: new Date(Date.now() - 1000) } },
+        );
+        const expired = await challenge();
+        expect(
+          (
+            await request(
+              "/passkey/verify-authentication",
+              { response: assertion(expired.data.challenge, 11) },
+              expired.cookie,
+            )
+          ).status,
+        ).toBe(200);
+      } finally {
+        await users.updateOne(
+          { _id: userId },
+          { $unset: { banned: "", banExpires: "" } },
+        );
+        // Later tests continue the device counter from 2.
+        await db
+          .collection(physicalNames.passkeys)
+          .updateOne(
+            { _id: credentialRow },
+            { $set: { counter: 2, lastVerifiedCounter: 2 } },
+          );
+      }
+    });
     test("concurrent removals cannot delete every passwordless sign-in method", async () => {
       const accounts = await db
         .collection(physicalNames.account)
@@ -373,16 +420,14 @@ const mongo = process.env.MONGO_TEST_URL;
       await db
         .collection(physicalNames.passkeys)
         .deleteOne({ _id: credentialRow });
-      await db
-        .collection(physicalNames.passkeys)
-        .insertMany(
-          keys.map((_id) => ({
-            _id,
-            userId,
-            credentialID: String(_id),
-            publicKey: "synthetic",
-          })),
-        );
+      await db.collection(physicalNames.passkeys).insertMany(
+        keys.map((_id) => ({
+          _id,
+          userId,
+          credentialID: String(_id),
+          publicKey: "synthetic",
+        })),
+      );
       try {
         const responses = await Promise.all(
           keys.map((id) =>
@@ -413,14 +458,12 @@ const mongo = process.env.MONGO_TEST_URL;
     });
     test("removing a passkey requires ownership and preserves a usable sign-in method", async () => {
       const foreign = new ObjectId();
-      await db
-        .collection(physicalNames.passkeys)
-        .insertOne({
-          _id: foreign,
-          userId: new ObjectId(),
-          credentialID: "synthetic-foreign-credential",
-          publicKey: "synthetic",
-        });
+      await db.collection(physicalNames.passkeys).insertOne({
+        _id: foreign,
+        userId: new ObjectId(),
+        credentialID: "synthetic-foreign-credential",
+        publicKey: "synthetic",
+      });
       expect(
         (await request("/passkey/delete-passkey", { id: String(foreign) }))
           .status,
@@ -483,17 +526,15 @@ const mongo = process.env.MONGO_TEST_URL;
     });
     test("a session racing credential revocation is rejected by the new and legacy handlers", async () => {
       const seed = async () =>
-        db
-          .collection(physicalNames.session)
-          .insertOne({
-            _id: new ObjectId(fixture.session.id),
-            userId,
-            token: fixture.session.token,
-            passkeyId: String(credentialRow),
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            expiresAt: new Date(Date.now() + 60000),
-          });
+        db.collection(physicalNames.session).insertOne({
+          _id: new ObjectId(fixture.session.id),
+          userId,
+          token: fixture.session.token,
+          passkeyId: String(credentialRow),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          expiresAt: new Date(Date.now() + 60000),
+        });
       await seed();
       expect(
         await (await request("/get-session", undefined, fixture.cookie)).json(),
@@ -509,12 +550,10 @@ const mongo = process.env.MONGO_TEST_URL;
             async () => false,
             async (keyId, owner) =>
               Boolean(
-                await db
-                  .collection(physicalNames.passkeys)
-                  .findOne({
-                    _id: new ObjectId(keyId),
-                    userId: new ObjectId(owner),
-                  }),
+                await db.collection(physicalNames.passkeys).findOne({
+                  _id: new ObjectId(keyId),
+                  userId: new ObjectId(owner),
+                }),
               ),
           ),
         ],

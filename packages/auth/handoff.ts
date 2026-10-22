@@ -1,4 +1,4 @@
-import { physicalNames } from "@shortn/db";
+import { findAccountSuspension, physicalNames } from "@shortn/db";
 import type { BetterAuthPlugin } from "better-auth";
 import { createAuthEndpoint } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";
@@ -14,6 +14,8 @@ interface HandoffToken {
   _id: string;
   userId: string;
   impersonatedBy?: string;
+  // Absent means read-only: legacy and older tokens never carry it.
+  impersonationMode?: "read" | "write";
   expiresAt: Date;
 }
 
@@ -52,6 +54,18 @@ export const handoff = (options: { db: () => Db }) =>
             found.userId,
           );
           if (!user) throw ctx.redirect("/login");
+          // createSession's hook would refuse too, but only after the 2FA
+          // step and as JSON; a navigation needs the login page.
+          if (await findAccountSuspension(options.db(), user.id))
+            throw ctx.redirect("/login?error=ACCOUNT_SUSPENDED");
+          // Staff accounts are never impersonated (23 §3.6); the admin
+          // action refuses first, this holds if a token is minted elsewhere.
+          const role: unknown = Reflect.get(user, "role");
+          if (
+            found.impersonatedBy &&
+            (role === "admin" || role === "superadmin")
+          )
+            throw ctx.redirect("/login");
           if (Reflect.get(user, "twoFactorEnabled") && !found.impersonatedBy) {
             // The one-time handoff proves the primary session only. Complete
             // the second factor on this host before creating any full session.
@@ -87,6 +101,8 @@ export const handoff = (options: { db: () => Db }) =>
             found.impersonatedBy
               ? {
                   impersonatedBy: found.impersonatedBy,
+                  impersonationMode:
+                    found.impersonationMode === "write" ? "write" : "read",
                   expiresAt: new Date(Date.now() + 60 * 60 * 1000),
                 }
               : undefined,

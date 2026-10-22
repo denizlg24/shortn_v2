@@ -4,6 +4,8 @@ import {
   imageForStorage,
   boundedUploadBody,
   maxImageBytes,
+  uploadAllowed,
+  uploadPurposes,
 } from "./upload-image";
 
 test("decodes actual bytes and produces a metadata-free PNG", async () => {
@@ -72,4 +74,23 @@ test("bounds chunked bodies before parsing multipart", async () => {
     ),
   ).rejects.toThrow("size");
   expect(cancelled).toBe(true);
+});
+
+test("uploads honour lock, suspension and impersonation", () => {
+  const owner = { userId: "u", role: "owner" as const };
+  for (const purpose of uploadPurposes)
+    expect(uploadAllowed(owner, purpose)).toBe(true);
+  for (const readOnly of ["locked", "suspended"] as const)
+    for (const purpose of uploadPurposes)
+      expect(uploadAllowed({ ...owner, readOnly }, purpose)).toBe(false);
+  for (const impersonation of ["read", "write"] as const)
+    expect(uploadAllowed({ ...owner, impersonation }, "avatar")).toBe(false);
+  expect(uploadAllowed({ ...owner, impersonation: "read" }, "bio-image")).toBe(
+    false,
+  );
+  expect(uploadAllowed({ ...owner, impersonation: "write" }, "bio-image")).toBe(
+    true,
+  );
+  expect(uploadAllowed({ userId: "v", role: "viewer" }, "qr-logo")).toBe(false);
+  expect(uploadAllowed({ userId: "v", role: "viewer" }, "avatar")).toBe(true);
 });

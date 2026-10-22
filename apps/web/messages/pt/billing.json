@@ -25,7 +25,10 @@
     "resumed": "O {plan} volta a renovar normalmente.",
     "legacy": "As alterações de plano e o cancelamento continuam a fazer-se em shortn.at enquanto a faturação passa para o novo painel.",
     "legacyAction": "Gerir plano em shortn.at",
-    "comparePlans": "Comparar planos"
+    "comparePlans": "Comparar planos",
+    "complimentaryUntil": "{plan} de oferta até {date}. Uma eventual subscrição paga mantém-se inalterada.",
+    "complimentary": "{plan} de oferta. Uma eventual subscrição paga mantém-se inalterada.",
+    "customLimits": "Este espaço de trabalho tem limites de utilização personalizados. Os indicadores abaixo mostram os limites em vigor."
   },
   "status": {
     "checkoutPending": "Pagamento recebido. O novo plano aparece aqui dentro de segundos, assim que a Polar o confirmar.",

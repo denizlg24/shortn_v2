@@ -3,6 +3,7 @@
 import {
   Area,
   AreaChart,
+  Legend,
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
@@ -20,6 +21,7 @@ type ChartTooltipProps = TooltipContentProps<TooltipValueType, string | number>;
 export interface TimeSeriesPoint {
   date: string;
   value: number;
+  [key: string]: string | number;
 }
 
 export type TimeSeriesInterval = "hour" | "day" | "week" | "month";
@@ -28,6 +30,7 @@ export interface TimeSeriesChartProps {
   data: TimeSeriesPoint[];
   /** Series name used in the tooltip and accessible label, e.g. "Clicks". */
   seriesLabel: string;
+  series?: { key: string; label: string }[];
   /** Bucket size of each point; picks the axis and tooltip date formats. */
   interval?: TimeSeriesInterval;
   height?: number;
@@ -75,6 +78,7 @@ const axisTick = {
 export function TimeSeriesChart({
   data,
   seriesLabel,
+  series,
   interval = "day",
   height = 168,
   className,
@@ -123,17 +127,29 @@ export function TimeSeriesChart({
               />
             )}
           />
-          <Area
-            type="monotone"
-            dataKey="value"
-            name={seriesLabel}
-            stroke="var(--chart-1)"
-            strokeWidth={1.5}
-            fill="var(--chart-1)"
-            fillOpacity={0.07}
-            isAnimationActive={false}
-            activeDot={{ r: 3, strokeWidth: 0, fill: "var(--chart-1)" }}
-          />
+          {series && series.length > 1 ? (
+            <Legend verticalAlign="top" iconType="line" />
+          ) : null}
+          {(series ?? [{ key: "value", label: seriesLabel }]).map(
+            (item, index) => (
+              <Area
+                key={item.key}
+                type="monotone"
+                dataKey={item.key}
+                name={item.label}
+                stroke={`var(--chart-${(index % 6) + 1})`}
+                strokeWidth={1.5}
+                fill={`var(--chart-${(index % 6) + 1})`}
+                fillOpacity={0.07}
+                isAnimationActive={false}
+                activeDot={{
+                  r: 3,
+                  strokeWidth: 0,
+                  fill: `var(--chart-${(index % 6) + 1})`,
+                }}
+              />
+            ),
+          )}
         </AreaChart>
       </ResponsiveContainer>
     </div>
@@ -159,16 +175,24 @@ function ChartTooltip({
       <div className="text-fg-muted">
         {formatPointLabel(new Date(label), interval, intlLocale)}
       </div>
-      <div className="flex items-baseline gap-2">
-        <span
-          className="size-2 translate-y-[-1px] rounded-full bg-chart-1"
-          aria-hidden
-        />
-        <span className="text-fg-muted">{seriesLabel}</span>
-        <span className="ml-auto pl-3 font-mono font-medium text-fg tabular-nums">
-          {formatNumber(Number(point.value ?? 0), intlLocale)}
-        </span>
-      </div>
+      {payload?.map((item, index) => (
+        <div
+          key={String(item.dataKey ?? index)}
+          className="flex items-baseline gap-2"
+        >
+          <span
+            className="size-2 translate-y-[-1px] rounded-full"
+            style={{ background: item.color ?? "var(--chart-1)" }}
+            aria-hidden
+          />
+          <span className="text-fg-muted">
+            {String(item.name ?? seriesLabel)}
+          </span>
+          <span className="ml-auto pl-3 font-mono font-medium text-fg tabular-nums">
+            {formatNumber(Number(item.value ?? 0), intlLocale)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

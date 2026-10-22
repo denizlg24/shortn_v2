@@ -9,7 +9,7 @@ export async function bioAnalytics(
 ) {
   const page = await ownedBioDocument(ctx, id);
   if (!page) return null;
-  const entitlements = await loadEntitlements(ctx.db, ctx.workspace._id);
+  const entitlements = await loadEntitlements(ctx.db, ctx.workspace);
   const from = new Date(
     Date.now() -
       Math.min(days, entitlements.limits.analyticsDays ?? days, 365) * 86400000,
@@ -21,14 +21,12 @@ export async function bioAnalytics(
   };
   const [views, clicks, referrers, blocks] = await Promise.all([
     ctx.db.collection(physicalNames.bio_views).countDocuments(match),
-    ctx.db
-      .collection(physicalNames.click_events)
-      .countDocuments({
-        "m.bioPageId": page._id,
-        "m.workspaceId": ctx.workspace._id,
-        ts: { $gte: from },
-        bot: false,
-      }),
+    ctx.db.collection(physicalNames.click_events).countDocuments({
+      "m.bioPageId": page._id,
+      "m.workspaceId": ctx.workspace._id,
+      ts: { $gte: from },
+      bot: false,
+    }),
     ctx.db
       .collection(physicalNames.bio_views)
       .aggregate<{ _id: string | null; count: number }>([
