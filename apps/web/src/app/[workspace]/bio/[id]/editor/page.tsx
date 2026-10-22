@@ -13,10 +13,13 @@ import { Page } from "@/components/page/page";
 import { serviceContext } from "@/server/context";
 export default async function BioEditorPage({
   params,
+  searchParams,
 }: {
+  searchParams: Promise<{ section?: string }>;
   params: Promise<{ workspace: string; id: string }>;
 }) {
   const { workspace, id } = await params;
+  const { section } = await searchParams;
   const ctx = await serviceContext(workspace);
   const draft = await readBioDraft(ctx, id);
   if (!draft) notFound();
@@ -44,6 +47,13 @@ export default async function BioEditorPage({
       <BioEditor
         workspace={workspace}
         id={id}
+        initialSection={
+          draft.content.blocks.some(
+            (block) => block.id === section && block.type === "links",
+          )
+            ? section
+            : undefined
+        }
         initial={draft.content}
         initialRevision={draft.revision}
         initialHandle={draft.handle}

@@ -19,6 +19,7 @@ import { linksViewQuery, linksViewSearch } from "@/server/link-list-query";
 import { linkExportStore } from "@/server/link-exports";
 import { requestTime } from "@/server/time";
 import { importStore } from "@/server/imports";
+import { encodeSelection } from "@/lib/bulk-selection";
 import { tourAnchor } from "@/lib/tour/anchors";
 
 const pageSize = 25;
@@ -45,6 +46,7 @@ export default async function LinksPage({
   const trashText = await getTranslations("linkPages.trash");
   const healthText = await getTranslations("linkPages.health");
   const selectionText = await getTranslations("page.selection");
+  const bioText = await getTranslations("bio.destination");
   const tagsText = await getTranslations("tags");
   const trash = one(query.trash) === "1",
     archived = !trash && one(query.archived) === "1";
@@ -206,6 +208,15 @@ export default async function LinksPage({
         {...(!trash
           ? {
               actions: [
+                ...(!archived
+                  ? [
+                      {
+                        href: `/${workspace}/links/bio`,
+                        label: bioText("title"),
+                        clear: false,
+                      },
+                    ]
+                  : []),
                 ...(archived
                   ? [
                       {
@@ -360,6 +371,16 @@ export default async function LinksPage({
                             <p className="max-w-48 truncate text-meta text-fg-muted md:max-w-80">
                               {link.title}
                             </p>
+                          ) : null}
+                          {!trash &&
+                          !archived &&
+                          can(ctx.actor, "resource.update") ? (
+                            <Link
+                              href={`/${workspace}/links/bio?selection=${encodeSelection([link.id])}`}
+                              className="mt-1 inline-block text-meta text-signal hover:underline"
+                            >
+                              {bioText("title")}
+                            </Link>
                           ) : null}
                           {!trash && link.health?.flagged ? (
                             <HealthFlag
