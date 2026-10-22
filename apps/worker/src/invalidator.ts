@@ -61,7 +61,7 @@ export function planInvalidation(
     if (
       paths.length &&
       paths.every((path) =>
-        /^(?:ruleSchedule|safetyScan|health)(?:\.|$)/.test(path),
+        /^(?:ruleSchedule|safetyScan|health|destHostRev)(?:\.|$)/.test(path),
       )
     )
       return { type: "none" };
