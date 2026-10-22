@@ -34,6 +34,11 @@ const config: NextConfig = {
   // lives at /safety/{key} so it can't collide with /[workspace].
   async rewrites() {
     return [
+      // Marketing media in public/: the root host routes only /_web/* here.
+      {
+        source: "/_web/marketing/:file",
+        destination: "/marketing/:file",
+      },
       {
         source: "/:locale(en|pt|es)/safety/:key/:rest*",
         destination: "/safety/:key/:rest*?locale=:locale",

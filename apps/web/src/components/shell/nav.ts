@@ -5,6 +5,7 @@ import {
   QrCode,
   Settings,
   SquareUser,
+  Tags,
   type LucideIcon,
 } from "lucide-react";
 
@@ -14,6 +15,7 @@ export const sections = [
   "qr",
   "bio",
   "campaigns",
+  "tags",
   "settings",
 ] as const;
 export type Section = (typeof sections)[number];
@@ -31,6 +33,7 @@ export const primaryNav: NavItem[] = [
   { section: "qr", icon: QrCode, goKey: "q" },
   { section: "bio", icon: SquareUser, goKey: "b" },
   { section: "campaigns", icon: Megaphone, goKey: "c" },
+  { section: "tags", icon: Tags, goKey: "t" },
 ];
 
 export const secondaryNav: NavItem[] = [

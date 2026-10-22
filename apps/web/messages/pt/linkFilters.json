@@ -1,0 +1,70 @@
+{
+  "label": "Filtrar links",
+  "search": "Pesquisar",
+  "searchPlaceholder": "Pesquisar chave, destino ou título…",
+  "clearSearch": "Limpar pesquisa",
+  "filter": "Filtrar",
+  "filterActive": "{count, plural, one {Filtrar, # ativo} other {Filtrar, # ativos}}",
+  "filterBy": "Filtrar por…",
+  "back": "Voltar aos filtros",
+  "editFilter": "Alterar filtro: {filter}",
+  "remove": "Remover filtro: {filter}",
+  "clear": "Limpar tudo",
+  "results": "{count, plural, one {# link} other {# links}}",
+  "loading": "A carregar…",
+  "retry": "Tentar novamente",
+  "andMore": "{first}, +{count}",
+  "facets": {
+    "tags": "Etiqueta",
+    "status": "Estado",
+    "domain": "Domínio",
+    "campaign": "Campanha",
+    "created": "Criado"
+  },
+  "operators": {
+    "is": "é",
+    "isAnyOf": "é uma de",
+    "isAllOf": "inclui todas"
+  },
+  "tagsFacet": {
+    "search": "Pesquisar etiquetas…",
+    "empty": "Nenhuma etiqueta corresponde.",
+    "failed": "Não foi possível carregar as etiquetas.",
+    "untagged": "Sem etiqueta",
+    "more": "Carregar mais etiquetas",
+    "match": "Corresponder",
+    "any": "Qualquer",
+    "all": "Todas",
+    "anyHint": "Links com pelo menos uma das etiquetas selecionadas",
+    "allHint": "Links com todas as etiquetas selecionadas",
+    "manage": "Gerir etiquetas"
+  },
+  "domainFacet": {
+    "search": "Pesquisar domínios…",
+    "empty": "Nenhum domínio corresponde.",
+    "default": "Predefinido"
+  },
+  "campaignFacet": {
+    "search": "Pesquisar campanhas…",
+    "empty": "Nenhuma campanha corresponde.",
+    "failed": "Não foi possível carregar as campanhas.",
+    "more": "Carregar mais campanhas",
+    "unknown": "Campanha desconhecida"
+  },
+  "createdFacet": {
+    "custom": "Intervalo personalizado…",
+    "from": "Desde (UTC)",
+    "to": "Até (UTC)",
+    "apply": "Aplicar intervalo",
+    "range": "{from} – {to}",
+    "since": "Desde {from}",
+    "until": "Até {to}"
+  },
+  "sort": "Ordenar por",
+  "displayLabel": "Ordenar e apresentar, atualmente {sort}",
+  "group": "Agrupar por",
+  "groups": {
+    "none": "Sem agrupamento",
+    "tag": "Etiqueta"
+  }
+}

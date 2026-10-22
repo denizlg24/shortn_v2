@@ -27,6 +27,8 @@ import campaigns from "./campaigns.json";
 import bio from "./bio.json";
 import page from "./page.json";
 import linkPages from "./linkPages.json";
+import linkFilters from "./linkFilters.json";
+import tags from "./tags.json";
 
 import imports from "./imports.json";
 
@@ -49,6 +51,8 @@ export default {
   qrExports,
   page,
   linkPages,
+  linkFilters,
+  tags,
   common,
   marketing,
   auth,

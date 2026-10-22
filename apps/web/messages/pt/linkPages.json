@@ -199,7 +199,6 @@
     "empty": "O lixo está vazio.",
     "restore": "Restaurar selecionados",
     "restoring": "A restaurar…",
-    "selection": "{count} selecionados · até {limit}",
     "limit": "Selecione até {limit} links por operação.",
     "failed": "Não foi possível restaurar os links. Verifique as suas permissões e tente novamente.",
     "partial": "{count, plural, one {Não foi possível restaurar # link selecionado.} other {Não foi possível restaurar # links selecionados.}} Podem ter expirado ou as suas permissões podem ter mudado. Limpe a seleção para continuar.",
@@ -207,9 +206,6 @@
     "restoreUntil": "Restaurar até",
     "until": "Restaurar até {date}",
     "expired": "Expirado",
-    "group": "Agrupar esta página",
-    "ungrouped": "Sem agrupamento",
-    "byTag": "Por primeira etiqueta",
     "untagged": "Sem etiqueta"
   },
   "health": {

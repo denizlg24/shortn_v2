@@ -54,7 +54,7 @@ export default async function EditLinkPage({
             hasPassword: Boolean(link.password),
             passwordHint: link.password?.hint ?? "",
           }}
-          allTags={tags.map((tag) => tag.name)}
+          allTags={tags}
           gates={{
             customKeys: gateOf(features.customKeys),
             passwords: gateOf(features.passwords),

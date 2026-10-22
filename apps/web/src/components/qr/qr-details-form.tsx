@@ -7,7 +7,7 @@ import { useFormSubmit } from "../editor/use-form-submit";
 import { FormActions, FormField, inputClass } from "../page/form";
 import { Section } from "../page/page";
 import { useQrErrorMessage } from "./qr-errors";
-import { TagsField } from "../page/tags-field";
+import { TagsField, type TagOption } from "../page/tags-field";
 
 /** /qr/{id}/edit: where the code goes, and how it's filed. */
 export function QrDetailsForm({
@@ -20,7 +20,7 @@ export function QrDetailsForm({
   initial: { url: string; title: string; tags: string[] };
   /** Key of the link the code is attached to, e.g. "menu". */
   attachedLink: string | null;
-  allTags: string[];
+  allTags: TagOption[];
   action: (state: FormState, form: FormData) => Promise<FormState>;
   cancelHref: string;
 }) {

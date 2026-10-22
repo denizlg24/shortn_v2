@@ -5,7 +5,12 @@ import { loadEntitlements, hasFeature } from "@shortn/billing";
 import type { ServiceContext } from "../workspaces/context";
 import { can } from "../workspaces/authz";
 import { linkListFilter, toLinkView } from "../links/service";
-import { linkSorts, linkStatuses } from "../links/filters";
+import {
+  linkDomainFilter,
+  linkSorts,
+  linkStatuses,
+  tagMatchModes,
+} from "../links/filters";
 import {
   encodeLinkExport,
   exportedLink,
@@ -17,6 +22,13 @@ export const linkExportFilterSchema = z
   .object({
     search: z.string().max(200).optional(),
     tags: z.array(z.string().min(1).max(64)).max(50).optional(),
+    tagMode: z.enum(tagMatchModes).optional(),
+    untagged: z.boolean().optional(),
+    domain: z
+      .string()
+      .max(253)
+      .refine((value) => linkDomainFilter(value) === value)
+      .optional(),
     campaign: z
       .string()
       .regex(/^[a-f\d]{24}$/i)

@@ -1,0 +1,88 @@
+{
+  "title": "Tags",
+  "manage": "Manage tags",
+  "more": "+{count}",
+  "count": "{count, plural, =0 {No tags} one {# tag} other {# tags}}",
+  "search": "Search tags",
+  "searchPlaceholder": "Search tags…",
+  "sort": "Sort by",
+  "sortLabel": "Sort, currently {sort}",
+  "sorts": {
+    "name": "Name",
+    "newest": "Newest first"
+  },
+  "columns": {
+    "tag": "Tag",
+    "links": "Links",
+    "created": "Created",
+    "actions": "Actions"
+  },
+  "linksHint": "Active links. Archived and trashed links are counted when you merge or delete.",
+  "empty": "No tags yet. Add tags when you create or edit links.",
+  "emptyFiltered": "No tags match this search.",
+  "readOnly": "You can view tags. Members and admins can rename, recolor, merge and delete them.",
+  "viewLinks": "View links",
+  "viewLinksFor": "View links tagged {tag}",
+  "actionsFor": "Actions for {tag}",
+  "edit": "Rename or recolor",
+  "merge": "Merge into another tag",
+  "delete": "Delete tag",
+  "color": "Color",
+  "colorFor": "Color of {tag}",
+  "colorFailed": "The color couldn’t be saved. Try again.",
+  "colors": {
+    "slate": "Slate",
+    "blue": "Blue",
+    "teal": "Teal",
+    "violet": "Violet",
+    "magenta": "Magenta",
+    "ochre": "Ochre",
+    "rust": "Rust"
+  },
+  "saved": "Tag saved.",
+  "merged": "Tags merged.",
+  "deleted": "Tag deleted.",
+  "editPage": {
+    "title": "Edit tag",
+    "description": "Changes apply to every link and QR code with this tag.",
+    "name": "Name",
+    "nameHint": "Up to 48 characters. Names are unique in this workspace, ignoring case.",
+    "color": "Color",
+    "usage": "{links, plural, one {# link} other {# links}} and {qrCodes, plural, one {# QR code} other {# QR codes}} use this tag, including archived and trashed links.",
+    "more": "More actions",
+    "save": "Save changes",
+    "cancel": "Cancel"
+  },
+  "mergePage": {
+    "title": "Merge tag",
+    "description": "Move everything tagged “{tag}” to another tag, then remove “{tag}”.",
+    "target": "Merge into",
+    "targetPlaceholder": "Choose a tag…",
+    "targetSearch": "Search tags…",
+    "targetEmpty": "No other tags match.",
+    "consequences": {
+      "move": "{links, plural, one {# link} other {# links}} and {qrCodes, plural, one {# QR code} other {# QR codes}} tagged “{tag}” get the chosen tag instead. Items that already have it keep one copy.",
+      "remove": "“{tag}” is removed from the workspace. Its old IDs keep resolving to the chosen tag in the API.",
+      "final": "Merging can’t be undone."
+    },
+    "confirm": "Merge tags"
+  },
+  "deletePage": {
+    "title": "Delete tag",
+    "description": "Remove “{tag}” from the workspace.",
+    "consequences": {
+      "remove": "“{tag}” is removed from {links, plural, one {# link} other {# links}} and {qrCodes, plural, one {# QR code} other {# QR codes}}, including archived and trashed links.",
+      "keep": "The links and QR codes keep working; only the tag is removed.",
+      "final": "Deleting a tag can’t be undone."
+    },
+    "confirm": "Delete tag"
+  },
+  "errors": {
+    "forbidden": "You don’t have permission to change this tag.",
+    "not_found": "This tag no longer exists.",
+    "name_taken": "Another tag already has this name.",
+    "invalid_input": "Check the name and try again.",
+    "failed": "That didn’t work. Try again.",
+    "target_required": "Choose the tag to merge into."
+  }
+}

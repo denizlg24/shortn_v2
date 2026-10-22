@@ -327,16 +327,20 @@ try {
   await capture(page, "en-success-light-1440", 1440, true);
   await capture(page, "en-success-light-390", 390, true);
   assert.equal(
-    await db
-      .collection(physicalNames.links)
-      .countDocuments({
-        workspaceId,
-        "utmLinks.campaign._id": campaigns[1]!._id,
-      }),
+    await db.collection(physicalNames.links).countDocuments({
+      workspaceId,
+      "utmLinks.campaign._id": campaigns[1]!._id,
+    }),
     26,
   );
   await page.getByRole("link", { name: "Back to links", exact: true }).click();
-  await page.getByText("0 selected", { exact: true }).waitFor();
+  await page
+    .getByRole("checkbox", { name: "Select this page", exact: true })
+    .waitFor();
+  assert.equal(
+    await page.getByRole("region", { name: "Selection", exact: true }).count(),
+    0,
+  );
   const selected = links.slice(0, 51).map((link) => String(link._id));
   await page.goto(`${root}/campaign?selection=${encodeSelection(selected)}`);
   await page.waitForURL((url) => url.searchParams.has("selectionRef"));

@@ -35,7 +35,7 @@
     },
     "filters": {
       "title": "Find links and act in bulk",
-      "body": "Search by key, destination or title, then narrow by tag, status and date. Tick links across pages and filters to archive, tag, move to a campaign or delete up to 500 at once."
+      "body": "Search by key, destination or title, then use Filter to narrow by tag, status, domain, campaign or date. Tick links across pages and filters to archive, tag, move to a campaign or delete up to 500 at once."
     },
     "newLink": {
       "title": "Create a link",

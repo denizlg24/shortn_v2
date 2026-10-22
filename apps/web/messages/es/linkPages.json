@@ -199,7 +199,6 @@
     "empty": "La papelera está vacía.",
     "restore": "Restaurar seleccionados",
     "restoring": "Restaurando…",
-    "selection": "{count} seleccionados · hasta {limit}",
     "limit": "Selecciona hasta {limit} enlaces por operación.",
     "failed": "No se pudieron restaurar los enlaces. Comprueba tus permisos e inténtalo de nuevo.",
     "partial": "{count, plural, one {No se pudo restaurar # enlace seleccionado.} other {No se pudieron restaurar # enlaces seleccionados.}} Es posible que hayan caducado o que tus permisos hayan cambiado. Borra la selección para continuar.",
@@ -207,9 +206,6 @@
     "restoreUntil": "Restaurar hasta",
     "until": "Restaurar hasta el {date}",
     "expired": "Caducado",
-    "group": "Agrupar esta página",
-    "ungrouped": "Sin agrupación",
-    "byTag": "Por primera etiqueta",
     "untagged": "Sin etiqueta"
   },
   "health": {

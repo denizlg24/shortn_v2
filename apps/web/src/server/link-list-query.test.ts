@@ -1,5 +1,9 @@
 import { test, expect } from "bun:test";
-import { linksViewQuery, linksViewSearch } from "./link-list-query";
+import {
+  linkListQueryOf,
+  linksViewQuery,
+  linksViewSearch,
+} from "./link-list-query";
 
 test("Links and export share bounded full-tag, status, UTC date and sort scope across pages", () => {
   const tag = "T".repeat(64),
@@ -43,7 +47,7 @@ test("untrusted URL values cannot select unsupported filters or unbounded pages"
       sort: "bad",
       page: "Infinity",
       q: "x".repeat(500),
-      tag: Array(60).fill("t".repeat(90)),
+      tag: Array.from({ length: 60 }, (_, i) => `${i}`.padEnd(90, "t")),
     },
     new Date(),
   );
@@ -61,4 +65,44 @@ test("archived view survives export navigation while trash takes precedence", ()
   expect(
     linksViewQuery({ ...query, trash: "1" }, new Date()).filter.archived,
   ).toBeUndefined();
+});
+test("domain, campaign, untagged and all-of tags are validated and round-trip through export links", () => {
+  const campaign = "A".repeat(24),
+    query = {
+      tag: ["Print", "Promo", "Print"],
+      tagMode: "all",
+      untagged: "1",
+      domain: " Go.Example.com ",
+      campaign,
+    };
+  const view = linksViewQuery(query, new Date());
+  expect(view.filter).toMatchObject({
+    tags: ["Print", "Promo"],
+    tagMode: "all",
+    domain: "go.example.com",
+    campaign: campaign.toLowerCase(),
+  });
+  expect(view.filter.untagged).toBeUndefined();
+  expect(view.filtered).toBe(true);
+  const search = new URLSearchParams(linksViewSearch(query));
+  for (const key of ["tagMode", "untagged", "domain", "campaign"])
+    expect(search.has(key)).toBe(true);
+  expect(
+    linksViewQuery(linkListQueryOf(search.toString()), new Date()).filter,
+  ).toEqual(view.filter);
+  const anyOf = linksViewQuery({ untagged: "1", tag: "Print" }, new Date());
+  expect([anyOf.filter.untagged, anyOf.filter.tagMode]).toEqual([
+    true,
+    undefined,
+  ]);
+  expect(
+    linksViewQuery({ tagMode: "all", untagged: "1" }, new Date()).filter,
+  ).toMatchObject({ untagged: true });
+  const hostile = linksViewQuery(
+    { domain: "a b/../", campaign: "not-an-id", tagMode: "every" },
+    new Date(),
+  );
+  for (const key of ["domain", "campaign", "tagMode"] as const)
+    expect(hostile.filter[key]).toBeUndefined();
+  expect(hostile.filtered).toBe(false);
 });

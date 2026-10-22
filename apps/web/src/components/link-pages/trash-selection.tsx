@@ -3,8 +3,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { buttonVariants } from "@shortn/ui";
 import { restoreLinksAction } from "@/server/actions/links";
+import {
+  PageSelectionContext,
+  SelectionBar,
+} from "@/components/page/selection-bar";
 
 const limit = 1000;
 
@@ -21,7 +24,6 @@ export function TrashSelection({
   const selectionText = useTranslations("page.selection");
   const router = useRouter();
   const root = useRef<HTMLDivElement>(null);
-  const all = useRef<HTMLInputElement>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
@@ -61,9 +63,7 @@ export function TrashSelection({
       'input[name="ids"]',
     ) ?? [])
       input.checked = selected.includes(input.value);
-    if (all.current)
-      all.current.indeterminate = onPage > 0 && onPage < eligible.length;
-  }, [selected, eligible, onPage]);
+  }, [selected, eligible]);
   const restore = async () => {
     setPending(true);
     setMessage("");
@@ -91,78 +91,68 @@ export function TrashSelection({
     }
   };
   return (
-    <div
-      ref={root}
-      onChange={(event) => {
-        const input = event.target;
-        if (!(input instanceof HTMLInputElement) || input.name !== "ids")
-          return;
-        if (input.checked && selected.length >= limit) {
-          input.checked = false;
-          setError(true);
-          setMessage(t("limit", { limit }));
-          return;
-        }
-        choose(
-          input.checked
-            ? [...new Set([...selected, input.value])]
-            : selected.filter((id) => id !== input.value),
-        );
+    <PageSelectionContext.Provider
+      value={{
+        enabled: !pending,
+        eligible: eligible.length,
+        onPage,
+        setPage: (checked) => {
+          const next = checked
+            ? [...new Set([...selected, ...eligible])]
+            : selected.filter((id) => !eligible.includes(id));
+          if (next.length > limit) {
+            setError(true);
+            setMessage(t("limit", { limit }));
+            return;
+          }
+          choose(next);
+        },
       }}
     >
-      <div className="mb-3 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-line pb-3">
-        <label className="flex items-center gap-2 text-small">
-          <input
-            ref={all}
-            type="checkbox"
-            disabled={pending || !eligible.length}
-            checked={eligible.length > 0 && onPage === eligible.length}
-            className="size-4 accent-[var(--color-signal)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-            onChange={(event) => {
-              const next = event.target.checked
-                ? [...new Set([...selected, ...eligible])]
-                : selected.filter((id) => !eligible.includes(id));
-              if (next.length > limit) {
-                setError(true);
-                setMessage(t("limit", { limit }));
-                return;
-              }
-              choose(next);
-            }}
-          />
-          {selectionText("selectPage")}
-        </label>
-        <span role="status" className="text-small text-fg-muted">
-          {t("selection", { count: selected.length, limit })}
-        </span>
-        <button
-          type="button"
-          disabled={pending || !selected.length}
-          onClick={() => choose([])}
-          className={buttonVariants({ variant: "ghost", size: "sm" })}
-        >
-          {selectionText("clear")}
-        </button>
-        <button
-          type="button"
-          disabled={pending || !selected.length}
-          onClick={() => void restore()}
-          className={buttonVariants({ variant: "secondary", size: "sm" })}
-        >
-          {pending ? t("restoring") : t("restore")}
-        </button>
+      <div
+        ref={root}
+        onChange={(event) => {
+          const input = event.target;
+          if (!(input instanceof HTMLInputElement) || input.name !== "ids")
+            return;
+          if (input.checked && selected.length >= limit) {
+            input.checked = false;
+            setError(true);
+            setMessage(t("limit", { limit }));
+            return;
+          }
+          choose(
+            input.checked
+              ? [...new Set([...selected, input.value])]
+              : selected.filter((id) => id !== input.value),
+          );
+        }}
+      >
+        {message ? (
+          <p
+            role={error ? "alert" : "status"}
+            className="mb-3 text-small text-fg-muted"
+          >
+            {message}
+          </p>
+        ) : null}
+        <fieldset disabled={pending} className="min-w-0">
+          {children}
+        </fieldset>
+        <SelectionBar
+          count={selected.length}
+          limit={limit}
+          status={selectionText("count", { count: selected.length })}
+          busy={pending}
+          onClear={() => choose([])}
+          actions={[
+            {
+              label: pending ? t("restoring") : t("restore"),
+              onSelect: () => void restore(),
+            },
+          ]}
+        />
       </div>
-      {message ? (
-        <p
-          role={error ? "alert" : "status"}
-          className="mb-3 text-small text-fg-muted"
-        >
-          {message}
-        </p>
-      ) : null}
-      <fieldset disabled={pending} className="min-w-0">
-        {children}
-      </fieldset>
-    </div>
+    </PageSelectionContext.Provider>
   );
 }

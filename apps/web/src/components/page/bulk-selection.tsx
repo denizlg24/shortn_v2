@@ -1,6 +1,5 @@
 "use client";
 
-import { buttonVariants } from "@shortn/ui";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -17,8 +16,12 @@ import {
   encodeSelection,
   normalizeSelection,
 } from "@/lib/bulk-selection";
+import { PageSelectionContext, SelectionBar } from "./selection-bar";
 
-/** Keeps a bounded ID selection across pages/filters; submission opens review. */
+/**
+ * Keeps a bounded ID selection across pages and filters; an action opens its
+ * review page. Pages place `SelectPageCheckbox` in their header row.
+ */
 export function BulkSelection({
   action,
   enabled,
@@ -31,13 +34,17 @@ export function BulkSelection({
   enabled: boolean;
   allowed?: boolean;
   eligible: string[];
-  actions?: { href: string; label: string; clear?: boolean }[];
+  actions?: {
+    href: string;
+    label: string;
+    clear?: boolean;
+    tone?: "danger";
+  }[];
   children: ReactNode;
 }) {
   const t = useTranslations("page.selection"),
     router = useRouter();
-  const form = useRef<HTMLFormElement>(null),
-    selectAll = useRef<HTMLInputElement>(null);
+  const form = useRef<HTMLFormElement>(null);
   const [fallback, setFallback] = useState<{
       key: string;
       ids: string[];
@@ -49,7 +56,9 @@ export function BulkSelection({
     }),
     [error, setError] = useState(false);
   const storageKey = `shortn:bulk-selection:${action}`;
-  const choices = actions ?? [{ href: action, label: t("delete") }];
+  const choices = actions ?? [
+    { href: action, label: t("delete"), tone: "danger" as const },
+  ];
   const subscribe = useCallback(
     (notify: () => void) => {
       const listener = (event: Event) => {
@@ -113,102 +122,79 @@ export function BulkSelection({
       'input[type="checkbox"][name="ids"]',
     ) ?? [])
       input.checked = chosen.has(input.value);
-    if (selectAll.current)
-      selectAll.current.indeterminate = onPage > 0 && onPage < eligible.length;
-  }, [chosen, eligible, onPage]);
+  }, [chosen, eligible]);
+  const open = (choice: (typeof choices)[number]) => {
+    if (!allowed || !selected.length) return;
+    const selection = encodeSelection(selected);
+    if (choice.clear !== false) choose([]);
+    router.push(
+      `${choice.href}${choice.href.includes("?") ? "&" : "?"}selection=${selection}`,
+    );
+  };
   return (
-    <form
-      ref={form}
-      method="get"
-      action={action}
-      onChange={(event) => {
-        const input = event.target;
-        if (
-          !allowed ||
-          !(input instanceof HTMLInputElement) ||
-          input.name !== "ids" ||
-          !eligible.includes(input.value)
-        )
-          return;
-        if (input.checked && selected.length >= limit) {
-          input.checked = false;
-          setError(true);
-          return;
-        }
-        choose(
-          input.checked
-            ? [...new Set([...selected, input.value])]
-            : selected.filter((id) => id !== input.value),
-        );
-      }}
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (!allowed || !selected.length) return;
-        const submitter = (event.nativeEvent as SubmitEvent).submitter;
-        const href =
-          submitter?.getAttribute("formaction") ?? choices[0]?.href ?? action;
-        const choice = choices.find((item) => item.href === href);
-        if (!choice) return;
-        const selection = encodeSelection(selected);
-        if (choice.clear !== false) choose([]);
-        router.push(
-          `${href}${href.includes("?") ? "&" : "?"}selection=${selection}`,
-        );
+    <PageSelectionContext.Provider
+      value={{
+        enabled: allowed && enabled,
+        eligible: eligible.length,
+        onPage,
+        setPage: (checked) =>
+          choose(
+            checked
+              ? [...new Set([...selected, ...eligible])]
+              : selected.filter((id) => !eligible.includes(id)),
+          ),
       }}
     >
-      {allowed && (enabled || selected.length > 0) ? (
-        <div className="mb-3 flex min-h-10 flex-wrap items-center gap-x-4 gap-y-2 border-b border-line pb-3">
-          <label className="flex items-center gap-2 text-small">
-            <input
-              ref={selectAll}
-              type="checkbox"
-              disabled={!eligible.length}
-              checked={eligible.length > 0 && onPage === eligible.length}
-              onChange={(event) =>
-                choose(
-                  event.target.checked
-                    ? [...new Set([...selected, ...eligible])]
-                    : selected.filter((id) => !eligible.includes(id)),
-                )
-              }
-              className="size-4 accent-[var(--color-signal)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-signal"
-            />
-            {t("selectPage")}
-          </label>
-          <span role="status" className="text-small text-fg-muted">
-            {t("count", { count: selected.length })}
-          </span>
-          <span className="text-meta text-fg-muted">
-            {t("maximum", { limit })}
-          </span>
-          {selected.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => choose([])}
-              className={buttonVariants({ variant: "ghost", size: "sm" })}
-            >
-              {t("clear")}
-            </button>
-          ) : null}
-          {choices.map((choice) => (
-            <button
-              key={choice.href}
-              type="submit"
-              formAction={choice.href}
-              disabled={!selected.length}
-              className={buttonVariants({ variant: "secondary", size: "sm" })}
-            >
-              {choice.label}
-            </button>
-          ))}
-        </div>
-      ) : null}
-      {error ? (
-        <p role="alert" className="mb-3 text-small text-fg-muted">
-          {t("limit", { limit })}
-        </p>
-      ) : null}
-      {children}
-    </form>
+      <form
+        ref={form}
+        method="get"
+        action={action}
+        onChange={(event) => {
+          const input = event.target;
+          if (
+            !allowed ||
+            !(input instanceof HTMLInputElement) ||
+            input.name !== "ids" ||
+            !eligible.includes(input.value)
+          )
+            return;
+          if (input.checked && selected.length >= limit) {
+            input.checked = false;
+            setError(true);
+            return;
+          }
+          choose(
+            input.checked
+              ? [...new Set([...selected, input.value])]
+              : selected.filter((id) => id !== input.value),
+          );
+        }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          const first = choices[0];
+          if (first) open(first);
+        }}
+      >
+        {error ? (
+          <p role="alert" className="mb-3 text-small text-fg-muted">
+            {t("limit", { limit })}
+          </p>
+        ) : null}
+        {children}
+        {allowed ? (
+          <SelectionBar
+            count={selected.length}
+            limit={limit}
+            status={t("count", { count: selected.length })}
+            onClear={() => choose([])}
+            actions={choices.map((choice) => ({
+              label: choice.label,
+              ...(choice.tone ? { tone: choice.tone } : {}),
+              onSelect: () => open(choice),
+            }))}
+          />
+        ) : null}
+      </form>
+    </PageSelectionContext.Provider>
   );
 }

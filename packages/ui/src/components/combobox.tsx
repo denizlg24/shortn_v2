@@ -18,6 +18,8 @@ export interface ComboboxOption {
   value: string;
   label: string;
   meta?: string;
+  /** Shown after the check mark, e.g. a colour swatch. */
+  leading?: ReactNode;
 }
 
 export interface ComboboxProps {
@@ -171,25 +173,28 @@ export function Combobox({
                     className="h-8"
                     {...(option.meta ? { meta: option.meta } : {})}
                     icon={
-                      <span
-                        aria-hidden
-                        className={cn(
-                          "grid size-4 place-items-center rounded-chip",
-                          multiple && "border border-line-strong",
-                          multiple &&
-                            isSelected &&
-                            "border-signal bg-signal text-signal-fg",
-                        )}
-                      >
-                        <Check
+                      <>
+                        <span
+                          aria-hidden
                           className={cn(
-                            "size-3",
-                            multiple ? "text-current!" : "text-fg!",
-                            isSelected ? "opacity-100" : "opacity-0",
+                            "grid size-4 place-items-center rounded-chip",
+                            multiple && "border border-line-strong",
+                            multiple &&
+                              isSelected &&
+                              "border-signal bg-signal text-signal-fg",
                           )}
-                          strokeWidth={multiple ? 3 : 2}
-                        />
-                      </span>
+                        >
+                          <Check
+                            className={cn(
+                              "size-3",
+                              multiple ? "text-current!" : "text-fg!",
+                              isSelected ? "opacity-100" : "opacity-0",
+                            )}
+                            strokeWidth={multiple ? 3 : 2}
+                          />
+                        </span>
+                        {option.leading}
+                      </>
                     }
                   >
                     {option.label}

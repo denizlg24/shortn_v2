@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@shortn/ui";
 import { useLinkCreation } from "./use-link-creation";
 import { useFormSubmit } from "../editor/use-form-submit";
-import { TagsField } from "../page/tags-field";
+import { TagsField, type TagOption } from "../page/tags-field";
 import { Section } from "../page/page";
 import { FormActions, FormField, inputClass } from "../page/form";
 import { PlanGate } from "../plan-gate";
@@ -30,7 +30,7 @@ export function LinkForm({
   mode: "create" | "edit";
   domain: string;
   initial: LinkFormValues;
-  allTags: string[];
+  allTags: TagOption[];
   // Cheapest plan with the feature, or null when this workspace has it.
   gates: { customKeys: PlanId | null; passwords: PlanId | null };
   action: (state: FormState, form: FormData) => Promise<FormState>;

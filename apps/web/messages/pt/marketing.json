@@ -118,6 +118,12 @@
       },
       "source": "Espaço de trabalho do nosso maior cliente, dados de {date}. Partilhados com a sua autorização."
     },
+    "video": {
+      "title": "Um link, do cartaz às estatísticas",
+      "body": "Encurte um link, imprima-o como código QR, encontre-o entre milhares e veja cada clique e cada leitura. Vinte segundos do painel real.",
+      "label": "Vídeo do Shortn: criar um link curto, desenhar o código QR, filtrar uma biblioteca grande de links e ler as estatísticas",
+      "caption": "Gravado num espaço de trabalho de exemplo. O som fica desligado até o ligar."
+    },
     "print": {
       "title": "Imprima o código QR uma vez. Mude o destino quando quiser.",
       "body": "Cada código QR aponta para um link curto, por isso pode alterar o destino depois de a agenda, o cartaz ou a embalagem estarem impressos. Leituras e cliques são contados em separado.",
