@@ -16,6 +16,16 @@ const partial = (field: string) => ({
   partialFilterExpression: { [field]: { $type: "string" } },
 });
 export const desiredIndexes: Record<string, IndexDescription[]> = {
+  [physicalNames.admin_bulk_selections]: [
+    {
+      name: "bulk_selection_expiry",
+      key: { expiresAt: 1 },
+      expireAfterSeconds: 0,
+    },
+  ],
+  [physicalNames.admin_refund_intents]: [
+    { name: "refund_intent_order", key: { orderId: 1, at: -1 } },
+  ],
   [physicalNames.export_jobs]: [
     { name: "export_request", key: { requestKey: 1 }, unique: true },
     { name: "export_due", key: { state: 1, nextAttemptAt: 1, _id: 1 } },
@@ -300,6 +310,33 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   ],
   [physicalNames.links]: [
     {
+      name: "admin_auto_blocked",
+      key: { disabledReason: 1, _id: -1 },
+      partialFilterExpression: { disabledReason: "auto:report-threshold" },
+    },
+    {
+      name: "admin_risky",
+      key: { safetyStatus: 1, _id: -1 },
+      partialFilterExpression: {
+        safetyStatus: { $in: ["suspicious", "malicious", "blocked"] },
+      },
+    },
+    {
+      name: "admin_moderated",
+      key: { "moderation.at": -1, _id: -1 },
+      partialFilterExpression: { moderation: { $exists: true } },
+    },
+    {
+      name: "admin_reported",
+      key: { reportCount: -1, _id: -1 },
+      partialFilterExpression: { reportCount: { $gt: 0 } },
+    },
+    {
+      name: "admin_dest_host",
+      key: { destHostRev: 1, _id: -1 },
+      partialFilterExpression: { destHostRev: { $type: "string" } },
+    },
+    {
       name: "v2_rule_schedule_due",
       key: { "ruleSchedule.queued": 1, "ruleSchedule.nextAt": 1, _id: 1 },
     },
@@ -500,6 +537,16 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
   // flag-filtered facets lead with the flag.
   [physicalNames.user]: [
     {
+      name: "admin_username",
+      key: { username: 1 },
+      partialFilterExpression: { username: { $type: "string" } },
+    },
+    {
+      name: "admin_sub",
+      key: { sub: 1 },
+      partialFilterExpression: { sub: { $type: "string" } },
+    },
+    {
       name: "admin_role",
       key: { role: 1, _id: -1 },
       partialFilterExpression: { role: { $exists: true } },
@@ -537,6 +584,11 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
     { name: "reconcile_time", key: { at: -1 } },
   ],
   [physicalNames.contacts]: [
+    {
+      name: "contact_gdpr_retention",
+      key: { gdprRetainUntil: 1 },
+      expireAfterSeconds: 0,
+    },
     { name: "contact_triage", key: { "triage.status": 1, createdAt: -1 } },
   ],
   [physicalNames.admin_audit_log]: [

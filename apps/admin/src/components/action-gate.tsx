@@ -21,7 +21,7 @@ export function ActionGate({
     );
   if (denial === "step_up_required")
     return (
-      <div className="flex max-w-xl flex-col items-start gap-3 border-l-2 border-warning pl-4">
+      <div className="flex max-w-xl flex-col items-start gap-3 border-y border-line py-4">
         <p className="text-small">
           This action needs a fresh authenticator check (within the last 10
           minutes).

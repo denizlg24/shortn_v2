@@ -15,3 +15,5 @@ export { deriveLinkUtm } from "./migrations/m0006-normalize-campaigns-utm";
 export * from "./sso-session";
 export * from "./account-status";
 export * from "./entitlement-override";
+
+export * from "./destination-host";

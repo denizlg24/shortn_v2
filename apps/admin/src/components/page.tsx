@@ -21,14 +21,17 @@ export function PageHeader({
 }) {
   return (
     <header className="sticky top-0 z-10 flex min-h-page-header shrink-0 flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-bg px-gutter py-2">
-      <div className="flex min-w-0 items-baseline gap-2">
+      <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
         {crumbs?.map((crumb) => (
           <span
             key={crumb.label}
             className="flex items-baseline gap-2 text-small text-fg-muted"
           >
             {crumb.href ? (
-              <Link href={crumb.href} className="hover:text-fg">
+              <Link
+                href={crumb.href}
+                className="max-w-48 truncate hover:text-fg"
+              >
                 {crumb.label}
               </Link>
             ) : (

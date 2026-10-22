@@ -39,6 +39,7 @@ export async function enqueuePlatformNotification<
     key: string;
     kind: K;
     to: string;
+    locale?: string;
     payload: PlatformNotificationPayloads[K];
     now?: Date;
   },
@@ -50,6 +51,7 @@ export async function enqueuePlatformNotification<
       $setOnInsert: {
         kind: input.kind,
         to: input.to,
+        ...(input.locale ? { locale: input.locale } : {}),
         payload: input.payload,
         createdAt: now,
         attempts: 0,

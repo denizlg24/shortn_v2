@@ -124,6 +124,7 @@ export const linkModerationSchema = z.object({
   }),
 });
 export const linkSchema = z.looseObject({
+  destHostRev: text.optional(),
   ...base,
   ...legacy,
   moderation: linkModerationSchema.optional(),
@@ -788,8 +789,9 @@ export const schemas = {
     // Idempotency key, e.g. "workspaceSuspended:<workspaceId>:<at>".
     _id: text,
     kind: text,
-    to: text,
-    payload: z.record(text, z.unknown()),
+    to: text.optional(),
+    locale: text.optional(),
+    payload: z.record(text, z.unknown()).optional(),
     createdAt: z.date(),
     sentAt: z.date().optional(),
     attempts: count,

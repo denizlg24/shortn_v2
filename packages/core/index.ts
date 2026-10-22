@@ -82,3 +82,7 @@ export * from "./exports/workspace-data";
 export * from "./links/bulk-tags";
 export * from "./links/archive";
 export * from "./links/metadata";
+
+export * from "./admin/console";
+
+export * from "./admin/deletion";

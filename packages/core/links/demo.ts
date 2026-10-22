@@ -1,6 +1,6 @@
 import { MongoServerError, ObjectId, type Db } from "mongodb";
 import { customAlphabet } from "nanoid";
-import { collection } from "@shortn/db";
+import { collection, destinationHostRev } from "@shortn/db";
 import { fail, ok, type Result } from "../result";
 import { isReservedKey } from "../routing";
 import { scanUrl, type ScanDeps } from "../safety/scan";
@@ -94,6 +94,7 @@ export async function createDemoLink(
         domain: deps.linkDomain,
         key,
         longUrl: url,
+        destHostRev: destinationHostRev(url) ?? undefined,
         demo: true,
         title: "",
         rules: { expiresAt, maxClicks: demoMaxClicks },

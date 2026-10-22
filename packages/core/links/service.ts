@@ -28,6 +28,7 @@ import {
 import {
   collection,
   deriveLink,
+  destinationHostRev,
   physicalNames,
   type Documents,
 } from "@shortn/db";
@@ -804,6 +805,7 @@ async function createManyAttached(
             urlCode: key,
             customCode: Boolean(input.key?.trim()),
             longUrl: url,
+            destHostRev: destinationHostRev(url),
             isQrCode: qrImport,
             ...(qrCodeId ? { qrCodeId } : {}),
             title: input.title?.trim() || `${new URL(url).hostname} - untitled`,
@@ -1047,6 +1049,7 @@ export async function updateLink(
     if (!destination.ok) return destination;
     legacy.longUrl = destination.value;
     set.longUrl = destination.value;
+    set.destHostRev = destinationHostRev(destination.value);
     // A changed destination is unscanned again (legacy rescans in after()).
     legacy.safetyStatus =
       link.safetyStatus === "blocked" ? "blocked" : "pending";
@@ -1384,10 +1387,14 @@ export async function purgeExpiredLinks(
   deps: Pick<ServiceContext, "db" | "cache" | "linkDomain">,
   now = new Date(),
   limit = 100,
+  workspaceId?: ObjectId,
 ) {
   const cutoff = new Date(now.getTime() - linkTrashRetentionMs);
   const docs = await collection(deps.db, "links")
-    .find({ deletedAt: { $lte: cutoff } })
+    .find({
+      deletedAt: { $lte: cutoff },
+      ...(workspaceId ? { workspaceId } : {}),
+    })
     .sort({ deletedAt: 1, _id: 1 })
     .limit(Math.min(1000, Math.max(1, limit)))
     .toArray();

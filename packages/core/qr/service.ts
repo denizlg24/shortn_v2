@@ -5,6 +5,7 @@ import { hasFeature, loadEntitlements } from "@shortn/billing";
 import {
   collection,
   deriveLink,
+  destinationHostRev,
   physicalNames,
   type Documents,
 } from "@shortn/db";
@@ -266,6 +267,7 @@ export async function createQr(
     urlCode,
     customCode: false,
     longUrl: url,
+    destHostRev: destinationHostRev(url),
     qrCodeId,
     isQrCode: true,
     title,
@@ -801,6 +803,7 @@ async function updateBackingLink(
   )
     return null;
   if (defined.longUrl !== undefined && defined.longUrl !== link.longUrl) {
+    defined.destHostRev = destinationHostRev(String(defined.longUrl));
     defined.safetyScan = requestSafetyScan(nowOf(ctx));
     defined.health = requestHealthCheck(
       String(defined.longUrl),

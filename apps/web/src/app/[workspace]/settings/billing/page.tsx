@@ -162,6 +162,19 @@ export default async function BillingSettingsPage({
             : t("current.freeResets", { date: f.date(overview.period.end) })}
         </p>
         <div className="mt-4 flex flex-col gap-3 empty:hidden">
+          {overview.sources?.plan === "comp" ? (
+            <Notice>
+              {overview.sources.overrideExpiresAt
+                ? t("current.complimentaryUntil", {
+                    plan: f.plan(plan),
+                    date: f.date(overview.sources.overrideExpiresAt),
+                  })
+                : t("current.complimentary", { plan: f.plan(plan) })}
+            </Notice>
+          ) : null}
+          {overview.sources?.overriddenLimits.length ? (
+            <Notice>{t("current.customLimits")}</Notice>
+          ) : null}
           {subscription?.status === "past_due" ? (
             <Notice tone="warning">
               {t("status.pastDue", { plan: f.plan(plan) })}

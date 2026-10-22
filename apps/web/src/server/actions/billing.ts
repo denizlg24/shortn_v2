@@ -22,6 +22,11 @@ import { invalidInput, type ActionResult } from "./result";
 
 export interface BillingOverview {
   plan: PlanId;
+  sources?: {
+    plan: "subscription" | "comp" | "free";
+    overrideExpiresAt?: string;
+    overriddenLimits: string[];
+  };
   limits: (typeof plans)[PlanId]["limits"];
   features: readonly string[];
   usage: { links: number; qrCodes: number; bioPages: number };
@@ -64,6 +69,16 @@ export async function billingOverviewAction(
     : null;
   return {
     plan: entitlements.plan,
+    sources: {
+      plan: entitlements.sources.plan,
+      overriddenLimits: entitlements.sources.overriddenLimits,
+      ...(entitlements.sources.overrideExpiresAt
+        ? {
+            overrideExpiresAt:
+              entitlements.sources.overrideExpiresAt.toISOString(),
+          }
+        : {}),
+    },
     limits: entitlements.limits,
     features: entitlements.features,
     usage,

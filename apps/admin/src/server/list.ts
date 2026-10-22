@@ -40,7 +40,7 @@ export const prefixRegex = (value: string) =>
 
 interface Cursor {
   v?: unknown;
-  id: ObjectId;
+  id: ObjectId | string;
 }
 
 const encode = (cursor: Cursor) =>
@@ -56,7 +56,8 @@ function decode(raw: string | undefined): Cursor | null {
       typeof value === "object" &&
       value !== null &&
       "id" in value &&
-      value.id instanceof ObjectId
+      (value.id instanceof ObjectId ||
+        (typeof value.id === "string" && value.id.length < 256))
     )
       return { id: value.id, ...("v" in value ? { v: value.v } : {}) };
   } catch {

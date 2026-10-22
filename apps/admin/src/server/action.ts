@@ -26,7 +26,7 @@ export async function runAdminAction<E extends string>(
   form: FormData,
   run: (ctx: AdminContext, reason: string) => Promise<Result<unknown, E>>,
   options: {
-    done: string;
+    done: string | (() => string);
     messages?: Partial<Record<E, string>>;
     rate?: RateClass;
     /** Typed confirmation that must equal the `confirm` field. */
@@ -54,5 +54,5 @@ export async function runAdminAction<E extends string>(
         options.messages?.[result.error] ??
         `The action failed (${result.error}).`,
     };
-  redirect(options.done);
+  redirect(typeof options.done === "function" ? options.done() : options.done);
 }
