@@ -30,7 +30,7 @@ const app = createApp({
 });
 const server = Bun.serve({ hostname: "127.0.0.1", port: 0, fetch: app.fetch });
 const browser = await chromium.launch({ headless: true });
-const directory = ".impeccable/review/p6-rule-gates";
+const directory = "test-results/captures/p6-rule-gates";
 await mkdir(directory, { recursive: true });
 try {
   for (const locale of ["en", "es", "pt"]) {

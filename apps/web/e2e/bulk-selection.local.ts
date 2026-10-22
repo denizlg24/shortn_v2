@@ -37,7 +37,7 @@ const ctx: ServiceContext = {
 const linkIds: ObjectId[] = [];
 const qrIds: ObjectId[] = [],
   publicIds: string[] = [];
-const directory = ".impeccable/review/p6-health-ui";
+const directory = "test-results/captures/p6-health-ui";
 await mkdir(directory, { recursive: true });
 const subscriptionId = new ObjectId();
 await db.collection(physicalNames.subscriptions).insertOne({

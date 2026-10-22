@@ -97,23 +97,19 @@ try {
     role: "owner",
     createdAt: new Date(),
   });
-  await db
-    .collection(physicalNames.links)
-    .insertOne({
-      _id: linkId,
-      workspaceId,
-      urlCode: marker,
-      longUrl: "https://example.com/?utm_source=one&utm_source=two#part",
-      title: "São João",
-      passwordHash: "PRIVATE_PASSWORD",
-    });
-  await db
-    .collection(physicalNames.click_events)
-    .insertOne({
-      ts: new Date(Date.now() - 1000 * 86400_000),
-      m: { workspaceId, linkId, key: marker, kind: "click" },
-      ipHash: "PRIVATE_VISITOR",
-    });
+  await db.collection(physicalNames.links).insertOne({
+    _id: linkId,
+    workspaceId,
+    urlCode: marker,
+    longUrl: "https://example.com/?utm_source=one&utm_source=two#part",
+    title: "São João",
+    passwordHash: "PRIVATE_PASSWORD",
+  });
+  await db.collection(physicalNames.click_events).insertOne({
+    ts: new Date(Date.now() - 1000 * 86400_000),
+    m: { workspaceId, linkId, key: marker, kind: "click" },
+    ipHash: "PRIVATE_VISITOR",
+  });
   const context = await browser.newContext(),
     page = await context.newPage();
   await page.goto(`${login.origin}/login`);
@@ -280,7 +276,7 @@ try {
     { $set: { expiresAt: new Date(0) } },
   );
   assert.equal((await api.get(`${base}/jobs/${id}`)).status(), 404);
-  const directory = ".impeccable/review/p6-workspace-export-backend";
+  const directory = "test-results/captures/p6-workspace-export-backend";
   await mkdir(directory, { recursive: true });
   await writeFile(
     `${directory}/http-evidence.json`,

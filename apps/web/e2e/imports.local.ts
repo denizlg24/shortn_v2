@@ -108,7 +108,7 @@ const worker = createImportWorker({
   log: (message) => console.log(message),
 });
 const browser = await chromium.launch({ headless: true }),
-  directory = ".impeccable/review/p6-import-ui",
+  directory = "test-results/captures/p6-import-ui",
   captures: object[] = [],
   errors: string[] = [];
 const base = `${login.origin}/${login.workspace}/imports`;
@@ -218,13 +218,11 @@ try {
     ),
     ",missing,Missing URL,Editorial",
   ].join("\n");
-  await page
-    .locator('input[type="file"]')
-    .setInputFiles({
-      name: "synthetic.csv",
-      mimeType: "text/csv",
-      buffer: Buffer.from(csv),
-    });
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "synthetic.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(csv),
+  });
   await page.getByRole("button", { name: "Upload and continue" }).click();
   await page.waitForURL(new RegExp("/imports/[a-f0-9]{24}$"));
   const largeId = page.url().split("/").at(-1)!;
@@ -457,12 +455,10 @@ try {
     workspaceId: workspace._id,
     name: marker,
   });
-  await db
-    .collection(physicalNames.webhook_events)
-    .deleteMany({
-      workspaceId: workspace._id,
-      "data.importId": { $in: ids.map(String) },
-    });
+  await db.collection(physicalNames.webhook_events).deleteMany({
+    workspaceId: workspace._id,
+    "data.importId": { $in: ids.map(String) },
+  });
   cache.disconnect();
   durable.disconnect();
   await mongo.close();

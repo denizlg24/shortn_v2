@@ -131,10 +131,10 @@ try {
   await library.getByText(/4 matching links/).waitFor();
   await button("Select this page").click();
   await button("Use 44 selected links").waitFor();
-  await mkdir(".impeccable/review", { recursive: true });
+  await mkdir("test-results/captures", { recursive: true });
   if (process.argv.includes("--capture"))
     await page.screenshot({
-      path: ".impeccable/review/campaign-library-desktop.png",
+      path: "test-results/captures/campaign-library-desktop.png",
       fullPage: true,
     });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -159,7 +159,7 @@ try {
   assert.deepEqual(clipping, [], "Campaign picker clips controls");
   if (process.argv.includes("--capture"))
     await page.screenshot({
-      path: ".impeccable/review/campaign-library-mobile.png",
+      path: "test-results/captures/campaign-library-mobile.png",
       fullPage: true,
     });
   await page.setViewportSize({ width: 1440, height: 1000 });

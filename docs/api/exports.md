@@ -91,7 +91,7 @@ owns a synthetic private object store and real BullMQ worker. It verifies an act
 selection growth, a 5,000-row queued JSON artifact, private response headers,
 origin/body-shape boundaries, a valid foreign workspace, creator-bound token expiry,
 request deduplication, cancellation/retry/completed-state behavior and current plan
-revocation. Evidence is saved in `.impeccable/review/p6-link-export-http/evidence.json`.
+revocation. Evidence is saved in `test-results/captures/p6-link-export-http/evidence.json`.
 Transport unit tests verify body bounds, exact origin matching, pull backpressure,
 request abort and iterator cleanup. No external provider writes are involved.
 
@@ -121,7 +121,7 @@ library, filter preservation, whole-filter 27-row CSV/JSON downloads across two
 review pages, duplicate-submit prevention, remote tag search outside the first
 50 suggestions, empty state, cancellation, actual BullMQ worker delivery,
 30-job history pagination/filtering, expiry, plan loss and 390px bounds. Captures
-and assertions are in `.impeccable/review/p6-link-export-ui/evidence.json`.
+and assertions are in `test-results/captures/p6-link-export-ui/evidence.json`.
 This is local dashboard evidence; analytics/workspace exports and external
 storage/staging acceptance remain open.
 
@@ -198,7 +198,7 @@ replaced/expired leases, current roles, kind/tenant isolation, expiry, paginatio
 and a real BullMQ pump. `apps/web/e2e/analytics-exports-http.local.ts` verifies the
 actual authenticated Next routes and 1,005-row private downloads in all three
 mode/format combinations. Its synthetic evidence is in
-`.impeccable/review/p6-analytics-export-backend/http-evidence.json`.
+`test-results/captures/p6-analytics-export-backend/http-evidence.json`.
 The analytics dashboard and breakdown pages now open in-page job review rather
 than fetching an entire CSV response into browser memory. Full-workspace export, real storage/staging acceptance and
 other P6 deliverables remain open.
@@ -231,7 +231,7 @@ dashboard no longer calls it.
 libraries with 1,005 matching events, all three mode/format downloads through a
 real worker, breakdown entry, scope preservation, duplicate submits, cancellation,
 30-job history pagination/filtering, empty/expired/plan states and 1440/390px
-layouts. Evidence is in `.impeccable/review/p6-analytics-export-ui/evidence.json`.
+layouts. Evidence is in `test-results/captures/p6-analytics-export-ui/evidence.json`.
 
 
 ## Full-workspace archive jobs
@@ -309,7 +309,7 @@ stale leases, separate mail retry/idempotency and a real BullMQ pump.
 `apps/web/e2e/workspace-exports-http.local.ts` verifies actual session HTTP and an
 18-entry private S3 ZIP, metadata bounds, free-owner access, current-role refusal,
 kind/tenant isolation, UUIDs, cancellation/history/expiry. Evidence is in
-`.impeccable/review/p6-workspace-export-backend/http-evidence.json`.
+`test-results/captures/p6-workspace-export-backend/http-evidence.json`.
 
 ### Workspace dashboard
 
@@ -334,6 +334,6 @@ active-job continuation, cancellation, history pages/state filtering, retry,
 owner loss and expiry. A fake notifier verifies pending-to-sent polling and the
 signed-out email → sign-in → exact job → ZIP flow without real provider mail.
 Desktop/mobile en/pt/es light/dark evidence and design review live in
-`.impeccable/review/p6-workspace-export-ui/`. Helper tests reject external,
+`test-results/captures/p6-workspace-export-ui/`. Helper tests reject external,
 traversing and malformed return paths. Real email/R2/staging acceptance and
 remaining P6 requirements stay open.

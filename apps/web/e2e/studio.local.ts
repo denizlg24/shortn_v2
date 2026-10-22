@@ -29,16 +29,14 @@ const tagNames = [
   `Browser Beta ${fixtureHandle}`,
 ];
 const tagIds = [new ObjectId(), new ObjectId()];
-await db
-  .collection(physicalNames.tags)
-  .insertMany(
-    tagNames.map((name, at) => ({
-      _id: tagIds[at],
-      workspaceId: source.workspaceId,
-      name,
-      tagName: name,
-    })),
-  );
+await db.collection(physicalNames.tags).insertMany(
+  tagNames.map((name, at) => ({
+    _id: tagIds[at],
+    workspaceId: source.workspaceId,
+    name,
+    tagName: name,
+  })),
+);
 const libraryFixtures = Array.from({ length: 1005 }, (_, at) => {
   const group = at < 1001 ? 0 : 1,
     key = `${fixtureHandle}-library-${at}`;
@@ -111,19 +109,17 @@ const content = {
     },
   ],
 };
-await db
-  .collection(physicalNames.bio_pages)
-  .insertOne({
-    _id: fixtureId,
-    workspaceId: source.workspaceId,
-    handle: fixtureHandle,
-    published: true,
-    publicationManaged: true,
-    draftRevision: 0,
-    publishedRevision: 0,
-    draft: content,
-    publishedContent: content,
-  });
+await db.collection(physicalNames.bio_pages).insertOne({
+  _id: fixtureId,
+  workspaceId: source.workspaceId,
+  handle: fixtureHandle,
+  published: true,
+  publicationManaged: true,
+  draftRevision: 0,
+  publishedRevision: 0,
+  draft: content,
+  publishedContent: content,
+});
 credentials.directoryEditor = credentials.directoryEditor.replace(
   sourceId,
   String(fixtureId),
@@ -131,7 +127,7 @@ credentials.directoryEditor = credentials.directoryEditor.replace(
 credentials.directoryBio = `http://localhost:3100/_bio/${fixtureHandle}`;
 const browser = await chromium.launch({ headless: true });
 const capture = process.argv.includes("--capture");
-const review = ".impeccable/review";
+const review = "test-results/captures";
 await mkdir(review, { recursive: true });
 try {
   const page = await browser.newPage({

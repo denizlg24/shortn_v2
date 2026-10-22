@@ -66,3 +66,6 @@ scripts/*
 
 # rendered email previews (bun run --cwd packages/emails preview)
 packages/emails/.preview/
+
+# Local e2e captures and evidence
+test-results/
