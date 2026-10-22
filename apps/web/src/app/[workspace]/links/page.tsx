@@ -208,11 +208,15 @@ export default async function LinksPage({
         {...(!trash
           ? {
               actions: [
-                {
-                  href: `/${workspace}/links/bio`,
-                  label: bioText("title"),
-                  clear: false,
-                },
+                ...(!archived
+                  ? [
+                      {
+                        href: `/${workspace}/links/bio`,
+                        label: bioText("title"),
+                        clear: false,
+                      },
+                    ]
+                  : []),
                 ...(archived
                   ? [
                       {
@@ -368,7 +372,9 @@ export default async function LinksPage({
                               {link.title}
                             </p>
                           ) : null}
-                          {!trash && can(ctx.actor, "resource.update") ? (
+                          {!trash &&
+                          !archived &&
+                          can(ctx.actor, "resource.update") ? (
                             <Link
                               href={`/${workspace}/links/bio?selection=${encodeSelection([link.id])}`}
                               className="mt-1 inline-block text-meta text-signal hover:underline"
