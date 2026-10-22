@@ -17,7 +17,6 @@ const config: NextConfig = {
   ],
   serverExternalPackages: ["mongodb", "ioredis"],
   poweredByHeader: false,
-  typedRoutes: true,
 };
 
 export default config;

@@ -20,6 +20,7 @@ export * from "./admin/permissions";
 export * from "./admin/context";
 export * from "./admin/audit";
 export * from "./admin/sessions";
+export * from "./admin/notifications";
 export * from "./links/moderation";
 export * from "./result";
 export * from "./workspaces/context";
