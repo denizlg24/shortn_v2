@@ -128,7 +128,9 @@ export function BioEditor({
   links: initialLinks,
   versions,
   paid,
+  initialSection,
 }: {
+  initialSection?: string | undefined;
   workspace: string;
   id: string;
   initial: BioContent;
@@ -151,6 +153,7 @@ export function BioEditor({
     [desktop, setDesktop] = useState(false);
   const [panel, setPanel] = useState<
     | "add"
+    | "link-target"
     | "outline"
     | "theme"
     | "settings"
@@ -158,8 +161,11 @@ export function BioEditor({
     | "section"
     | "links"
     | null
-  >(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  >(initialSection ? "links" : null);
+  const [addingLinks, setAddingLinks] = useState(false);
+  const [selected, setSelected] = useState<string | null>(
+    initialSection ?? null,
+  );
   const { uploading, onBusyChange } = useUploadStatus();
   useEffect(() => {
     if (panel) document.getElementById("studio-panel-title")?.focus();
@@ -376,7 +382,8 @@ export function BioEditor({
                   : { ...common, type: "socials", items: [] };
     setContent((c) => ({ ...c, blocks: [...c.blocks, block as BioBlock] }));
     setSelected(common.id);
-    setPanel("section");
+    setAddingLinks(type === "links");
+    setPanel(type === "links" ? "links" : "section");
   };
   async function publish() {
     setBusy(true);
@@ -407,20 +414,31 @@ export function BioEditor({
     setSelected(block.id);
     setPanel("section");
   };
+  const startAddingLinks = () => {
+    setAddingLinks(true);
+    const sections = content.blocks.filter((block) => block.type === "links");
+    if (!sections.length) add("links");
+    else if (sections.length === 1) {
+      setSelected(sections[0]!.id);
+      setPanel("links");
+    } else setPanel("link-target");
+  };
   const panelTitle =
-    panel === "section" && selectedBlock
-      ? t(`types.${selectedBlock.type}`)
-      : panel === "links"
-        ? t("manageLinks")
-        : panel === "add"
-          ? t("addSection")
-          : panel === "outline"
-            ? t("sections")
-            : panel === "theme"
-              ? t("theme")
-              : panel === "history"
-                ? t("versions")
-                : t("pageSettings");
+    panel === "link-target"
+      ? t("chooseLinkSection")
+      : panel === "section" && selectedBlock
+        ? t(`types.${selectedBlock.type}`)
+        : panel === "links"
+          ? t("manageLinks")
+          : panel === "add"
+            ? t("addSection")
+            : panel === "outline"
+              ? t("sections")
+              : panel === "theme"
+                ? t("theme")
+                : panel === "history"
+                  ? t("versions")
+                  : t("pageSettings");
   const previewLinks = Object.fromEntries(
     Object.entries(links).map(([id, link]) => [
       id,
@@ -447,10 +465,28 @@ export function BioEditor({
             className="studio-primary"
             type="button"
             disabled={uploading || busy}
+            onClick={startAddingLinks}
+          >
+            <Plus aria-hidden />
+            {t("addLinks")}
+          </button>
+          <button
+            type="button"
+            className="studio-tool"
+            disabled={uploading || busy || content.blocks.length >= 150}
             onClick={() => setPanel("add")}
           >
             <Plus aria-hidden />
             {t("addSection")}
+          </button>
+          <button
+            type="button"
+            className="studio-tool"
+            disabled={uploading || busy}
+            onClick={() => profile && open(profile)}
+          >
+            <Pencil aria-hidden />
+            {t("editProfile")}
           </button>
           {(
             [
@@ -582,6 +618,13 @@ export function BioEditor({
               className="text-emphasis font-semibold"
             >
               {panelTitle}
+              {(panel === "links" || panel === "section") &&
+              selectedBlock?.type === "links" &&
+              selectedBlock.title ? (
+                <span className="ml-2 break-words text-small font-normal text-fg-muted">
+                  · {selectedBlock.title}
+                </span>
+              ) : null}
             </h2>
             <p className="text-small text-fg-muted">
               {panel === "links" ? t("linksHint") : t("draftHint")}
@@ -590,6 +633,46 @@ export function BioEditor({
           <div className="studio-workspace-layout">
             <div className="studio-workspace-body">
               <fieldset disabled={busy || uploading} className="min-w-0">
+                {panel === "link-target" ? (
+                  <div className="grid gap-2">
+                    <p className="mb-3 text-small text-fg-muted">
+                      {t("chooseLinkSectionHint")}
+                    </p>
+                    {content.blocks
+                      .filter((block) => block.type === "links")
+                      .map((block, index) =>
+                        block.type === "links" ? (
+                          <button
+                            key={block.id}
+                            type="button"
+                            className="flex min-h-14 min-w-0 items-center justify-between gap-3 border-b border-line px-2 text-left text-small hover:bg-bg-subtle"
+                            onClick={() => {
+                              setSelected(block.id);
+                              setAddingLinks(true);
+                              setPanel("links");
+                            }}
+                          >
+                            <span className="min-w-0 truncate">
+                              {block.title ||
+                                t("untitledSection", { number: index + 1 })}
+                            </span>
+                            <span className="shrink-0 text-meta text-fg-muted">
+                              {t("linkTotal", { count: block.items.length })}
+                            </span>
+                          </button>
+                        ) : null,
+                      )}
+                    <button
+                      type="button"
+                      className="studio-tool justify-self-start"
+                      disabled={content.blocks.length >= 150}
+                      onClick={() => add("links")}
+                    >
+                      <Plus aria-hidden />
+                      {t("newLinkSection")}
+                    </button>
+                  </div>
+                ) : null}
                 {panel === "outline" ? (
                   <div className="grid gap-2">
                     {content.blocks.map((block, index) => (
@@ -602,7 +685,10 @@ export function BioEditor({
                           className="min-h-10 flex-1 text-left text-small"
                           onClick={() => open(block)}
                         >
-                          {t(`types.${block.type}`)}
+                          {block.type === "links"
+                            ? block.title ||
+                              t("untitledSection", { number: index })
+                            : t(`types.${block.type}`)}
                           {block.type === "links"
                             ? ` · ${block.items.length}`
                             : ""}
@@ -732,6 +818,20 @@ export function BioEditor({
                         <div key={block.id} className="grid gap-4">
                           {block.type === "links" ? (
                             <>
+                              <button
+                                type="button"
+                                className="studio-primary justify-self-start"
+                                onClick={() => {
+                                  setSelected(block.id);
+                                  setAddingLinks(false);
+                                  setPanel("links");
+                                }}
+                              >
+                                <Pencil aria-hidden />
+                                {t("manageCount", {
+                                  count: block.items.length,
+                                })}
+                              </button>
                               {field(t("title"), block.title, (title) =>
                                 update(block.id, { title }),
                               )}
@@ -905,18 +1005,6 @@ export function BioEditor({
                                 />{" "}
                                 {t("showLinkCount")}
                               </label>
-                              <button
-                                type="button"
-                                className="studio-primary"
-                                onClick={() => setPanel("links")}
-                              >
-                                {t("manageCount", {
-                                  count: block.items.length,
-                                })}
-                              </button>
-                              <p className="text-small text-fg-muted">
-                                {t("linksHint")}
-                              </p>
                             </>
                           ) : null}
                           {block.type === "link" || block.type === "qr" ? (
@@ -1160,7 +1248,7 @@ export function BioEditor({
                       {t("backToSection")}
                     </button>
                     <LinkManager
-                      key={selectedBlock.id}
+                      key={`${selectedBlock.id}:${addingLinks}`}
                       workspace={workspace}
                       bioId={id}
                       items={selectedBlock.items}
@@ -1171,6 +1259,7 @@ export function BioEditor({
                       }
                       onBusyChange={onBusyChange}
                       uploading={uploading}
+                      startWithLibrary={addingLinks}
                     />
                   </>
                 ) : null}

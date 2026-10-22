@@ -5,6 +5,8 @@ import { Redis } from "ioredis";
 import { ensurePersonalWorkspace } from "../workspaces/service";
 import type { ServiceContext } from "../workspaces/context";
 import { createLink } from "../links/service";
+import { addLinksToBioDraft } from "./add-links";
+import { groupBioLinks, newBioLinksSection } from "./content";
 import { createBioPage } from "./service";
 import { bioPresets, migratedBioContent } from "./content";
 import {
@@ -102,6 +104,125 @@ const mongoUrl = process.env.MONGO_TEST_URL,
           .collection(physicalNames.bio_delivery_jobs)
           .countDocuments({ bioPageId: new ObjectId(pageId) }),
       ).toBe(1);
+    });
+    test("adding library links targets sections, deduplicates and preserves publication", async () => {
+      const fixtureId = new ObjectId();
+      await db.collection(physicalNames.bio_pages).insertOne({
+        ...(await ownedBioDocument(ctx, pageId))!,
+        _id: fixtureId,
+        slug: "bio-add-target",
+        handle: "bio-add-target",
+        draftRevision: 0,
+        publishedRevision: 0,
+        published: false,
+      });
+      const id = fixtureId.toHexString();
+      const a = await createLink(ctx, {
+        url: "https://example.com/first",
+        title: "First",
+      });
+      const b = await createLink(ctx, {
+        url: "https://example.com/second",
+        title: "Second",
+      });
+      if (!a.ok || !b.ok) throw new Error("missing links");
+      const first = await addLinksToBioDraft(ctx, id, {
+        revision: 0,
+        ids: [a.value.id],
+        sectionTitle: "Articles",
+      });
+      expect(first.ok).toBe(true);
+      if (!first.ok) throw new Error(first.error);
+      const sectionId = first.value.sectionId;
+      const added = await addLinksToBioDraft(ctx, id, {
+        revision: 1,
+        ids: [a.value.id, b.value.id, b.value.id],
+        sectionId,
+      });
+      expect(added).toMatchObject({
+        ok: true,
+        value: { added: 1, skipped: 1, sectionId },
+      });
+      const draft = (await readBioDraft(ctx, id))!;
+      const section = draft.content.blocks.find(
+        (block) => block.id === sectionId,
+      );
+      expect(section).toMatchObject({
+        type: "links",
+        title: "Articles",
+        items: [{ linkId: a.value.id }, { linkId: b.value.id }],
+      });
+      expect(draft.published).toBe(false);
+      expect(
+        await addLinksToBioDraft(ctx, id, {
+          revision: 1,
+          ids: [a.value.id],
+          sectionId,
+        }),
+      ).toMatchObject({ ok: false, error: "conflict" });
+      expect(
+        await addLinksToBioDraft(ctx, id, {
+          revision: 2,
+          ids: [a.value.id],
+          sectionId: "missing",
+        }),
+      ).toMatchObject({ ok: false, error: "section_not_found" });
+      const viewer = {
+        ...ctx,
+        actor: { ...ctx.actor, role: "viewer" as const },
+      };
+      expect(
+        await addLinksToBioDraft(viewer, id, {
+          revision: 2,
+          ids: [a.value.id],
+          sectionId,
+        }),
+      ).toMatchObject({ ok: false, error: "forbidden" });
+      const foreign = new ObjectId();
+      await db.collection(physicalNames.links).insertOne({
+        _id: foreign,
+        workspaceId: new ObjectId(),
+        title: "Foreign",
+      });
+      expect(
+        await addLinksToBioDraft(ctx, id, {
+          revision: 2,
+          ids: [foreign.toHexString()],
+          sectionId,
+        }),
+      ).toMatchObject({ ok: false, error: "link_not_found" });
+      // Bulk appends must fail atomically if the section has no remaining capacity.
+      const full = groupBioLinks(draft.content);
+      full.blocks.push({
+        ...newBioLinksSection("full"),
+        items: Array.from({ length: 1000 }, (_, index) => ({
+          id: `full-${index}`,
+          linkId: a.value.id,
+          title: "",
+          visible: true,
+          image: "",
+          highlight: false,
+        })),
+      });
+      expect((await saveBioDraft(ctx, id, 2, full)).ok).toBe(true);
+      expect(
+        await addLinksToBioDraft(ctx, id, {
+          revision: 3,
+          ids: [b.value.id],
+          sectionId: "full",
+        }),
+      ).toMatchObject({ ok: false, error: "limit_reached" });
+      expect((await readBioDraft(ctx, id))!.revision).toBe(3);
+      const duplicates = await addLinksToBioDraft(ctx, id, {
+        revision: 3,
+        ids: [a.value.id],
+        sectionId,
+      });
+      expect(duplicates).toMatchObject({
+        ok: true,
+        value: { added: 0, skipped: 1 },
+      });
+      expect((await readBioDraft(ctx, id))!.revision).toBe(3);
     });
     test("permissions, workspace isolation and free-plan scheduling are checked on the service", async () => {
       const draft = await readBioDraft(ctx, pageId);

@@ -87,3 +87,5 @@ export * from "./links/metadata";
 export * from "./admin/console";
 
 export * from "./admin/deletion";
+
+export * from "./bio/add-links";
