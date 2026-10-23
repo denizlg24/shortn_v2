@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { Button, buttonVariants } from "@shortn/ui";
 import { FormField, inputClass } from "../page/form";
+import { ImageUpload, useUploadStatus } from "../page/image-upload";
 import { normalizeSelection } from "@/lib/bulk-selection";
 import {
   addBioDestinationAction,
@@ -32,6 +33,8 @@ export function BioLinkDestination({
   > | null>(null);
   const [sectionId, setSectionId] = useState("");
   const [sectionTitle, setSectionTitle] = useState("");
+  const [image, setImage] = useState("");
+  const uploads = useUploadStatus();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -90,6 +93,7 @@ export function BioLinkDestination({
         revision: sections.revision,
         ...(sectionId ? { sectionId } : {}),
         sectionTitle,
+        ...(image && ids.length === 1 ? { image } : {}),
       });
       if (result.ok) {
         setSuccess(result.value);
@@ -301,12 +305,32 @@ export function BioLinkDestination({
                   />
                 </FormField>
               ) : null}
+              {ids.length === 1 ? (
+                <FormField
+                  id="bio-link-image"
+                  label={t("image")}
+                  hint={t("imageHint")}
+                  optional={t("optional")}
+                >
+                  <ImageUpload
+                    id="bio-link-image"
+                    label={t("image")}
+                    value={image}
+                    onChange={setImage}
+                    onBusyChange={uploads.onBusyChange}
+                  />
+                </FormField>
+              ) : null}
               <p className="text-meta text-fg-muted">{t("limits")}</p>
               <Button
                 type="submit"
                 variant="primary"
                 className="justify-self-start"
-                disabled={busy || (!sectionId && !sectionTitle.trim())}
+                disabled={
+                  busy ||
+                  uploads.uploading ||
+                  (!sectionId && !sectionTitle.trim())
+                }
               >
                 {t(busy ? "adding" : "submit", { count: ids.length })}
               </Button>

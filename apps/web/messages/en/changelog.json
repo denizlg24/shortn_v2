@@ -12,6 +12,53 @@
     "seeAll": "See everything"
   },
   "entries": {
+    "2026-10-bio-styles": {
+      "title": "Bio page styles you can see before you pick",
+      "summary": "Link sections, colors, button styles and profile layouts now come as visual templates drawn with your own page. Pick one, then fine-tune only if you want to.",
+      "highlights": {
+        "bioStyles": {
+          "title": "Visual templates",
+          "body": "Buttons, outline, cards, gallery, image-only and more, previewed with your own links and colors."
+        },
+        "bioOrder": {
+          "title": "Order links automatically",
+          "body": "Keep a section in custom order, recently added first, recently created first, or A–Z."
+        },
+        "bioImages": {
+          "title": "Images in one click",
+          "body": "Add a picture to any link straight from the list, or while adding a link to a bio page."
+        }
+      },
+      "sections": {
+        "bio": "Bio pages"
+      },
+      "items": {
+        "linkStyles": {
+          "title": "Link section templates",
+          "body": "Each links section offers Buttons, Outline, Soft, Minimal list, Cards, Large cards, Gallery and Image only, shown with your own links. Customize style holds every detailed option."
+        },
+        "themes": {
+          "title": "Colors and styles as previews",
+          "body": "The Theme panel shows each color palette and button style as a small preview of your page. Picking colors keeps your font and buttons."
+        },
+        "profileLayouts": {
+          "title": "Profile layouts",
+          "body": "Choose how your name, bio and photo sit at the top of the page: centered, left or right, with a round, rounded or square photo."
+        },
+        "order": {
+          "title": "Order a section",
+          "body": "Order links lets a section stay in your own order or sort itself by recently added, recently created, or alphabetically."
+        },
+        "quickImage": {
+          "title": "Add an image from the link list",
+          "body": "In Manage links, the image button next to each link uploads a picture for it in one step."
+        },
+        "addWithImage": {
+          "title": "Add a link with its image",
+          "body": "When you add a single link to a bio page from your links, you can upload its image at the same time."
+        }
+      }
+    },
     "2026-10-bio-newest-first": {
       "title": "Newest links first on bio pages",
       "summary": "A links section can now keep itself in order: turn on Show newest links first and links you've just created land at the top.",

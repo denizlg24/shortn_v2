@@ -363,20 +363,11 @@
       "small": "Small"
     },
     "backToCanvas": "Back to canvas",
-    "cardStyle": "Link cards",
     "paginationStyle": "Pagination controls",
     "showPageCount": "Show page count",
     "showLinkCount": "Show link count",
     "favicon": "Favicon",
-    "cardContent": "Card content",
-    "cardRadius": "Card corners",
-    "imageFit": "Image fit",
     "imageOnlyHint": "Image-only cards show the link title until you upload a thumbnail.",
-    "linkStyling": "Link styling",
-    "linkSurface": "Link surface",
-    "linkBorder": "Link border",
-    "linkWeight": "Text weight",
-    "linkSpacing": "Link spacing",
     "showLinkArrow": "Show link arrows",
     "paginationAppearance": "Pagination appearance",
     "paginationSize": "Pagination size",
@@ -410,9 +401,129 @@
     "chooseLinkSectionHint": "Choose where to add links, or create a separate section.",
     "untitledSection": "Links section {number}",
     "newLinkSection": "New links section",
-    "newestFirst": "Show newest links first",
-    "newestFirstHint": "Links are ordered by when they were created, so newly created links appear at the top. Turn this off to arrange links yourself.",
-    "newestHint": "Newest first"
+    "style": {
+      "title": "Style",
+      "custom": "Custom style",
+      "sampleLink": "Your link",
+      "palette": "Colors",
+      "presets": {
+        "buttons": "Buttons",
+        "outline": "Outline",
+        "soft": "Soft",
+        "minimal": "Minimal list",
+        "cards": "Cards",
+        "largeCards": "Large cards",
+        "gallery": "Gallery",
+        "imageOnly": "Image only"
+      },
+      "palettes": {
+        "paper": "Paper",
+        "ink": "Ink",
+        "clay": "Clay",
+        "forest": "Forest",
+        "ocean": "Ocean",
+        "plum": "Plum",
+        "rose": "Rose",
+        "sand": "Sand",
+        "slate": "Slate",
+        "cobalt": "Cobalt",
+        "charcoal": "Charcoal",
+        "mint": "Mint"
+      },
+      "layout": "Layout",
+      "themeStyle": "Style",
+      "sampleBio": "Designer, writer and weekend baker.",
+      "profiles": {
+        "centered": "Centered",
+        "centeredRounded": "Centered, rounded",
+        "left": "Left aligned",
+        "leftSquare": "Left, square",
+        "right": "Right aligned"
+      },
+      "themes": {
+        "classic": "Classic",
+        "pill": "Pill",
+        "outline": "Outline",
+        "soft": "Soft",
+        "sharp": "Sharp",
+        "editorial": "Editorial"
+      },
+      "themeStyleHint": "Font, corners and button shape. Button shapes apply to link sections using the Buttons style."
+    },
+    "order": {
+      "label": "Order links",
+      "options": {
+        "manual": "Custom order",
+        "added": "Recently added first",
+        "newest": "Recently created first",
+        "title": "Alphabetical (A–Z)"
+      },
+      "hints": {
+        "manual": "Drag links or use the arrows to arrange them.",
+        "added": "Links you add to this section go to the top.",
+        "newest": "Links are ordered by when the short link was created, newest first.",
+        "title": "Links are sorted by their title."
+      }
+    },
+    "customize": {
+      "title": "Customize style",
+      "theme": "Customize colors and buttons",
+      "shape": "Shape",
+      "content": "Card content",
+      "fill": "Fill",
+      "border": "Border",
+      "corners": "Corners",
+      "weight": "Text weight",
+      "spacing": "Spacing",
+      "images": "Images",
+      "longSections": "Long sections",
+      "layouts": {
+        "vertical": "Show all links",
+        "paginated": "Split into pages"
+      },
+      "profile": "Customize layout"
+    },
+    "choices": {
+      "theme": "Page theme",
+      "list": "List",
+      "small-grid": "Small cards",
+      "large-grid": "Large cards",
+      "image-grid": "Image tiles",
+      "image-text": "Image and text",
+      "image-only": "Image only",
+      "text": "Text only",
+      "filled": "Filled",
+      "fill": "Filled",
+      "soft": "Soft",
+      "outline": "Outline",
+      "minimal": "Plain",
+      "none": "None",
+      "subtle": "Subtle",
+      "solid": "Solid",
+      "divider": "Divider",
+      "square": "Square",
+      "slight": "Slight",
+      "rounded": "Rounded",
+      "pill": "Pill",
+      "regular": "Regular",
+      "medium": "Medium",
+      "bold": "Bold",
+      "compact": "Compact",
+      "comfortable": "Comfortable",
+      "spacious": "Spacious",
+      "cover": "Crop to fill",
+      "contain": "Show whole image",
+      "arrows": "Arrows",
+      "labels": "Previous / Next",
+      "muted": "Muted",
+      "small": "Small",
+      "left": "Left",
+      "center": "Center",
+      "right": "Right",
+      "circle": "Circle"
+    },
+    "addImage": "Add an image to {title}",
+    "replaceImage": "Replace the image of {title}"
   },
   "analytics": {
     "title": "Bio analytics",
@@ -471,6 +582,9 @@
       "limit_reached": "This section would exceed 1,000 links, or the page has reached 150 sections. Choose another section or page.",
       "loadFailed": "Could not load bio pages or sections. Retry to load the choices.",
       "generic": "Could not add these links. Your selection is still here; try again."
-    }
+    },
+    "image": "Image",
+    "imageHint": "Shown on the link's button or card. You can change it later in the editor.",
+    "optional": "Optional"
   }
 }

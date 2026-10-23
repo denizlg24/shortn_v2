@@ -138,6 +138,7 @@ const mongoUrl = process.env.MONGO_TEST_URL,
         revision: 1,
         ids: [a.value.id, b.value.id, b.value.id],
         sectionId,
+        image: "https://cdn.example.com/second.png",
       });
       expect(added).toMatchObject({
         ok: true,
@@ -150,8 +151,15 @@ const mongoUrl = process.env.MONGO_TEST_URL,
       expect(section).toMatchObject({
         type: "links",
         title: "Articles",
-        items: [{ linkId: a.value.id }, { linkId: b.value.id }],
+        items: [
+          { linkId: a.value.id, image: "" },
+          { linkId: b.value.id, image: "https://cdn.example.com/second.png" },
+        ],
       });
+      expect(
+        section?.type === "links" &&
+          section.items.every((item) => item.addedAt),
+      ).toBe(true);
       expect(draft.published).toBe(false);
       expect(
         await addLinksToBioDraft(ctx, id, {

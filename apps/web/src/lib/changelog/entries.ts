@@ -39,6 +39,24 @@ export interface ChangelogEntry {
 
 export const changelog = [
   {
+    id: "2026-10-bio-styles",
+    date: "2026-10-23",
+    highlights: ["bioStyles", "bioOrder", "bioImages"],
+    sections: [
+      {
+        id: "bio",
+        items: [
+          { id: "linkStyles" },
+          { id: "themes" },
+          { id: "profileLayouts" },
+          { id: "order" },
+          { id: "quickImage" },
+          { id: "addWithImage" },
+        ],
+      },
+    ],
+  },
+  {
     id: "2026-10-bio-newest-first",
     date: "2026-10-23",
     highlights: ["bioNewest"],

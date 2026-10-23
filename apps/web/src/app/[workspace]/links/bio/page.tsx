@@ -38,7 +38,13 @@ export default async function AddLinksToBioPage({
       {result?.selected === ids.length && ids.length ? (
         <>
           <Section title={t("choosePage")}>
-            <BioLinkDestination workspace={workspace} ids={ids} />
+            {/* A new selection starts a fresh form, so an image chosen for one
+                link never carries over to another. */}
+            <BioLinkDestination
+              key={ids.join(",")}
+              workspace={workspace}
+              ids={ids}
+            />
           </Section>
           <Section title={t("review")} description={t("reviewHint")}>
             <LinkFiltersBar
