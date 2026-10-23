@@ -410,22 +410,9 @@
     "chooseLinkSectionHint": "Choose where to add links, or create a separate section.",
     "untitledSection": "Links section {number}",
     "newLinkSection": "New links section",
-    "sortLinks": "Sort",
-    "sortCustom": "Custom order",
-    "sorts": {
-      "titleAsc": "Title A–Z",
-      "titleDesc": "Title Z–A",
-      "highlightedFirst": "Highlighted first",
-      "hiddenLast": "Hidden last",
-      "reverse": "Reverse order"
-    },
-    "sortedBy": "Sorted: {order}.",
-    "undoSort": "Undo",
-    "searchOrderHint": "Dragging while searching moves links among the matches only.",
-    "position": "Position (1–{total})",
-    "moveTo": "Move",
-    "moveTop": "Move to top",
-    "moveBottom": "Move to bottom"
+    "newestFirst": "Show newest links first",
+    "newestFirstHint": "Links are ordered by when they were created, so new links appear at the top. Turn this off to arrange links yourself.",
+    "newestHint": "Newest first"
   },
   "analytics": {
     "title": "Bio analytics",

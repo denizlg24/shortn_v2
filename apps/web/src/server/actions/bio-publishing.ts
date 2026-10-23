@@ -130,6 +130,7 @@ export async function searchBioLinksAction(
       title: link.title || link.key,
       tags: link.tags.map((tag) => tag.name),
       href: `${new URL(env().PUBLIC_ORIGIN).protocol}//${link.domain}/${link.key}`,
+      createdAt: link.createdAt,
     })),
   };
 }
@@ -176,6 +177,7 @@ export async function selectBioLinksAction(
           title: link.title || link.key,
           tags: link.tags.map((tag) => tag.name),
           href: `${protocol}//${link.domain}/${link.key}`,
+          createdAt: link.createdAt,
         });
       if (selected.length >= limit) break;
     }

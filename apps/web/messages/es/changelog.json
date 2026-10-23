@@ -12,32 +12,38 @@
     "seeAll": "Ver todo"
   },
   "entries": {
-    "2026-10-bio-sorting-feedback": {
-      "title": "Ordena los enlaces de tus páginas bio y envíanos comentarios",
-      "summary": "Ordena los enlaces de una página bio en un paso, mueve cualquier enlace a una posición exacta y cuéntanos qué mejorar sin salir del panel.",
+    "2026-10-bio-newest-first": {
+      "title": "Enlaces más recientes primero en las páginas bio",
+      "summary": "Una sección de enlaces ya puede ordenarse sola: activa Mostrar primero los enlaces más recientes y cada enlace nuevo aparece arriba.",
       "highlights": {
-        "bioSorting": {
-          "title": "Ordena los enlaces de una sección bio",
-          "body": "Ordena una sección por título, sube los enlaces destacados o baja los ocultos, con opción de deshacer."
-        },
+        "bioNewest": {
+          "title": "Los más recientes primero",
+          "body": "Actívalo en una sección de enlaces y se ordenarán por fecha de creación, con los más nuevos arriba."
+        }
+      },
+      "sections": {
+        "bio": "Páginas bio"
+      },
+      "items": {
+        "newestFirst": {
+          "title": "Mostrar primero los enlaces más recientes",
+          "body": "En el editor bio, abre una sección de enlaces y activa Mostrar primero los enlaces más recientes. Los enlaces que añadas después aparecerán arriba solos; desactívalo para volver a ordenarlos a mano."
+        }
+      }
+    },
+    "2026-10-bio-sorting-feedback": {
+      "title": "Envíanos comentarios desde el panel",
+      "summary": "Cuéntanos qué mejorar sin salir del panel y sigue en qué queda.",
+      "highlights": {
         "feedback": {
           "title": "Comentarios desde el menú Ayuda",
           "body": "Informa de un problema o comparte una idea desde Ayuda → Enviar comentarios y sigue en qué queda."
         }
       },
       "sections": {
-        "bio": "Páginas bio",
         "feedback": "Comentarios"
       },
       "items": {
-        "sortLinks": {
-          "title": "Ordena los enlaces de una sección",
-          "body": "En el editor bio, Gestionar enlaces tiene ahora un menú Ordenar: título A–Z o Z–A, destacados primero, ocultos al final o invertido. Deshacer recupera el orden anterior."
-        },
-        "moveLinks": {
-          "title": "Mueve un enlace a cualquier posición",
-          "body": "Edita un enlace para moverlo a un número de posición, al principio o al final, incluso en secciones con cientos de enlaces repartidos en varias páginas."
-        },
         "sendFeedback": {
           "title": "Envía comentarios",
           "body": "Ayuda → Enviar comentarios abre una página para informar de un error, proponer una idea o hacer una pregunta. Guardamos desde qué página llegaste."

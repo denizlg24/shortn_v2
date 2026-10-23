@@ -41,7 +41,7 @@ import {
 import { linkFacetOptionsAction } from "@/server/actions/link-filters";
 import { FilterField } from "../page/filters";
 import { ImageUpload } from "../page/image-upload";
-import { linkSorts, moveAmong, sortLinks, type LinkSort } from "./link-sort";
+import { moveAmong } from "./move-among";
 const input =
   "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small";
 type LibraryLink = Awaited<
@@ -53,30 +53,34 @@ const filterControl =
 function LinkRow({
   item,
   title,
+  sortable,
   children,
 }: {
   item: BioLinkItem;
   title: string;
+  sortable: boolean;
   children: React.ReactNode;
 }) {
   const t = useTranslations("bio.editor");
   const { setNodeRef, attributes, listeners, transform, transition } =
-    useSortable({ id: item.id });
+    useSortable({ id: item.id, disabled: !sortable });
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Translate.toString(transform), transition }}
       className="studio-link-row flex min-w-0 flex-wrap items-center gap-2 border-b border-line py-3"
     >
-      <button
-        type="button"
-        className="min-h-10 min-w-10 touch-none text-fg-muted"
-        aria-label={t("reorder", { title })}
-        {...attributes}
-        {...listeners}
-      >
-        <GripVertical className="mx-auto size-4" />
-      </button>
+      {sortable ? (
+        <button
+          type="button"
+          className="min-h-10 min-w-10 touch-none text-fg-muted"
+          aria-label={t("reorder", { title })}
+          {...attributes}
+          {...listeners}
+        >
+          <GripVertical className="mx-auto size-4" />
+        </button>
+      ) : null}
       <span className="min-w-0 flex-1 truncate text-small">{title}</span>
       <div className="studio-link-actions">{children}</div>
     </div>
@@ -93,6 +97,7 @@ export function LinkManager({
   uploading,
   chooseOnly = false,
   startWithLibrary = false,
+  newest = false,
 }: {
   workspace: string;
   bioId: string;
@@ -104,6 +109,8 @@ export function LinkManager({
   uploading: boolean;
   chooseOnly?: boolean;
   startWithLibrary?: boolean;
+  /** The section orders itself by link creation, so manual moves are off. */
+  newest?: boolean;
 }) {
   const t = useTranslations("bio.editor");
   const [mode, setMode] = useState<"manage" | "existing" | "create">(
@@ -129,11 +136,6 @@ export function LinkManager({
     campaigns: boolean;
   } | null>(null);
   const [selection, setSelection] = useState<Record<string, LibraryLink>>({});
-  const [sorted, setSorted] = useState<{
-    order: LinkSort;
-    previous: string[];
-  } | null>(null);
-  const [position, setPosition] = useState("");
   const [selecting, setSelecting] = useState(false);
   useEffect(() => {
     let live = true;
@@ -188,8 +190,17 @@ export function LinkManager({
     setFilters({ ...emptyLinkFilters, group: "tag" });
     setSelection({});
   }
-  function add(link: { id: string; title: string; href: string }) {
-    onResolve(link.id, { title: link.title, href: link.href });
+  function add(link: {
+    id: string;
+    title: string;
+    href: string;
+    createdAt: string;
+  }) {
+    onResolve(link.id, {
+      title: link.title,
+      href: link.href,
+      createdAt: link.createdAt,
+    });
     onChange([
       ...items,
       {
@@ -246,7 +257,11 @@ export function LinkManager({
   function addSelected() {
     const additions = selectedLinks.slice(0, Math.max(0, 1000 - items.length));
     for (const link of additions)
-      onResolve(link.id, { title: link.title, href: link.href });
+      onResolve(link.id, {
+        title: link.title,
+        href: link.href,
+        createdAt: link.createdAt,
+      });
     onChange([
       ...items,
       ...additions.map((link) => ({
@@ -283,6 +298,7 @@ export function LinkManager({
         id: link.id,
         title: link.title || link.key,
         href: `${protocol}//${link.domain}/${link.key}`,
+        createdAt: link.createdAt,
       });
       setUrl("");
       setTitle("");
@@ -314,22 +330,6 @@ export function LinkManager({
       to = at + delta;
     if (to >= 0 && to < items.length) onChange(arrayMove(items, at, to));
   }
-  function moveTo(id: string, to: number) {
-    const at = items.findIndex((i) => i.id === id),
-      target = Math.min(Math.max(to, 0), items.length - 1);
-    if (at < 0 || at === target) return;
-    onChange(arrayMove(items, at, target));
-    setPosition("");
-    setSorted(null);
-    if (!search) setPage(Math.floor(target / 20) + 1);
-  }
-  const titleOf = (item: BioLinkItem) =>
-    item.title || links[item.linkId]?.title || "";
-  function sortBy(order: LinkSort) {
-    setSorted({ order, previous: items.map((item) => item.id) });
-    onChange(sortLinks(items, order, titleOf));
-    setPage(1);
-  }
   const groups = new Map<string, LibraryLink[]>();
   for (const link of library?.links ?? []) {
     const name =
@@ -357,6 +357,7 @@ export function LinkManager({
           <>
             <p className="flex-1 text-small text-fg-muted">
               {t("linkTotal", { count: items.length })}
+              {newest ? ` · ${t("newestHint")}` : ""}
             </p>
             <button
               className={button}
@@ -430,79 +431,18 @@ export function LinkManager({
       ) : (
         <>
           {mode === "manage" ? (
-            <div className="grid min-w-0 gap-3">
-              <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)]">
-                <FilterField
-                  label={t("searchLinks")}
-                  className="w-full min-w-0"
-                >
-                  {(id) => (
-                    <input
-                      id={id}
-                      type="search"
-                      maxLength={200}
-                      className={filterControl}
-                      value={search}
-                      onChange={(event) => setSearch(event.target.value)}
-                    />
-                  )}
-                </FilterField>
-                <FilterField label={t("sortLinks")} className="w-full min-w-0">
-                  {(id) => (
-                    <select
-                      id={id}
-                      className={filterControl}
-                      value=""
-                      disabled={items.length < 2 || uploading}
-                      onChange={(event) => {
-                        const order = linkSorts.find(
-                          (value) => value === event.target.value,
-                        );
-                        if (order) sortBy(order);
-                      }}
-                    >
-                      <option value="">{t("sortCustom")}</option>
-                      {linkSorts.map((order) => (
-                        <option key={order} value={order}>
-                          {t(`sorts.${order}`)}
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                </FilterField>
-              </div>
-              {sorted ? (
-                <p
-                  role="status"
-                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-fg-muted"
-                >
-                  {t("sortedBy", { order: t(`sorts.${sorted.order}`) })}
-                  <button
-                    type="button"
-                    className="text-signal underline-offset-4 hover:underline"
-                    onClick={() => {
-                      const rank = new Map(
-                        sorted.previous.map((id, at) => [id, at]),
-                      );
-                      onChange(
-                        [...items].sort(
-                          (a, b) =>
-                            (rank.get(a.id) ?? items.length) -
-                            (rank.get(b.id) ?? items.length),
-                        ),
-                      );
-                      setSorted(null);
-                    }}
-                  >
-                    {t("undoSort")}
-                  </button>
-                </p>
-              ) : search ? (
-                <p className="text-small text-fg-muted">
-                  {t("searchOrderHint")}
-                </p>
-              ) : null}
-            </div>
+            <FilterField label={t("searchLinks")} className="w-full min-w-0">
+              {(id) => (
+                <input
+                  id={id}
+                  type="search"
+                  maxLength={200}
+                  className={filterControl}
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              )}
+            </FilterField>
           ) : null}
           {mode === "existing" ? (
             <>
@@ -592,50 +532,6 @@ export function LinkManager({
                   {t("done")}
                 </button>
               </div>
-              <form
-                className="flex flex-wrap items-end gap-2"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  const to = Number(position);
-                  if (Number.isInteger(to) && to >= 1)
-                    moveTo(selected.id, to - 1);
-                }}
-              >
-                <label className="grid gap-1 text-small">
-                  {t("position", { total: items.length })}
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={items.length}
-                    className={`${input} w-28`}
-                    placeholder={String(
-                      items.findIndex((item) => item.id === selected.id) + 1,
-                    )}
-                    value={position}
-                    onChange={(e) => setPosition(e.target.value)}
-                  />
-                </label>
-                <button className={button} type="submit" disabled={!position}>
-                  {t("moveTo")}
-                </button>
-                <button
-                  className={button}
-                  type="button"
-                  disabled={items[0]?.id === selected.id}
-                  onClick={() => moveTo(selected.id, 0)}
-                >
-                  {t("moveTop")}
-                </button>
-                <button
-                  className={button}
-                  type="button"
-                  disabled={items.at(-1)?.id === selected.id}
-                  onClick={() => moveTo(selected.id, items.length - 1)}
-                >
-                  {t("moveBottom")}
-                </button>
-              </form>
               <label className="grid gap-1 text-small">
                 {t("title")}
                 <input
@@ -800,8 +696,7 @@ export function LinkManager({
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={({ active, over }) => {
-                if (!over || active.id === over.id) return;
-                setSorted(null);
+                if (newest || !over || active.id === over.id) return;
                 onChange(
                   moveAmong(
                     items,
@@ -821,6 +716,7 @@ export function LinkManager({
                     <LinkRow
                       key={item.id}
                       item={item}
+                      sortable={!newest}
                       title={
                         item.title ||
                         links[item.linkId]?.title ||
@@ -832,37 +728,32 @@ export function LinkManager({
                         aria-label={t("editLink")}
                         disabled={uploading}
                         type="button"
-                        onClick={() => {
-                          setEditing(item.id);
-                          setPosition("");
-                        }}
+                        onClick={() => setEditing(item.id)}
                       >
                         <Pencil className="size-4" />
                       </button>
-                      <button
-                        className={button}
-                        aria-label={t("up")}
-                        disabled={items[0]?.id === item.id || uploading}
-                        type="button"
-                        onClick={() => {
-                          setSorted(null);
-                          move(item.id, -1);
-                        }}
-                      >
-                        <ArrowUp className="size-4" />
-                      </button>
-                      <button
-                        className={button}
-                        aria-label={t("down")}
-                        disabled={items.at(-1)?.id === item.id || uploading}
-                        type="button"
-                        onClick={() => {
-                          setSorted(null);
-                          move(item.id, 1);
-                        }}
-                      >
-                        <ArrowDown className="size-4" />
-                      </button>
+                      {newest ? null : (
+                        <>
+                          <button
+                            className={button}
+                            aria-label={t("up")}
+                            disabled={items[0]?.id === item.id || uploading}
+                            type="button"
+                            onClick={() => move(item.id, -1)}
+                          >
+                            <ArrowUp className="size-4" />
+                          </button>
+                          <button
+                            className={button}
+                            aria-label={t("down")}
+                            disabled={items.at(-1)?.id === item.id || uploading}
+                            type="button"
+                            onClick={() => move(item.id, 1)}
+                          >
+                            <ArrowDown className="size-4" />
+                          </button>
+                        </>
+                      )}
                       <button
                         className={button}
                         aria-label={t("remove")}

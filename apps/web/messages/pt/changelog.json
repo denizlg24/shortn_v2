@@ -12,32 +12,38 @@
     "seeAll": "Ver tudo"
   },
   "entries": {
-    "2026-10-bio-sorting-feedback": {
-      "title": "Ordene os links das páginas bio e envie-nos feedback",
-      "summary": "Ordene os links de uma página bio num só passo, mova qualquer link para uma posição exata e diga-nos o que melhorar sem sair do painel.",
+    "2026-10-bio-newest-first": {
+      "title": "Links mais recentes primeiro nas páginas bio",
+      "summary": "Uma secção de links já se ordena sozinha: ative Mostrar primeiro os links mais recentes e cada link novo fica no topo.",
       "highlights": {
-        "bioSorting": {
-          "title": "Ordene os links de uma secção bio",
-          "body": "Ordene uma secção por título, suba os links destacados ou desça os ocultos, com opção de anular."
-        },
+        "bioNewest": {
+          "title": "Mais recentes primeiro",
+          "body": "Ative numa secção de links e estes ficam ordenados pela data de criação, com os mais novos no topo."
+        }
+      },
+      "sections": {
+        "bio": "Páginas bio"
+      },
+      "items": {
+        "newestFirst": {
+          "title": "Mostrar primeiro os links mais recentes",
+          "body": "No editor bio, abra uma secção de links e ative Mostrar primeiro os links mais recentes. Os links que adicionar depois aparecem no topo sozinhos; desative para voltar a ordená-los manualmente."
+        }
+      }
+    },
+    "2026-10-bio-sorting-feedback": {
+      "title": "Envie-nos feedback a partir do painel",
+      "summary": "Diga-nos o que melhorar sem sair do painel e acompanhe o que lhe acontece.",
+      "highlights": {
         "feedback": {
           "title": "Feedback a partir do menu Ajuda",
           "body": "Comunique um problema ou partilhe uma ideia em Ajuda → Enviar feedback e acompanhe o que lhe acontece."
         }
       },
       "sections": {
-        "bio": "Páginas bio",
         "feedback": "Feedback"
       },
       "items": {
-        "sortLinks": {
-          "title": "Ordene os links de uma secção",
-          "body": "No editor bio, Gerir links tem agora um menu Ordenar: título A–Z ou Z–A, destacados primeiro, ocultos no fim ou invertido. Anular repõe a ordem anterior."
-        },
-        "moveLinks": {
-          "title": "Mova um link para qualquer posição",
-          "body": "Edite um link para o mover para um número de posição, para o início ou para o fim, mesmo em secções com centenas de links em várias páginas."
-        },
         "sendFeedback": {
           "title": "Envie feedback",
           "body": "Ajuda → Enviar feedback abre uma página para comunicar um erro, sugerir uma ideia ou fazer uma pergunta. Registamos a página de onde veio."
