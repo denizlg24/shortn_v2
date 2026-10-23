@@ -367,6 +367,7 @@ export async function purgeAccount(
       physicalNames.admin_elevation_tokens,
       physicalNames.sign_in_events,
       physicalNames.workspace_members,
+      physicalNames.feedback,
     ])
       await erase(name, { userId: both });
     await erase(physicalNames.api_keys, { createdBy: String(user._id) });

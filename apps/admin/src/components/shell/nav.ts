@@ -7,6 +7,7 @@ import {
   Inbox,
   Link2,
   ListChecks,
+  MessageSquare,
   ScrollText,
   Users,
   Webhook,
@@ -35,6 +36,7 @@ export const nav: NavItem[][] = [
   ],
   [
     { href: "/contacts", label: "Contacts", icon: Inbox },
+    { href: "/feedback", label: "Feedback", icon: MessageSquare },
     { href: "/audit", label: "Audit", icon: ScrollText },
   ],
 ];
