@@ -39,6 +39,21 @@ export interface ChangelogEntry {
 
 export const changelog = [
   {
+    id: "2026-10-bio-sorting-feedback",
+    date: "2026-10-23",
+    highlights: ["bioSorting", "feedback"],
+    sections: [
+      {
+        id: "bio",
+        items: [{ id: "sortLinks" }, { id: "moveLinks" }],
+      },
+      {
+        id: "feedback",
+        items: [{ id: "sendFeedback" }, { id: "feedbackStatus" }],
+      },
+    ],
+  },
+  {
     id: "2026-10-new-shortn",
     date: "2026-10-18",
     highlights: ["dashboard", "links", "qr", "bio", "developers"],
@@ -144,6 +159,9 @@ export const changelog = [
 export type ChangelogEntryId = (typeof changelog)[number]["id"];
 
 export const latestEntry = changelog[0];
+
+export type ChangelogHighlightId =
+  (typeof changelog)[number]["highlights"][number];
 
 export function itemTag(item: ChangelogItem): ChangelogTag | null {
   if (item.tag) return item.tag;
