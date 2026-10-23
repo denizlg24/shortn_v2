@@ -14,7 +14,7 @@
   "entries": {
     "2026-10-bio-newest-first": {
       "title": "Newest links first on bio pages",
-      "summary": "A links section can now keep itself in order: turn on Show newest links first and every new link lands at the top.",
+      "summary": "A links section can now keep itself in order: turn on Show newest links first and links you've just created land at the top.",
       "highlights": {
         "bioNewest": {
           "title": "Newest links first",
@@ -27,7 +27,7 @@
       "items": {
         "newestFirst": {
           "title": "Show newest links first",
-          "body": "In the bio editor, open a links section and turn on Show newest links first. Links you add later appear at the top on their own; turn it off to arrange them by hand again."
+          "body": "In the bio editor, open a links section and turn on Show newest links first. Links are ordered by when they were created, so a link you've just created shows at the top and an older one you add takes its place by date. Turn it off to arrange them by hand again."
         }
       }
     },

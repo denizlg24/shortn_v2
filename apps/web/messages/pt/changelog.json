@@ -14,7 +14,7 @@
   "entries": {
     "2026-10-bio-newest-first": {
       "title": "Links mais recentes primeiro nas páginas bio",
-      "summary": "Uma secção de links já se ordena sozinha: ative Mostrar primeiro os links mais recentes e cada link novo fica no topo.",
+      "summary": "Uma secção de links já se ordena sozinha: ative Mostrar primeiro os links mais recentes e os links acabados de criar ficam no topo.",
       "highlights": {
         "bioNewest": {
           "title": "Mais recentes primeiro",
@@ -27,7 +27,7 @@
       "items": {
         "newestFirst": {
           "title": "Mostrar primeiro os links mais recentes",
-          "body": "No editor bio, abra uma secção de links e ative Mostrar primeiro os links mais recentes. Os links que adicionar depois aparecem no topo sozinhos; desative para voltar a ordená-los manualmente."
+          "body": "No editor bio, abra uma secção de links e ative Mostrar primeiro os links mais recentes. Os links são ordenados pela data de criação: um link acabado de criar aparece no topo e um mais antigo que adicione fica no lugar da sua data. Desative para voltar a ordená-los manualmente."
         }
       }
     },
