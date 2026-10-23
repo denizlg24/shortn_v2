@@ -2721,6 +2721,11 @@
                           "type": "boolean",
                           "default": false
                         },
+                        "order": {
+                          "type": "string",
+                          "enum": ["manual", "newest"],
+                          "default": "manual"
+                        },
                         "items": {
                           "type": "array",
                           "items": {
@@ -8794,6 +8799,11 @@
                                 "showLinkCount": {
                                   "type": "boolean",
                                   "default": false
+                                },
+                                "order": {
+                                  "type": "string",
+                                  "enum": ["manual", "newest"],
+                                  "default": "manual"
                                 },
                                 "items": {
                                   "type": "array",
