@@ -4383,6 +4383,11 @@ export interface paths {
                     showPageCount?: boolean;
                     /** @default false */
                     showLinkCount?: boolean;
+                    /**
+                     * @default manual
+                     * @enum {string}
+                     */
+                    order?: "manual" | "newest";
                     items: {
                       id: string;
                       /** @default true */
@@ -6518,6 +6523,11 @@ export interface components {
               showPageCount: boolean;
               /** @default false */
               showLinkCount: boolean;
+              /**
+               * @default manual
+               * @enum {string}
+               */
+              order: "manual" | "newest";
               items: {
                 id: string;
                 /** @default true */

@@ -39,14 +39,16 @@ export interface ChangelogEntry {
 
 export const changelog = [
   {
+    id: "2026-10-bio-newest-first",
+    date: "2026-10-23",
+    highlights: ["bioNewest"],
+    sections: [{ id: "bio", items: [{ id: "newestFirst" }] }],
+  },
+  {
     id: "2026-10-bio-sorting-feedback",
     date: "2026-10-23",
-    highlights: ["bioSorting", "feedback"],
+    highlights: ["feedback"],
     sections: [
-      {
-        id: "bio",
-        items: [{ id: "sortLinks" }, { id: "moveLinks" }],
-      },
       {
         id: "feedback",
         items: [{ id: "sendFeedback" }, { id: "feedbackStatus" }],

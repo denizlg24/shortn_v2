@@ -410,22 +410,9 @@
     "chooseLinkSectionHint": "Escolha onde adicionar ligações ou crie uma secção separada.",
     "untitledSection": "Secção de ligações {number}",
     "newLinkSection": "Nova secção de ligações",
-    "sortLinks": "Ordenar",
-    "sortCustom": "Ordem personalizada",
-    "sorts": {
-      "titleAsc": "Título A–Z",
-      "titleDesc": "Título Z–A",
-      "highlightedFirst": "Destacados primeiro",
-      "hiddenLast": "Ocultos no fim",
-      "reverse": "Inverter ordem"
-    },
-    "sortedBy": "Ordenado: {order}.",
-    "undoSort": "Anular",
-    "searchOrderHint": "Ao arrastar durante uma pesquisa, os links só se movem entre os resultados.",
-    "position": "Posição (1–{total})",
-    "moveTo": "Mover",
-    "moveTop": "Mover para o início",
-    "moveBottom": "Mover para o fim"
+    "newestFirst": "Mostrar primeiro os links mais recentes",
+    "newestFirstHint": "Os links são ordenados pela data de criação, por isso os acabados de criar aparecem no topo. Desative para os ordenar manualmente.",
+    "newestHint": "Mais recentes primeiro"
   },
   "analytics": {
     "title": "Estatísticas da página bio",
