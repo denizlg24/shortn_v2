@@ -411,7 +411,7 @@
     "untitledSection": "Secção de ligações {number}",
     "newLinkSection": "Nova secção de ligações",
     "newestFirst": "Mostrar primeiro os links mais recentes",
-    "newestFirstHint": "Os links são ordenados pela data de criação, por isso os novos aparecem no topo. Desative para os ordenar manualmente.",
+    "newestFirstHint": "Os links são ordenados pela data de criação, por isso os acabados de criar aparecem no topo. Desative para os ordenar manualmente.",
     "newestHint": "Mais recentes primeiro"
   },
   "analytics": {
