@@ -363,20 +363,11 @@
       "small": "Pequeno"
     },
     "backToCanvas": "Voltar ao editor visual",
-    "cardStyle": "Cartões dos links",
     "paginationStyle": "Controlos de paginação",
     "showPageCount": "Mostrar número de páginas",
     "showLinkCount": "Mostrar número de links",
     "favicon": "Ícone da página",
-    "cardContent": "Conteúdo do cartão",
-    "cardRadius": "Cantos do cartão",
-    "imageFit": "Ajuste da imagem",
     "imageOnlyHint": "Os cartões só com imagem mostram o título até carregar uma miniatura.",
-    "linkStyling": "Estilo dos links",
-    "linkSurface": "Fundo dos links",
-    "linkBorder": "Borda dos links",
-    "linkWeight": "Peso do texto",
-    "linkSpacing": "Espaçamento dos links",
     "showLinkArrow": "Mostrar setas nos links",
     "paginationAppearance": "Estilo da paginação",
     "paginationSize": "Tamanho da paginação",
@@ -410,8 +401,129 @@
     "chooseLinkSectionHint": "Escolha onde adicionar ligações ou crie uma secção separada.",
     "untitledSection": "Secção de ligações {number}",
     "newLinkSection": "Nova secção de ligações",
-    "newestFirst": "Mostrar primeiro os links mais recentes",
-    "newestFirstHint": "Os links são ordenados pela data de criação, por isso os acabados de criar aparecem no topo. Desative para os ordenar manualmente."
+    "style": {
+      "title": "Estilo",
+      "custom": "Estilo personalizado",
+      "sampleLink": "O seu link",
+      "palette": "Cores",
+      "presets": {
+        "buttons": "Botões",
+        "outline": "Contorno",
+        "soft": "Suave",
+        "minimal": "Lista simples",
+        "cards": "Cartões",
+        "largeCards": "Cartões grandes",
+        "gallery": "Galeria",
+        "imageOnly": "Só imagem"
+      },
+      "palettes": {
+        "paper": "Papel",
+        "ink": "Tinta",
+        "clay": "Argila",
+        "forest": "Floresta",
+        "ocean": "Oceano",
+        "plum": "Ameixa",
+        "rose": "Rosa",
+        "sand": "Areia",
+        "slate": "Ardósia",
+        "cobalt": "Cobalto",
+        "charcoal": "Carvão",
+        "mint": "Menta"
+      },
+      "layout": "Disposição",
+      "themeStyle": "Estilo",
+      "sampleBio": "Designer, escritora e pasteleira ao fim de semana.",
+      "profiles": {
+        "centered": "Centrado",
+        "centeredRounded": "Centrado, arredondado",
+        "left": "Alinhado à esquerda",
+        "leftSquare": "Esquerda, quadrado",
+        "right": "Alinhado à direita"
+      },
+      "themes": {
+        "classic": "Clássico",
+        "pill": "Pílula",
+        "outline": "Contorno",
+        "soft": "Suave",
+        "sharp": "Reto",
+        "editorial": "Editorial"
+      },
+      "themeStyleHint": "Tipo de letra, cantos e forma dos botões. A forma dos botões aplica-se às secções de links com o estilo Botões."
+    },
+    "order": {
+      "label": "Ordenar links",
+      "options": {
+        "manual": "Ordem personalizada",
+        "added": "Adicionados recentemente primeiro",
+        "newest": "Criados recentemente primeiro",
+        "title": "Alfabética (A–Z)"
+      },
+      "hints": {
+        "manual": "Arraste os links ou use as setas para os ordenar.",
+        "added": "Os links que adicionar a esta secção ficam no topo.",
+        "newest": "Os links são ordenados pela data de criação do link curto, os mais novos primeiro.",
+        "title": "Os links são ordenados pelo título."
+      }
+    },
+    "customize": {
+      "title": "Personalizar estilo",
+      "theme": "Personalizar cores e botões",
+      "shape": "Forma",
+      "content": "Conteúdo do cartão",
+      "fill": "Preenchimento",
+      "border": "Contorno",
+      "corners": "Cantos",
+      "weight": "Peso do texto",
+      "spacing": "Espaçamento",
+      "images": "Imagens",
+      "longSections": "Secções longas",
+      "layouts": {
+        "vertical": "Mostrar todos os links",
+        "paginated": "Dividir em páginas"
+      },
+      "profile": "Personalizar disposição"
+    },
+    "choices": {
+      "theme": "Tema da página",
+      "list": "Lista",
+      "small-grid": "Cartões pequenos",
+      "large-grid": "Cartões grandes",
+      "image-grid": "Mosaico de imagens",
+      "image-text": "Imagem e texto",
+      "image-only": "Só imagem",
+      "text": "Só texto",
+      "filled": "Preenchido",
+      "fill": "Preenchido",
+      "soft": "Suave",
+      "outline": "Contorno",
+      "minimal": "Sem fundo",
+      "none": "Nenhum",
+      "subtle": "Subtil",
+      "solid": "Sólido",
+      "divider": "Divisória",
+      "square": "Retos",
+      "slight": "Ligeiros",
+      "rounded": "Arredondados",
+      "pill": "Pílula",
+      "regular": "Normal",
+      "medium": "Médio",
+      "bold": "Negrito",
+      "compact": "Compacto",
+      "comfortable": "Confortável",
+      "spacious": "Amplo",
+      "cover": "Recortar para preencher",
+      "contain": "Mostrar imagem inteira",
+      "arrows": "Setas",
+      "labels": "Anterior / Seguinte",
+      "muted": "Discreto",
+      "small": "Pequeno",
+      "left": "Esquerda",
+      "center": "Centro",
+      "right": "Direita",
+      "circle": "Círculo"
+    },
+    "addImage": "Adicionar uma imagem a {title}",
+    "replaceImage": "Substituir a imagem de {title}"
   },
   "analytics": {
     "title": "Estatísticas da página bio",
@@ -470,6 +582,9 @@
       "limit_reached": "Esta secção excederia 1.000 ligações ou a página atingiu 150 secções. Escolha outra secção ou página.",
       "loadFailed": "Não foi possível carregar as páginas ou secções. Tente novamente.",
       "generic": "Não foi possível adicionar as ligações. A seleção foi mantida; tente novamente."
-    }
+    },
+    "image": "Imagem",
+    "imageHint": "Aparece no botão ou cartão do link. Pode alterá-la depois no editor.",
+    "optional": "Opcional"
   }
 }

@@ -15,6 +15,41 @@ export function useUploadStatus() {
   return { uploading: count > 0, onBusyChange };
 }
 
+export type UploadPurpose = "qr-logo" | "bio-image" | "avatar";
+const uploadErrors = [
+  "size",
+  "type",
+  "forbidden",
+  "unauthenticated",
+  "plan",
+  "unavailable",
+] as const;
+export type UploadError = (typeof uploadErrors)[number] | "failed";
+
+/** One upload request; the error is a `common.imageUpload` message key. */
+export async function uploadImage(
+  workspace: string,
+  file: File,
+  purpose: UploadPurpose,
+): Promise<{ ok: true; url: string } | { ok: false; error: UploadError }> {
+  if (file.size > 5 * 1024 * 1024) return { ok: false, error: "size" };
+  try {
+    const body = new FormData();
+    body.set("file", file);
+    const response = await fetch(
+      `/api/uploads/${encodeURIComponent(workspace)}?purpose=${purpose}`,
+      { method: "POST", body },
+    );
+    const result: { url?: unknown; error?: unknown } = await response.json();
+    if (response.ok && typeof result.url === "string")
+      return { ok: true, url: result.url };
+    const known = uploadErrors.find((key) => key === result.error);
+    return { ok: false, error: known ?? "failed" };
+  } catch {
+    return { ok: false, error: "failed" };
+  }
+}
+
 /** Uploads a file immediately; the form saves its resulting image with the draft. */
 export function ImageUpload({
   id,
@@ -31,7 +66,7 @@ export function ImageUpload({
   value: string;
   onChange: (url: string) => void;
   name?: string;
-  purpose?: "qr-logo" | "bio-image" | "avatar";
+  purpose?: UploadPurpose;
   disabled?: boolean;
   onBusyChange: (busy: boolean) => void;
 }) {
@@ -61,28 +96,9 @@ export function ImageUpload({
     setPending(true);
     onBusyChange(true);
     try {
-      const body = new FormData();
-      body.set("file", file);
-      const response = await fetch(
-        `/api/uploads/${encodeURIComponent(workspace.slug)}?purpose=${purpose}`,
-        { method: "POST", body },
-      );
-      const result = await response.json();
-      if (!response.ok || typeof result.url !== "string") {
-        const key = [
-          "size",
-          "type",
-          "forbidden",
-          "unauthenticated",
-          "plan",
-          "unavailable",
-        ].includes(result.error)
-          ? result.error
-          : "failed";
-        setError(t(key));
-      } else if (live.current) latestChange.current(result.url);
-    } catch {
-      setError(t("failed"));
+      const result = await uploadImage(workspace.slug, file, purpose);
+      if (!result.ok) setError(t(result.error));
+      else if (live.current) latestChange.current(result.url);
     } finally {
       setPending(false);
       onBusyChange(false);

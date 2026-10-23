@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -25,7 +25,11 @@ import {
   Plus,
   Trash2,
 } from "lucide-react";
-import type { BioLinkItem, BioResolvedLink } from "@shortn/core/bio-content";
+import type {
+  BioLinkItem,
+  BioLinkOrder,
+  BioResolvedLink,
+} from "@shortn/core/bio-content";
 import {
   searchBioLinksAction,
   selectBioLinksAction,
@@ -41,7 +45,9 @@ import {
 import { linkFacetOptionsAction } from "@/server/actions/link-filters";
 import { FilterField } from "../page/filters";
 import { ImageUpload } from "../page/image-upload";
+import { LinkOrderField } from "./link-order-field";
 import { moveAmong } from "./move-among";
+import { QuickImageButton } from "./quick-image-button";
 const input =
   "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small";
 type LibraryLink = Awaited<
@@ -97,8 +103,8 @@ export function LinkManager({
   uploading,
   chooseOnly = false,
   startWithLibrary = false,
-  newest = false,
-  onNewestChange,
+  order = "manual",
+  onOrderChange,
 }: {
   workspace: string;
   bioId: string;
@@ -111,11 +117,15 @@ export function LinkManager({
   chooseOnly?: boolean;
   startWithLibrary?: boolean;
   /** The section orders itself by link creation, so manual moves are off. */
-  newest?: boolean;
+  order?: BioLinkOrder;
   /** Present for links sections; QR blocks only choose a link. */
-  onNewestChange?: (newest: boolean) => void;
+  onOrderChange?: (order: BioLinkOrder) => void;
 }) {
   const t = useTranslations("bio.editor");
+  const manual = order === "manual";
+  // Image uploads finish after other edits; they patch the newest list.
+  const latestItems = useRef(items);
+  latestItems.current = items;
   const [mode, setMode] = useState<"manage" | "existing" | "create">(
     chooseOnly || startWithLibrary || !items.length ? "existing" : "manage",
   );
@@ -213,6 +223,7 @@ export function LinkManager({
         visible: true,
         image: "",
         highlight: false,
+        addedAt: new Date().toISOString(),
       },
     ]);
     if (!chooseOnly) navigate("manage");
@@ -258,6 +269,7 @@ export function LinkManager({
     }
   }
   function addSelected() {
+    const addedAt = new Date().toISOString();
     const additions = selectedLinks.slice(0, Math.max(0, 1000 - items.length));
     for (const link of additions)
       onResolve(link.id, {
@@ -274,6 +286,7 @@ export function LinkManager({
         visible: true,
         image: "",
         highlight: false,
+        addedAt,
       })),
     ]);
     navigate("manage");
@@ -432,19 +445,13 @@ export function LinkManager({
         </form>
       ) : (
         <>
-          {mode === "manage" && onNewestChange ? (
-            <div className="grid gap-1 border-b border-line pb-4">
-              <label className="flex items-center gap-2 text-small font-medium">
-                <input
-                  type="checkbox"
-                  className="size-4 accent-[var(--color-signal)]"
-                  checked={newest}
-                  disabled={uploading}
-                  onChange={(e) => onNewestChange(e.target.checked)}
-                />
-                {t("newestFirst")}
-              </label>
-              <p className="text-small text-fg-muted">{t("newestFirstHint")}</p>
+          {mode === "manage" && onOrderChange ? (
+            <div className="border-b border-line pb-4">
+              <LinkOrderField
+                value={order}
+                onChange={onOrderChange}
+                disabled={uploading}
+              />
             </div>
           ) : null}
           {mode === "manage" ? (
@@ -713,7 +720,7 @@ export function LinkManager({
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={({ active, over }) => {
-                if (newest || !over || active.id === over.id) return;
+                if (!manual || !over || active.id === over.id) return;
                 onChange(
                   moveAmong(
                     items,
@@ -733,13 +740,36 @@ export function LinkManager({
                     <LinkRow
                       key={item.id}
                       item={item}
-                      sortable={!newest}
+                      sortable={manual}
                       title={
                         item.title ||
                         links[item.linkId]?.title ||
                         t("types.link")
                       }
                     >
+                      <QuickImageButton
+                        workspace={workspace}
+                        title={
+                          item.title ||
+                          links[item.linkId]?.title ||
+                          t("types.link")
+                        }
+                        image={item.image}
+                        className={button}
+                        disabled={uploading}
+                        onBusyChange={onBusyChange}
+                        onError={setError}
+                        onUploaded={(image) => {
+                          setError("");
+                          onChange(
+                            latestItems.current.map((current) =>
+                              current.id === item.id
+                                ? { ...current, image }
+                                : current,
+                            ),
+                          );
+                        }}
+                      />
                       <button
                         className={button}
                         aria-label={t("editLink")}
@@ -749,7 +779,7 @@ export function LinkManager({
                       >
                         <Pencil className="size-4" />
                       </button>
-                      {newest ? null : (
+                      {!manual ? null : (
                         <>
                           <button
                             className={button}

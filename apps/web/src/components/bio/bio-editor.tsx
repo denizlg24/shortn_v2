@@ -39,10 +39,11 @@ import {
   groupBioLinks,
   newBioLinksSection,
   orderBioLinks,
+  stampBioLinksAdded,
+  type BioLinkOrder,
   bioContentSchema,
   bioContrast,
   bioFonts,
-  bioPresets,
   readableBioColor,
   type BioBlock,
   type BioContent,
@@ -60,7 +61,15 @@ import type { PlanId } from "@shortn/billing";
 import { cn } from "@shortn/ui";
 import { ImageUpload, useUploadStatus } from "../page/image-upload";
 import { PlanGate } from "../plan-gate";
+import { ChoiceField } from "../editor/option-group";
 import { LinkManager } from "./link-manager";
+import { LinkOrderField } from "./link-order-field";
+import {
+  LinkStylePicker,
+  ProfileLayoutPicker,
+  ThemePalettePicker,
+  ThemeStylePicker,
+} from "./style-picker";
 import "./bio-editor.css";
 import { BioRenderer } from "./public/bio-renderer";
 import "./public/fonts.css";
@@ -142,6 +151,7 @@ export function BioEditor({
   paid: boolean;
 }) {
   const t = useTranslations("bio.editor"),
+    tc = useTranslations("bio.editor.choices"),
     p = useTranslations("bio.public"),
     previewText = useTranslations("bio.preview");
   const [content, setContent] = useState(() =>
@@ -213,12 +223,11 @@ export function BioEditor({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-  // "Newest first" sections follow link creation times, which arrive with
-  // each resolved link; the server applies the same order on save.
+  // Automatically ordered sections follow facts that arrive with each
+  // resolved link (creation time, title); the server applies the same order
+  // on save.
   useEffect(() => {
-    setContent((current) =>
-      orderBioLinks(current, (linkId) => links[linkId]?.createdAt),
-    );
+    setContent((current) => orderBioLinks(current, (linkId) => links[linkId]));
   }, [content, links]);
   draft.current = content;
   const save = useCallback(async (): Promise<boolean> => {
@@ -276,6 +285,15 @@ export function BioEditor({
       window.removeEventListener("beforeunload", beforeUnload);
     };
   }, []);
+  function setOrder(
+    block: Extract<BioBlock, { type: "links" }>,
+    order: BioLinkOrder,
+  ) {
+    update(block.id, {
+      order,
+      ...(order === "added" ? { items: stampBioLinksAdded(block.items) } : {}),
+    });
+  }
   function update(blockId: string, patch: Record<string, unknown>) {
     setContent((c) => ({
       ...c,
@@ -453,12 +471,6 @@ export function BioEditor({
       { ...link, ...(qrImages[id] ? { qrImage: qrImages[id] } : {}) },
     ]),
   );
-  const selectedPreset =
-    Object.entries(bioPresets).find(([, preset]) =>
-      (Object.keys(content.theme) as (keyof BioContent["theme"])[]).every(
-        (key) => content.theme[key] === preset[key],
-      ),
-    )?.[0] ?? "";
   const previewLabels = {
     branding: p("branding"),
     loadEmbed: p.raw("loadEmbed"),
@@ -802,18 +814,36 @@ export function BioEditor({
                         <PlanGate feature="bioBadge" plan={paidPlan} />
                       )}
                     </div>
-                    {select(
-                      t("avatarShape"),
-                      profile.avatarShape,
-                      ["circle", "rounded", "square"],
-                      (avatarShape) => update(profile.id, { avatarShape }),
-                    )}
-                    {select(
-                      t("align"),
-                      profile.align,
-                      ["left", "center", "right"],
-                      (align) => update(profile.id, { align }),
-                    )}
+                    <ProfileLayoutPicker
+                      profile={profile}
+                      content={content}
+                      onSelect={(layout) => update(profile.id, layout)}
+                    />
+                    <details className="studio-disclosure">
+                      <summary>{t("customize.profile")}</summary>
+                      <div className="grid gap-5 pt-4">
+                        <ChoiceField
+                          label={t("align")}
+                          value={profile.align}
+                          options={(["left", "center", "right"] as const).map(
+                            (value) => ({ value, label: tc(value) }),
+                          )}
+                          onValueChange={(align) =>
+                            update(profile.id, { align })
+                          }
+                        />
+                        <ChoiceField
+                          label={t("avatarShape")}
+                          value={profile.avatarShape}
+                          options={(
+                            ["circle", "rounded", "square"] as const
+                          ).map((value) => ({ value, label: tc(value) }))}
+                          onValueChange={(avatarShape) =>
+                            update(profile.id, { avatarShape })
+                          }
+                        />
+                      </div>
+                    </details>
                   </div>
                 ) : null}
                 {panel === "section"
@@ -843,187 +873,281 @@ export function BioEditor({
                               {field(t("title"), block.title, (title) =>
                                 update(block.id, { title }),
                               )}
-                              <div className="grid gap-1">
-                                <label className="text-small">
-                                  <input
-                                    type="checkbox"
-                                    checked={block.order === "newest"}
-                                    onChange={(e) =>
-                                      update(block.id, {
-                                        order: e.target.checked
-                                          ? "newest"
-                                          : "manual",
-                                      })
+                              <LinkOrderField
+                                value={block.order}
+                                onChange={(order) => setOrder(block, order)}
+                              />
+                              <LinkStylePicker
+                                block={block}
+                                content={content}
+                                links={previewLinks}
+                                onSelect={(style) => update(block.id, style)}
+                              />
+                              <details className="studio-disclosure">
+                                <summary>{t("customize.title")}</summary>
+                                <div className="grid gap-5 pt-4">
+                                  <ChoiceField
+                                    label={t("customize.shape")}
+                                    value={block.cardStyle}
+                                    options={(
+                                      [
+                                        "list",
+                                        "small-grid",
+                                        "large-grid",
+                                        "image-grid",
+                                      ] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(cardStyle) =>
+                                      update(block.id, { cardStyle })
                                     }
-                                  />{" "}
-                                  {t("newestFirst")}
-                                </label>
-                                <p className="text-small text-fg-muted">
-                                  {t("newestFirstHint")}
-                                </p>
-                              </div>
-                              {select(
-                                t("cardStyle"),
-                                block.cardStyle,
-                                [
-                                  "list",
-                                  "small-grid",
-                                  "large-grid",
-                                  "image-grid",
-                                ],
-                                (cardStyle) => update(block.id, { cardStyle }),
-                              )}
-                              {block.cardStyle !== "list" ? (
-                                <>
-                                  {select(
-                                    t("cardContent"),
-                                    block.cardContent,
-                                    ["image-text", "image-only", "text"],
-                                    (cardContent) =>
-                                      update(block.id, { cardContent }),
-                                  )}
-                                  {select(
-                                    t("cardRadius"),
-                                    block.cardRadius,
-                                    ["theme", "square", "rounded"],
-                                    (cardRadius) =>
-                                      update(block.id, { cardRadius }),
-                                  )}
-                                  {block.cardContent !== "text"
-                                    ? select(
-                                        t("imageFit"),
-                                        block.imageFit,
-                                        ["cover", "contain"],
-                                        (imageFit) =>
-                                          update(block.id, { imageFit }),
-                                      )
-                                    : null}
-                                  {block.cardContent === "image-only" ? (
-                                    <p className="text-small text-fg-muted">
-                                      {t("imageOnlyHint")}
-                                    </p>
-                                  ) : null}
-                                </>
-                              ) : null}
-                              <details className="border-b border-line pb-4">
-                                <summary className="cursor-pointer py-2 text-small font-medium">
-                                  {t("linkStyling")}
-                                </summary>
-                                <div className="grid gap-4 pt-3">
-                                  {select(
-                                    t("linkSurface"),
-                                    block.linkSurface ?? "theme",
-                                    [
-                                      "theme",
-                                      "minimal",
-                                      "soft",
-                                      "filled",
-                                      "outline",
-                                    ],
-                                    (linkSurface) =>
-                                      update(block.id, { linkSurface }),
-                                  )}
-                                  {select(
-                                    t("linkBorder"),
-                                    block.linkBorder ?? "theme",
-                                    [
-                                      "theme",
-                                      "none",
-                                      "subtle",
-                                      "solid",
-                                      "divider",
-                                    ],
-                                    (linkBorder) =>
-                                      update(block.id, { linkBorder }),
-                                  )}
-                                  {select(
-                                    t("linkWeight"),
-                                    block.linkWeight ?? "theme",
-                                    ["theme", "regular", "medium", "bold"],
-                                    (linkWeight) =>
-                                      update(block.id, { linkWeight }),
-                                  )}
-                                  {select(
-                                    t("linkSpacing"),
-                                    block.linkSpacing ?? "comfortable",
-                                    ["compact", "comfortable", "spacious"],
-                                    (linkSpacing) =>
-                                      update(block.id, { linkSpacing }),
-                                  )}
-                                  <label className="text-small">
-                                    <input
-                                      type="checkbox"
-                                      checked={block.showLinkArrow ?? true}
-                                      onChange={(e) =>
-                                        update(block.id, {
-                                          showLinkArrow: e.target.checked,
-                                        })
+                                  />
+                                  {block.cardStyle !== "list" ? (
+                                    <ChoiceField
+                                      label={t("customize.content")}
+                                      hint={
+                                        block.cardContent === "image-only"
+                                          ? t("imageOnlyHint")
+                                          : undefined
                                       }
-                                    />{" "}
-                                    {t("showLinkArrow")}
-                                  </label>
+                                      value={block.cardContent}
+                                      options={(
+                                        [
+                                          "image-text",
+                                          "image-only",
+                                          "text",
+                                        ] as const
+                                      ).map((value) => ({
+                                        value,
+                                        label: tc(value),
+                                      }))}
+                                      onValueChange={(cardContent) =>
+                                        update(block.id, { cardContent })
+                                      }
+                                    />
+                                  ) : null}
+                                  <ChoiceField
+                                    label={t("customize.fill")}
+                                    value={block.linkSurface}
+                                    options={(
+                                      [
+                                        "theme",
+                                        "filled",
+                                        "soft",
+                                        "outline",
+                                        "minimal",
+                                      ] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(linkSurface) =>
+                                      update(block.id, { linkSurface })
+                                    }
+                                  />
+                                  <ChoiceField
+                                    label={t("customize.border")}
+                                    value={block.linkBorder}
+                                    options={(
+                                      [
+                                        "theme",
+                                        "none",
+                                        "subtle",
+                                        "solid",
+                                        "divider",
+                                      ] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(linkBorder) =>
+                                      update(block.id, { linkBorder })
+                                    }
+                                  />
+                                  <ChoiceField
+                                    label={t("customize.corners")}
+                                    value={block.cardRadius}
+                                    options={(
+                                      ["theme", "square", "rounded"] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(cardRadius) =>
+                                      update(block.id, { cardRadius })
+                                    }
+                                  />
+                                  <ChoiceField
+                                    label={t("customize.weight")}
+                                    value={block.linkWeight}
+                                    options={(
+                                      [
+                                        "theme",
+                                        "regular",
+                                        "medium",
+                                        "bold",
+                                      ] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(linkWeight) =>
+                                      update(block.id, { linkWeight })
+                                    }
+                                  />
+                                  <ChoiceField
+                                    label={t("customize.spacing")}
+                                    value={block.linkSpacing}
+                                    options={(
+                                      [
+                                        "compact",
+                                        "comfortable",
+                                        "spacious",
+                                      ] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: tc(value),
+                                    }))}
+                                    onValueChange={(linkSpacing) =>
+                                      update(block.id, { linkSpacing })
+                                    }
+                                  />
+                                  {block.cardContent !== "text" ? (
+                                    <ChoiceField
+                                      label={t("customize.images")}
+                                      value={block.imageFit}
+                                      options={(
+                                        ["cover", "contain"] as const
+                                      ).map((value) => ({
+                                        value,
+                                        label: tc(value),
+                                      }))}
+                                      onValueChange={(imageFit) =>
+                                        update(block.id, { imageFit })
+                                      }
+                                    />
+                                  ) : null}
+                                  {block.cardStyle === "list" ? (
+                                    <label className="text-small">
+                                      <input
+                                        type="checkbox"
+                                        checked={block.showLinkArrow}
+                                        onChange={(e) =>
+                                          update(block.id, {
+                                            showLinkArrow: e.target.checked,
+                                          })
+                                        }
+                                      />{" "}
+                                      {t("showLinkArrow")}
+                                    </label>
+                                  ) : null}
                                 </div>
                               </details>
-                              {select(
-                                t("linkLayout"),
-                                block.layout,
-                                ["vertical", "paginated"],
-                                (layout) => update(block.id, { layout }),
-                              )}
-                              {block.layout === "paginated"
-                                ? select(
-                                    t("pageSize"),
-                                    String(block.pageSize ?? 10),
-                                    ["4", "6", "10", "20", "50"],
-                                    (value) =>
-                                      update(block.id, {
-                                        pageSize: Number(value),
-                                      }),
-                                  )
-                                : null}
-                              {block.layout === "paginated" ? (
-                                <>
-                                  {select(
-                                    t("paginationStyle"),
-                                    block.paginationStyle,
-                                    ["arrows", "labels"],
-                                    (paginationStyle) =>
-                                      update(block.id, { paginationStyle }),
-                                  )}
-                                  {select(
-                                    t("paginationAppearance"),
-                                    block.paginationAppearance ?? "muted",
-                                    ["muted", "minimal", "outline", "filled"],
-                                    (paginationAppearance) =>
-                                      update(block.id, {
-                                        paginationAppearance,
-                                      }),
-                                  )}
-                                  {select(
-                                    t("paginationSize"),
-                                    block.paginationSize ?? "small",
-                                    ["small", "comfortable"],
-                                    (paginationSize) =>
-                                      update(block.id, { paginationSize }),
-                                  )}
-                                  <label className="text-small">
-                                    <input
-                                      type="checkbox"
-                                      checked={block.showPageCount ?? true}
-                                      onChange={(e) =>
-                                        update(block.id, {
-                                          showPageCount: e.target.checked,
-                                        })
-                                      }
-                                    />{" "}
-                                    {t("showPageCount")}
-                                  </label>
-                                </>
-                              ) : null}
+                              <details className="studio-disclosure">
+                                <summary>{t("customize.longSections")}</summary>
+                                <div className="grid gap-5 pt-4">
+                                  <ChoiceField
+                                    label={t("linkLayout")}
+                                    value={block.layout}
+                                    options={(
+                                      ["vertical", "paginated"] as const
+                                    ).map((value) => ({
+                                      value,
+                                      label: t(`customize.layouts.${value}`),
+                                    }))}
+                                    onValueChange={(layout) =>
+                                      update(block.id, { layout })
+                                    }
+                                  />
+                                  {block.layout === "paginated" ? (
+                                    <>
+                                      <ChoiceField
+                                        label={t("pageSize")}
+                                        value={String(block.pageSize)}
+                                        options={[
+                                          "4",
+                                          "6",
+                                          "10",
+                                          "20",
+                                          "50",
+                                        ].map((value) => ({
+                                          value,
+                                          label: value,
+                                        }))}
+                                        onValueChange={(value) =>
+                                          update(block.id, {
+                                            pageSize: Number(value),
+                                          })
+                                        }
+                                      />
+                                      <ChoiceField
+                                        label={t("paginationStyle")}
+                                        value={block.paginationStyle}
+                                        options={(
+                                          ["arrows", "labels"] as const
+                                        ).map((value) => ({
+                                          value,
+                                          label: tc(value),
+                                        }))}
+                                        onValueChange={(paginationStyle) =>
+                                          update(block.id, { paginationStyle })
+                                        }
+                                      />
+                                      <ChoiceField
+                                        label={t("paginationAppearance")}
+                                        value={block.paginationAppearance}
+                                        options={(
+                                          [
+                                            "muted",
+                                            "minimal",
+                                            "outline",
+                                            "filled",
+                                          ] as const
+                                        ).map((value) => ({
+                                          value,
+                                          label: tc(value),
+                                        }))}
+                                        onValueChange={(paginationAppearance) =>
+                                          update(block.id, {
+                                            paginationAppearance,
+                                          })
+                                        }
+                                      />
+                                      <ChoiceField
+                                        label={t("paginationSize")}
+                                        value={block.paginationSize}
+                                        options={(
+                                          ["small", "comfortable"] as const
+                                        ).map((value) => ({
+                                          value,
+                                          label: tc(value),
+                                        }))}
+                                        onValueChange={(paginationSize) =>
+                                          update(block.id, { paginationSize })
+                                        }
+                                      />
+                                      <label className="text-small">
+                                        <input
+                                          type="checkbox"
+                                          checked={block.showPageCount}
+                                          onChange={(e) =>
+                                            update(block.id, {
+                                              showPageCount: e.target.checked,
+                                            })
+                                          }
+                                        />{" "}
+                                        {t("showPageCount")}
+                                      </label>
+                                    </>
+                                  ) : null}
+                                </div>
+                              </details>
                               <label className="text-small">
                                 <input
                                   type="checkbox"
-                                  checked={block.showLinkCount ?? false}
+                                  checked={block.showLinkCount}
                                   onChange={(e) =>
                                     update(block.id, {
                                       showLinkCount: e.target.checked,
@@ -1287,12 +1411,8 @@ export function BioEditor({
                       onBusyChange={onBusyChange}
                       uploading={uploading}
                       startWithLibrary={addingLinks}
-                      newest={selectedBlock.order === "newest"}
-                      onNewestChange={(newest) =>
-                        update(selectedBlock.id, {
-                          order: newest ? "newest" : "manual",
-                        })
-                      }
+                      order={selectedBlock.order}
+                      onOrderChange={(order) => setOrder(selectedBlock, order)}
                     />
                   </>
                 ) : null}
@@ -1350,36 +1470,30 @@ export function BioEditor({
                   <>
                     <fieldset className="grid gap-4 border-b border-line py-5">
                       <legend className="pt-5 font-medium">{t("theme")}</legend>
-                      {select(
-                        t("preset"),
-                        selectedPreset,
-                        ["", ...Object.keys(bioPresets)],
-                        (name) => {
-                          if (bioPresets[name])
-                            setContent((c) => ({
-                              ...c,
-                              theme: bioPresets[name]!,
-                            }));
-                        },
-                      )}
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        {(
-                          ["background", "surface", "text", "accent"] as const
-                        ).map((token) => (
-                          <div key={token}>
-                            {field(
-                              t(`colors.${token}`),
-                              content.theme[token],
-                              (value) =>
-                                setContent((c) => ({
-                                  ...c,
-                                  theme: { ...c.theme, [token]: value },
-                                })),
-                              "color",
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                      <ThemePalettePicker
+                        content={content}
+                        links={previewLinks}
+                        onSelect={(colors) =>
+                          setContent((c) => ({
+                            ...c,
+                            theme: { ...c.theme, ...colors },
+                          }))
+                        }
+                      />
+                      <ThemeStylePicker
+                        content={content}
+                        links={previewLinks}
+                        onSelect={(style) =>
+                          setContent((c) => ({
+                            ...c,
+                            theme: {
+                              ...c.theme,
+                              ...style,
+                              legacyFont: undefined,
+                            },
+                          }))
+                        }
+                      />
                       {bioContrast(
                         content.theme.text,
                         content.theme.background,
@@ -1406,65 +1520,112 @@ export function BioEditor({
                           </button>
                         </p>
                       ) : null}
-                      {content.theme.legacyFont ? (
-                        <p className="text-small text-fg-muted">
-                          {t("legacyFont", { font: content.theme.legacyFont })}
-                        </p>
-                      ) : null}
-                      {select(
-                        t("font"),
-                        content.theme.font,
-                        [...bioFonts],
-                        (font) =>
-                          setContent((c) => ({
-                            ...c,
-                            theme: {
-                              ...c.theme,
-                              font: font as BioContent["theme"]["font"],
-                              legacyFont: undefined,
-                            },
-                          })),
-                      )}
-                      {select(
-                        t("buttonStyle"),
-                        content.theme.buttonStyle,
-                        ["fill", "outline", "soft", "shadow-less"],
-                        (buttonStyle) =>
-                          setContent((c) => ({
-                            ...c,
-                            theme: {
-                              ...c.theme,
-                              buttonStyle:
-                                buttonStyle as BioContent["theme"]["buttonStyle"],
-                            },
-                          })),
-                      )}
-                      {select(
-                        t("radius"),
-                        String(content.theme.radius),
-                        ["0", "6", "12", "999"],
-                        (radius) =>
-                          setContent((c) => ({
-                            ...c,
-                            theme: {
-                              ...c.theme,
-                              radius: Number(radius) as 0 | 6 | 12 | 999,
-                            },
-                          })),
-                      )}
-                      {select(
-                        t("density"),
-                        content.theme.density,
-                        ["comfortable", "compact"],
-                        (density) =>
-                          setContent((c) => ({
-                            ...c,
-                            theme: {
-                              ...c.theme,
-                              density: density as "comfortable" | "compact",
-                            },
-                          })),
-                      )}
+                      <details className="studio-disclosure">
+                        <summary>{t("customize.theme")}</summary>
+                        <div className="grid gap-5 pt-4">
+                          <div className="grid gap-4 sm:grid-cols-2">
+                            {(
+                              [
+                                "background",
+                                "surface",
+                                "text",
+                                "accent",
+                              ] as const
+                            ).map((token) => (
+                              <div key={token}>
+                                {field(
+                                  t(`colors.${token}`),
+                                  content.theme[token],
+                                  (value) =>
+                                    setContent((c) => ({
+                                      ...c,
+                                      theme: { ...c.theme, [token]: value },
+                                    })),
+                                  "color",
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {content.theme.legacyFont ? (
+                            <p className="text-small text-fg-muted">
+                              {t("legacyFont", {
+                                font: content.theme.legacyFont,
+                              })}
+                            </p>
+                          ) : null}
+                          {select(
+                            t("font"),
+                            content.theme.font,
+                            [...bioFonts],
+                            (font) =>
+                              setContent((c) => ({
+                                ...c,
+                                theme: {
+                                  ...c.theme,
+                                  font: font as BioContent["theme"]["font"],
+                                  legacyFont: undefined,
+                                },
+                              })),
+                          )}
+                          <ChoiceField
+                            label={t("buttonStyle")}
+                            value={content.theme.buttonStyle}
+                            options={(["fill", "outline", "soft"] as const).map(
+                              (value) => ({ value, label: tc(value) }),
+                            )}
+                            onValueChange={(buttonStyle) =>
+                              setContent((c) => ({
+                                ...c,
+                                theme: { ...c.theme, buttonStyle },
+                              }))
+                            }
+                          />
+                          <ChoiceField
+                            label={t("radius")}
+                            value={String(content.theme.radius)}
+                            options={(
+                              [
+                                ["0", "square"],
+                                ["6", "slight"],
+                                ["12", "rounded"],
+                                ["999", "pill"],
+                              ] as const
+                            ).map(([value, label]) => ({
+                              value,
+                              label: tc(label),
+                            }))}
+                            onValueChange={(radius) =>
+                              setContent((c) => ({
+                                ...c,
+                                theme: {
+                                  ...c.theme,
+                                  radius:
+                                    radius === "0"
+                                      ? 0
+                                      : radius === "6"
+                                        ? 6
+                                        : radius === "12"
+                                          ? 12
+                                          : 999,
+                                },
+                              }))
+                            }
+                          />
+                          <ChoiceField
+                            label={t("density")}
+                            value={content.theme.density}
+                            options={(["comfortable", "compact"] as const).map(
+                              (value) => ({ value, label: tc(value) }),
+                            )}
+                            onValueChange={(density) =>
+                              setContent((c) => ({
+                                ...c,
+                                theme: { ...c.theme, density },
+                              }))
+                            }
+                          />
+                        </div>
+                      </details>
                       <ImageUpload
                         label={t("cover")}
                         value={content.theme.backgroundImage ?? ""}
