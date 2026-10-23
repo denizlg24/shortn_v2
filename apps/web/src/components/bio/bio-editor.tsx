@@ -1288,6 +1288,11 @@ export function BioEditor({
                       uploading={uploading}
                       startWithLibrary={addingLinks}
                       newest={selectedBlock.order === "newest"}
+                      onNewestChange={(newest) =>
+                        update(selectedBlock.id, {
+                          order: newest ? "newest" : "manual",
+                        })
+                      }
                     />
                   </>
                 ) : null}

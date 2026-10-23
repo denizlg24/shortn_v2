@@ -411,8 +411,7 @@
     "untitledSection": "Links section {number}",
     "newLinkSection": "New links section",
     "newestFirst": "Show newest links first",
-    "newestFirstHint": "Links are ordered by when they were created, so newly created links appear at the top. Turn this off to arrange links yourself.",
-    "newestHint": "Newest first"
+    "newestFirstHint": "Links are ordered by when they were created, so newly created links appear at the top. Turn this off to arrange links yourself."
   },
   "analytics": {
     "title": "Bio analytics",

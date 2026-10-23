@@ -98,6 +98,7 @@ export function LinkManager({
   chooseOnly = false,
   startWithLibrary = false,
   newest = false,
+  onNewestChange,
 }: {
   workspace: string;
   bioId: string;
@@ -111,6 +112,8 @@ export function LinkManager({
   startWithLibrary?: boolean;
   /** The section orders itself by link creation, so manual moves are off. */
   newest?: boolean;
+  /** Present for links sections; QR blocks only choose a link. */
+  onNewestChange?: (newest: boolean) => void;
 }) {
   const t = useTranslations("bio.editor");
   const [mode, setMode] = useState<"manage" | "existing" | "create">(
@@ -357,7 +360,6 @@ export function LinkManager({
           <>
             <p className="flex-1 text-small text-fg-muted">
               {t("linkTotal", { count: items.length })}
-              {newest ? ` · ${t("newestHint")}` : ""}
             </p>
             <button
               className={button}
@@ -430,6 +432,21 @@ export function LinkManager({
         </form>
       ) : (
         <>
+          {mode === "manage" && onNewestChange ? (
+            <div className="grid gap-1 border-b border-line pb-4">
+              <label className="flex items-center gap-2 text-small font-medium">
+                <input
+                  type="checkbox"
+                  className="size-4 accent-[var(--color-signal)]"
+                  checked={newest}
+                  disabled={uploading}
+                  onChange={(e) => onNewestChange(e.target.checked)}
+                />
+                {t("newestFirst")}
+              </label>
+              <p className="text-small text-fg-muted">{t("newestFirstHint")}</p>
+            </div>
+          ) : null}
           {mode === "manage" ? (
             <FilterField label={t("searchLinks")} className="w-full min-w-0">
               {(id) => (

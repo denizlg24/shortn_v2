@@ -411,8 +411,7 @@
     "untitledSection": "Sección de enlaces {number}",
     "newLinkSection": "Nueva sección de enlaces",
     "newestFirst": "Mostrar primero los enlaces más recientes",
-    "newestFirstHint": "Los enlaces se ordenan por fecha de creación, así que los recién creados aparecen arriba. Desactívalo para ordenarlos tú.",
-    "newestHint": "Más recientes primero"
+    "newestFirstHint": "Los enlaces se ordenan por fecha de creación, así que los recién creados aparecen arriba. Desactívalo para ordenarlos tú."
   },
   "analytics": {
     "title": "Estadísticas de la página bio",
