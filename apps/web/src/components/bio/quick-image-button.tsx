@@ -66,7 +66,10 @@ export function QuickImageButton({
         onClick={() => input.current?.click()}
       >
         {pending ? (
-          <LoaderCircle aria-hidden className="size-4 animate-spin" />
+          <LoaderCircle
+            aria-hidden
+            className="size-4 motion-safe:animate-spin"
+          />
         ) : image ? (
           <img src={image} alt="" className="size-5 rounded-sm object-cover" />
         ) : (
