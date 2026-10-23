@@ -2723,7 +2723,7 @@
                         },
                         "order": {
                           "type": "string",
-                          "enum": ["manual", "newest"],
+                          "enum": ["manual", "added", "newest", "title"],
                           "default": "manual"
                         },
                         "items": {
@@ -2778,6 +2778,10 @@
                               "highlight": {
                                 "type": "boolean",
                                 "default": false
+                              },
+                              "addedAt": {
+                                "type": "string",
+                                "format": "date-time"
                               }
                             },
                             "required": ["id", "linkId", "title"]
@@ -8802,7 +8806,12 @@
                                 },
                                 "order": {
                                   "type": "string",
-                                  "enum": ["manual", "newest"],
+                                  "enum": [
+                                    "manual",
+                                    "added",
+                                    "newest",
+                                    "title"
+                                  ],
                                   "default": "manual"
                                 },
                                 "items": {
@@ -8857,6 +8866,10 @@
                                       "highlight": {
                                         "type": "boolean",
                                         "default": false
+                                      },
+                                      "addedAt": {
+                                        "type": "string",
+                                        "format": "date-time"
                                       }
                                     },
                                     "required": ["id", "linkId", "title"]

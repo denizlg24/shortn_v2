@@ -3,7 +3,7 @@ import { ObjectId } from "mongodb";
 import { z } from "zod";
 import { can } from "../workspaces/authz";
 import { ownedBy } from "../workspaces/service";
-import type { ServiceContext } from "../workspaces/context";
+import { nowOf, type ServiceContext } from "../workspaces/context";
 import { fail, ok } from "../result";
 import { groupBioLinks, newBioLinksSection } from "./content";
 import { readBioDraft, saveBioDraft } from "./publishing";
@@ -16,6 +16,8 @@ export const addBioLinksInput = z.object({
     .max(500),
   sectionId: z.string().min(1).max(100).optional(),
   sectionTitle: z.string().trim().max(120).default(""),
+  /** A picture for the added link; the bio schema checks the URL on save. */
+  image: z.string().max(2048).default(""),
 });
 
 /** Append to the chosen draft section without publishing unrelated edits. */
@@ -69,6 +71,7 @@ export async function addLinksToBioDraft(
   if (!additions.length)
     return ok({ added: 0, skipped: ids.length, sectionId: section.id });
   const byId = new Map(links.map((link) => [link._id.toHexString(), link]));
+  const addedAt = nowOf(ctx).toISOString();
   const updated = {
     ...section,
     items: [
@@ -83,8 +86,9 @@ export async function addLinksToBioDraft(
             "",
         ).slice(0, 120),
         visible: true,
-        image: "",
+        image: parsed.data.image,
         highlight: false,
+        addedAt,
       })),
     ],
   };

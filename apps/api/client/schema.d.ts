@@ -4387,7 +4387,7 @@ export interface paths {
                      * @default manual
                      * @enum {string}
                      */
-                    order?: "manual" | "newest";
+                    order?: "manual" | "added" | "newest" | "title";
                     items: {
                       id: string;
                       /** @default true */
@@ -4404,6 +4404,8 @@ export interface paths {
                       image?: string | "";
                       /** @default false */
                       highlight?: boolean;
+                      /** Format: date-time */
+                      addedAt?: string;
                     }[];
                   }
                 | {
@@ -6527,7 +6529,7 @@ export interface components {
                * @default manual
                * @enum {string}
                */
-              order: "manual" | "newest";
+              order: "manual" | "added" | "newest" | "title";
               items: {
                 id: string;
                 /** @default true */
@@ -6544,6 +6546,8 @@ export interface components {
                 image: string | "";
                 /** @default false */
                 highlight: boolean;
+                /** Format: date-time */
+                addedAt?: string;
               }[];
             }
           | {

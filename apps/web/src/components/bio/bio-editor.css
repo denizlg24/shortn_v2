@@ -64,3 +64,24 @@
 .studio-library-filters [role="combobox"] { min-width: 0; max-width: 100%; overflow: hidden; }
 .studio-library-tags { display: none; }
 @container bio-studio (min-width: 900px) { .studio-library-tags { display: table-cell; } }
+
+/* Visual choices: each tile is a scaled-down live render of the option. */
+.studio-style-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+.studio-style-tile { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 5px; border: 1px solid var(--line-strong); border-radius: 10px; background: var(--bg); color: var(--fg); text-align: left; cursor: pointer; }
+.studio-style-tile:hover { border-color: var(--fg-subtle); }
+.studio-style-tile[aria-checked="true"] { border-color: var(--signal); box-shadow: 0 0 0 1px var(--signal); }
+.studio-style-tile:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+.studio-style-thumb { display: flex; justify-content: center; height: 112px; overflow: hidden; border-radius: 6px; pointer-events: none; }
+.studio-style-render { display: block; flex: none; width: 340px; zoom: .38; }
+.studio-style-render .bio-page { min-height: 0; }
+.studio-style-render .bio-content { width: 100%; padding: 22px 20px; }
+.studio-style-render .bio-profile { gap: 6px; padding-bottom: 8px; }
+.studio-style-name { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 3px 1px; font-size: 12px; font-weight: 500; }
+.studio-style-tile[aria-checked="true"] .studio-style-name { color: var(--signal); }
+.studio-disclosure { border-block: 1px solid var(--line); padding-block: 4px 14px; }
+.studio-disclosure + .studio-disclosure { border-top: 0; }
+.studio-disclosure > summary { display: flex; align-items: center; gap: 8px; min-height: 40px; cursor: pointer; font-size: 14px; font-weight: 500; list-style: none; }
+.studio-disclosure > summary::-webkit-details-marker { display: none; }
+.studio-disclosure > summary::before { content: ""; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform .15s; }
+.studio-disclosure[open] > summary::before { transform: rotate(45deg); }
+.studio-disclosure > summary:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }

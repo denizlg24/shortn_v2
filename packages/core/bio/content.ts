@@ -20,8 +20,16 @@ export const bioLinkItemSchema = z.object({
   title: z.string().max(120),
   image: url.or(z.literal("")).default(""),
   highlight: z.boolean().default(false),
+  /** When the link joined this section; orders "added" sections. */
+  addedAt: z.iso.datetime().optional(),
 });
 export type BioLinkItem = z.infer<typeof bioLinkItemSchema>;
+/**
+ * How a links section orders itself on every save: by hand, by link creation
+ * time ("newest"), by when each link joined the section ("added"), or A–Z.
+ */
+export const bioLinkOrders = ["manual", "added", "newest", "title"] as const;
+export type BioLinkOrder = (typeof bioLinkOrders)[number];
 export const bioBlockSchema = z.discriminatedUnion("type", [
   z.object({
     ...identity,
@@ -73,8 +81,7 @@ export const bioBlockSchema = z.discriminatedUnion("type", [
     paginationStyle: z.enum(["arrows", "labels"]).default("arrows"),
     showPageCount: z.boolean().default(true),
     showLinkCount: z.boolean().default(false),
-    // "newest" keeps items ordered by link creation, newest first, on save.
-    order: z.enum(["manual", "newest"]).default("manual"),
+    order: z.enum(bioLinkOrders).default("manual"),
     items: z.array(bioLinkItemSchema).max(1000),
   }),
   z.object({
@@ -498,26 +505,64 @@ export function groupBioLinks(content: BioContent): BioContent {
   return { ...content, blocks };
 }
 
+export interface BioLinkFacts {
+  /** ISO creation time of the short link. */
+  createdAt?: string | undefined;
+  /** The link's own title, shown when the item has none. */
+  title?: string | undefined;
+}
+
+const titleCollator = new Intl.Collator("en", {
+  sensitivity: "base",
+  numeric: true,
+});
+
+/** Newest ISO time first; items without one keep their order, last. */
+const byTimeDesc = (x: string | undefined, y: string | undefined) =>
+  x === y ? 0 : !x ? 1 : !y ? -1 : x < y ? 1 : -1;
+
 /**
- * Applies each "newest" section's order: links by creation time, newest
- * first; ties and unknown times keep their current relative order, unknown
- * last. Returns the same object when nothing moves, so callers can compare.
+ * Applies each automatically ordered section's order. Sorting is stable, so
+ * ties keep their current relative order. Returns the same object when
+ * nothing moves, so callers can compare by identity.
  */
 export function orderBioLinks(
   content: BioContent,
-  createdAt: (linkId: string) => string | undefined,
+  facts: (linkId: string) => BioLinkFacts | undefined,
 ): BioContent {
   let changed = false;
   const blocks = content.blocks.map((block) => {
-    if (block.type !== "links" || block.order !== "newest") return block;
-    const items = [...block.items].sort((a, b) => {
-      const x = createdAt(a.linkId) ?? "",
-        y = createdAt(b.linkId) ?? "";
-      return x === y ? 0 : x < y ? 1 : -1;
-    });
+    if (block.type !== "links" || block.order === "manual") return block;
+    const compare: (a: BioLinkItem, b: BioLinkItem) => number =
+      block.order === "added"
+        ? (a, b) => byTimeDesc(a.addedAt, b.addedAt)
+        : block.order === "newest"
+          ? (a, b) =>
+              byTimeDesc(facts(a.linkId)?.createdAt, facts(b.linkId)?.createdAt)
+          : (a, b) =>
+              titleCollator.compare(
+                a.title.trim() || facts(a.linkId)?.title || "",
+                b.title.trim() || facts(b.linkId)?.title || "",
+              );
+    const items = [...block.items].sort(compare);
     if (items.every((item, at) => item === block.items[at])) return block;
     changed = true;
     return { ...block, items };
   });
   return changed ? { ...content, blocks } : content;
+}
+
+/**
+ * Sections saved before items carried `addedAt` list links in the order they
+ * were appended. Stamping that order with old, increasing times lets "Recently
+ * added" put the latest additions first without moving them twice.
+ */
+export function stampBioLinksAdded(items: BioLinkItem[]): BioLinkItem[] {
+  if (items.every((item) => item.addedAt)) return items;
+  const base = Date.UTC(2000, 0, 1);
+  return items.map((item, at) =>
+    item.addedAt
+      ? item
+      : { ...item, addedAt: new Date(base + at * 1000).toISOString() },
+  );
 }

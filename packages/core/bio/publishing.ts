@@ -55,6 +55,13 @@ const linkCreatedAt = (link: {
   date?: Date | undefined;
 }) => (link.createdAt ?? link.date ?? link._id.getTimestamp()).toISOString();
 
+// One title rule for the editor's resolved links and A–Z ordering.
+const linkTitle = (link: {
+  title?: string | undefined;
+  key?: string | undefined;
+  urlCode?: string | undefined;
+}) => link.title || link.key || link.urlCode || "";
+
 async function validateContent(ctx: ServiceContext, input: unknown) {
   const result = bioContentSchema.safeParse(input);
   if (!result.success) return fail("invalid_input" as const);
@@ -79,15 +86,18 @@ async function validateContent(ctx: ServiceContext, input: unknown) {
           ownedBy(ctx.workspace, "sub"),
         ],
       },
-      { projection: { createdAt: 1, date: 1 } },
+      { projection: { createdAt: 1, date: 1, title: 1, key: 1, urlCode: 1 } },
     )
     .toArray();
   if (found.length !== ids.length) return fail("link_not_found" as const);
-  const created = new Map(
-    found.map((link) => [String(link._id), linkCreatedAt(link)]),
+  const facts = new Map(
+    found.map((link) => [
+      String(link._id),
+      { createdAt: linkCreatedAt(link), title: linkTitle(link) },
+    ]),
   );
   return ok({
-    ...orderBioLinks(result.data, (id) => created.get(id)),
+    ...orderBioLinks(result.data, (id) => facts.get(id)),
     theme: accessibleBioTheme(result.data.theme),
   });
 }
@@ -480,7 +490,7 @@ export async function publicBioFromDocument(
             String(link._id),
             {
               href: href.href,
-              title: link.title ?? link.key ?? link.urlCode ?? "",
+              title: linkTitle(link),
               createdAt: linkCreatedAt(link),
             },
           ],
