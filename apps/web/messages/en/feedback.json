@@ -1,0 +1,38 @@
+{
+  "title": "Feedback",
+  "description": "Tell us what's broken, what's missing or what you'd change. The Shortn team reads every message.",
+  "formTitle": "Send feedback",
+  "category": "What is it about?",
+  "categories": {
+    "bug": "Something's broken",
+    "idea": "An idea",
+    "question": "A question",
+    "other": "Something else"
+  },
+  "message": "Message",
+  "messageHint": "{count} / {max} characters. Include the steps, page or link that helps us see what you see.",
+  "placeholders": {
+    "bug": "What did you do, what did you expect, and what happened instead?",
+    "idea": "What would you like Shortn to do, and what would it help you with?",
+    "question": "What would you like to know?",
+    "other": "What's on your mind?"
+  },
+  "send": "Send feedback",
+  "sent": "Thanks — your feedback reached the team.",
+  "history": "Your feedback",
+  "historyHint": "Your most recent messages and where they stand.",
+  "statuses": {
+    "new": "Received",
+    "reviewing": "Under review",
+    "planned": "Planned",
+    "done": "Done",
+    "declined": "Not planned"
+  },
+  "errors": {
+    "invalid_input": "Write a message of up to 4,000 characters.",
+    "message_required": "Write a message before sending.",
+    "forbidden": "Feedback can't be sent while impersonating a user.",
+    "rate_limited": "You've sent a lot of feedback in the last hour. Try again later.",
+    "failed": "Your feedback couldn't be sent. Try again."
+  }
+}

@@ -64,6 +64,7 @@ export const defaultPhysicalNames = {
   link_reports: "linkreports",
   scheduled_changes: "scheduledchanges",
   contacts: "contacts",
+  feedback: "feedback",
   rate_limits: "ratelimits",
   user: "user",
   session: "session",

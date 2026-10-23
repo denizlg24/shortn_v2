@@ -1,5 +1,9 @@
 import "server-only";
-import { physicalNames } from "@shortn/db";
+import {
+  feedbackCategories,
+  feedbackStatuses,
+  physicalNames,
+} from "@shortn/db";
 
 export type Area = {
   title: string;
@@ -15,6 +19,7 @@ export type Area = {
     | "webhook"
     | "job"
     | "contact"
+    | "feedback"
     | "subscription"
     | "report"
     | "system";
@@ -237,6 +242,34 @@ export const areas: Record<string, Area> = {
       },
     ],
     targetType: "contact",
+    actions: ["triage"],
+  },
+  feedback: {
+    title: "Feedback",
+    collection: physicalNames.feedback,
+    fields: [
+      ["createdAt", "Received"],
+      ["category", "Category"],
+      ["message", "Message"],
+      ["userId", "User"],
+      ["workspaceId", "Workspace"],
+      ["page", "Page"],
+      ["triage.status", "Status"],
+    ],
+    search: [],
+    facets: [
+      {
+        name: "triage.status",
+        label: "Status",
+        values: [...feedbackStatuses],
+      },
+      {
+        name: "category",
+        label: "Category",
+        values: [...feedbackCategories],
+      },
+    ],
+    targetType: "feedback",
     actions: ["triage"],
   },
   audit: {

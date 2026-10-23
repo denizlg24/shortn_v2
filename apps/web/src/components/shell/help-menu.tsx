@@ -13,8 +13,10 @@ import {
   CircleQuestionMark,
   Keyboard,
   LifeBuoy,
+  MessageSquare,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { usePathname, useRouter } from "next/navigation";
 import { useChangelogSeen } from "@/lib/changelog/use-changelog-seen";
 import { tourAnchor } from "@/lib/tour/anchors";
 import { GuideMenuItems, UnseenDot } from "./guide-menu-items";
@@ -28,7 +30,9 @@ import { useShell } from "./shell-context";
 export function HelpMenu({ layout }: { layout: "rail" | "full" }) {
   const t = useTranslations("shell.help");
   const locale = useLocale();
-  const { openShortcuts } = useShell();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { openShortcuts, workspace, closeDrawer } = useShell();
   const { unseen } = useChangelogSeen();
   const rail = layout === "rail";
   return (
@@ -74,6 +78,17 @@ export function HelpMenu({ layout }: { layout: "rail" | "full" }) {
             {t("center")}
             <ArrowUpRight aria-hidden className="size-3.5 text-fg-subtle" />
           </span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          icon={<MessageSquare aria-hidden />}
+          onSelect={() => {
+            closeDrawer();
+            router.push(
+              `/${workspace.slug}/feedback?from=${encodeURIComponent(pathname)}`,
+            );
+          }}
+        >
+          {t("feedback")}
         </DropdownMenuItem>
         {rail ? (
           <DropdownMenuItem

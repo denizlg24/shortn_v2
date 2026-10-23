@@ -24,6 +24,7 @@ export type AdminAction =
   | "webhook.manage"
   | "job.manage"
   | "contact.triage"
+  | "feedback.triage"
   | "user.delete";
 
 export interface AdminRule {
@@ -62,6 +63,7 @@ export const adminPermissions: Record<AdminAction, AdminRule> = {
   "webhook.manage": rule(both, false, true),
   "job.manage": rule(both, false, false),
   "contact.triage": rule(both, false, false),
+  "feedback.triage": rule(both, false, false),
   "user.delete": rule(superOnly, true, true),
 };
 

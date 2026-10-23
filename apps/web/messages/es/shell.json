@@ -15,7 +15,8 @@
     "label": "Ayuda",
     "center": "Centro de ayuda",
     "shortcuts": "Atajos de teclado",
-    "unseen": "Ayuda (novedades)"
+    "unseen": "Ayuda (novedades)",
+    "feedback": "Enviar comentarios"
   },
   "account": {
     "menu": "Cuenta",

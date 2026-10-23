@@ -158,6 +158,7 @@ try {
     "/billing?view=overrides",
     "/jobs",
     "/contacts",
+    "/feedback",
     "/audit",
     `/users/${target}`,
     `/workspaces/${workspace._id}`,

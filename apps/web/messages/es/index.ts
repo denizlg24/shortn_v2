@@ -16,6 +16,7 @@ import analytics from "./analytics.json";
 import gate from "./gate.json";
 import tour from "./tour.json";
 import changelog from "./changelog.json";
+import feedback from "./feedback.json";
 import settings from "./settings.json";
 import billing from "./billing.json";
 import invite from "./invite.json";
@@ -65,6 +66,7 @@ export default {
   gate,
   tour,
   changelog,
+  feedback,
   settings,
   billing,
   invite,

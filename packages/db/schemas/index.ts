@@ -583,6 +583,15 @@ export const apiKeySchema = z.object({
   expiresAt: z.date().optional(),
   revokedAt: z.date().optional(),
 });
+export const feedbackCategories = ["bug", "idea", "question", "other"] as const;
+export const feedbackStatuses = [
+  "new",
+  "reviewing",
+  "planned",
+  "done",
+  "declined",
+] as const;
+export const feedbackMessageMax = 4000;
 export const adminRoles = ["admin", "superadmin"] as const;
 export const userRoles = ["user", ...adminRoles] as const;
 const userRef = z.union([text, objectId]);
@@ -685,6 +694,27 @@ export const schemas = {
       })
       .optional(),
   }),
+  // In-app product feedback; admin.shortn.at triages it.
+  feedback: z.looseObject({
+    _id: objectId,
+    userId: text,
+    workspaceId: objectId,
+    category: z.enum(feedbackCategories),
+    message: text.max(feedbackMessageMax),
+    page: text.max(500).optional(),
+    locale: text.optional(),
+    userAgent: text.max(500).optional(),
+    createdAt: z.date(),
+    // Absent = "new".
+    triage: z
+      .object({
+        status: z.enum(feedbackStatuses),
+        note: text.max(2000).optional(),
+        updatedAt: z.date(),
+        updatedBy: text,
+      })
+      .optional(),
+  }),
   // Superset of the old console's rows: rows without `status` are legacy and
   // count as succeeded.
   admin_audit_log: z.looseObject({
@@ -704,6 +734,7 @@ export const schemas = {
       "webhook",
       "job",
       "contact",
+      "feedback",
       "session",
     ]),
     targetId: text,
