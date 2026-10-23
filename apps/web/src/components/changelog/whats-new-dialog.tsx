@@ -11,8 +11,10 @@ import {
 import {
   ArrowDownUp,
   Braces,
+  ImagePlus,
   Link2,
   MessageSquare,
+  Palette,
   PanelsTopLeft,
   QrCode,
   SquareUser,
@@ -32,6 +34,9 @@ import { useTour } from "../tour/tour-provider";
 
 const icons: Record<ChangelogHighlightId, LucideIcon> = {
   bioNewest: ArrowDownUp,
+  bioStyles: Palette,
+  bioOrder: ArrowDownUp,
+  bioImages: ImagePlus,
   feedback: MessageSquare,
   dashboard: PanelsTopLeft,
   links: Link2,

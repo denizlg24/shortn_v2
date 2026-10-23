@@ -12,6 +12,53 @@
     "seeAll": "Ver todo"
   },
   "entries": {
+    "2026-10-bio-styles": {
+      "title": "Estilos de página bio que ves antes de elegir",
+      "summary": "Las secciones de enlaces, los colores, los estilos de botón y los diseños de perfil ahora son plantillas visuales dibujadas con tu propia página. Elige una y ajústala solo si quieres.",
+      "highlights": {
+        "bioStyles": {
+          "title": "Plantillas visuales",
+          "body": "Botones, contorno, tarjetas, galería, solo imagen y más, con tus propios enlaces y colores."
+        },
+        "bioOrder": {
+          "title": "Ordena los enlaces automáticamente",
+          "body": "Mantén una sección en orden personalizado, añadidos recientemente, creados recientemente o de la A a la Z."
+        },
+        "bioImages": {
+          "title": "Imágenes en un clic",
+          "body": "Añade una imagen a cualquier enlace desde la lista o al añadir un enlace a una página bio."
+        }
+      },
+      "sections": {
+        "bio": "Páginas bio"
+      },
+      "items": {
+        "linkStyles": {
+          "title": "Plantillas para secciones de enlaces",
+          "body": "Cada sección de enlaces ofrece Botones, Contorno, Suave, Lista simple, Tarjetas, Tarjetas grandes, Galería y Solo imagen, con tus propios enlaces. Personalizar estilo reúne todas las opciones detalladas."
+        },
+        "themes": {
+          "title": "Colores y estilos como vistas previas",
+          "body": "El panel Tema muestra cada paleta de colores y estilo de botón como una pequeña vista previa de tu página. Al elegir colores se mantienen tu fuente y tus botones."
+        },
+        "profileLayouts": {
+          "title": "Diseños de perfil",
+          "body": "Elige cómo se colocan tu nombre, tu bio y tu foto arriba de la página: centrados, a la izquierda o a la derecha, con foto redonda, redondeada o cuadrada."
+        },
+        "order": {
+          "title": "Ordena una sección",
+          "body": "Ordenar enlaces permite mantener tu propio orden o ordenar la sección por añadidos recientemente, creados recientemente o alfabéticamente."
+        },
+        "quickImage": {
+          "title": "Añade una imagen desde la lista de enlaces",
+          "body": "En Gestionar enlaces, el botón de imagen junto a cada enlace sube su imagen en un paso."
+        },
+        "addWithImage": {
+          "title": "Añade un enlace con su imagen",
+          "body": "Al añadir un solo enlace a una página bio desde tus enlaces, puedes subir su imagen al mismo tiempo."
+        }
+      }
+    },
     "2026-10-bio-newest-first": {
       "title": "Enlaces más recientes primero en las páginas bio",
       "summary": "Una sección de enlaces ya puede ordenarse sola: activa Mostrar primero los enlaces más recientes y los enlaces que acabas de crear aparecen arriba.",

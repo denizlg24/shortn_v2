@@ -12,6 +12,53 @@
     "seeAll": "Ver tudo"
   },
   "entries": {
+    "2026-10-bio-styles": {
+      "title": "Estilos de página bio que vê antes de escolher",
+      "summary": "As secções de links, as cores, os estilos de botão e as disposições do perfil são agora modelos visuais desenhados com a sua própria página. Escolha um e ajuste só se quiser.",
+      "highlights": {
+        "bioStyles": {
+          "title": "Modelos visuais",
+          "body": "Botões, contorno, cartões, galeria, só imagem e mais, com os seus próprios links e cores."
+        },
+        "bioOrder": {
+          "title": "Ordene os links automaticamente",
+          "body": "Mantenha uma secção na sua ordem, por adicionados recentemente, criados recentemente ou de A a Z."
+        },
+        "bioImages": {
+          "title": "Imagens num clique",
+          "body": "Adicione uma imagem a qualquer link a partir da lista ou ao adicionar um link a uma página bio."
+        }
+      },
+      "sections": {
+        "bio": "Páginas bio"
+      },
+      "items": {
+        "linkStyles": {
+          "title": "Modelos para secções de links",
+          "body": "Cada secção de links oferece Botões, Contorno, Suave, Lista simples, Cartões, Cartões grandes, Galeria e Só imagem, com os seus próprios links. Personalizar estilo reúne todas as opções detalhadas."
+        },
+        "themes": {
+          "title": "Cores e estilos como pré-visualizações",
+          "body": "O painel Tema mostra cada paleta de cores e estilo de botão como uma pequena pré-visualização da sua página. Escolher cores mantém o tipo de letra e os botões."
+        },
+        "profileLayouts": {
+          "title": "Disposições do perfil",
+          "body": "Escolha como o nome, a bio e a foto ficam no topo da página: centrados, à esquerda ou à direita, com foto redonda, arredondada ou quadrada."
+        },
+        "order": {
+          "title": "Ordene uma secção",
+          "body": "Ordenar links permite manter a sua ordem ou ordenar a secção por adicionados recentemente, criados recentemente ou alfabeticamente."
+        },
+        "quickImage": {
+          "title": "Adicione uma imagem a partir da lista de links",
+          "body": "Em Gerir links, o botão de imagem ao lado de cada link carrega a imagem num só passo."
+        },
+        "addWithImage": {
+          "title": "Adicione um link com a sua imagem",
+          "body": "Ao adicionar um único link a uma página bio a partir dos seus links, pode carregar a imagem ao mesmo tempo."
+        }
+      }
+    },
     "2026-10-bio-newest-first": {
       "title": "Links mais recentes primeiro nas páginas bio",
       "summary": "Uma secção de links já se ordena sozinha: ative Mostrar primeiro os links mais recentes e os links acabados de criar ficam no topo.",
