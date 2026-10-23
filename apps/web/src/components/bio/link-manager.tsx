@@ -41,7 +41,7 @@ import {
 import { linkFacetOptionsAction } from "@/server/actions/link-filters";
 import { FilterField } from "../page/filters";
 import { ImageUpload } from "../page/image-upload";
-import { linkSorts, sortLinks, type LinkSort } from "./link-sort";
+import { linkSorts, moveAmong, sortLinks, type LinkSort } from "./link-sort";
 const input =
   "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small";
 type LibraryLink = Awaited<
@@ -800,15 +800,16 @@ export function LinkManager({
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={({ active, over }) => {
-                if (over && active.id !== over.id) setSorted(null);
-                if (over && active.id !== over.id)
-                  onChange(
-                    arrayMove(
-                      items,
-                      items.findIndex((i) => i.id === active.id),
-                      items.findIndex((i) => i.id === over.id),
-                    ),
-                  );
+                if (!over || active.id === over.id) return;
+                setSorted(null);
+                onChange(
+                  moveAmong(
+                    items,
+                    filtered.map((i) => i.id),
+                    String(active.id),
+                    String(over.id),
+                  ),
+                );
               }}
             >
               <SortableContext
