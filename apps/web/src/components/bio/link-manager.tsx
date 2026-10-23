@@ -41,6 +41,7 @@ import {
 import { linkFacetOptionsAction } from "@/server/actions/link-filters";
 import { FilterField } from "../page/filters";
 import { ImageUpload } from "../page/image-upload";
+import { linkSorts, moveAmong, sortLinks, type LinkSort } from "./link-sort";
 const input =
   "min-h-10 w-full rounded-control border border-line-strong bg-bg px-3 py-2 text-small";
 type LibraryLink = Awaited<
@@ -128,6 +129,11 @@ export function LinkManager({
     campaigns: boolean;
   } | null>(null);
   const [selection, setSelection] = useState<Record<string, LibraryLink>>({});
+  const [sorted, setSorted] = useState<{
+    order: LinkSort;
+    previous: string[];
+  } | null>(null);
+  const [position, setPosition] = useState("");
   const [selecting, setSelecting] = useState(false);
   useEffect(() => {
     let live = true;
@@ -308,6 +314,22 @@ export function LinkManager({
       to = at + delta;
     if (to >= 0 && to < items.length) onChange(arrayMove(items, at, to));
   }
+  function moveTo(id: string, to: number) {
+    const at = items.findIndex((i) => i.id === id),
+      target = Math.min(Math.max(to, 0), items.length - 1);
+    if (at < 0 || at === target) return;
+    onChange(arrayMove(items, at, target));
+    setPosition("");
+    setSorted(null);
+    if (!search) setPage(Math.floor(target / 20) + 1);
+  }
+  const titleOf = (item: BioLinkItem) =>
+    item.title || links[item.linkId]?.title || "";
+  function sortBy(order: LinkSort) {
+    setSorted({ order, previous: items.map((item) => item.id) });
+    onChange(sortLinks(items, order, titleOf));
+    setPage(1);
+  }
   const groups = new Map<string, LibraryLink[]>();
   for (const link of library?.links ?? []) {
     const name =
@@ -408,18 +430,79 @@ export function LinkManager({
       ) : (
         <>
           {mode === "manage" ? (
-            <FilterField label={t("searchLinks")} className="w-full min-w-0">
-              {(id) => (
-                <input
-                  id={id}
-                  type="search"
-                  maxLength={200}
-                  className={filterControl}
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                />
-              )}
-            </FilterField>
+            <div className="grid min-w-0 gap-3">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)]">
+                <FilterField
+                  label={t("searchLinks")}
+                  className="w-full min-w-0"
+                >
+                  {(id) => (
+                    <input
+                      id={id}
+                      type="search"
+                      maxLength={200}
+                      className={filterControl}
+                      value={search}
+                      onChange={(event) => setSearch(event.target.value)}
+                    />
+                  )}
+                </FilterField>
+                <FilterField label={t("sortLinks")} className="w-full min-w-0">
+                  {(id) => (
+                    <select
+                      id={id}
+                      className={filterControl}
+                      value=""
+                      disabled={items.length < 2 || uploading}
+                      onChange={(event) => {
+                        const order = linkSorts.find(
+                          (value) => value === event.target.value,
+                        );
+                        if (order) sortBy(order);
+                      }}
+                    >
+                      <option value="">{t("sortCustom")}</option>
+                      {linkSorts.map((order) => (
+                        <option key={order} value={order}>
+                          {t(`sorts.${order}`)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </FilterField>
+              </div>
+              {sorted ? (
+                <p
+                  role="status"
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-fg-muted"
+                >
+                  {t("sortedBy", { order: t(`sorts.${sorted.order}`) })}
+                  <button
+                    type="button"
+                    className="text-signal underline-offset-4 hover:underline"
+                    onClick={() => {
+                      const rank = new Map(
+                        sorted.previous.map((id, at) => [id, at]),
+                      );
+                      onChange(
+                        [...items].sort(
+                          (a, b) =>
+                            (rank.get(a.id) ?? items.length) -
+                            (rank.get(b.id) ?? items.length),
+                        ),
+                      );
+                      setSorted(null);
+                    }}
+                  >
+                    {t("undoSort")}
+                  </button>
+                </p>
+              ) : search ? (
+                <p className="text-small text-fg-muted">
+                  {t("searchOrderHint")}
+                </p>
+              ) : null}
+            </div>
           ) : null}
           {mode === "existing" ? (
             <>
@@ -509,6 +592,50 @@ export function LinkManager({
                   {t("done")}
                 </button>
               </div>
+              <form
+                className="flex flex-wrap items-end gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const to = Number(position);
+                  if (Number.isInteger(to) && to >= 1)
+                    moveTo(selected.id, to - 1);
+                }}
+              >
+                <label className="grid gap-1 text-small">
+                  {t("position", { total: items.length })}
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={items.length}
+                    className={`${input} w-28`}
+                    placeholder={String(
+                      items.findIndex((item) => item.id === selected.id) + 1,
+                    )}
+                    value={position}
+                    onChange={(e) => setPosition(e.target.value)}
+                  />
+                </label>
+                <button className={button} type="submit" disabled={!position}>
+                  {t("moveTo")}
+                </button>
+                <button
+                  className={button}
+                  type="button"
+                  disabled={items[0]?.id === selected.id}
+                  onClick={() => moveTo(selected.id, 0)}
+                >
+                  {t("moveTop")}
+                </button>
+                <button
+                  className={button}
+                  type="button"
+                  disabled={items.at(-1)?.id === selected.id}
+                  onClick={() => moveTo(selected.id, items.length - 1)}
+                >
+                  {t("moveBottom")}
+                </button>
+              </form>
               <label className="grid gap-1 text-small">
                 {t("title")}
                 <input
@@ -673,14 +800,16 @@ export function LinkManager({
               sensors={sensors}
               collisionDetection={closestCenter}
               onDragEnd={({ active, over }) => {
-                if (over && active.id !== over.id)
-                  onChange(
-                    arrayMove(
-                      items,
-                      items.findIndex((i) => i.id === active.id),
-                      items.findIndex((i) => i.id === over.id),
-                    ),
-                  );
+                if (!over || active.id === over.id) return;
+                setSorted(null);
+                onChange(
+                  moveAmong(
+                    items,
+                    filtered.map((i) => i.id),
+                    String(active.id),
+                    String(over.id),
+                  ),
+                );
               }}
             >
               <SortableContext
@@ -703,7 +832,10 @@ export function LinkManager({
                         aria-label={t("editLink")}
                         disabled={uploading}
                         type="button"
-                        onClick={() => setEditing(item.id)}
+                        onClick={() => {
+                          setEditing(item.id);
+                          setPosition("");
+                        }}
                       >
                         <Pencil className="size-4" />
                       </button>
@@ -712,7 +844,10 @@ export function LinkManager({
                         aria-label={t("up")}
                         disabled={items[0]?.id === item.id || uploading}
                         type="button"
-                        onClick={() => move(item.id, -1)}
+                        onClick={() => {
+                          setSorted(null);
+                          move(item.id, -1);
+                        }}
                       >
                         <ArrowUp className="size-4" />
                       </button>
@@ -721,7 +856,10 @@ export function LinkManager({
                         aria-label={t("down")}
                         disabled={items.at(-1)?.id === item.id || uploading}
                         type="button"
-                        onClick={() => move(item.id, 1)}
+                        onClick={() => {
+                          setSorted(null);
+                          move(item.id, 1);
+                        }}
                       >
                         <ArrowDown className="size-4" />
                       </button>

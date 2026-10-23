@@ -70,7 +70,7 @@ export default async function AreaPage({
     const value = param(search, facet.name);
     if (value && facet.values.includes(value)) {
       if (
-        (area === "contacts" &&
+        ((area === "contacts" || area === "feedback") &&
           facet.name === "triage.status" &&
           value === "new") ||
         (area === "audit" && facet.name === "status" && value === "succeeded")
@@ -150,10 +150,12 @@ export default async function AreaPage({
     { name: 1, slug: 1 },
   );
   const relatedOwners =
-    area === "workspaces"
+    area === "workspaces" || area === "feedback"
       ? await byIds(
           database.collection(physicalNames.user),
-          page.rows.map((row) => row.ownerUserId),
+          page.rows.map((row) =>
+            area === "feedback" ? row.userId : row.ownerUserId,
+          ),
           { email: 1 },
         )
       : new Map();
@@ -320,8 +322,8 @@ export default async function AreaPage({
                   {display(
                     (key === "workspaceId"
                       ? relatedWorkspaces.get(String(row.workspaceId))?.name
-                      : key === "ownerUserId"
-                        ? relatedOwners.get(String(row.ownerUserId))?.email
+                      : key === "ownerUserId" || key === "userId"
+                        ? relatedOwners.get(String(row[key]))?.email
                         : undefined) ??
                       fieldValue(row, key) ??
                       (area === "audit" && key === "status"

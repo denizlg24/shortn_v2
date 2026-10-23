@@ -9,6 +9,7 @@ import {
   workspaceSuspensionSchema,
   moderationCategories,
   accountSuspension,
+  feedbackStatuses,
 } from "@shortn/db";
 import {
   features as catalogFeatures,
@@ -60,6 +61,7 @@ export const consoleActions: Record<string, AdminAction> = {
   "jobs/requeue": "job.manage",
   "jobs/cancel": "job.manage",
   "contacts/triage": "contact.triage",
+  "feedback/triage": "feedback.triage",
   "billing/cancel": "subscription.cancel",
   "billing/uncancel": "subscription.cancel",
   "billing/revoke": "subscription.revoke",
@@ -119,9 +121,11 @@ export async function consoleMutation(
                 ? "webhook"
                 : area === "contacts"
                   ? "contact"
-                  : area === "billing"
-                    ? "subscription"
-                    : "job";
+                  : area === "feedback"
+                    ? "feedback"
+                    : area === "billing"
+                      ? "subscription"
+                      : "job";
   return withAdminAudit(
     ctx,
     {
@@ -592,6 +596,25 @@ export async function consoleMutation(
           },
         );
         return ok(null);
+      }
+      if (area === "feedback") {
+        const status = z.enum(feedbackStatuses).safeParse(data.status);
+        if (!status.success) return fail("invalid_status");
+        const note = text(data, "note").slice(0, 2000);
+        const updated = await collection(ctx.db, "feedback").updateOne(
+          { _id: oid },
+          {
+            $set: {
+              triage: {
+                status: status.data,
+                ...(note ? { note } : {}),
+                updatedBy: ctx.admin.id,
+                updatedAt: now,
+              },
+            },
+          },
+        );
+        return updated.matchedCount ? ok(null) : fail("not_found");
       }
       return fail("invalid_action");
     },

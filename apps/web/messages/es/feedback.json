@@ -1,0 +1,38 @@
+{
+  "title": "Comentarios",
+  "description": "Cuéntanos qué falla, qué echas en falta o qué cambiarías. El equipo de Shortn lee todos los mensajes.",
+  "formTitle": "Enviar comentarios",
+  "category": "¿Sobre qué es?",
+  "categories": {
+    "bug": "Algo no funciona",
+    "idea": "Una idea",
+    "question": "Una pregunta",
+    "other": "Otra cosa"
+  },
+  "message": "Mensaje",
+  "messageHint": "{count} / {max} caracteres. Incluye los pasos, la página o el enlace que nos ayuden a ver lo que ves.",
+  "placeholders": {
+    "bug": "¿Qué hiciste, qué esperabas y qué pasó en su lugar?",
+    "idea": "¿Qué te gustaría que hiciera Shortn y en qué te ayudaría?",
+    "question": "¿Qué te gustaría saber?",
+    "other": "¿Qué tienes en mente?"
+  },
+  "send": "Enviar comentarios",
+  "sent": "Gracias, tus comentarios han llegado al equipo.",
+  "history": "Tus comentarios",
+  "historyHint": "Tus mensajes más recientes y en qué punto están.",
+  "statuses": {
+    "new": "Recibido",
+    "reviewing": "En revisión",
+    "planned": "Previsto",
+    "done": "Hecho",
+    "declined": "No previsto"
+  },
+  "errors": {
+    "invalid_input": "Escribe un mensaje de hasta 4000 caracteres.",
+    "message_required": "Escribe un mensaje antes de enviarlo.",
+    "forbidden": "No se pueden enviar comentarios mientras suplantas a un usuario.",
+    "rate_limited": "Has enviado muchos comentarios en la última hora. Inténtalo más tarde.",
+    "failed": "No se han podido enviar tus comentarios. Inténtalo de nuevo."
+  }
+}

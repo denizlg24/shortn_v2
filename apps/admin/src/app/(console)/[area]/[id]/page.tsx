@@ -196,6 +196,21 @@ export default async function Detail({
             />
           </Section>
         ) : null}
+        {area === "feedback" ? (
+          <nav
+            aria-label="Related"
+            className="flex flex-wrap gap-3 text-small text-signal"
+          >
+            {typeof row.userId === "string" ? (
+              <Link href={`/users/${row.userId}`}>Open user</Link>
+            ) : null}
+            {row.workspaceId ? (
+              <Link href={`/workspaces/${String(row.workspaceId)}`}>
+                Open workspace
+              </Link>
+            ) : null}
+          </nav>
+        ) : null}
         {area === "contacts" && row.email ? (
           <a
             className="text-small text-signal"

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getFormatter, getTranslations } from "next-intl/server";
+import { getFormatter, getMessages, getTranslations } from "next-intl/server";
 import { ChangelogTag } from "@/components/changelog/changelog-tag";
 import { MarkChangelogSeen } from "@/components/changelog/mark-seen";
 import { Page } from "@/components/page/page";
@@ -10,11 +10,20 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: t("title") };
 }
 
+// Section and item ids differ per entry, so their copy is looked up per
+// entry rather than through keys typed across every entry at once.
+interface EntryCopy {
+  sections: Record<string, string>;
+  items: Record<string, { title: string; body: string }>;
+}
+
 export default async function ChangelogPage() {
-  const [t, format] = await Promise.all([
+  const [t, format, messages] = await Promise.all([
     getTranslations("changelog"),
     getFormatter(),
+    getMessages(),
   ]);
+  const copy: Record<string, EntryCopy> = messages.changelog.entries;
   return (
     <Page
       crumbs={[{ label: t("title") }]}
@@ -58,7 +67,7 @@ export default async function ChangelogPage() {
                         href={`#${entry.id}-${section.id}`}
                         className="rounded-chip text-fg-muted underline-offset-4 hover:text-fg hover:underline"
                       >
-                        {t(`entries.${entry.id}.sections.${section.id}`)}
+                        {copy[entry.id]?.sections[section.id]}
                       </a>
                     </li>
                   ))}
@@ -75,7 +84,7 @@ export default async function ChangelogPage() {
                     id={`${entry.id}-${section.id}-title`}
                     className="text-body font-semibold"
                   >
-                    {t(`entries.${entry.id}.sections.${section.id}`)}
+                    {copy[entry.id]?.sections[section.id]}
                   </h3>
                   <ul className="mt-4 grid gap-x-10 gap-y-5 sm:grid-cols-2">
                     {section.items.map((item) => {
@@ -83,11 +92,11 @@ export default async function ChangelogPage() {
                       return (
                         <li key={item.id} className="min-w-0">
                           <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-small font-medium text-pretty text-fg">
-                            {t(`entries.${entry.id}.items.${item.id}.title`)}
+                            {copy[entry.id]?.items[item.id]?.title}
                             {tag ? <ChangelogTag tag={tag} /> : null}
                           </p>
                           <p className="mt-1 text-small text-pretty text-fg-muted">
-                            {t(`entries.${entry.id}.items.${item.id}.body`)}
+                            {copy[entry.id]?.items[item.id]?.body}
                           </p>
                         </li>
                       );

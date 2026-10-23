@@ -1,0 +1,38 @@
+{
+  "title": "Feedback",
+  "description": "Diga-nos o que não funciona, o que falta ou o que mudaria. A equipa da Shortn lê todas as mensagens.",
+  "formTitle": "Enviar feedback",
+  "category": "Sobre o que é?",
+  "categories": {
+    "bug": "Algo não funciona",
+    "idea": "Uma ideia",
+    "question": "Uma pergunta",
+    "other": "Outra coisa"
+  },
+  "message": "Mensagem",
+  "messageHint": "{count} / {max} caracteres. Inclua os passos, a página ou o link que nos ajudem a ver o que vê.",
+  "placeholders": {
+    "bug": "O que fez, o que esperava e o que aconteceu em vez disso?",
+    "idea": "O que gostaria que a Shortn fizesse e em que o ajudaria?",
+    "question": "O que gostaria de saber?",
+    "other": "Em que está a pensar?"
+  },
+  "send": "Enviar feedback",
+  "sent": "Obrigado — o seu feedback chegou à equipa.",
+  "history": "O seu feedback",
+  "historyHint": "As suas mensagens mais recentes e em que ponto estão.",
+  "statuses": {
+    "new": "Recebido",
+    "reviewing": "Em análise",
+    "planned": "Planeado",
+    "done": "Feito",
+    "declined": "Não planeado"
+  },
+  "errors": {
+    "invalid_input": "Escreva uma mensagem com até 4000 caracteres.",
+    "message_required": "Escreva uma mensagem antes de enviar.",
+    "forbidden": "Não é possível enviar feedback ao fazer-se passar por um utilizador.",
+    "rate_limited": "Enviou muito feedback na última hora. Tente mais tarde.",
+    "failed": "Não foi possível enviar o seu feedback. Tente novamente."
+  }
+}

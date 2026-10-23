@@ -12,6 +12,42 @@
     "seeAll": "Ver tudo"
   },
   "entries": {
+    "2026-10-bio-sorting-feedback": {
+      "title": "Ordene os links das páginas bio e envie-nos feedback",
+      "summary": "Ordene os links de uma página bio num só passo, mova qualquer link para uma posição exata e diga-nos o que melhorar sem sair do painel.",
+      "highlights": {
+        "bioSorting": {
+          "title": "Ordene os links de uma secção bio",
+          "body": "Ordene uma secção por título, suba os links destacados ou desça os ocultos, com opção de anular."
+        },
+        "feedback": {
+          "title": "Feedback a partir do menu Ajuda",
+          "body": "Comunique um problema ou partilhe uma ideia em Ajuda → Enviar feedback e acompanhe o que lhe acontece."
+        }
+      },
+      "sections": {
+        "bio": "Páginas bio",
+        "feedback": "Feedback"
+      },
+      "items": {
+        "sortLinks": {
+          "title": "Ordene os links de uma secção",
+          "body": "No editor bio, Gerir links tem agora um menu Ordenar: título A–Z ou Z–A, destacados primeiro, ocultos no fim ou invertido. Anular repõe a ordem anterior."
+        },
+        "moveLinks": {
+          "title": "Mova um link para qualquer posição",
+          "body": "Edite um link para o mover para um número de posição, para o início ou para o fim, mesmo em secções com centenas de links em várias páginas."
+        },
+        "sendFeedback": {
+          "title": "Envie feedback",
+          "body": "Ajuda → Enviar feedback abre uma página para comunicar um erro, sugerir uma ideia ou fazer uma pergunta. Registamos a página de onde veio."
+        },
+        "feedbackStatus": {
+          "title": "Veja em que ponto está o seu feedback",
+          "body": "A página de feedback mostra o que enviou e o estado: recebido, em análise, planeado, feito ou não planeado."
+        }
+      }
+    },
     "2026-10-new-shortn": {
       "title": "O novo Shortn",
       "summary": "Reconstruímos o Shortn de raiz: um painel mais rápido, com uma página para cada tarefa, pensado para bibliotecas com milhares de links. A sua conta, os links, os códigos QR e as páginas bio vieram consigo, e tudo o que partilhou continua a funcionar.",

@@ -9,8 +9,10 @@ import {
   DialogHeader,
 } from "@shortn/ui";
 import {
+  ArrowDownUp,
   Braces,
   Link2,
+  MessageSquare,
   PanelsTopLeft,
   QrCode,
   SquareUser,
@@ -19,13 +21,18 @@ import {
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { latestEntry } from "@/lib/changelog/entries";
+import {
+  latestEntry,
+  type ChangelogHighlightId,
+} from "@/lib/changelog/entries";
 import { shouldAutoOpen } from "@/lib/changelog/seen";
 import { useChangelogSeen } from "@/lib/changelog/use-changelog-seen";
 import { useShell } from "../shell/shell-context";
 import { useTour } from "../tour/tour-provider";
 
-const icons: Record<(typeof latestEntry.highlights)[number], LucideIcon> = {
+const icons: Record<ChangelogHighlightId, LucideIcon> = {
+  bioSorting: ArrowDownUp,
+  feedback: MessageSquare,
   dashboard: PanelsTopLeft,
   links: Link2,
   qr: QrCode,

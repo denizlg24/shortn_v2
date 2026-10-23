@@ -89,3 +89,4 @@ export * from "./admin/console";
 export * from "./admin/deletion";
 
 export * from "./bio/add-links";
+export * from "./feedback/service";

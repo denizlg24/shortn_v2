@@ -591,6 +591,11 @@ export const desiredIndexes: Record<string, IndexDescription[]> = {
     },
     { name: "contact_triage", key: { "triage.status": 1, createdAt: -1 } },
   ],
+  [physicalNames.feedback]: [
+    { name: "feedback_triage", key: { "triage.status": 1, createdAt: -1 } },
+    { name: "feedback_time", key: { createdAt: -1 } },
+    { name: "feedback_user", key: { userId: 1, createdAt: -1 } },
+  ],
   [physicalNames.admin_audit_log]: [
     { name: "admin_audit_time", key: { createdAt: -1 } },
     { name: "admin_audit_actor", key: { actorId: 1, createdAt: -1 } },

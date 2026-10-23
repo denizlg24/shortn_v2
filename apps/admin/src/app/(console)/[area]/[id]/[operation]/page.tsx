@@ -6,7 +6,11 @@ import {
   adminPermissions,
   deletionPreflight,
 } from "@shortn/core";
-import { moderationCategories, suspensionCategories } from "@shortn/db";
+import {
+  feedbackStatuses,
+  moderationCategories,
+  suspensionCategories,
+} from "@shortn/db";
 import { ActionGate } from "@/components/action-gate";
 import { ActionForm, fieldClass } from "@/components/action-form";
 import { PageHeader, PageBody } from "@/components/page";
@@ -398,7 +402,16 @@ export default async function ActionPage({
                 ))}
               </fieldset>
             ) : null}
-            {operation === "triage" ? (
+            {operation === "triage" && area === "feedback" ? (
+              <>
+                <Select
+                  name="status"
+                  label="Status"
+                  values={feedbackStatuses}
+                />
+                <Field name="note" label="Internal note" />
+              </>
+            ) : operation === "triage" ? (
               <>
                 <Select
                   name="status"
