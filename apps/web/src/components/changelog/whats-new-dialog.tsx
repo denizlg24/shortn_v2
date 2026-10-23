@@ -31,7 +31,7 @@ import { useShell } from "../shell/shell-context";
 import { useTour } from "../tour/tour-provider";
 
 const icons: Record<ChangelogHighlightId, LucideIcon> = {
-  bioSorting: ArrowDownUp,
+  bioNewest: ArrowDownUp,
   feedback: MessageSquare,
   dashboard: PanelsTopLeft,
   links: Link2,

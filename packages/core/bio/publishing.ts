@@ -12,6 +12,7 @@ import { fail, ok } from "../result";
 import {
   accessibleBioTheme,
   bioLinkIds,
+  orderBioLinks,
   bioContentSchema,
   migratedBioContent,
   type BioContent,
@@ -48,6 +49,12 @@ export async function readBioDraft(
     content: parsed.success ? parsed.data : migratedBioContent(page),
   };
 }
+const linkCreatedAt = (link: {
+  _id: ObjectId;
+  createdAt?: Date | undefined;
+  date?: Date | undefined;
+}) => (link.createdAt ?? link.date ?? link._id.getTimestamp()).toISOString();
+
 async function validateContent(ctx: ServiceContext, input: unknown) {
   const result = bioContentSchema.safeParse(input);
   if (!result.success) return fail("invalid_input" as const);
@@ -64,14 +71,25 @@ async function validateContent(ctx: ServiceContext, input: unknown) {
   )
     return fail("feature_required" as const);
   const ids = bioLinkIds(result.data).map((id) => new ObjectId(id));
-  const count = await collection(ctx.db, "links").countDocuments({
-    $and: [
-      { _id: { $in: ids }, deletedAt: { $exists: false } },
-      ownedBy(ctx.workspace, "sub"),
-    ],
+  const found = await collection(ctx.db, "links")
+    .find(
+      {
+        $and: [
+          { _id: { $in: ids }, deletedAt: { $exists: false } },
+          ownedBy(ctx.workspace, "sub"),
+        ],
+      },
+      { projection: { createdAt: 1, date: 1 } },
+    )
+    .toArray();
+  if (found.length !== ids.length) return fail("link_not_found" as const);
+  const created = new Map(
+    found.map((link) => [String(link._id), linkCreatedAt(link)]),
+  );
+  return ok({
+    ...orderBioLinks(result.data, (id) => created.get(id)),
+    theme: accessibleBioTheme(result.data.theme),
   });
-  if (count !== ids.length) return fail("link_not_found" as const);
-  return ok({ ...result.data, theme: accessibleBioTheme(result.data.theme) });
 }
 export async function saveBioDraft(
   ctx: ServiceContext,
@@ -463,6 +481,7 @@ export async function publicBioFromDocument(
             {
               href: href.href,
               title: link.title ?? link.key ?? link.urlCode ?? "",
+              createdAt: linkCreatedAt(link),
             },
           ],
         ];

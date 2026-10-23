@@ -73,6 +73,8 @@ export const bioBlockSchema = z.discriminatedUnion("type", [
     paginationStyle: z.enum(["arrows", "labels"]).default("arrows"),
     showPageCount: z.boolean().default(true),
     showLinkCount: z.boolean().default(false),
+    // "newest" keeps items ordered by link creation, newest first, on save.
+    order: z.enum(["manual", "newest"]).default("manual"),
     items: z.array(bioLinkItemSchema).max(1000),
   }),
   z.object({
@@ -234,7 +236,13 @@ export const bioContentSchema = z.object({
   hideBranding: z.boolean().default(false),
 });
 export type BioContent = z.infer<typeof bioContentSchema>;
-export type BioResolvedLink = { href: string; title: string; qrImage?: string };
+export type BioResolvedLink = {
+  href: string;
+  title: string;
+  qrImage?: string;
+  /** ISO time the short link was created; orders "newest" sections. */
+  createdAt?: string;
+};
 export type PublicBio = {
   id: string;
   handle: string;
@@ -488,4 +496,28 @@ export function groupBioLinks(content: BioContent): BioContent {
     previousLegacy = true;
   }
   return { ...content, blocks };
+}
+
+/**
+ * Applies each "newest" section's order: links by creation time, newest
+ * first; ties and unknown times keep their current relative order, unknown
+ * last. Returns the same object when nothing moves, so callers can compare.
+ */
+export function orderBioLinks(
+  content: BioContent,
+  createdAt: (linkId: string) => string | undefined,
+): BioContent {
+  let changed = false;
+  const blocks = content.blocks.map((block) => {
+    if (block.type !== "links" || block.order !== "newest") return block;
+    const items = [...block.items].sort((a, b) => {
+      const x = createdAt(a.linkId) ?? "",
+        y = createdAt(b.linkId) ?? "";
+      return x === y ? 0 : x < y ? 1 : -1;
+    });
+    if (items.every((item, at) => item === block.items[at])) return block;
+    changed = true;
+    return { ...block, items };
+  });
+  return changed ? { ...content, blocks } : content;
 }

@@ -38,6 +38,7 @@ import {
 import {
   groupBioLinks,
   newBioLinksSection,
+  orderBioLinks,
   bioContentSchema,
   bioContrast,
   bioFonts,
@@ -212,6 +213,13 @@ export function BioEditor({
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
+  // "Newest first" sections follow link creation times, which arrive with
+  // each resolved link; the server applies the same order on save.
+  useEffect(() => {
+    setContent((current) =>
+      orderBioLinks(current, (linkId) => links[linkId]?.createdAt),
+    );
+  }, [content, links]);
   draft.current = content;
   const save = useCallback(async (): Promise<boolean> => {
     if (inFlight.current) {
@@ -835,6 +843,25 @@ export function BioEditor({
                               {field(t("title"), block.title, (title) =>
                                 update(block.id, { title }),
                               )}
+                              <div className="grid gap-1">
+                                <label className="text-small">
+                                  <input
+                                    type="checkbox"
+                                    checked={block.order === "newest"}
+                                    onChange={(e) =>
+                                      update(block.id, {
+                                        order: e.target.checked
+                                          ? "newest"
+                                          : "manual",
+                                      })
+                                    }
+                                  />{" "}
+                                  {t("newestFirst")}
+                                </label>
+                                <p className="text-small text-fg-muted">
+                                  {t("newestFirstHint")}
+                                </p>
+                              </div>
                               {select(
                                 t("cardStyle"),
                                 block.cardStyle,
@@ -1260,6 +1287,7 @@ export function BioEditor({
                       onBusyChange={onBusyChange}
                       uploading={uploading}
                       startWithLibrary={addingLinks}
+                      newest={selectedBlock.order === "newest"}
                     />
                   </>
                 ) : null}

@@ -12,32 +12,38 @@
     "seeAll": "See everything"
   },
   "entries": {
-    "2026-10-bio-sorting-feedback": {
-      "title": "Sort bio page links and send us feedback",
-      "summary": "Put the links on a bio page in order in one step, move any link to an exact spot, and tell us what to improve without leaving the dashboard.",
+    "2026-10-bio-newest-first": {
+      "title": "Newest links first on bio pages",
+      "summary": "A links section can now keep itself in order: turn on Show newest links first and every new link lands at the top.",
       "highlights": {
-        "bioSorting": {
-          "title": "Sort the links in a bio page section",
-          "body": "Order a section by title, bring highlighted links to the top or send hidden ones to the bottom, with undo."
-        },
+        "bioNewest": {
+          "title": "Newest links first",
+          "body": "Turn it on in a links section and links are ordered by when they were created, newest at the top."
+        }
+      },
+      "sections": {
+        "bio": "Bio pages"
+      },
+      "items": {
+        "newestFirst": {
+          "title": "Show newest links first",
+          "body": "In the bio editor, open a links section and turn on Show newest links first. Links you add later appear at the top on their own; turn it off to arrange them by hand again."
+        }
+      }
+    },
+    "2026-10-bio-sorting-feedback": {
+      "title": "Send us feedback from the dashboard",
+      "summary": "Tell us what to improve without leaving the dashboard, and follow what happens to it.",
+      "highlights": {
         "feedback": {
           "title": "Feedback from the Help menu",
           "body": "Report a problem or share an idea from Help → Send feedback, and follow what happens to it."
         }
       },
       "sections": {
-        "bio": "Bio pages",
         "feedback": "Feedback"
       },
       "items": {
-        "sortLinks": {
-          "title": "Sort a section's links",
-          "body": "In the bio editor, Manage links now has a Sort menu: title A–Z or Z–A, highlighted first, hidden last, or reversed. Undo puts the previous order back."
-        },
-        "moveLinks": {
-          "title": "Move a link to any position",
-          "body": "Edit a link to move it to a position number, to the top or to the bottom, even in sections with hundreds of links across several pages."
-        },
         "sendFeedback": {
           "title": "Send feedback",
           "body": "Help → Send feedback opens a page where you can report a bug, suggest an idea or ask a question. We note which page you came from."
