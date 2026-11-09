@@ -53,6 +53,58 @@ body {
   --field: oklch(0.17 0.032 265);
 }
 
+/* Home page atmosphere: a faint measuring grid that fades out from the
+   headline, and the signal-blue light the product rises out of. */
+.hero-grid {
+  background-image:
+    linear-gradient(oklch(1 0 0 / 6.5%) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 6.5%) 1px, transparent 1px);
+  background-size: 64px 64px;
+  background-position: center top;
+  mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 30%,
+    black 20%,
+    transparent 75%
+  );
+}
+
+.hero-glow {
+  background: radial-gradient(
+    closest-side,
+    oklch(0.62 0.19 262 / 55%),
+    oklch(0.62 0.19 262 / 0%)
+  );
+  filter: blur(40px);
+}
+
+.showcase-well {
+  background:
+    radial-gradient(
+      120% 90% at 75% 0%,
+      oklch(0.62 0.19 262 / 12%),
+      transparent 60%
+    ),
+    var(--bg-subtle);
+}
+
+@keyframes channel-flow {
+  to {
+    stroke-dashoffset: -64;
+  }
+}
+
+.channel-flow {
+  animation: channel-flow 3.2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .channel-flow {
+    animation: none;
+    stroke-dasharray: none;
+    opacity: 0.35;
+  }
+}
+
 @keyframes key-reveal {
   from {
     clip-path: inset(0 100% 0 0);
