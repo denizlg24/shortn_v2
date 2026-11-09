@@ -26,7 +26,8 @@ const cycleMs = 6500;
  */
 export function FeatureShowcase({ items }: { items: ShowcaseItem[] }) {
   const [active, setActive] = useState(0);
-  const [held, setHeld] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [running, setRunning] = useState(false);
   const root = useRef<HTMLDivElement>(null);
 
@@ -51,7 +52,7 @@ export function FeatureShowcase({ items }: { items: ShowcaseItem[] }) {
     };
   }, []);
 
-  const advancing = running && !held;
+  const advancing = running && !hovered && !focused;
 
   useEffect(() => {
     if (!advancing) return;
@@ -69,10 +70,13 @@ export function FeatureShowcase({ items }: { items: ShowcaseItem[] }) {
     >
       <ul
         className="flex flex-col lg:col-span-4"
-        onMouseEnter={() => setHeld(true)}
-        onMouseLeave={() => setHeld(false)}
-        onFocus={() => setHeld(true)}
-        onBlur={() => setHeld(false)}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocus={() => setFocused(true)}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget))
+            setFocused(false);
+        }}
       >
         {items.map((item, index) => {
           const current = index === active;
