@@ -108,45 +108,65 @@
       }
     },
     "proof": {
-      "title": "Running our largest customer's links since 2023",
-      "body": "They're a Portuguese business publisher and use Shortn for their website, their online bookshop and the QR codes in their printed agendas.",
       "stats": {
         "clicks": "clicks and scans counted",
         "links": "short links created",
         "qrCodes": "QR codes created",
         "scans": "QR scans since {month}"
       },
-      "source": "Our largest customer's workspace, measured {date}. Shared with their permission."
+      "source": "Our largest customer's workspace, measured {date}. Shared with their permission.",
+      "statement": "Since 2023, a Portuguese business publisher has run the links for its website, its online bookshop and the QR codes in its printed agendas through Shortn.",
+      "statementMuted": "Here's what that adds up to."
     },
     "video": {
-      "title": "One link, from poster to analytics",
-      "body": "Shorten a link, print it as a QR code, find it among thousands and see every click and scan. Twenty seconds of the real dashboard.",
       "label": "Shortn product video: creating a short link, designing its QR code, filtering a large link library and reading its analytics",
       "caption": "Recorded in a sample workspace. Sound stays off until you turn it on."
     },
-    "print": {
-      "title": "Print a QR code once. Change where it goes any time.",
-      "body": "Every QR code points to a short link, so you can update the destination after the agenda, poster or packaging is printed. Scans and clicks are counted separately.",
-      "points": {
-        "formats": "Export SVG, PNG or PDF for print, with guidance on size and quiet zone.",
-        "style": "Add your colors, a frame, a caption or a logo.",
-        "bulk": "Download a whole selection of codes as one ZIP file."
-      }
-    },
-    "manage": {
-      "title": "Built for libraries of thousands of links",
-      "body": "Search, filter by tag and campaign, select across pages and change hundreds of links at once. Deleted links wait 30 days in the trash, and you can restore them with the same key until then.",
+    "showcase": {
+      "title": "Print it, share it, find it, measure it.",
+      "titleMuted": "One workspace for every link.",
+      "items": {
+        "print": {
+          "title": "QR codes made for print",
+          "body": "Add your colours, a frame and a caption, then export SVG, PNG or PDF. Change where a code goes after it's printed."
+        },
+        "manage": {
+          "title": "Built for thousands of links",
+          "body": "Filter by tag and campaign, select across pages and change hundreds of links at once."
+        },
+        "analytics": {
+          "title": "Know what each link did",
+          "body": "Clicks and scans by day, country, device and referrer, for one link, a campaign or the whole workspace."
+        },
+        "bio": {
+          "title": "A bio page at your own address",
+          "body": "Put every link you share on one page at yourname.shortn.at or on your own domain, and edit it with a live preview."
+        }
+      },
       "cta": "See all features"
     },
-    "analytics": {
-      "title": "Know what each link did",
-      "body": "Clicks and scans by day, country, device, browser and referrer, for one link, a campaign or the whole workspace. Export the numbers as CSV whenever you need them."
+    "channels": {
+      "title": "Wherever your links go,",
+      "titleMuted": "every click and scan comes back here.",
+      "body": "Print a link on an agenda, send it in a newsletter, post it or create it from your own code. Shortn counts the clicks and scans from all of them in one place.",
+      "hub": "Shortn analytics",
+      "items": {
+        "print": "Printed QR codes",
+        "newsletter": "Newsletters",
+        "social": "Social posts",
+        "website": "Your website",
+        "bio": "Bio page",
+        "packaging": "Packaging",
+        "api": "REST API",
+        "agents": "AI agents (MCP)"
+      }
     },
     "developers": {
-      "title": "An API for your code, an MCP server for your agents",
+      "title": "An API for your code.",
       "body": "Create and manage links from your own systems with the REST API and webhooks, or let an AI assistant work through the MCP server with the permissions you grant.",
       "cta": "Read the docs",
-      "codeLabel": "Create a link with the REST API"
+      "codeLabel": "Create a link with the REST API",
+      "titleMuted": "An MCP server for your agents."
     },
     "pricing": {
       "title": "Start free. Pay when you need more.",

@@ -216,9 +216,9 @@ components:
 
 Shortn is the category standard executed at full craft, with Linear and Dub.co as the bar. It's a quiet, dense working surface for editors who create dozens of links a day. Brand navy is the ink and the primary fill, the neutrals are tinted with the same navy hue (265), and one signal blue marks whatever is interactive or in focus. Structure comes from 1px hairlines and space rather than boxes. The table is the product: 44px rows, tabular figures, and actions that apply instantly. Light mode is the default (a daylit desk). Dark mode is a near-neutral graphite with a faint cool tint, so navy and signal blue stay meaningful instead of tinting every surface.
 
-The marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, the proof strip, and the closing call to action. White (graphite in dark mode) reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's "S", is used only for marketing display type. Everything else is Geist.
+The marketing site is the same world at display scale, not a separate brand. Brand-navy **bands** own whole stretches of the page: the header and hero, and on the home page the inset channel panel and the closing call to action. White (graphite in dark mode) reading bands sit between them. Inside a band the tokens are remapped, so every dashboard control works unchanged on navy. Schibsted Grotesk 800, a news-publisher grotesque whose heavy weight echoes the logo's "S", is used only for marketing display type. Everything else is Geist.
 
-The system explicitly rejects KPI card mosaics, decorative gradients, glassmorphism and glows, icon-in-rounded-square tiles, nested boxes, and the centred-slogan-over-floating-dashboard hero.
+The dashboard explicitly rejects KPI card mosaics, decorative gradients, glassmorphism and glows, icon-in-rounded-square tiles and nested boxes. The marketing home page (owner decision 2026-11-09) is allowed one atmosphere layer on navy: a faint measuring grid, a single signal-blue light under the product, inset rounded band panels and a lifted product frame. See **Marketing atmosphere** below; nothing of it reaches the dashboard.
 
 **Key Characteristics:**
 
@@ -307,7 +307,7 @@ Legal long-form (`.legal`) uses 16 px / 1.7 at a 70ch measure in `fg-muted`. Its
 
 The base unit is 4px. The page gutter is 24px, or 16px below 768px. Table cells have 12px horizontal padding, rows are 44px tall and header rows 36px. The dashboard page header is 56px and sticky. The app shell has a 232px sidebar that collapses to a 56px icon rail below 1200px and becomes a drawer on mobile. Leave more space above a heading than below it. Settings forms are a single column, max 560px.
 
-The marketing pages use a centred container of max 1200px with 16 or 24px padding and a 12-column grid at `lg`. The hero splits 7/5 (headline, body and demo field on the left, the link object on the right). Proof figures run as a 4-across strip separated by hairlines, which becomes 2×2 on mobile. Bands get generous vertical padding: 56–80px at the top of a page head, 80–112px in the closing band. Sections are separated by space and hairlines, never by cards.
+The marketing pages use a centred container of max 1200px with 16 or 24px padding and a 12-column grid at `lg`. The hero splits 7/5 (headline, body and demo field on the left, the link object on the right). Proof figures sit under a large statement sentence (lead in `fg`, closing clause in `fg-subtle`) as four figures, each underlined by a hairline, 2×2 on mobile. Bands get generous vertical padding: 56–80px at the top of a page head, 80–112px in the closing band. Sections are separated by space and hairlines, never by cards.
 
 Below 768px the dashboard table becomes a two-line list. Marketing pages stack in reading order, and pt/es headlines, which run up to 40% longer, must fit at 390px.
 
@@ -315,7 +315,7 @@ Below 768px the dashboard table becomes a two-line list. Marketing pages stack i
 
 ## Elevation & Depth
 
-The system is flat, with depth expressed through tonal steps (`bg` → `bg-subtle` → `bg-muted`) plus one structural shadow. Page content, cards and product captures never cast shadows.
+The system is flat, with depth expressed through tonal steps (`bg` → `bg-subtle` → `bg-muted`) plus one structural shadow. Dashboard content and cards never cast shadows. On marketing pages, product frames and showcase captures may carry the soft capture shadow (see Marketing atmosphere).
 
 ### Shadow Vocabulary
 
@@ -330,7 +330,7 @@ The system is flat, with depth expressed through tonal steps (`bg` → `bg-subtl
 
 Corners stay small and functional: **4px** for chips, checkboxes and QR thumbnails; **6px** for buttons, inputs, menu items and focusable links; **8px** for overlays, dialogs, the link object and product-capture frames; **0** for table rows, page sections and bands. Borders are always 1px. Tab indicators are 2px bars with rounded ends. Status dots and tag colour dots (6–8px) are the only full circles.
 
-**The 4/6/8/0 Rule.** No radius outside this scale. In particular, no `rounded-xl` or `rounded-2xl` panels.
+**The 4/6/8/0 Rule.** No radius outside this scale in the dashboard. In particular, no `rounded-xl` or `rounded-2xl` panels. Marketing exception: inset band panels are 20px (28px from `md`), product and code frames 18–22px, showcase wells 18px, channel tiles 12px.
 
 ## Components
 
@@ -394,7 +394,17 @@ An 8px-radius bordered `field` panel. It has a 40px caption bar ("Example", or t
 
 ### Product capture (marketing)
 
-Real dashboard screenshots only, with light and dark captures swapped to match the theme. Each sits in an 8px-radius frame with a 1px `line` border on `bg-subtle`, with no shadow. A sample-data caption in meta `fg-subtle` appears once per page.
+Real dashboard screenshots only, with light and dark captures swapped to match the theme. On secondary pages each sits in an 8px-radius frame with a 1px `line` border on `bg-subtle`, with no shadow. A sample-data caption in meta `fg-subtle` appears once per page.
+
+### Marketing atmosphere (home)
+
+The home page borrows the structure of a product-launch page while keeping Shortn's navy, Schibsted and copy:
+
+- **Hero:** the header band runs into a hero band with `.hero-grid` (64px white-alpha grid, radially masked from the headline) and one large hairline ring arc. The launch video sits in a lifted frame (white 6% fill, white 15% ring, soft navy shadow) that straddles the band's bottom edge; a single `.hero-glow` (signal blue, blurred radial) sits behind it. No other glow on the page except the closing panel and the channel hub.
+- **Feature showcase:** a list of four features with a 1px rail; the active one draws a signal-blue progress line and expands its body. It advances every 6.5s while on screen, holds on hover or focus, and never advances under reduced motion. Captures swap in a `.showcase-well` (bg-subtle with a faint signal wash) and carry the capture shadow.
+- **Channel graph:** an inset band panel where eight publishing channels are wired into the Shortn mark; dashed signal pulses flow toward the hub (`.channel-flow`, static under reduced motion). Below `md` it becomes a 2-column hairline list.
+- **Split headings:** marketing h2s may end in a clause set in `fg-subtle` (`SplitHeading`) instead of a lede.
+- **Closing panel:** an inset band with the glow rising from below and centred display type with the two CTAs.
 
 ## Do's and Don'ts
 
@@ -410,10 +420,10 @@ Real dashboard screenshots only, with light and dark captures swapped to match t
 
 ### Don't:
 
-- **Don't** build KPI card grids, nested bordered boxes, or `rounded-2xl` panels.
-- **Don't** use decorative gradients, glassmorphism, glows, blurred blobs or "AI sparkle" iconography.
+- **Don't** build KPI card grids, nested bordered boxes, or `rounded-2xl` panels in the dashboard.
+- **Don't** use decorative gradients, glassmorphism, glows, blurred blobs or "AI sparkle" iconography outside the marketing atmosphere layer, and never more than the listed glows there.
 - **Don't** use icon-in-rounded-square tiles as decoration.
-- **Don't** put a shadow on in-page content, including product screenshots.
+- **Don't** put a shadow on in-page dashboard content.
 - **Don't** color checkmarks, code strings or decoration with signal blue.
 - **Don't** use display sizes or Schibsted Grotesk inside the dashboard.
 - **Don't** add eyebrows or kickers above headings.

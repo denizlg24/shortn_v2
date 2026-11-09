@@ -1,6 +1,6 @@
 import { buttonVariants, cn } from "@shortn/ui";
 import { ArrowRight, Check } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 
 export function Container({
   className,
@@ -90,6 +90,52 @@ export function Points({
         </li>
       ))}
     </ul>
+  );
+}
+
+/** A navy band inset from the page edge with rounded corners. */
+export function InsetBand({
+  className,
+  children,
+  ...props
+}: ComponentProps<"section">) {
+  return (
+    <div className="px-2 md:px-3">
+      <section
+        {...props}
+        className={cn(
+          "band relative isolate overflow-hidden rounded-[20px] ring-1 ring-line md:rounded-[28px]",
+          className,
+        )}
+      >
+        {children}
+      </section>
+    </div>
+  );
+}
+
+/** A headline whose second half steps back in tone. */
+export function SplitHeading({
+  id,
+  lead,
+  tail,
+  className,
+}: {
+  id?: string;
+  lead: ReactNode;
+  tail: ReactNode;
+  className?: string;
+}) {
+  return (
+    <h2
+      id={id}
+      className={cn(
+        "scroll-mt-24 font-display text-headline font-extrabold tracking-[-0.03em] text-balance",
+        className,
+      )}
+    >
+      {lead} <span className="text-fg-subtle">{tail}</span>
+    </h2>
   );
 }
 
