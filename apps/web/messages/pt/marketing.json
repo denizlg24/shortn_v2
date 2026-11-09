@@ -108,45 +108,65 @@
       }
     },
     "proof": {
-      "title": "Os links do nosso maior cliente passam pelo Shortn desde 2023",
-      "body": "É um grupo editorial português e usa o Shortn no seu site, na livraria online e nos códigos QR das agendas impressas.",
       "stats": {
         "clicks": "cliques e leituras contados",
         "links": "links curtos criados",
         "qrCodes": "códigos QR criados",
         "scans": "leituras de QR desde {month}"
       },
-      "source": "Espaço de trabalho do nosso maior cliente, dados de {date}. Partilhados com a sua autorização."
+      "source": "Espaço de trabalho do nosso maior cliente, dados de {date}. Partilhados com a sua autorização.",
+      "statement": "Desde 2023, um grupo editorial português gere com o Shortn os links do seu site, da livraria online e dos códigos QR das agendas impressas.",
+      "statementMuted": "Eis o resultado até agora."
     },
     "video": {
-      "title": "Um link, do cartaz às estatísticas",
-      "body": "Encurte um link, imprima-o como código QR, encontre-o entre milhares e veja cada clique e cada leitura. Vinte segundos do painel real.",
       "label": "Vídeo do Shortn: criar um link curto, desenhar o código QR, filtrar uma biblioteca grande de links e ler as estatísticas",
       "caption": "Gravado num espaço de trabalho de exemplo. O som fica desligado até o ligar."
     },
-    "print": {
-      "title": "Imprima o código QR uma vez. Mude o destino quando quiser.",
-      "body": "Cada código QR aponta para um link curto, por isso pode alterar o destino depois de a agenda, o cartaz ou a embalagem estarem impressos. Leituras e cliques são contados em separado.",
-      "points": {
-        "formats": "Exporte em SVG, PNG ou PDF para impressão, com indicações de tamanho e margem.",
-        "style": "Adicione as suas cores, uma moldura, uma legenda ou um logótipo.",
-        "bulk": "Descarregue uma seleção inteira de códigos num único ficheiro ZIP."
-      }
-    },
-    "manage": {
-      "title": "Feito para bibliotecas com milhares de links",
-      "body": "Pesquise, filtre por etiqueta e campanha, selecione entre páginas e altere centenas de links de uma vez. Os links apagados ficam 30 dias no lixo e pode restaurá-los com a mesma chave até lá.",
+    "showcase": {
+      "title": "Imprima, partilhe, encontre e meça.",
+      "titleMuted": "Um só espaço para todos os seus links.",
+      "items": {
+        "print": {
+          "title": "Códigos QR feitos para impressão",
+          "body": "Junte as suas cores, uma moldura e uma legenda e exporte em SVG, PNG ou PDF. Mude o destino de um código depois de impresso."
+        },
+        "manage": {
+          "title": "Feito para milhares de links",
+          "body": "Filtre por etiqueta e campanha, selecione entre páginas e altere centenas de links de uma vez."
+        },
+        "analytics": {
+          "title": "Saiba o que cada link fez",
+          "body": "Cliques e leituras por dia, país, dispositivo e origem, para um link, uma campanha ou todo o espaço de trabalho."
+        },
+        "bio": {
+          "title": "Uma página bio no seu próprio endereço",
+          "body": "Reúna todos os links que partilha numa página em seunome.shortn.at ou no seu próprio domínio, e edite-a com pré-visualização em tempo real."
+        }
+      },
       "cta": "Ver todas as funcionalidades"
     },
-    "analytics": {
-      "title": "Saiba o que cada link fez",
-      "body": "Cliques e leituras por dia, país, dispositivo, navegador e origem, para um link, uma campanha ou todo o espaço de trabalho. Exporte os números em CSV sempre que precisar."
+    "channels": {
+      "title": "Onde quer que os seus links estejam,",
+      "titleMuted": "cada clique e cada leitura voltam para aqui.",
+      "body": "Imprima um link numa agenda, envie-o numa newsletter, publique-o nas redes ou crie-o a partir do seu código. O Shortn conta os cliques e as leituras de todos num só lugar.",
+      "hub": "Estatísticas do Shortn",
+      "items": {
+        "print": "Códigos QR impressos",
+        "newsletter": "Newsletters",
+        "social": "Redes sociais",
+        "website": "O seu site",
+        "bio": "Página bio",
+        "packaging": "Embalagens",
+        "api": "API REST",
+        "agents": "Agentes de IA (MCP)"
+      }
     },
     "developers": {
-      "title": "Uma API para o seu código, um servidor MCP para os seus agentes",
+      "title": "Uma API para o seu código.",
       "body": "Crie e gira links a partir dos seus sistemas com a API REST e os webhooks, ou deixe um assistente de IA trabalhar através do servidor MCP com as permissões que lhe der.",
       "cta": "Ler a documentação",
-      "codeLabel": "Criar um link com a API REST"
+      "codeLabel": "Criar um link com a API REST",
+      "titleMuted": "Um servidor MCP para os seus agentes."
     },
     "pricing": {
       "title": "Comece grátis. Pague quando precisar de mais.",
