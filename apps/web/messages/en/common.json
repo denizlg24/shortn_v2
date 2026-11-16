@@ -49,7 +49,7 @@
     "failed": "The image did not upload. Try again."
   },
   "recoveryNotice": {
-    "title": "Service restored · data loss notice",
-    "message": "After a server failure, we restored Shortn from a backup captured on 9 November 2026. Links, edits and analytics recorded after that backup may be missing. We’re sorry for the data loss and disruption."
+    "title": "Service restored · some data temporarily unavailable",
+    "message": "Following a server failure, Shortn is running from our 9 November 2026 backup. Later links, edits and analytics are temporarily unavailable. We plan to recover the missing data from the original server around 20 December. We’re sorry for the data loss and disruption."
   }
 }
