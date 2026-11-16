@@ -47,5 +47,9 @@
     "plan": "O seu plano não inclui logótipos nos códigos QR.",
     "unavailable": "O carregamento de imagens ainda não está configurado.",
     "failed": "Não foi possível carregar a imagem. Tente novamente."
+  },
+  "recoveryNotice": {
+    "title": "Serviço restabelecido · aviso de perda de dados",
+    "message": "Após uma falha no servidor, restaurámos o Shortn a partir de uma cópia de segurança de 9 de novembro de 2026. As ligações, alterações e dados de análise registados após essa cópia podem estar em falta. Pedimos desculpa pela perda de dados e pela interrupção do serviço."
   }
 }

@@ -47,5 +47,9 @@
     "plan": "Tu plan no incluye logotipos en los códigos QR.",
     "unavailable": "La subida de imágenes aún no está configurada.",
     "failed": "La imagen no se ha subido. Inténtalo de nuevo."
+  },
+  "recoveryNotice": {
+    "title": "Servicio restablecido · aviso de pérdida de datos",
+    "message": "Tras un fallo del servidor, restauramos Shortn a partir de una copia de seguridad del 9 de noviembre de 2026. Es posible que falten enlaces, cambios y datos de análisis registrados después de esa copia. Pedimos disculpas por la pérdida de datos y la interrupción del servicio."
   }
 }

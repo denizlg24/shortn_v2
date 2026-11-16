@@ -1,5 +1,7 @@
 "use client";
 
+import { RecoveryNotice } from "@/components/recovery-notice";
+
 import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -116,6 +118,7 @@ export function Shell({
           hidden inputs) inside the scroll container; otherwise they resolve
           against the viewport and give the page a second, empty scrollbar. */}
         <div className="relative flex h-dvh flex-col overflow-hidden bg-bg text-fg">
+          <RecoveryNotice />
           {impersonating ? <ImpersonationBanner /> : null}
           {notice}
           <div className="flex min-h-0 flex-1">

@@ -47,5 +47,9 @@
     "plan": "Your plan does not include QR logos.",
     "unavailable": "Image uploads are not configured yet.",
     "failed": "The image did not upload. Try again."
+  },
+  "recoveryNotice": {
+    "title": "Service restored · data loss notice",
+    "message": "After a server failure, we restored Shortn from a backup captured on 9 November 2026. Links, edits and analytics recorded after that backup may be missing. We’re sorry for the data loss and disruption."
   }
 }
