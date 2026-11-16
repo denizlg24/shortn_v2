@@ -1,5 +1,7 @@
 "use client";
 
+import { RecoveryNotice } from "@/components/recovery-notice";
+
 import { cn, ShortnMark } from "@shortn/ui";
 import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
@@ -12,6 +14,7 @@ export function AuthFrame({ children }: { children: ReactNode }) {
   const switchLocale = useLocaleSwitch();
   return (
     <div className="flex min-h-dvh flex-col">
+      <RecoveryNotice />
       <main className="flex flex-1 justify-center px-4 pt-[max(3rem,12vh)] pb-12">
         <div className="flex w-full max-w-[380px] flex-col">
           <div className="mb-8 flex items-center justify-center gap-2.5">

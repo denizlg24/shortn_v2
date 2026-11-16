@@ -1,3 +1,4 @@
+import { RecoveryNotice } from "@/components/recovery-notice";
 import { notFound } from "next/navigation";
 import { displayFace } from "@/components/marketing/fonts/display";
 import { SiteFooter } from "@/components/marketing/site-footer";
@@ -13,6 +14,7 @@ export default async function MarketingLayout({
   const current = await currentMarketingPath();
   return (
     <div className={`${displayFace.variable} flex min-h-dvh flex-col`}>
+      <RecoveryNotice />
       <SiteHeader
         locale={locale}
         current={current}
