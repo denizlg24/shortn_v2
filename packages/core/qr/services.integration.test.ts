@@ -10,7 +10,7 @@ import {
   updateCampaign,
 } from "../campaigns/service";
 import { isLegacyQrBacked, toCachedLink } from "../links/cached-link";
-import { createLink } from "../links/service";
+import { createLink, createQrShortLink, updateLink } from "../links/service";
 import { mongoLinkLoader } from "../links/loader";
 import type { ServiceContext } from "../workspaces/context";
 import { ensurePersonalWorkspace } from "../workspaces/service";
@@ -63,6 +63,95 @@ const enabled = Boolean(mongoUrl && redisUrl);
       linkDomain: "shortn.at",
     };
   }
+
+  test("shareable QR links attach atomically, remain editable and preserve printed codes", async () => {
+    const ctx = await context("pro");
+    const made = await createQr(ctx, {
+      url: "https://example.org/print",
+      tags: ["Print"],
+    });
+    if (!made.ok) throw new Error(made.error);
+    const original = made.value;
+    expect(original.design.dotsOptions?.color).toBe("#000000");
+    const foreign = await context("pro");
+    expect(await createQrShortLink(foreign, original.id, {})).toMatchObject({
+      ok: false,
+      error: "not_found",
+    });
+    expect(
+      await createQrShortLink(
+        { ...ctx, actor: { ...ctx.actor, role: "viewer" } },
+        original.id,
+        {},
+      ),
+    ).toMatchObject({ ok: false, error: "forbidden" });
+    const results = await Promise.all([
+      createQrShortLink(ctx, original.id, { key: "print-menu" }),
+      createQrShortLink(ctx, original.id, { key: "other-menu" }),
+    ]);
+    const successes = results.filter((result) => result.ok);
+    expect(successes).toHaveLength(1);
+    const shared = successes[0]!;
+    if (!shared.ok) throw new Error("missing short link");
+    expect(shared.value.url).toBe(original.url);
+    expect(shared.value.qrCodeId).toBe(original.publicId);
+    expect(
+      await db
+        .collection(physicalNames.links)
+        .countDocuments({ workspaceId: ctx.workspace._id, isQrCode: false }),
+    ).toBe(1);
+    expect(await getQr(ctx, original.id)).toMatchObject({
+      shortUrl: original.shortUrl,
+      storedDesign: original.storedDesign,
+      attachedLinkId: shared.value.id,
+      attachedLinkKey: shared.value.key,
+    });
+    expect(
+      (await updateLink(ctx, shared.value.id, { key: "renamed-menu" })).ok,
+    ).toBe(true);
+    expect(
+      (
+        await updateQr(ctx, original.id, {
+          url: "https://example.org/new",
+          applyToLink: true,
+        })
+      ).ok,
+    ).toBe(true);
+    const attached = await db
+      .collection(physicalNames.links)
+      .findOne({ _id: new ObjectId(shared.value.id) });
+    expect(attached?.key).toBe("renamed-menu");
+    expect(attached?.longUrl).toBe("https://example.org/new");
+    expect((await getQr(ctx, original.id))?.shortUrl).toBe(original.shortUrl);
+  });
+
+  test("QR short links honor key and plan limits without leaving attachments behind", async () => {
+    const ctx = await context("pro");
+    const qr = await createQr(ctx, { url: "https://example.org/print" });
+    if (!qr.ok) throw new Error(qr.error);
+    const occupied = await createLink(ctx, {
+      url: "https://example.org/other",
+      key: "occupied",
+    });
+    expect(occupied.ok).toBe(true);
+    expect(
+      await createQrShortLink(ctx, qr.value.id, { key: "occupied" }),
+    ).toMatchObject({ ok: false, error: "key_taken" });
+    expect(
+      await createQrShortLink(ctx, qr.value.id, { key: "invalid key" }),
+    ).toMatchObject({ ok: false, error: "invalid_key" });
+    expect((await getQr(ctx, qr.value.id))?.attachedLinkKey).toBeNull();
+    const free = await context();
+    const freeQr = await createQr(free, { url: "https://example.org/free" });
+    if (!freeQr.ok) throw new Error(freeQr.error);
+    expect(
+      await createQrShortLink(free, freeQr.value.id, { key: "custom-free" }),
+    ).toMatchObject({ ok: false, error: "feature_required" });
+    expect((await createQrShortLink(free, freeQr.value.id, {})).ok).toBe(true);
+    expect((await getQr(free, freeQr.value.id))?.shortUrl).toBe(
+      freeQr.value.shortUrl,
+    );
+  });
 
   test("QR backing links resolve on the configured staging/local domain and keep it after edits", async () => {
     for (const domain of ["staging.shortn.at", "localhost:3202"]) {

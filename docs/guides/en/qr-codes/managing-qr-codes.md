@@ -6,6 +6,12 @@ This guide covers the design options for a QR code, exporting files for print, e
 
 Open **QR codes** in the sidebar. Use **Search** to match the title, destination or code, filter by **Tag** and **Created**, and switch the **Layout** between **Grid** and **List**. Select a code to open its overview, where the **Overview**, **Design**, **Scans** and **Details** tabs live.
 
+## Share a short link online
+
+The **Scan address** is permanently encoded in your QR code so printed copies keep working. To share a link online, select **Create short link** on the QR overview. Choose a key if your plan supports custom keys, or leave it blank to generate one. The new link opens the same destination and is attached to this QR code.
+
+Use **Copy short link** to share it and **Edit short link** to change its address. Changing the short link address leaves the printed QR code unchanged. When changing the QR destination in **Details**, select **Also update the link** to update both destinations.
+
 ## Design options
 
 Open the **Design** tab. The preview updates as you change options and notes when it includes unsaved changes. Select **Save design** to apply them.

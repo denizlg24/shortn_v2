@@ -23,7 +23,7 @@
     "columns": {
       "select": "Seleccionar",
       "code": "Código QR",
-      "link": "Enlace corto",
+      "link": "Dirección de escaneo QR",
       "destination": "Destino",
       "scans": "Escaneos",
       "created": "Creado"
@@ -31,7 +31,7 @@
     "scans": "{count, plural, one {{formatted} escaneo} other {{formatted} escaneos}}",
     "selectRow": "Seleccionar {name}",
     "deleteSelected": "Eliminar seleccionados",
-    "empty": "Aún no hay códigos QR. Cada código tiene su propio enlace corto, así que puedes cambiar adónde lleva después de imprimirlo.",
+    "empty": "Aún no hay códigos QR. Crea un código para imprimir y añade un enlace corto para compartir online.",
     "emptyFiltered": "Ningún código QR coincide con estos filtros.",
     "deleted": "{count, plural, one {# código QR eliminado.} other {# códigos QR eliminados.}}"
   },
@@ -43,7 +43,7 @@
     "edit": "Detalles"
   },
   "overview": {
-    "created": "Código QR creado. Descárgalo abajo o ajusta antes el diseño.",
+    "created": "Código QR creado. Descárgalo para imprimir o crea un enlace corto abajo para compartir online.",
     "saved": "Cambios guardados.",
     "copy": "Copiar enlace corto",
     "copied": "Copiado",
@@ -59,25 +59,26 @@
     "never": "Nunca",
     "details": "Detalles",
     "destination": "Destino",
-    "shortLink": "Enlace corto",
+    "shortLink": "Dirección de escaneo",
     "code": "Código",
     "attached": "Asociado al enlace",
     "tags": "Etiquetas",
     "createdAt": "Creado",
     "none": "Ninguno",
     "delete": "Eliminar código QR",
-    "deleteHint": "Las copias impresas dejan de funcionar."
+    "deleteHint": "Las copias impresas dejan de funcionar.",
+    "description": "Código QR listo para descargar e imprimir."
   },
   "form": {
     "newTitle": "Nuevo código QR",
-    "newDescription": "Apúntalo a una URL o a uno de tus enlaces y luego diséñalo. El destino puede cambiar después de imprimirlo.",
+    "newDescription": "Los nuevos códigos empiezan en negro sobre blanco. Después de crear uno, puedes añadir un enlace corto para compartir online.",
     "editDescription": "Adónde lleva el código y cómo está organizado. El patrón nunca cambia, así que las copias impresas lo siguen.",
     "destinationSection": "Destino",
     "url": "URL de destino",
     "urlHint": "Adónde lleva un escaneo.",
     "urlEditHint": "Las copias impresas siguen el nuevo destino en el próximo escaneo.",
-    "orLink": "O usa uno de tus enlaces:",
-    "pickLink": "Elegir un enlace",
+    "orLink": "O empieza con un enlace existente: ábrelo en Enlaces y elige su pestaña Código QR.",
+    "pickLink": "Explorar enlaces",
     "usingLink": "El código abre el enlace <key>{link}</key>.",
     "opens": "Destino: {url}",
     "attachHint": "Queda asociado a ese enlace, así que lo encontrarás en la pestaña de código QR del enlace.",
@@ -94,7 +95,7 @@
     "newTagsHint": "Sepáralas con comas.",
     "applyToLink": "Actualizar también el enlace <key>{link}</key>",
     "applyToLinkHint": "Copia un nuevo destino o título al enlace al que está asociado este código.",
-    "previewHint": "La vista previa usa un enlace corto de ejemplo; tu código recibe el suyo al crearlo.",
+    "previewHint": "La vista previa usa una dirección de escaneo de ejemplo. Tu código recibe una dirección permanente al crearlo.",
     "create": "Crear código QR",
     "save": "Guardar detalles",
     "cancel": "Cancelar"
@@ -225,5 +226,20 @@
     },
     "caption": "Leyenda",
     "captionHint": "Opcional, hasta 64 caracteres. La leyenda aparece en las vistas previas y las descargas. El color de la leyenda se ajusta para facilitar la lectura."
+  },
+  "share": {
+    "title": "Compartir online",
+    "create": "Crear enlace corto",
+    "description": "Crea un enlace corto separado para compartir online. Abre el mismo destino que este código QR; el código impreso no cambia.",
+    "destination": "Destino: {url}",
+    "attachedHint": "Comparte este enlace online. Edita su dirección en la configuración del enlace; los códigos QR impresos siguen funcionando.",
+    "edit": "Editar enlace corto",
+    "scanHint": "Esta dirección permanente está codificada en el código QR. Se mantiene fija para que las copias impresas sigan funcionando. Usa el enlace corto de arriba para compartir online.",
+    "key": "Clave del enlace corto",
+    "keyHint": "Tu enlace será {domain}/ seguido de esta clave. Déjala en blanco para generar una.",
+    "generatedHint": "Tu plan incluye un enlace corto generado. Las claves personalizadas requieren una mejora de plan.",
+    "failed": "No se pudo crear el enlace corto. Vuelve al código QR para comprobar si ya tiene un enlace asociado o inténtalo de nuevo.",
+    "cancel": "Cancelar",
+    "scanHintUnattached": "Esta dirección permanente está codificada en el código QR. Se mantiene fija para que las copias impresas sigan funcionando. Crea un enlace corto arriba para compartir online."
   }
 }

@@ -6,6 +6,12 @@ Esta guía describe las opciones de diseño de un código QR, la exportación de
 
 Abre **Códigos QR** en la barra lateral. Usa **Buscar** para buscar por título, destino o código, filtra por **Etiqueta** y por **Creado**, y cambia la **Vista** entre **Cuadrícula** y **Lista**. Selecciona un código para abrir su resumen, donde están las pestañas **Resumen**, **Diseño**, **Escaneos** y **Detalles**.
 
+## Compartir un enlace corto online
+
+La **Dirección de escaneo** está codificada permanentemente en el código QR para que las copias impresas sigan funcionando. Para compartir online, selecciona **Crear enlace corto** en la vista general del QR. Elige una clave si tu plan permite claves personalizadas o déjala en blanco para generar una. El nuevo enlace abre el mismo destino y queda asociado a este código QR.
+
+Usa **Copiar enlace corto** para compartir y **Editar enlace corto** para cambiar la dirección. Este cambio mantiene el código QR impreso igual. Al cambiar el destino del QR en **Detalles**, selecciona **Actualizar también el enlace** para actualizar ambos destinos.
+
 ## Opciones de diseño
 
 Abre la pestaña **Diseño**. La vista previa se actualiza con cada cambio y te avisa cuando incluye cambios sin guardar. Selecciona **Guardar diseño** para aplicarlos.

@@ -1,22 +1,22 @@
 # Crear códigos QR
 
-Cada código QR de Shortn abre un enlace corto. El patrón impreso no cambia nunca, así que puedes cambiar adónde lleva el código después de imprimirlo y seguir contando cada escaneo. Esta guía explica cómo crear un código y sacar tu primer archivo.
+Cada código QR de Shortn usa una dirección de escaneo permanente. El patrón impreso no cambia nunca, así que puedes cambiar adónde lleva el código después de imprimirlo y seguir contando cada escaneo. Esta guía explica cómo crear un código y sacar tu primer archivo.
 
 ## Antes de empezar
 
 Cada código QR que creas cuenta para el límite mensual de códigos QR de tu plan, que ves en **Uso** en la barra lateral. Un código puede apuntar a:
 
-- **una URL**: Shortn crea un enlace corto para el código;
+- **una URL**: Shortn crea una dirección de escaneo permanente para el código;
 - **uno de tus enlaces**: el código queda vinculado a ese enlace y lo abre.
 
 ## Crea un código QR
 
 1. Abre **Códigos QR** en la barra lateral y selecciona **Nuevo código QR**.
-2. En **URL de destino**, escribe adónde debe llevar el escaneo. Para usar un enlace que ya tienes, selecciona **Elegir un enlace** en **O usa uno de tus enlaces:** y elígelo de la lista. **Usar una URL** vuelve a la opción anterior.
+2. En **URL de destino**, escribe adónde debe llevar el escaneo. Para usar un enlace que ya tienes, selecciona **Explorar enlaces**, busca y abre el enlace con la búsqueda y los filtros de etiquetas, abre su pestaña **Código QR** y selecciona **Crear un código QR**. **Usar una URL** permite volver a introducir un destino.
 3. Si quieres, añade un **Título** para encontrar el código más tarde, y **Etiquetas**.
 4. Selecciona **Crear código QR**.
 
-Se abre el resumen del código. La vista previa del formulario usa un enlace corto de muestra; tu código recibe su propio enlace corto al crearlo.
+Se abre el resumen del código. Los nuevos códigos empiezan en negro sobre blanco. La vista previa usa una dirección de escaneo de ejemplo; tu código recibe su propia dirección permanente al crearlo. Para compartir una URL online, selecciona **Crear enlace corto** en **Compartir online** en el resumen. Puedes copiar o editar ese enlace corto separado sin cambiar los códigos QR impresos.
 
 También puedes partir de un enlace: ábrelo, selecciona su pestaña **Código QR** y luego **Crear un código QR**. El código queda vinculado a ese enlace y lo encontrarás en esa pestaña. Si el enlace ya tenía un código, el nuevo pasa a ser el código del enlace, y el antiguo sigue funcionando.
 
