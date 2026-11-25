@@ -1,22 +1,22 @@
 # Creating QR codes
 
-Every QR code in Shortn opens a short link. The pattern printed on paper never changes, so you can change where the code goes after printing and still count every scan. This guide covers creating a code and getting a first file out.
+Every QR code in Shortn uses a permanent scan address. The pattern printed on paper never changes, so you can change where the code goes after printing and still count every scan. This guide covers creating a code and getting a first file out.
 
 ## Before you start
 
 Each QR code you create counts towards your plan's monthly QR code limit, shown under **Usage** in the sidebar. A code can point at:
 
-- **a URL**: Shortn creates a short link for the code;
+- **a URL**: Shortn creates a permanent scan address for the code;
 - **one of your links**: the code is attached to that link and opens it.
 
 ## Create a QR code
 
 1. Open **QR codes** in the sidebar and select **New QR code**.
-2. Under **Destination URL**, enter where a scan should take people. To use an existing link instead, select **Choose a link** under **Or use one of your links:** and pick it from the list. **Use a URL instead** switches back.
+2. Under **Destination URL**, enter where a scan should take people. To use an existing link instead, select **Browse links**, find and open the link using search and tag filters, then open its **QR code** tab and select **Create a QR code**. **Use a URL instead** switches back to entering a destination.
 3. Optionally add a **Title** to help you find the code later, and **Tags**.
 4. Select **Create QR code**.
 
-The code's overview opens. The preview on the form uses a sample short link; your code gets its own short link when you create it.
+The code's overview opens. New codes start in black on white. The preview uses a sample scan address; your code gets its own permanent address when you create it. To share a URL online, select **Create short link** under **Share online** on the overview. You can copy or edit that separate short link without changing printed QR codes.
 
 You can also start from a link: open the link, select its **QR code** tab and select **Create a QR code**. The code is attached to that link, and you'll find it on that tab afterwards. If the link already has a code, the new one replaces it as the link's code, and the old code keeps scanning.
 

@@ -22,7 +22,7 @@ import { physicalNames } from "@shortn/db";
 import { latestEntry } from "../src/lib/changelog/entries";
 import { fxKeys } from "@shortn/billing";
 import { parseEnv, webEnv, redirectEnv } from "@shortn/env";
-import { checkQrDesignAndDownloads } from "./qr.browser-flows";
+import { checkQrDesignAndDownloads, checkQrSharing } from "./qr.browser-flows";
 import { checkAnalyticsBrowser } from "./analytics.browser-flows";
 import { checkBulkSelection } from "./selection.browser-flows";
 import { checkHandoffAndAddPassword } from "./handoff.browser-flows";
@@ -426,6 +426,17 @@ try {
   assert.deepEqual(uploadDenials, [401, 403, 400]);
   const base = `/${workspace.slug}`;
   dashboardChecks: {
+    if (process.argv.includes("--qr-sharing")) {
+      await checkQrSharing({
+        page,
+        go: (path) => page.goto(`${origin}/${workspace.slug}${path}`),
+        db,
+        workspaceId: workspace._id,
+        run,
+        captureDir,
+      });
+      break dashboardChecks;
+    }
     const routes = [
       "/links",
       "/links/new",
@@ -1051,114 +1062,14 @@ try {
       shortUrl,
     );
 
-    await go("/qr/new");
-    await page
-      .locator('input[name="url"]')
-      .fill("https://example.org/qr-through-ui");
-    await page.locator('input[name="title"]').fill("Created QR through UI");
-    await page
-      .getByRole("button", { name: "Create QR code", exact: true })
-      .click();
-    await page.waitForURL(/\/qr\/[a-f0-9]{24}\?created=1$/);
-    assert.equal(
-      await db.collection(physicalNames.qr_codes).countDocuments({
-        workspaceId: workspace._id,
-        title: "Created QR through UI",
-      }),
-      1,
-    );
-
-    await page
-      .getByRole("heading", { name: "Share online", exact: true })
-      .waitFor();
-    const createdQr = await db
-      .collection(physicalNames.qr_codes)
-      .findOne({ workspaceId: workspace._id, title: "Created QR through UI" });
-    assert(createdQr);
-    assert.equal(createdQr.options.dotsOptions.color, "#000000");
-    const scanAddress = createdQr.options.data;
-    assert.equal(
-      await page
-        .getByRole("button", { name: "Copy short link", exact: true })
-        .count(),
-      0,
-    );
-    for (const width of [1440, 390]) {
-      await page.setViewportSize({ width, height: 1000 });
-      assert.equal(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth > innerWidth,
-        ),
-        false,
-      );
-      if (captureDir)
-        await page.screenshot({
-          path: `${captureDir}/qr-share-empty-${width}.png`,
-          fullPage: true,
-        });
-    }
-    await page
-      .getByRole("link", { name: "Create short link", exact: true })
-      .click();
-    await page.locator('input[name="key"]').fill(`qr-share-${run}`);
-    await page
-      .getByRole("button", { name: "Create short link", exact: true })
-      .click();
-    await page.waitForURL(`**/qr/${createdQr._id}?saved=1`);
-    await page
-      .getByRole("link", { name: "Edit short link", exact: true })
-      .waitFor();
-    const attachedQr = await db
-      .collection(physicalNames.qr_codes)
-      .findOne({ _id: createdQr._id });
-    assert(attachedQr?.attachedLinkId);
-    assert.equal(attachedQr.options.data, scanAddress);
-    await page
-      .getByRole("button", { name: "Copy short link", exact: true })
-      .click();
-    assert.equal(
-      await page.evaluate(() => navigator.clipboard.readText()),
-      `https://shortn.at/qr-share-${run}`,
-    );
-    for (const width of [1440, 390]) {
-      await page.setViewportSize({ width, height: 1000 });
-      assert.equal(
-        await page.evaluate(
-          () => document.documentElement.scrollWidth > innerWidth,
-        ),
-        false,
-      );
-      if (captureDir)
-        await page.screenshot({
-          path: `${captureDir}/qr-share-attached-${width}.png`,
-          fullPage: true,
-        });
-    }
-    await page
-      .getByRole("link", { name: "Edit short link", exact: true })
-      .click();
-    await page.locator('input[name="key"]').fill(`qr-renamed-${run}`);
-    await page
-      .getByRole("button", { name: "Save changes", exact: true })
-      .click();
-    await page.waitForURL(`**/links/${attachedQr.attachedLinkId}?saved=1`);
-    await go(`/qr/${createdQr._id}`);
-    await page
-      .getByRole("button", { name: "Copy short link", exact: true })
-      .click();
-    assert.equal(
-      await page.evaluate(() => navigator.clipboard.readText()),
-      `https://shortn.at/qr-renamed-${run}`,
-    );
-    assert.equal(
-      (
-        await db
-          .collection(physicalNames.qr_codes)
-          .findOne({ _id: createdQr._id })
-      )?.options.data,
-      scanAddress,
-    );
-    await page.setViewportSize({ width: 1440, height: 1000 });
+    await checkQrSharing({
+      page,
+      go,
+      db,
+      workspaceId: workspace._id,
+      run,
+      captureDir,
+    });
 
     await go("/settings/members/invite");
     const invitedEmail = `invited-${run}@example.org`;
