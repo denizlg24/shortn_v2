@@ -6,6 +6,12 @@ Este guia descreve as opções de design de um código QR, a exportação de fic
 
 Abra **Códigos QR** na barra lateral. Use **Pesquisar** para procurar por título, destino ou código, filtre por **Etiqueta** e por **Criado** e alterne a **Disposição** entre **Grelha** e **Lista**. Selecione um código para abrir o resumo, onde estão os separadores **Resumo**, **Design**, **Leituras** e **Detalhes**.
 
+## Partilhar um link curto online
+
+O **Endereço de leitura** está codificado permanentemente no código QR para que as cópias impressas continuem a funcionar. Para partilhar online, selecione **Criar link curto** na vista geral do QR. Escolha uma chave se o seu plano permitir chaves personalizadas ou deixe em branco para gerar uma. O novo link abre o mesmo destino e fica associado a este código QR.
+
+Use **Copiar link curto** para partilhar e **Editar link curto** para alterar o endereço. Esta alteração mantém o código QR impresso igual. Ao alterar o destino do QR em **Detalhes**, selecione **Também atualizar o link** para atualizar ambos os destinos.
+
 ## Opções de design
 
 Abra o separador **Design**. A pré-visualização acompanha as alterações e indica quando inclui alterações por guardar. Selecione **Guardar design** para as aplicar.

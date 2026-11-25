@@ -1,6 +1,8 @@
 import { strict as assert } from "node:assert";
 import { readFile, mkdir } from "node:fs/promises";
 import type { Page } from "playwright-core";
+import type { Db, ObjectId } from "mongodb";
+import { physicalNames } from "@shortn/db";
 import {
   rejectInvalidUpload,
   uploadFixtureImage,
@@ -178,5 +180,134 @@ export async function checkQrDesignAndDownloads({
   assert.equal((await storedOptions())?.image, "");
   console.log(
     "QR design and downloads passed: saved colours/shapes/correction, validation, PNG/SVG/JPEG sizes and decoded payloads.",
+  );
+}
+
+/** Focused create/share/edit acceptance, also run with dashboard.browser.ts --qr-sharing. */
+export async function checkQrSharing({
+  page,
+  go,
+  db,
+  workspaceId,
+  run,
+  captureDir,
+}: {
+  page: Page;
+  go: (path: string) => Promise<unknown>;
+  db: Db;
+  workspaceId: ObjectId;
+  run: string;
+  captureDir: string | undefined;
+}) {
+  if (captureDir) await mkdir(captureDir, { recursive: true });
+  await go("/qr/new");
+  await page
+    .locator('input[name="url"]')
+    .fill("https://example.org/qr-through-ui");
+  await page.locator('input[name="title"]').fill("Created QR through UI");
+  await page
+    .getByRole("button", { name: "Create QR code", exact: true })
+    .click();
+  await page.waitForURL(/\/qr\/[a-f0-9]{24}\?created=1$/);
+  assert.equal(
+    await db.collection(physicalNames.qr_codes).countDocuments({
+      workspaceId,
+      title: "Created QR through UI",
+    }),
+    1,
+  );
+
+  await page
+    .getByRole("heading", { name: "Share online", exact: true })
+    .waitFor();
+  const createdQr = await db
+    .collection(physicalNames.qr_codes)
+    .findOne({ workspaceId, title: "Created QR through UI" });
+  assert(createdQr);
+  assert.equal(createdQr.options.dotsOptions.color, "#000000");
+  const scanAddress = createdQr.options.data;
+  assert.equal(
+    await page
+      .getByRole("button", { name: "Copy short link", exact: true })
+      .count(),
+    0,
+  );
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+      false,
+    );
+    if (captureDir)
+      await page.screenshot({
+        path: `${captureDir}/qr-share-empty-${width}.png`,
+        fullPage: true,
+      });
+  }
+  await page
+    .getByRole("link", { name: "Create short link", exact: true })
+    .click();
+  await page.locator('input[name="key"]').fill(`qr-share-${run}`);
+  await page
+    .getByRole("button", { name: "Create short link", exact: true })
+    .click();
+  await page.waitForURL(`**/qr/${createdQr._id}?saved=1`);
+  await page
+    .getByRole("link", { name: "Edit short link", exact: true })
+    .waitFor();
+  const attachedQr = await db
+    .collection(physicalNames.qr_codes)
+    .findOne({ _id: createdQr._id });
+  assert(attachedQr?.attachedLinkId);
+  assert.equal(attachedQr.options.data, scanAddress);
+  await page
+    .getByRole("button", { name: "Copy short link", exact: true })
+    .click();
+  assert.equal(
+    await page.evaluate(() => navigator.clipboard.readText()),
+    `https://shortn.at/qr-share-${run}`,
+  );
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 1000 });
+    assert.equal(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
+      ),
+      false,
+    );
+    if (captureDir)
+      await page.screenshot({
+        path: `${captureDir}/qr-share-attached-${width}.png`,
+        fullPage: true,
+      });
+  }
+  await page
+    .getByRole("link", { name: "Edit short link", exact: true })
+    .click();
+  await page.locator('input[name="key"]').fill(`qr-renamed-${run}`);
+  await page.getByRole("button", { name: "Save changes", exact: true }).click();
+  await page.waitForURL(`**/links/${attachedQr.attachedLinkId}?saved=1`);
+  await go(`/qr/${createdQr._id}`);
+  await page
+    .getByRole("button", { name: "Copy short link", exact: true })
+    .click();
+  assert.equal(
+    await page.evaluate(() => navigator.clipboard.readText()),
+    `https://shortn.at/qr-renamed-${run}`,
+  );
+  assert.equal(
+    (
+      await db
+        .collection(physicalNames.qr_codes)
+        .findOne({ _id: createdQr._id })
+    )?.options.data,
+    scanAddress,
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  console.log(
+    "QR sharing acceptance passed: black default, create/copy/rename attached link, unchanged scan payload, desktop/mobile.",
   );
 }

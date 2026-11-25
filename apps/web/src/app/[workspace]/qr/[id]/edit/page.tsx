@@ -1,4 +1,4 @@
-import { listTags } from "@shortn/core";
+import { getLink, listTags } from "@shortn/core";
 import { can } from "@shortn/core/authz";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
@@ -20,7 +20,10 @@ export default async function QrDetailsPage({
   const { ctx, qr } = await loadQr(workspace, id);
   const base = `/${workspace}/qr/${id}`;
   if (!can(ctx.actor, "resource.update")) redirect(base);
-  const tags = await listTags(ctx);
+  const [tags, attached] = await Promise.all([
+    listTags(ctx),
+    qr.attachedLinkId ? getLink(ctx, qr.attachedLinkId) : null,
+  ]);
   return (
     <Page
       crumbs={[
@@ -40,7 +43,9 @@ export default async function QrDetailsPage({
           title: qr.title,
           tags: qr.tags.map((tag) => tag.name),
         }}
-        attachedLink={qr.attachedLinkKey}
+        attachedLink={
+          attached ? `${attached.domain}/${attached.key}` : qr.attachedLinkKey
+        }
         allTags={tags}
         action={updateQrDetailsPageAction.bind(null, workspace, id)}
         cancelHref={base}

@@ -19,9 +19,10 @@ import {
   type ServiceContext,
 } from "@shortn/core";
 import { physicalNames } from "@shortn/db";
+import { latestEntry } from "../src/lib/changelog/entries";
 import { fxKeys } from "@shortn/billing";
 import { parseEnv, webEnv, redirectEnv } from "@shortn/env";
-import { checkQrDesignAndDownloads } from "./qr.browser-flows";
+import { checkQrDesignAndDownloads, checkQrSharing } from "./qr.browser-flows";
 import { checkAnalyticsBrowser } from "./analytics.browser-flows";
 import { checkBulkSelection } from "./selection.browser-flows";
 import { checkHandoffAndAddPassword } from "./handoff.browser-flows";
@@ -369,11 +370,19 @@ try {
     extraHTTPHeaders: { "x-forwarded-for": clientIp },
     permissions: ["clipboard-read", "clipboard-write"],
   });
-  await context.route("**/*", (route) =>
-    new URL(route.request().url()).origin === origin
-      ? route.continue()
-      : route.abort(),
-  );
+  await context.addInitScript((id) => {
+    localStorage.setItem("shortn:changelog-seen", id);
+  }, latestEntry.id);
+  await context.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin !== origin) return route.abort();
+    // The production edge strips the web asset prefix before reaching Next.
+    if (url.pathname.startsWith("/_web/_next/")) {
+      url.pathname = url.pathname.slice("/_web".length);
+      return route.continue({ url: url.href });
+    }
+    return route.continue();
+  });
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (error) =>
@@ -390,11 +399,11 @@ try {
     )
       errors.push(`${page.url()}: ${message.text()}`);
   });
-  await page.goto(`${origin}/login`);
+  await page.goto(`${origin}/login?next=/${workspace.slug}/links`);
   await page.locator('input[name="identifier"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(`**/${workspace.slug}/links`);
+  await page.waitForURL((url) => url.pathname === `/${workspace.slug}/links`);
   const uploadDenials = await page.evaluate(async (slug) => {
     const unauthenticated = await fetch(
       `/api/uploads/${slug}?purpose=bio-image`,
@@ -417,6 +426,17 @@ try {
   assert.deepEqual(uploadDenials, [401, 403, 400]);
   const base = `/${workspace.slug}`;
   dashboardChecks: {
+    if (process.argv.includes("--qr-sharing")) {
+      await checkQrSharing({
+        page,
+        go: (path) => page.goto(`${origin}/${workspace.slug}${path}`),
+        db,
+        workspaceId: workspace._id,
+        run,
+        captureDir,
+      });
+      break dashboardChecks;
+    }
     const routes = [
       "/links",
       "/links/new",
@@ -1042,22 +1062,14 @@ try {
       shortUrl,
     );
 
-    await go("/qr/new");
-    await page
-      .locator('input[name="url"]')
-      .fill("https://example.org/qr-through-ui");
-    await page.locator('input[name="title"]').fill("Created QR through UI");
-    await page
-      .getByRole("button", { name: "Create QR code", exact: true })
-      .click();
-    await page.waitForURL(/\/qr\/[a-f0-9]{24}\?created=1$/);
-    assert.equal(
-      await db.collection(physicalNames.qr_codes).countDocuments({
-        workspaceId: workspace._id,
-        title: "Created QR through UI",
-      }),
-      1,
-    );
+    await checkQrSharing({
+      page,
+      go,
+      db,
+      workspaceId: workspace._id,
+      run,
+      captureDir,
+    });
 
     await go("/settings/members/invite");
     const invitedEmail = `invited-${run}@example.org`;
@@ -1104,13 +1116,15 @@ try {
       extraHTTPHeaders: { "x-forwarded-for": clientIp },
     });
     const otherPage = await otherContext.newPage();
-    await otherPage.goto(`${origin}/login`);
+    await otherPage.goto(`${origin}/login?next=/${workspace.slug}/links`);
     await otherPage.locator('input[name="identifier"]').fill(email);
     await otherPage.locator('input[name="password"]').fill(password);
     await otherPage
       .getByRole("button", { name: "Sign in", exact: true })
       .click();
-    await otherPage.waitForURL(`**/${workspace.slug}/links`);
+    await otherPage.waitForURL(
+      (url) => url.pathname === `/${workspace.slug}/links`,
+    );
     await go("/settings/account/sessions");
     await page
       .getByRole("button", { name: "Sign out of other sessions", exact: true })
@@ -1141,7 +1155,9 @@ try {
     await otherPage
       .getByRole("button", { name: "Sign in", exact: true })
       .click();
-    await otherPage.waitForURL(`**/${workspace.slug}/links`);
+    await otherPage.waitForURL(
+      (url) => url.pathname === `/${workspace.slug}/links`,
+    );
     await otherContext.close();
     await checkHandoffAndAddPassword({
       browser,

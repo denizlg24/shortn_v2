@@ -2,6 +2,7 @@
 
 import {
   createQr,
+  createQrShortLink,
   deleteQrs,
   getQr,
   qrDesignSchema,
@@ -136,4 +137,24 @@ export async function deleteQrsPageAction(
   const result = await deleteQrs(await serviceContext(workspace), valid);
   if (!result.ok) return { error: result.error };
   redirect(`/${workspace}/qr?deleted=${result.value.deleted.length}`);
+}
+
+export async function createQrShortLinkPageAction(
+  workspace: string,
+  id: string,
+  _state: FormState,
+  form: FormData,
+): Promise<FormState> {
+  const result = await createQrShortLink(await serviceContext(workspace), id, {
+    key: text(form, "key") || undefined,
+  });
+  if (!result.ok)
+    return {
+      error: result.error,
+      field: ["invalid_key", "key_taken", "key_reserved"].includes(result.error)
+        ? "key"
+        : undefined,
+      detail: result.detail,
+    };
+  redirect(`/${workspace}/qr/${id}?saved=1`);
 }

@@ -87,7 +87,7 @@ export const defaultQrDesign = (data: string): QrDesign => ({
   height: 300,
   type: "svg",
   data,
-  dotsOptions: { color: "#1e90ff", type: "square" },
+  dotsOptions: { color: "#000000", type: "square" },
   backgroundOptions: { color: "#ffffff" },
   image: "",
   imageOptions: { crossOrigin: "anonymous", margin: 5 },
@@ -108,6 +108,7 @@ export interface QrView {
   // gradients), so previews and downloads render the code as printed.
   storedDesign: Record<string, unknown>;
   attachedLinkKey: string | null;
+  attachedLinkId?: string | null;
   createdAt: string;
   createdBy: string | null;
 }
@@ -151,6 +152,10 @@ export function toQrView(qr: QrCode, linkDomain: string): QrView {
     lastScanAt: qr.clicks?.lastClick?.toISOString() ?? null,
     design: designOf(qr),
     storedDesign: storedOptions(qr),
+    attachedLinkId:
+      qr.attachedLinkId instanceof ObjectId
+        ? qr.attachedLinkId.toHexString()
+        : null,
     attachedLinkKey:
       typeof qr.attachedUrl === "string" && qr.attachedUrl
         ? qr.attachedUrl
