@@ -239,6 +239,7 @@
     "keyHint": "Tu enlace será {domain}/ seguido de esta clave. Déjala en blanco para generar una.",
     "generatedHint": "Tu plan incluye un enlace corto generado. Las claves personalizadas requieren una mejora de plan.",
     "failed": "No se pudo crear el enlace corto. Vuelve al código QR para comprobar si ya tiene un enlace asociado o inténtalo de nuevo.",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "scanHintUnattached": "Esta dirección permanente está codificada en el código QR. Se mantiene fija para que las copias impresas sigan funcionando. Crea un enlace corto arriba para compartir online."
   }
 }

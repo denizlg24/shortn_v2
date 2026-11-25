@@ -239,6 +239,7 @@
     "keyHint": "Your link will be {domain}/ followed by this key. Leave blank to generate one.",
     "generatedHint": "Your plan includes a generated short link. Custom keys require an upgrade.",
     "failed": "The short link could not be created. Return to the QR code to check whether a link is already attached, or try again.",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "scanHintUnattached": "This permanent address is encoded in the QR code. It stays fixed so printed copies keep working. Create a short link above to share online."
   }
 }

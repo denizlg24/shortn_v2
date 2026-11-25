@@ -248,7 +248,9 @@ export default async function QrOverviewPage({
                 <div className="flex flex-col gap-1">
                   <span className="break-all font-mono">{host}</span>
                   <p className="text-meta text-fg-muted">
-                    {t("share.scanHint")}
+                    {attached
+                      ? t("share.scanHint")
+                      : t("share.scanHintUnattached")}
                   </p>
                 </div>,
               )}

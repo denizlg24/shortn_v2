@@ -19,6 +19,7 @@ import {
   type ServiceContext,
 } from "@shortn/core";
 import { physicalNames } from "@shortn/db";
+import { latestEntry } from "../src/lib/changelog/entries";
 import { fxKeys } from "@shortn/billing";
 import { parseEnv, webEnv, redirectEnv } from "@shortn/env";
 import { checkQrDesignAndDownloads } from "./qr.browser-flows";
@@ -369,11 +370,19 @@ try {
     extraHTTPHeaders: { "x-forwarded-for": clientIp },
     permissions: ["clipboard-read", "clipboard-write"],
   });
-  await context.route("**/*", (route) =>
-    new URL(route.request().url()).origin === origin
-      ? route.continue()
-      : route.abort(),
-  );
+  await context.addInitScript((id) => {
+    localStorage.setItem("shortn:changelog-seen", id);
+  }, latestEntry.id);
+  await context.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin !== origin) return route.abort();
+    // The production edge strips the web asset prefix before reaching Next.
+    if (url.pathname.startsWith("/_web/_next/")) {
+      url.pathname = url.pathname.slice("/_web".length);
+      return route.continue({ url: url.href });
+    }
+    return route.continue();
+  });
   const page = await context.newPage();
   const errors: string[] = [];
   page.on("pageerror", (error) =>
@@ -390,11 +399,11 @@ try {
     )
       errors.push(`${page.url()}: ${message.text()}`);
   });
-  await page.goto(`${origin}/login`);
+  await page.goto(`${origin}/login?next=/${workspace.slug}/links`);
   await page.locator('input[name="identifier"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(`**/${workspace.slug}/links`);
+  await page.waitForURL((url) => url.pathname === `/${workspace.slug}/links`);
   const uploadDenials = await page.evaluate(async (slug) => {
     const unauthenticated = await fetch(
       `/api/uploads/${slug}?purpose=bio-image`,
@@ -1059,6 +1068,9 @@ try {
       1,
     );
 
+    await page
+      .getByRole("heading", { name: "Share online", exact: true })
+      .waitFor();
     const createdQr = await db
       .collection(physicalNames.qr_codes)
       .findOne({ workspaceId: workspace._id, title: "Created QR through UI" });
@@ -1093,6 +1105,9 @@ try {
       .getByRole("button", { name: "Create short link", exact: true })
       .click();
     await page.waitForURL(`**/qr/${createdQr._id}?saved=1`);
+    await page
+      .getByRole("link", { name: "Edit short link", exact: true })
+      .waitFor();
     const attachedQr = await db
       .collection(physicalNames.qr_codes)
       .findOne({ _id: createdQr._id });
@@ -1190,13 +1205,15 @@ try {
       extraHTTPHeaders: { "x-forwarded-for": clientIp },
     });
     const otherPage = await otherContext.newPage();
-    await otherPage.goto(`${origin}/login`);
+    await otherPage.goto(`${origin}/login?next=/${workspace.slug}/links`);
     await otherPage.locator('input[name="identifier"]').fill(email);
     await otherPage.locator('input[name="password"]').fill(password);
     await otherPage
       .getByRole("button", { name: "Sign in", exact: true })
       .click();
-    await otherPage.waitForURL(`**/${workspace.slug}/links`);
+    await otherPage.waitForURL(
+      (url) => url.pathname === `/${workspace.slug}/links`,
+    );
     await go("/settings/account/sessions");
     await page
       .getByRole("button", { name: "Sign out of other sessions", exact: true })
@@ -1227,7 +1244,9 @@ try {
     await otherPage
       .getByRole("button", { name: "Sign in", exact: true })
       .click();
-    await otherPage.waitForURL(`**/${workspace.slug}/links`);
+    await otherPage.waitForURL(
+      (url) => url.pathname === `/${workspace.slug}/links`,
+    );
     await otherContext.close();
     await checkHandoffAndAddPassword({
       browser,

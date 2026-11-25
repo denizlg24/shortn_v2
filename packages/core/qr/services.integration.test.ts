@@ -125,6 +125,34 @@ const enabled = Boolean(mongoUrl && redisUrl);
     expect((await getQr(ctx, original.id))?.shortUrl).toBe(original.shortUrl);
   });
 
+  test("QR short links honor key and plan limits without leaving attachments behind", async () => {
+    const ctx = await context("pro");
+    const qr = await createQr(ctx, { url: "https://example.org/print" });
+    if (!qr.ok) throw new Error(qr.error);
+    const occupied = await createLink(ctx, {
+      url: "https://example.org/other",
+      key: "occupied",
+    });
+    expect(occupied.ok).toBe(true);
+    expect(
+      await createQrShortLink(ctx, qr.value.id, { key: "occupied" }),
+    ).toMatchObject({ ok: false, error: "key_taken" });
+    expect(
+      await createQrShortLink(ctx, qr.value.id, { key: "invalid key" }),
+    ).toMatchObject({ ok: false, error: "invalid_key" });
+    expect((await getQr(ctx, qr.value.id))?.attachedLinkKey).toBeNull();
+    const free = await context();
+    const freeQr = await createQr(free, { url: "https://example.org/free" });
+    if (!freeQr.ok) throw new Error(freeQr.error);
+    expect(
+      await createQrShortLink(free, freeQr.value.id, { key: "custom-free" }),
+    ).toMatchObject({ ok: false, error: "feature_required" });
+    expect((await createQrShortLink(free, freeQr.value.id, {})).ok).toBe(true);
+    expect((await getQr(free, freeQr.value.id))?.shortUrl).toBe(
+      freeQr.value.shortUrl,
+    );
+  });
+
   test("QR backing links resolve on the configured staging/local domain and keep it after edits", async () => {
     for (const domain of ["staging.shortn.at", "localhost:3202"]) {
       const ctx = { ...(await context()), linkDomain: domain };

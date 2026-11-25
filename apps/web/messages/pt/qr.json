@@ -239,6 +239,7 @@
     "keyHint": "O seu link será {domain}/ seguido desta chave. Deixe em branco para gerar uma.",
     "generatedHint": "O seu plano inclui um link curto gerado. As chaves personalizadas requerem um upgrade.",
     "failed": "Não foi possível criar o link curto. Volte ao código QR para verificar se já tem um link associado ou tente novamente.",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "scanHintUnattached": "Este endereço permanente está codificado no código QR. Mantém-se fixo para que as cópias impressas continuem a funcionar. Crie um link curto acima para partilhar online."
   }
 }
