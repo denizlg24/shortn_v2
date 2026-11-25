@@ -583,6 +583,91 @@ export async function createBioLink(
   }
 }
 
+/** Create a shareable link and attach it without changing the printed QR payload. */
+export async function createQrShortLink(
+  ctx: ServiceContext,
+  qrId: string,
+  input: { key?: string | undefined },
+): Promise<Result<LinkView, LinkError>> {
+  if (!can(ctx.actor, "resource.create") || !can(ctx.actor, "resource.update"))
+    return fail("forbidden");
+  const _id = parseObjectId(qrId);
+  if (!_id) return fail("not_found");
+  const filter = {
+    $and: [{ _id }, ownedBy<Documents["qr_codes"]>(ctx.workspace)],
+  };
+  const qr = await collection(ctx.db, "qr_codes").findOne(filter);
+  if (!qr) return fail("not_found");
+  if (qr.attachedLinkId || qr.attachedUrl) return fail("invalid_input");
+  try {
+    const result = await createManyAttached(
+      ctx,
+      [
+        {
+          url: qr.longUrl ?? "",
+          title: qr.title,
+          key: input.key,
+          tags: (qr.tags ?? []).flatMap((tag) =>
+            tagName(tag) ? [tagName(tag)!] : [],
+          ),
+        },
+      ],
+      async (links, session) => {
+        const current = await collection(ctx.db, "qr_codes").findOne(filter, {
+          session,
+        });
+        // Retry/concurrent requests must not create multiple links or attach stale destinations.
+        if (!current) throw new BioAttachmentError("not_found");
+        if (
+          current.attachedLinkId ||
+          current.attachedUrl ||
+          current.longUrl !== qr.longUrl
+        )
+          throw new QrAttachmentError();
+        const link = links[0]!;
+        await collection(ctx.db, "qr_codes").updateOne(
+          filter,
+          {
+            $set: {
+              attachedLinkId: new ObjectId(link.id),
+              attachedUrl: link.key,
+              updatedAt: nowOf(ctx),
+            },
+          },
+          { session },
+        );
+        const updated = await collection(ctx.db, "links").findOneAndUpdate(
+          { _id: new ObjectId(link.id) },
+          {
+            $set: {
+              qrCodeId: current.qrCodeId ?? current.publicId,
+              attachedQrId: _id,
+            },
+          },
+          { session, returnDocument: "after" },
+        );
+        if (!updated) throw new Error("Created QR short link vanished");
+        links[0] = toLinkView(updated, ctx.linkDomain);
+        await recordWebhookEvent(
+          ctx.db,
+          ctx.workspace._id,
+          "link.updated",
+          linkEventData(updated, ctx.linkDomain),
+          session,
+          nowOf(ctx),
+        );
+      },
+    );
+    return result.ok ? ok(result.value[0]!) : result;
+  } catch (error) {
+    if (error instanceof BioAttachmentError) return fail(error.reason);
+    if (error instanceof QrAttachmentError) return fail("invalid_input");
+    throw error;
+  }
+}
+
+class QrAttachmentError extends Error {}
+
 interface CreatedImportView extends LinkView {
   importQrId?: string;
 }

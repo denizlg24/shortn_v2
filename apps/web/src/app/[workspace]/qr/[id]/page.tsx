@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { ownedBy, totals } from "@shortn/core";
 import { can } from "@shortn/core/authz";
 import { collection, type Documents } from "@shortn/db";
@@ -48,15 +49,21 @@ export default async function QrOverviewPage({
       { $and: [{ urlCode: qr.key }, ownedBy<LinkDoc>(ctx.workspace)] },
       { projection: { _id: 1 } },
     ),
-    qr.attachedLinkKey
+    qr.attachedLinkId || qr.attachedLinkKey
       ? links.findOne(
           {
             $and: [
-              { urlCode: qr.attachedLinkKey, isQrCode: { $ne: true } },
+              {
+                ...(qr.attachedLinkId
+                  ? { _id: new ObjectId(qr.attachedLinkId) }
+                  : { urlCode: qr.attachedLinkKey ?? "" }),
+                isQrCode: { $ne: true },
+                deletedAt: { $exists: false },
+              },
               ownedBy<LinkDoc>(ctx.workspace),
             ],
           },
-          { projection: { _id: 1 } },
+          { projection: { _id: 1, domain: 1, key: 1, urlCode: 1 } },
         )
       : null,
   ]);
@@ -88,14 +95,9 @@ export default async function QrOverviewPage({
         { label: qrName(qr) },
       ]}
       title={qrName(qr)}
-      description={host}
+      description={t("overview.description")}
       actions={
         <>
-          <CopyButton
-            value={qr.shortUrl}
-            label={t("overview.copy")}
-            copiedLabel={t("overview.copied")}
-          />
           {editable ? (
             <Link
               href={`${base}/design`}
@@ -125,6 +127,41 @@ export default async function QrOverviewPage({
         </figure>
 
         <div className="min-w-0">
+          <Section
+            title={t("share.title")}
+            description={
+              attached ? t("share.attachedHint") : t("share.description")
+            }
+          >
+            {attached ? (
+              <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <span className="min-w-0 break-all font-mono text-small">
+                  {attached.domain ?? ctx.linkDomain}/
+                  {attached.key ?? attached.urlCode}
+                </span>
+                <CopyButton
+                  value={`https://${attached.domain ?? ctx.linkDomain}/${attached.key ?? attached.urlCode}`}
+                  label={t("overview.copy")}
+                  copiedLabel={t("overview.copied")}
+                />
+                {editable ? (
+                  <Link
+                    href={`/${workspace}/links/${attached._id.toHexString()}/edit`}
+                    className="text-small text-signal hover:underline"
+                  >
+                    {t("share.edit")}
+                  </Link>
+                ) : null}
+              </div>
+            ) : editable && can(ctx.actor, "resource.create") ? (
+              <Link
+                href={`${base}/link`}
+                className={buttonVariants({ variant: "primary", size: "md" })}
+              >
+                {t("share.create")}
+              </Link>
+            ) : null}
+          </Section>
           <Section
             title={t("overview.download")}
             description={t("overview.downloadHint")}
@@ -208,7 +245,12 @@ export default async function QrOverviewPage({
               )}
               {detail(
                 t("overview.shortLink"),
-                <span className="font-mono">{host}</span>,
+                <div className="flex flex-col gap-1">
+                  <span className="break-all font-mono">{host}</span>
+                  <p className="text-meta text-fg-muted">
+                    {t("share.scanHint")}
+                  </p>
+                </div>,
               )}
               {detail(
                 t("overview.code"),
@@ -222,7 +264,8 @@ export default async function QrOverviewPage({
                       href={`/${workspace}/links/${attached._id.toHexString()}`}
                       className="font-mono text-signal hover:underline"
                     >
-                      {qr.attachedLinkKey}
+                      {attached.domain ?? ctx.linkDomain}/
+                      {attached.key ?? attached.urlCode}
                     </Link>
                   ) : (
                     <span className="font-mono">{qr.attachedLinkKey}</span>

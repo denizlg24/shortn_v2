@@ -23,7 +23,7 @@
     "columns": {
       "select": "Select",
       "code": "QR code",
-      "link": "Short link",
+      "link": "QR scan address",
       "destination": "Destination",
       "scans": "Scans",
       "created": "Created"
@@ -31,7 +31,7 @@
     "scans": "{count, plural, one {{formatted} scan} other {{formatted} scans}}",
     "selectRow": "Select {name}",
     "deleteSelected": "Delete selected",
-    "empty": "No QR codes yet. Each code gets its own short link, so you can change where it goes after printing.",
+    "empty": "No QR codes yet. Create a code for print, then add a short link to share online.",
     "emptyFiltered": "No QR codes match these filters.",
     "deleted": "{count, plural, one {# QR code deleted.} other {# QR codes deleted.}}"
   },
@@ -43,7 +43,7 @@
     "edit": "Details"
   },
   "overview": {
-    "created": "QR code created. Download it below, or adjust the design first.",
+    "created": "QR code created. Download it for print, or create a short link below to share online.",
     "saved": "Changes saved.",
     "copy": "Copy short link",
     "copied": "Copied",
@@ -59,25 +59,26 @@
     "never": "Never",
     "details": "Details",
     "destination": "Destination",
-    "shortLink": "Short link",
+    "shortLink": "Scan address",
     "code": "Code",
     "attached": "Attached to link",
     "tags": "Tags",
     "createdAt": "Created",
     "none": "None",
     "delete": "Delete QR code",
-    "deleteHint": "Printed copies stop working."
+    "deleteHint": "Printed copies stop working.",
+    "description": "QR code ready to download and print."
   },
   "form": {
     "newTitle": "New QR code",
-    "newDescription": "Point it at a URL or one of your links, then design it. The destination can change after printing.",
+    "newDescription": "New codes start in black on white. After creating one, you can add a short link to share online.",
     "editDescription": "Where the code goes and how it's filed. The pattern never changes, so printed copies follow.",
     "destinationSection": "Destination",
     "url": "Destination URL",
     "urlHint": "Where a scan takes people.",
     "urlEditHint": "Printed copies follow the new destination on the next scan.",
-    "orLink": "Or use one of your links:",
-    "pickLink": "Choose a link",
+    "orLink": "Or start from an existing link: open it in Links, then choose its QR code tab.",
+    "pickLink": "Browse links",
     "usingLink": "The code opens the link <key>{link}</key>.",
     "opens": "Destination: {url}",
     "attachHint": "It's attached to that link, so you'll find it on the link's QR code tab.",
@@ -94,7 +95,7 @@
     "newTagsHint": "Separate with commas.",
     "applyToLink": "Also update the link <key>{link}</key>",
     "applyToLinkHint": "Copies a new destination or title to the link this code is attached to.",
-    "previewHint": "The preview uses a sample short link; your code gets its own when you create it.",
+    "previewHint": "The preview uses a sample scan address. Your code gets a permanent address when you create it.",
     "create": "Create QR code",
     "save": "Save details",
     "cancel": "Cancel"
@@ -225,5 +226,19 @@
     },
     "caption": "Caption",
     "captionHint": "Optional, up to 64 characters. Captions are included in previews and downloads. Caption colour adjusts for legibility."
+  },
+  "share": {
+    "title": "Share online",
+    "create": "Create short link",
+    "description": "Create a separate short link to share online. It opens the same destination as this QR code; the printed code stays unchanged.",
+    "destination": "Destination: {url}",
+    "attachedHint": "Share this link online. Edit its address from the link settings; printed QR codes keep working.",
+    "edit": "Edit short link",
+    "scanHint": "This permanent address is encoded in the QR code. It stays fixed so printed copies keep working. Use the short link above to share online.",
+    "key": "Short link key",
+    "keyHint": "Your link will be {domain}/ followed by this key. Leave blank to generate one.",
+    "generatedHint": "Your plan includes a generated short link. Custom keys require an upgrade.",
+    "failed": "The short link could not be created. Return to the QR code to check whether a link is already attached, or try again.",
+    "cancel": "Cancel"
   }
 }

@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import type { FormState } from "@/server/actions/link-pages";
 import { useFormSubmit } from "../editor/use-form-submit";
-import { LinkPicker } from "../editor/link-picker";
+import Link from "next/link";
 import { FormActions, FormField, inputClass } from "../page/form";
 import { Section } from "../page/page";
 import {
@@ -154,18 +154,12 @@ export function QrCreateForm({
                 <span className="text-small text-fg-muted">
                   {t("form.orLink")}
                 </span>
-                <LinkPicker
-                  workspace={workspace}
-                  onSelect={setLink}
-                  trigger={
-                    <button
-                      type="button"
-                      className="h-8 rounded-control border border-line-strong bg-field px-3 text-small font-medium hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-signal"
-                    >
-                      {t("form.pickLink")}
-                    </button>
-                  }
-                />
+                <Link
+                  href={`/${workspace}/links`}
+                  className="inline-flex min-h-8 items-center rounded-control border border-line-strong bg-field px-3 text-small font-medium hover:bg-bg-subtle focus-visible:outline-2 focus-visible:outline-signal"
+                >
+                  {t("form.pickLink")}
+                </Link>
               </div>
             </div>
           )}

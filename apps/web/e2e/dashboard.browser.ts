@@ -1059,6 +1059,92 @@ try {
       1,
     );
 
+    const createdQr = await db
+      .collection(physicalNames.qr_codes)
+      .findOne({ workspaceId: workspace._id, title: "Created QR through UI" });
+    assert(createdQr);
+    assert.equal(createdQr.options.dotsOptions.color, "#000000");
+    const scanAddress = createdQr.options.data;
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Copy short link", exact: true })
+        .count(),
+      0,
+    );
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+      );
+      if (captureDir)
+        await page.screenshot({
+          path: `${captureDir}/qr-share-empty-${width}.png`,
+          fullPage: true,
+        });
+    }
+    await page
+      .getByRole("link", { name: "Create short link", exact: true })
+      .click();
+    await page.locator('input[name="key"]').fill(`qr-share-${run}`);
+    await page
+      .getByRole("button", { name: "Create short link", exact: true })
+      .click();
+    await page.waitForURL(`**/qr/${createdQr._id}?saved=1`);
+    const attachedQr = await db
+      .collection(physicalNames.qr_codes)
+      .findOne({ _id: createdQr._id });
+    assert(attachedQr?.attachedLinkId);
+    assert.equal(attachedQr.options.data, scanAddress);
+    await page
+      .getByRole("button", { name: "Copy short link", exact: true })
+      .click();
+    assert.equal(
+      await page.evaluate(() => navigator.clipboard.readText()),
+      `https://shortn.at/qr-share-${run}`,
+    );
+    for (const width of [1440, 390]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert.equal(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth > innerWidth,
+        ),
+        false,
+      );
+      if (captureDir)
+        await page.screenshot({
+          path: `${captureDir}/qr-share-attached-${width}.png`,
+          fullPage: true,
+        });
+    }
+    await page
+      .getByRole("link", { name: "Edit short link", exact: true })
+      .click();
+    await page.locator('input[name="key"]').fill(`qr-renamed-${run}`);
+    await page
+      .getByRole("button", { name: "Save changes", exact: true })
+      .click();
+    await page.waitForURL(`**/links/${attachedQr.attachedLinkId}?saved=1`);
+    await go(`/qr/${createdQr._id}`);
+    await page
+      .getByRole("button", { name: "Copy short link", exact: true })
+      .click();
+    assert.equal(
+      await page.evaluate(() => navigator.clipboard.readText()),
+      `https://shortn.at/qr-renamed-${run}`,
+    );
+    assert.equal(
+      (
+        await db
+          .collection(physicalNames.qr_codes)
+          .findOne({ _id: createdQr._id })
+      )?.options.data,
+      scanAddress,
+    );
+    await page.setViewportSize({ width: 1440, height: 1000 });
+
     await go("/settings/members/invite");
     const invitedEmail = `invited-${run}@example.org`;
     await page.locator('input[name="email"]').fill(invitedEmail);
